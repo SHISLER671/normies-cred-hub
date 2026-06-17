@@ -43,7 +43,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | No | WalletConnect project ID for better mobile/QR wallet support. Falls back to a demo ID. Get one free at https://cloud.walletconnect.com |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | No | WalletConnect project ID |
+| `VENICE_INFERENCE_KEY` | For deeper Horizon insights | Your Venice.ai Inference Key (paid tier recommended) |
 
 Create a `.env.local` file if needed:
 
