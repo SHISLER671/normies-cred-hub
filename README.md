@@ -57,27 +57,23 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id_here
 
 **Production:** https://normies-cred-hub-dashboard.vercel.app
 
+**GitHub:** https://github.com/SHISLER671/normies-cred-hub
+
+The GitHub repository is already connected to Vercel. Pushing commits to the `main` branch will automatically trigger a new production deployment.
+
 ### Vercel
 
 We have a `vercel.json` with security headers, iad1 region, and Next.js framework settings.
 
-#### Option 1: GitHub (recommended for ongoing deploys)
-
-1. Push this repo to GitHub.
-2. Go to [Vercel](https://vercel.com) → **New Project** → Import the GitHub repository.
-3. Vercel auto-detects Next.js.
-4. (Optional) Add `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` in Environment Variables.
-
-#### Option 2: Direct deploy with Vercel CLI (already done once)
+#### Manual / Direct deploys (Vercel CLI)
 
 ```bash
-pnpm install
 pnpm run deploy
 # or
 npx vercel --prod
 ```
 
-Add environment variables via CLI:
+Add or update environment variables via CLI:
 
 ```bash
 npx vercel env add NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
