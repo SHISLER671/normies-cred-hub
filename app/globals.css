@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+:root {
+  color-scheme: dark;
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --card: #171717;
+  --primary: #a855f7;
+  --accent: #f472b6;
+  --border: #27272a;
+  --radius: 0.75rem;
+}
