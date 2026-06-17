@@ -5,9 +5,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { Wallet } from "lucide-react"
 
 /**
- * Custom-styled wallet connect control built on RainbowKit's headless API,
- * so it matches the luxe dark theme. Connecting is OPTIONAL — public views
- * work without a wallet.
+ * Wallet connection is optional for browsing.
+ * Connect to make the dashboard come alive with *your* awakened Normie.
  */
 export function ConnectWallet() {
   return (
@@ -24,9 +23,9 @@ export function ConnectWallet() {
             {(() => {
               if (!connected) {
                 return (
-                  <Button onClick={openConnectModal} size="sm" className="gap-2">
+                  <Button onClick={openConnectModal} size="sm" variant="outline" className="gap-2 uppercase tracking-widest">
                     <Wallet className="size-4" />
-                    Connect Wallet
+                    CONNECT
                   </Button>
                 )
               }
@@ -44,9 +43,9 @@ export function ConnectWallet() {
                   onClick={openAccountModal}
                   size="sm"
                   variant="secondary"
-                  className="gap-2 font-mono"
+                  className="gap-2 font-mono uppercase tracking-widest"
                 >
-                  <span className="size-2 rounded-full bg-chart-5" aria-hidden />
+                  <span className="size-1.5 bg-emerald-400" aria-hidden />
                   {account.displayName}
                 </Button>
               )

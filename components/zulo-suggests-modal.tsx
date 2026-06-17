@@ -27,14 +27,14 @@ export function AgentHorizonModal({ tokenId }: { tokenId: number }) {
       <DialogTrigger>
         <Button 
           size="lg" 
-          className="group w-full sm:w-auto gap-3 bg-gradient-to-r from-violet-600/90 to-fuchsia-600/90 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/20 transition-all duration-200"
+          className="group w-full sm:w-auto gap-3 border border-primary bg-transparent text-primary hover:bg-primary hover:text-background uppercase tracking-[1px]"
         >
           <Sparkles className="size-5 group-hover:rotate-12 transition-transform" />
-          {agentName} Horizon
+          {agentName} HORIZON
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-lg max-h-[90vh] bg-[#111111] border-border">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] bg-popover border-border">
         {/* ... rest of modal stays the same ... */}
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

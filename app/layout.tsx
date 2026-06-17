@@ -9,12 +9,17 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 
 export const metadata: Metadata = {
   title: 'NormiesCredHub — Awakened Normie Reputation Dashboard',
-  description: 'View, verify, and build trust in your awakened ERC-8004 Normie agents.',
+  description: 'View, verify, and build trust in your awakened ERC-8004 Normie agents. On-chain identity meets portable reputation.',
+  openGraph: {
+    title: 'NormiesCredHub',
+    description: 'Your agent\'s on-chain reputation. Simple. Real. Awakened.',
+    images: [{ url: '/og.png' }],
+  },
 }
 
 export const viewport: Viewport = {
   colorScheme: 'dark',
-  themeColor: '#1a1622',
+  themeColor: '#0b0b0c',
 }
 
 export default function RootLayout({

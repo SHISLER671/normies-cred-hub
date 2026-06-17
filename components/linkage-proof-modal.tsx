@@ -61,13 +61,13 @@ export function LinkageProofModal({
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2 uppercase tracking-[1px]">
           <Fingerprint className="size-4" />
-          Prove Identity Linkage
+          PROVE LINKAGE
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md bg-[#111111] border-border">
+      <DialogContent className="sm:max-w-md bg-popover border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Fingerprint className="size-5 text-primary" />

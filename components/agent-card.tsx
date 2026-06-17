@@ -10,20 +10,22 @@ import { ExternalLink, Quote, Sparkles } from "lucide-react"
 export function AgentCard({
   snapshot,
   isLoading,
+  isMyAgent = false,
 }: {
   snapshot?: any
   isLoading?: boolean
+  isMyAgent?: boolean
 }) {
   if (isLoading || !snapshot) {
     return (
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border-2">
         <CardContent className="flex flex-col gap-6 p-6 sm:flex-row">
-          <Skeleton className="aspect-square w-full shrink-0 rounded-xl sm:w-48" />
-          <div className="flex w-full flex-col gap-3">
-            <Skeleton className="h-8 w-40" />
-            <Skeleton className="h-4 w-64" />
-            <Skeleton className="h-20 w-full" />
-            <div className="flex flex-wrap gap-2">
+          <Skeleton className="aspect-square w-full shrink-0 sm:w-[180px]" />
+          <div className="flex w-full flex-col gap-4">
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-16 w-full" />
+            <div className="flex flex-wrap gap-1">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-6 w-20" />
               ))}
@@ -38,49 +40,45 @@ export function AgentCard({
   const tokenId = snapshot.token?.tokenId || snapshot.tokenId || "?"
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden border-2">
       <CardContent className="flex flex-col gap-6 p-6 sm:flex-row">
-        <div className="relative mx-auto w-full max-w-[12rem] shrink-0 sm:mx-0 sm:w-48">
-          <div className="overflow-hidden rounded-xl border border-border bg-secondary">
+        <div className="relative mx-auto w-full max-w-[180px] shrink-0 sm:mx-0 sm:w-[180px]">
+          <div className={`overflow-hidden border-2 bg-black ${isMyAgent ? "border-primary" : "border-border"}`}>
             <img
               src={snapshot.imageUrl || snapshot.token?.image || "/placeholder.svg"}
               alt={`${agentName} pixel portrait`}
-              className="aspect-square w-full"
+              className="aspect-square w-full pixel-frame transition-transform hover:scale-[1.015]"
               crossOrigin="anonymous"
             />
           </div>
-          <Badge className="absolute -bottom-2 left-1/2 -translate-x-1/2 gap-1 bg-primary text-primary-foreground shadow-lg">
-            <Sparkles className="size-3" />
-            Awakened Agent
-          </Badge>
+          <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 border px-3 py-px text-[10px] font-bold tracking-[2px] ${isMyAgent ? "border-primary bg-primary text-background" : "border-primary bg-background text-primary"}`}>
+            {isMyAgent ? "YOURS" : "AWAKENED"}
+          </div>
         </div>
 
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-col gap-5">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-heading text-3xl font-bold tracking-tight text-balance">
-                {agentName}
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 className="font-heading text-4xl tracking-[-2px]">
+                {isMyAgent ? "YOUR" : ""} {agentName}
               </h2>
-              <Badge variant="secondary" className="font-mono">
-                #{tokenId}
-              </Badge>
+              <span className="font-mono text-xl text-muted-foreground">#{tokenId}</span>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Normie #{tokenId} · ERC-8004 Agent
-            </p>
+            <div className="mt-1 text-sm uppercase tracking-[1.5px] text-muted-foreground">
+              {isMyAgent ? "YOUR AWAKENED AGENT" : `NORMIE #${tokenId} • ERC-8004`}
+            </div>
           </div>
 
-          <blockquote className="flex gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-sm italic text-foreground/90">
-            <Quote className="size-4 shrink-0 text-primary" aria-hidden />
-            <span className="text-pretty">{snapshot.agent?.tagline || "An awakened identity on the Normies network."}</span>
+          <blockquote className="border-l-2 border-primary/70 pl-4 text-sm leading-tight text-foreground/90">
+            {isMyAgent && <span className="text-primary font-medium block mb-1 tracking-widest text-[10px]">YOUR AGENT SAYS</span>}
+            {snapshot.agent?.tagline || "An awakened identity on the Normies network."}
           </blockquote>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1">
             {snapshot.traits?.attributes?.slice(0, 8).map((t: any, i: number) => (
-              <Badge key={i} variant="outline" className="font-normal text-xs">
-                <span className="text-muted-foreground">{t.trait_type}:</span>{" "}
-                <span className="text-foreground">{t.value}</span>
-              </Badge>
+              <div key={i} className="border border-border bg-secondary px-2 py-px text-[10px] uppercase tracking-widest text-muted-foreground">
+                {t.trait_type}: <span className="text-foreground">{t.value}</span>
+              </div>
             ))}
           </div>
         </div>

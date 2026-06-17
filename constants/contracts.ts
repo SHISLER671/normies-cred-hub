@@ -28,6 +28,30 @@ export const ETHOS_API_BASE = "https://api.ethos.network/api/v2"
 export const ETHOS_APP_BASE = "https://app.ethos.network"
 export const ETHOS_CLIENT_HEADER = "NormiesCredHub/1.2"
 
+/** Main Normies ERC-721 collection on Ethereum */
+export const NORMIES_NFT = "0x9eb6e2025b64f340691e424b7fe7022ffde12438" as const
+
+/** Minimal ERC721Enumerable for discovering owned tokens (balance + tokenOfOwnerByIndex) */
+export const ERC721_ENUMERABLE_ABI = [
+  {
+    inputs: [{ name: "owner", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "index", type: "uint256" },
+    ],
+    name: "tokenOfOwnerByIndex",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const
+
 /** Minimal read-only ABI fragments for ERC-8004 registries. */
 export const IDENTITY_REGISTRY_READ_ABI = [
   {

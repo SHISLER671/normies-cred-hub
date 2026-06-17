@@ -8,7 +8,7 @@ import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { useErc8004 } from "@/hooks/use-erc8004"
 import { Boxes, CircleCheck, Clock, ExternalLink } from "lucide-react"
 
-export function Erc8004Card({ agentId }: { agentId: number }) {
+export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; isMyAgent?: boolean }) {
   const { agentURI, registeredOwner, isLoading, isError, verified } = useErc8004(agentId)
 
   const isRegistered = verified && (agentURI || registeredOwner)
@@ -16,58 +16,38 @@ export function Erc8004Card({ agentId }: { agentId: number }) {
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2">
-            <Boxes className="size-5 text-primary" />
-            ERC-8004 Identity
-          </CardTitle>
-          <Badge variant="outline" className="font-mono text-xs">
-            Ethereum
-          </Badge>
-        </div>
-        <CardDescription>On-chain trustless agent registration</CardDescription>
+        <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-widest">
+          <Boxes className="size-4" /> {isMyAgent ? "YOUR ON-CHAIN IDENTITY" : "ERC-8004"}
+        </CardTitle>
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-4 text-sm">
         {isLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : isRegistered ? (
-          <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-5">
+          <div className="border border-emerald-500/30 bg-card px-4 py-4">
             <div className="flex items-center gap-3">
-              <CircleCheck className="size-6 text-green-400" />
+              <CircleCheck className="size-4 text-emerald-400" />
               <div>
-                <p className="font-medium text-green-400">Registered On-Chain</p>
-                <p className="text-xs text-green-400/80">Agent #{agentId} is officially recognized</p>
+                <div className="font-bold text-emerald-400">REGISTERED ON-CHAIN</div>
+                <div className="text-xs text-emerald-400/70">AGENT #{agentId} • OFFICIALLY RECOGNIZED</div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+          <div className="border border-amber-500/30 bg-card px-4 py-4">
             <div className="flex items-center gap-3">
-              <Clock className="size-6 text-amber-400" />
+              <Clock className="size-4 text-amber-400" />
               <div>
-                <p className="font-medium">On-Chain Status Pending</p>
-                <p className="text-xs text-amber-400/80 mt-1">
-                  Zulo is confirmed active via Normies API + OpenSea.<br />
-                  The registry read is not returning data yet for this agent.
-                </p>
-                <p className="text-xs text-amber-400/80 mt-2">
-                  This is common for some awakened agents even after weeks.
-                </p>
+                <div className="font-bold text-amber-400">PENDING ON-CHAIN</div>
+                <div className="text-xs text-amber-400/70 mt-0.5 leading-tight">LIVE ON NORMIES + OPENSEA.<br />REGISTRY LAG IS COMMON.</div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="mt-auto text-xs text-muted-foreground">
-          Registry Contract:{" "}
-          <a 
-            href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} 
-            target="_blank" 
-            className="hover:text-primary font-mono"
-          >
-            {shortenAddress(ERC8004.IDENTITY_REGISTRY)}
-          </a>
+        <div className="mt-auto text-[10px] uppercase tracking-widest text-muted-foreground">
+          REGISTRY <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
         </div>
       </CardContent>
     </Card>

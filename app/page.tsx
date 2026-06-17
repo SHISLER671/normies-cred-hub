@@ -8,39 +8,43 @@ export default function Page() {
     <div className="min-h-dvh">
       <SiteHeader />
 
-      <main className="mx-auto max-w-6xl px-4 py-10">
-        <section className="mb-10 flex flex-col items-start gap-4">
-          <Badge variant="outline" className="gap-1.5 border-primary/30 text-primary">
-            <span className="size-1.5 rounded-full bg-primary" aria-hidden />
-            Live data · Normies + Ethos + ERC-8004
-          </Badge>
-          <h1 className="font-heading text-4xl font-bold tracking-tight text-balance sm:text-5xl">
-            Reputation for awakened Normie agents
+      <main className="mx-auto max-w-6xl px-4 py-12">
+        <section className="mb-12 flex flex-col items-start gap-6">
+          <div className="inline-flex items-center gap-2 border border-border px-3 py-1 text-xs uppercase tracking-[3px] text-primary awakened">
+            <span className="size-1.5 bg-primary" />
+            AWAKENED • LIVE
+          </div>
+          <h1 className="font-heading text-[42px] leading-[0.9] tracking-[-3.5px] text-balance sm:text-6xl sm:tracking-[-4.5px]">
+            REPUTATION<br />FOR AWAKENED<br />NORMIES
           </h1>
-          <p className="max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-            NormiesCredHub unifies an agent&apos;s on-chain identity, its owner&apos;s Ethos
-            credibility, and its ERC-8004 registration into a single trust dashboard. Explore the
-            featured agent below or look up any Normie by token ID.
+          <p className="max-w-xl text-lg text-muted-foreground">
+            On-chain identity. Ethos credibility. ERC-8004 truth.<br />
+            Simple data. Real signal.
           </p>
+          <p className="text-xs text-primary border border-primary px-2 py-1 inline-block mt-2">
+            CONNECT TO AWAKEN THE DASHBOARD WITH YOUR NORMIE
+          </p>
+        </section>
+
+        {/* Why on-chain reputation matters — raw & direct */}
+        <section className="mb-12 border border-border p-6 text-sm leading-tight text-muted-foreground">
+          <div className="mb-4 text-xs uppercase tracking-[3px] text-foreground">WHY THIS MATTERS</div>
+          <div className="space-y-3">
+            <p>Your agent is not just pixels. It has an on-chain identity that follows it everywhere.</p>
+            <p>Ethos score + ERC-8004 registration = portable reputation. The higher it is, the more doors open.</p>
+            <p>Bad actors get filtered. Good agents get trusted. This is how agents will actually live on-chain.</p>
+            <p className="text-foreground">Keep your signal clean. Everything compounds.</p>
+          </div>
         </section>
 
         <Dashboard />
 
-        <footer className="mt-16 flex flex-col gap-3 border-t border-border pt-8 text-sm text-muted-foreground">
-          <div className="flex items-start gap-2">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-            <p className="text-pretty">
-              <span className="font-medium text-foreground">Safety first.</span> NormiesCredHub is
-              read-only. It never requests transactions, transfers, or token approvals. The only
-              wallet action offered is a gas-free message signature used purely to prove identity
-              linkage.
-            </p>
+        <footer className="mt-20 border-t border-border pt-8 text-xs text-muted-foreground">
+          <div className="max-w-md">
+            READ-ONLY. NO TRADES. NO APPROVALS.<br />
+            ONLY A GAS-FREE SIGNATURE TO PROVE YOU ARE REAL.<br />
+            DATA FROM NORMIES • ETHOS • ERC-8004. WE ARE AWAKENED.
           </div>
-          <p className="text-xs">
-            Data sourced live from the public Normies API, the Ethos Network API, and the ERC-8004
-            Identity Registry on Ethereum. Reputation scores are informational and not financial
-            advice.
-          </p>
         </footer>
       </main>
     </div>

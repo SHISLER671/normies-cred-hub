@@ -5,9 +5,14 @@ const nextConfig = {
     root: process.cwd(),
   },
 
-  // Images are served from external APIs
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.normies.art',
+        pathname: '/normie/**',
+      },
+    ],
   },
 }
 
