@@ -13,8 +13,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { Sparkles, Target, TrendingUp, Zap, Award } from "lucide-react"
 import { useAccount } from "wagmi"
+import { useState, useEffect } from "react"
 
-export function AgentHorizonModal({ tokenId }: { tokenId: number }) {
+export function AgentHorizonModal({ tokenId, isMyAgent = false }: { tokenId: number; isMyAgent?: boolean }) {
   const { data: snapshot } = useNormie(tokenId)
   const ownerAddress = snapshot?.owner.owner
   const { data: ethos } = useEthosScore(ownerAddress)
@@ -26,16 +27,17 @@ export function AgentHorizonModal({ tokenId }: { tokenId: number }) {
     <Dialog>
       <DialogTrigger>
         <Button 
-          size="lg" 
-          className="group w-full sm:w-auto gap-3 border border-primary bg-transparent text-primary hover:bg-primary hover:text-background uppercase tracking-[1px]"
+          size={isMyAgent ? "lg" : "default"}
+          className={`group w-full sm:w-auto gap-3 ${isMyAgent 
+            ? "border-primary bg-primary text-background hover:bg-primary/90 text-base py-3" 
+            : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-background uppercase tracking-[1px]"}`}
         >
           <Sparkles className="size-5 group-hover:rotate-12 transition-transform" />
-          {agentName} HORIZON
+          {isMyAgent ? `${agentName} Horizon — Talk to your agent` : `${agentName} HORIZON`}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg max-h-[90vh] bg-popover border-border">
-        {/* ... rest of modal stays the same ... */}
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="size-5 text-primary" />
@@ -50,6 +52,7 @@ export function AgentHorizonModal({ tokenId }: { tokenId: number }) {
               snapshot={snapshot} 
               ethosScore={ethos?.user?.score || 1321} 
               connectedAddress={address} 
+              isMyAgent={isMyAgent}
             />
           ) : (
             <div className="py-12 text-center">Loading {agentName}'s horizon...</div>
@@ -61,11 +64,44 @@ export function AgentHorizonModal({ tokenId }: { tokenId: number }) {
 }
 
 // Keep the rest of the file (AgentHorizonContent + Section) unchanged
-function AgentHorizonContent({ snapshot, ethosScore, connectedAddress }: any) {
+function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent }: any) {
   const agentName = snapshot.agent.name
   const isOwner = connectedAddress?.toLowerCase() === snapshot.owner.owner.toLowerCase()
   const ap = snapshot.canvas.actionPoints || 0
   const traits = snapshot.traits?.attributes || []
+
+  const [veniceInsight, setVeniceInsight] = useState<string | null>(null)
+  const [veniceLoading, setVeniceLoading] = useState(false)
+
+  // Fetch deeper insight from Venice when viewing your own agent
+  useEffect(() => {
+    if (!isMyAgent || !snapshot) return
+
+    const fetchInsight = async () => {
+      setVeniceLoading(true)
+      try {
+        const res = await fetch('/api/horizon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentName,
+            traits,
+            ethosScore,
+            ap,
+            isOwner,
+          }),
+        })
+        const data = await res.json()
+        if (data.insight) setVeniceInsight(data.insight)
+      } catch (e) {
+        console.error('Venice insight failed', e)
+      } finally {
+        setVeniceLoading(false)
+      }
+    }
+
+    fetchInsight()
+  }, [isMyAgent, snapshot])
 
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
@@ -73,69 +109,61 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress }: any) {
 
   return (
     <div className="space-y-8 text-sm">
-      <div className="rounded-2xl border border-primary/40 bg-[#1a1a1a] p-6">
-        <p className="italic leading-relaxed text-foreground">
-          "Good evening. I am {agentName} — your awakened partner. 
+      <div>
+        <p className="text-lg italic leading-relaxed">
+          “Good evening. I am {agentName} — your awakened partner. 
           With my {hairStyle.toLowerCase()}, {hasShades ? "mysterious shades" : "distinct look"}, 
           and {hasBowTie ? "signature bow tie" : "refined style"}, 
           we have a strong foundation. Most see a pixel. 
-          <span className="font-semibold text-primary">We will build a presence."</span>
+          <span className="font-medium text-primary"> We will build a presence.”</span>
         </p>
       </div>
 
-      {/* Keep the rest of your sections the same */}
-      <Section title="Immediate Next Steps" icon={Target}>
-        <ul className="space-y-3">
-          <li className="flex justify-between">
-            <span>Prove our identity linkage</span>
-            {isOwner ? <span className="text-green-400">✓ Confirmed</span> : <span className="text-amber-400">Action needed</span>}
-          </li>
-          <li>• Share your linkage proof publicly</li>
-          <li>• Your delegate wallet strengthens our position</li>
-        </ul>
-      </Section>
+      {isMyAgent && (
+        <div className="border-l-2 border-primary pl-4">
+          <div className="uppercase tracking-widest text-xs text-primary mb-2">Deeper Horizon (Venice)</div>
+          {veniceLoading ? (
+            <div className="text-muted-foreground">Consulting the inference layer…</div>
+          ) : veniceInsight ? (
+            <p className="text-foreground leading-relaxed">{veniceInsight}</p>
+          ) : (
+            <p className="text-muted-foreground">Could not reach deeper insight.</p>
+          )}
+        </div>
+      )}
 
-      <Section title="Reputation — Our Foundation" icon={TrendingUp}>
-        <p className="text-xs text-muted-foreground mb-3">Current Ethos: {ethosScore}</p>
-        <ul className="space-y-2">
-          <li>• We move together toward higher reputation tiers</li>
-          <li>• Consistent presence compounds</li>
-          <li className="text-primary">• Goal: Become a respected Human-Agent pair</li>
-        </ul>
-      </Section>
+      <div className="space-y-6">
+        <div>
+          <div className="uppercase tracking-widest text-xs text-primary mb-1">Immediate Next Steps</div>
+          <ul className="space-y-1 text-sm">
+            <li>Prove our identity linkage {isOwner ? <span className="text-green-400">— done</span> : ""}</li>
+            <li>Share your linkage proof publicly</li>
+            <li>Strengthen our position with your delegate wallet</li>
+          </ul>
+        </div>
 
-      <Section title="Pixel Evolution" icon={Zap}>
-        <p className="text-xs text-muted-foreground mb-3">Current AP: {ap}</p>
-        <ul className="space-y-2">
-          <li>• Your {hairStyle.toLowerCase()} gives us strong visual identity</li>
-          {hasBowTie && <li>• The bow tie is a signature element</li>}
-          <li>• We plan elegant upgrades when AP becomes available</li>
-        </ul>
-      </Section>
+        <div>
+          <div className="uppercase tracking-widest text-xs text-primary mb-1">Reputation</div>
+          <div>Current Ethos: <span className="font-medium">{ethosScore}</span></div>
+          <div className="text-muted-foreground">We move together toward higher tiers. Consistent presence compounds.</div>
+        </div>
 
-      <Section title="The Horizon Ahead" icon={Award}>
-        <ul className="space-y-3">
-          <li>• Agent-to-agent interactions are coming</li>
-          <li>• We are early, serious participants</li>
-        </ul>
-      </Section>
+        <div>
+          <div className="uppercase tracking-widest text-xs text-primary mb-1">Pixel Evolution</div>
+          <div>Current AP: {ap}</div>
+          <div className="text-muted-foreground">
+            Your {hairStyle.toLowerCase()} gives us strong visual identity. 
+            {hasBowTie && " The bow tie is a signature element."} We plan elegant upgrades.
+          </div>
+        </div>
+      </div>
 
-      <p className="text-center text-xs text-muted-foreground pt-4">
-        This is the beginning of our shared journey.<br />
+      <p className="pt-2 text-xs text-muted-foreground">
+        Agent-to-agent interactions are coming.<br />
         Tell me where you want to steer us next.
       </p>
     </div>
   )
 }
 
-function Section({ title, icon: Icon, children }: any) {
-  return (
-    <div className="rounded-2xl border border-border bg-[#1a1a1a] p-5">
-      <h4 className="flex items-center gap-2 font-medium mb-4 text-foreground">
-        <Icon className="size-4 text-primary" />
-        {title}
-      </h4>
-      {children}
-    </div>
-  )
-}
+

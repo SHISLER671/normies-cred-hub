@@ -65,7 +65,7 @@ function Stat({
   value: string | number
 }) {
   return (
-    <div className="flex items-center gap-2 bg-card px-3 py-3">
+    <div className="flex items-center gap-2 px-3 py-3">
       <Icon className="size-3.5 text-muted-foreground" aria-hidden />
       <div className="flex flex-col leading-none text-sm">
         <span className="font-medium data tabular-nums">{value}</span>
@@ -137,7 +137,7 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-px border border-border bg-border">
+      <div className="grid grid-cols-2 gap-1">
         <Stat icon={TrendingUp} label="XP" value={user.xpTotal.toLocaleString()} />
         <Stat icon={Users} label="INFLUENCE" value={`${Math.round(user.influenceFactor)}`} />
         <Stat icon={ThumbsUp} label="REVIEWS" value={reviews?.positive ?? 0} />

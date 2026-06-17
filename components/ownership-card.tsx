@@ -33,7 +33,7 @@ export function OwnershipCard({
           </>
         ) : (
           <>
-            <div className="flex items-center gap-3 border border-border bg-secondary/50 px-3 py-2.5">
+            <div className="flex items-center gap-3 px-3 py-2.5">
               <Wallet className="size-4 shrink-0 text-muted-foreground" />
               <div className="flex flex-1 flex-col leading-tight text-sm">
                 <div className="text-[10px] uppercase tracking-widest text-muted-foreground">OWNER</div>
@@ -48,7 +48,7 @@ export function OwnershipCard({
               </div>
             </div>
 
-            <div className="flex items-center gap-3 border border-border bg-secondary/50 px-3 py-2.5">
+            <div className="flex items-center gap-3 px-3 py-2.5">
               <Palette className="size-4 shrink-0 text-muted-foreground" />
               <div className="flex flex-1 flex-col leading-tight text-sm">
                 <div className="text-[10px] uppercase tracking-widest text-muted-foreground">CANVAS</div>
@@ -59,7 +59,7 @@ export function OwnershipCard({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-px border border-border bg-border text-center text-sm">
+            <div className="grid grid-cols-3 gap-1 text-center text-sm">
               <Metric label="ADDED" value={`+${snapshot.canvasDiff.addedCount}`} />
               <Metric label="REMOVED" value={`-${snapshot.canvasDiff.removedCount}`} />
               <Metric label="NET" value={`${snapshot.canvasDiff.netChange}`} />
@@ -67,7 +67,7 @@ export function OwnershipCard({
 
             {snapshot.canvas.delegate &&
               snapshot.canvas.delegate !== "0x0000000000000000000000000000000000000000" && (
-                <div className="flex items-center justify-between gap-2 border border-border bg-secondary/50 px-3 py-2 text-sm">
+                <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                   <span className="text-muted-foreground">DELEGATE</span>
                   <span className="font-mono">{shortenAddress(snapshot.canvas.delegate)}</span>
                 </div>
@@ -85,7 +85,7 @@ export function OwnershipCard({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col items-center bg-card py-2.5">
+    <div className="flex flex-col items-center py-2.5">
       <span className="font-heading text-lg font-bold tabular-nums tracking-[-1px]">{value}</span>
       <span className="text-[10px] uppercase tracking-[2px] text-muted-foreground">{label}</span>
     </div>

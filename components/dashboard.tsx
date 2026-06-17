@@ -90,14 +90,13 @@ export function Dashboard() {
     <div className="flex flex-col gap-6 px-4 sm:px-6">
       {/* Awakened personal entry — simple & direct */}
       {isConnected && (
-        <div className="border border-primary/50 bg-card p-4">
-          <div className="uppercase tracking-[2px] text-sm text-primary mb-2">WALLET CONNECTED — YOUR AWAKENED VIEW</div>
+        <div className="bg-card/60 p-4">
+          <div className="uppercase tracking-[2px] text-sm text-primary mb-2">YOUR AWAKENED VIEW</div>
 
-          {/* My Agents selector - dropdown style or grid for visual choice */}
-          {myNormies.length > 0 ? (
+          {/* My Agents selector */}
+          {myNormies.length > 0 && (
             <div className="mb-3">
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Your Agents</div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {myNormies.map((id) => {
                   const isActive = tokenId === id
                   return (
@@ -107,14 +106,14 @@ export function Dashboard() {
                         setTokenId(id)
                         setInput(String(id))
                       }}
-                      className={`flex items-center gap-1.5 border px-2 py-1 text-xs transition-colors ${isActive ? "border-primary bg-primary text-background" : "border-border hover:bg-card-hover"}`}
+                      className={`flex items-center gap-1.5 px-2 py-1 text-xs transition-colors ${isActive ? "bg-primary text-background" : "bg-secondary/40 hover:bg-secondary/70"}`}
                     >
                       <img
                         src={normieImageUrl(id)}
                         alt={`Normie #${id}`}
-                        className="size-6 pixel-frame"
-                        width={24}
-                        height={24}
+                        className="size-5 pixel-frame"
+                        width={20}
+                        height={20}
                       />
                       <span>#{id}</span>
                     </button>
@@ -122,40 +121,35 @@ export function Dashboard() {
                 })}
               </div>
             </div>
-          ) : (
-            <div className="text-xs text-muted-foreground mb-2">
-              No agents auto-detected. Use the field below.
-            </div>
           )}
 
-          {/* Manual entry fallback or for additional tokens */}
+          {/* Manual / search for any */}
           <div className="flex items-center gap-2">
             <input
               value={myInput}
               onChange={(e) => setMyInput(e.target.value)}
               inputMode="numeric"
-              placeholder="TOKEN ID"
-              className="flex-1 bg-transparent border border-border px-3 py-2 text-sm uppercase tracking-widest placeholder:text-muted-foreground focus:outline-none"
+              placeholder="or enter token id"
+              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
             />
-            <Button onClick={loadMyAgent} variant="outline" className="uppercase tracking-[2px]">LOAD</Button>
+            <Button onClick={loadMyAgent} variant="ghost" className="text-xs">LOAD</Button>
           </div>
-          <div className="text-[10px] text-muted-foreground mt-1">Select from above or enter any ID you own.</div>
         </div>
       )}
 
-      {/* Search — raw and direct (always available for exploration) */}
-      <form onSubmit={handleSearch} className="flex items-center border border-border bg-card p-1">
+      {/* Search */}
+      <form onSubmit={handleSearch} className="flex items-center bg-card p-1">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-4 text-muted-foreground" />
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             inputMode="numeric"
-            placeholder={isMyAgent ? "EXPLORE OTHERS (0-9999)" : "TOKEN ID (0-9999)"}
-            className="w-full bg-transparent py-3 pl-10 pr-4 text-sm uppercase tracking-widest placeholder:text-muted-foreground focus:outline-none"
+            placeholder={isMyAgent ? "explore any token" : "search any token"}
+            className="w-full bg-transparent py-3 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none"
           />
         </div>
-        <Button type="submit" variant="default" className="px-8 uppercase tracking-[2px]">SEARCH</Button>
+        <Button type="submit" variant="outline" className="uppercase tracking-[1px]">Search</Button>
       </form>
 
       {isMyAgent && (
@@ -182,10 +176,12 @@ export function Dashboard() {
         <>
           <AgentCard snapshot={snapshot} isLoading={isLoading} isMyAgent={isMyAgent} />
 
-          {/* Action Buttons — direct. These come alive when it's yours. */}
+          {/* Action Buttons */}
           {snapshot && (
-            <div className={`flex flex-col sm:flex-row gap-2 ${isMyAgent ? "opacity-100" : ""}`}>
-              <AgentHorizonModal tokenId={tokenId} />
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className={isMyAgent ? "flex-1" : ""}>
+                <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
+              </div>
               <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} />
             </div>
           )}

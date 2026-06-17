@@ -18,7 +18,7 @@ export function AgentCard({
 }) {
   if (isLoading || !snapshot) {
     return (
-      <Card className="overflow-hidden border-2">
+      <Card className="overflow-hidden">
         <CardContent className="flex flex-col gap-6 p-6 sm:flex-row">
           <Skeleton className="aspect-square w-full shrink-0 sm:w-[180px]" />
           <div className="flex w-full flex-col gap-4">
@@ -40,10 +40,10 @@ export function AgentCard({
   const tokenId = snapshot.token?.tokenId || snapshot.tokenId || "?"
 
   return (
-    <Card className="overflow-hidden border-2">
+    <Card className="overflow-hidden">
       <CardContent className="flex flex-col gap-6 p-6 sm:flex-row">
         <div className="relative mx-auto w-full max-w-[180px] shrink-0 sm:mx-0 sm:w-[180px]">
-          <div className={`overflow-hidden border-2 bg-black ${isMyAgent ? "border-primary" : "border-border"}`}>
+          <div className={`overflow-hidden border bg-black ${isMyAgent ? "border-primary" : "border-border/60"}`}>
             <img
               src={snapshot.imageUrl || snapshot.token?.image || "/placeholder.svg"}
               alt={`${agentName} pixel portrait`}
@@ -76,7 +76,7 @@ export function AgentCard({
 
           <div className="flex flex-wrap gap-1">
             {snapshot.traits?.attributes?.slice(0, 8).map((t: any, i: number) => (
-              <div key={i} className="border border-border bg-secondary px-2 py-px text-[10px] uppercase tracking-widest text-muted-foreground">
+              <div key={i} className="bg-secondary/60 px-2 py-px text-[10px] uppercase tracking-widest text-muted-foreground">
                 {t.trait_type}: <span className="text-foreground">{t.value}</span>
               </div>
             ))}

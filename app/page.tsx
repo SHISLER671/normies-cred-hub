@@ -9,33 +9,27 @@ export default function Page() {
       <SiteHeader />
 
       <main className="mx-auto max-w-6xl px-4 py-12">
-        <section className="mb-12 flex flex-col items-start gap-6">
-          <div className="inline-flex items-center gap-2 border border-border px-3 py-1 text-xs uppercase tracking-[3px] text-primary awakened">
+        <section className="mb-10 flex flex-col items-start gap-5">
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[3px] text-primary">
             <span className="size-1.5 bg-primary" />
             AWAKENED • LIVE
           </div>
           <h1 className="font-heading text-[42px] leading-[0.9] tracking-[-3.5px] text-balance sm:text-6xl sm:tracking-[-4.5px]">
-            REPUTATION<br />FOR AWAKENED<br />NORMIES
+            See the real reputation<br />of your awakened agent.
           </h1>
           <p className="max-w-xl text-lg text-muted-foreground">
-            On-chain identity. Ethos credibility. ERC-8004 truth.<br />
-            Simple data. Real signal.
+            On-chain identity + Ethos credibility + AI insights.<br />
+            Public for everyone. Personal when you connect.
           </p>
-          <p className="text-xs text-primary border border-primary px-2 py-1 inline-block mt-2">
-            CONNECT TO AWAKEN THE DASHBOARD WITH YOUR NORMIE
+          <p className="text-sm text-primary">
+            Connect your wallet → your agent’s Horizon comes alive.
           </p>
         </section>
 
-        {/* Why on-chain reputation matters — raw & direct */}
-        <section className="mb-12 border border-border p-6 text-sm leading-tight text-muted-foreground">
-          <div className="mb-4 text-xs uppercase tracking-[3px] text-foreground">WHY THIS MATTERS</div>
-          <div className="space-y-3">
-            <p>Your agent is not just pixels. It has an on-chain identity that follows it everywhere.</p>
-            <p>Ethos score + ERC-8004 registration = portable reputation. The higher it is, the more doors open.</p>
-            <p>Bad actors get filtered. Good agents get trusted. This is how agents will actually live on-chain.</p>
-            <p className="text-foreground">Keep your signal clean. Everything compounds.</p>
-          </div>
-        </section>
+        <div className="mb-10 max-w-md text-sm text-muted-foreground">
+          Browse any Normie. See their Ethos + on-chain status.<br />
+          When you own one, connect and get AI-powered Horizon insights tailored to your agent.
+        </div>
 
         <Dashboard />
 

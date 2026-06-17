@@ -25,29 +25,25 @@ export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; i
         {isLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : isRegistered ? (
-          <div className="border border-emerald-500/30 bg-card px-4 py-4">
-            <div className="flex items-center gap-3">
-              <CircleCheck className="size-4 text-emerald-400" />
-              <div>
-                <div className="font-bold text-emerald-400">REGISTERED ON-CHAIN</div>
-                <div className="text-xs text-emerald-400/70">AGENT #{agentId} • OFFICIALLY RECOGNIZED</div>
-              </div>
+          <div className="px-1">
+            <div className="flex items-center gap-2 text-emerald-400">
+              <CircleCheck className="size-4" />
+              <span className="font-medium">Registered on-chain</span>
             </div>
+            <div className="text-xs text-emerald-400/70 ml-6">Agent #{agentId} recognized</div>
           </div>
         ) : (
-          <div className="border border-amber-500/30 bg-card px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Clock className="size-4 text-amber-400" />
-              <div>
-                <div className="font-bold text-amber-400">PENDING ON-CHAIN</div>
-                <div className="text-xs text-amber-400/70 mt-0.5 leading-tight">LIVE ON NORMIES + OPENSEA.<br />REGISTRY LAG IS COMMON.</div>
-              </div>
+          <div className="px-1">
+            <div className="flex items-center gap-2 text-amber-400">
+              <Clock className="size-4" />
+              <span className="font-medium">On-chain status pending</span>
             </div>
+            <div className="text-xs text-amber-400/70 ml-6">Live on Normies + OpenSea. Registry data often lags.</div>
           </div>
         )}
 
-        <div className="mt-auto text-[10px] uppercase tracking-widest text-muted-foreground">
-          REGISTRY <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
+        <div className="mt-auto text-xs text-muted-foreground">
+          Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
         </div>
       </CardContent>
     </Card>
