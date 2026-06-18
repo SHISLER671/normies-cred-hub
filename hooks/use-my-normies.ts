@@ -44,7 +44,7 @@ export function useMyNormies(owner?: string) {
 
                 ids.push(Number(tokenId))
               } catch {
-                // Silently skip individual tokens (common with delegations or RPC hiccups)
+                // expected — some vaults/owners have balanceOf > 0 but tokenOfOwnerByIndex reverts (contract implementation quirk)
               }
             }
             return ids
@@ -93,8 +93,8 @@ export function useMyNormies(owner?: string) {
             const vaultTokens = await fetchTokensFor(vaultAddr)
             delegatedIds.push(...vaultTokens)
           }
-        } catch (delegateErr) {
-          console.warn("[useMyNormies] Failed to fetch Delegate.xyz delegations", delegateErr)
+        } catch {
+          // Silently ignore delegation registry failures (common on public RPCs)
         }
 
         // Merge + deduplicate
