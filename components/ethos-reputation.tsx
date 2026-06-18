@@ -128,6 +128,12 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
   return (
     <>
       <div className="flex flex-col items-center gap-2">
+        {user.username && (
+          <div className="text-primary font-bold">@ {user.username}</div>
+        )}
+        {user.displayName && !user.username && (
+          <div className="text-primary font-bold">{user.displayName}</div>
+        )}
         <ScoreArc score={user.score} />
         <div className={cn("border px-3 py-0.5 text-sm font-bold tracking-[1px]", meta.className)}>
           {meta.level.toUpperCase()}
@@ -145,12 +151,12 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
       </div>
 
       <a
-        href={user.links.scoreBreakdown}
+        href={user.username ? `https://app.ethos.network/profile/x/${user.username}` : user.links.scoreBreakdown}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-xs uppercase tracking-widest hover:bg-primary hover:text-background"
       >
-        FULL BREAKDOWN <ExternalLink className="size-3" />
+        {user.username ? 'VIEW ON ETHOS' : 'FULL BREAKDOWN'} <ExternalLink className="size-3" />
       </a>
     </>
   )
@@ -165,7 +171,7 @@ function EthosFallback({ address }: { address: string }) {
         <div className="text-xs text-muted-foreground mt-1">COULD NOT LOAD ETHOS DATA</div>
       </div>
       <a
-        href={`https://app.ethos.network/profile/${address}`}
+        href={`https://app.ethos.network/profile/x/${address}`}
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs uppercase tracking-widest text-primary hover:underline"

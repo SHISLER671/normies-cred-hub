@@ -27,3 +27,18 @@ export async function fetchEthosScore(address: string): Promise<EthosScoreResult
     level: user ? getEthosLevel(user.score) : null,
   }
 }
+
+export async function fetchEthosByUsername(username: string): Promise<EthosUser | null> {
+  const res = await fetch("/api/ethos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Ethos API error (${res.status})`)
+  }
+
+  const data = (await res.json()) as { user: EthosUser | null }
+  return data.user || null
+}

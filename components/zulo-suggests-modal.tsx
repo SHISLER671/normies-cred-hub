@@ -66,42 +66,38 @@ export function AgentHorizonModal({ tokenId, isMyAgent = false }: { tokenId: num
 // Keep the rest of the file (AgentHorizonContent + Section) unchanged
 function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent }: any) {
   const agentName = snapshot.agent.name
-  const isOwner = connectedAddress?.toLowerCase() === snapshot.owner.owner.toLowerCase()
+  const ownerAddr = snapshot.owner.owner.toLowerCase()
+  const delegate = snapshot.canvas?.delegate
+  const isController = connectedAddress?.toLowerCase() === ownerAddr ||
+    (!!delegate && delegate !== '0x0000000000000000000000000000000000000000' && connectedAddress?.toLowerCase() === delegate.toLowerCase())
   const ap = snapshot.canvas.actionPoints || 0
   const traits = snapshot.traits?.attributes || []
 
   const [veniceInsight, setVeniceInsight] = useState<string | null>(null)
   const [veniceLoading, setVeniceLoading] = useState(false)
 
-  // Fetch deeper insight from Venice when viewing your own agent
-  useEffect(() => {
-    if (!isMyAgent || !snapshot) return
-
-    const fetchInsight = async () => {
-      setVeniceLoading(true)
-      try {
-        const res = await fetch('/api/horizon', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            agentName,
-            traits,
-            ethosScore,
-            ap,
-            isOwner,
-          }),
-        })
-        const data = await res.json()
-        if (data.insight) setVeniceInsight(data.insight)
-      } catch (e) {
-        console.error('Venice insight failed', e)
-      } finally {
-        setVeniceLoading(false)
-      }
+  const fetchVeniceInsight = async () => {
+    setVeniceLoading(true)
+    try {
+      const res = await fetch('/api/horizon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agentName,
+          traits,
+          ethosScore,
+          ap,
+          isOwner: isController,
+        }),
+      })
+      const data = await res.json()
+      if (data.insight) setVeniceInsight(data.insight)
+    } catch (e) {
+      console.error('Venice insight failed', e)
+    } finally {
+      setVeniceLoading(false)
     }
-
-    fetchInsight()
-  }, [isMyAgent, snapshot])
+  }
 
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
@@ -119,24 +115,25 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
         </p>
       </div>
 
-      {isMyAgent && (
-        <div className="border-l-2 border-primary pl-4">
-          <div className="uppercase tracking-widest text-xs text-primary mb-2">Deeper Horizon (Venice)</div>
-          {veniceLoading ? (
-            <div className="text-muted-foreground">Consulting the inference layer…</div>
-          ) : veniceInsight ? (
-            <p className="text-foreground leading-relaxed">{veniceInsight}</p>
-          ) : (
-            <p className="text-muted-foreground">Could not reach deeper insight.</p>
-          )}
+      <div className="border-l-2 border-primary pl-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (Venice bonus)</div>
+          <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-[10px] uppercase tracking-widest">
+            {veniceLoading ? 'Pinging...' : 'Enhance'}
+          </Button>
         </div>
-      )}
+        {veniceInsight ? (
+          <p className="text-foreground leading-relaxed">{veniceInsight}</p>
+        ) : (
+          <p className="text-muted-foreground text-xs">Click Enhance for AI-augmented insights on top of the Normies data.</p>
+        )}
+      </div>
 
       <div className="space-y-6">
         <div>
           <div className="uppercase tracking-widest text-xs text-primary mb-1">Immediate Next Steps</div>
           <ul className="space-y-1 text-sm">
-            <li>Prove our identity linkage {isOwner ? <span className="text-green-400">— done</span> : ""}</li>
+            <li>Prove our identity linkage {isController ? <span className="text-green-400">— done</span> : ""}</li>
             <li>Share your linkage proof publicly</li>
             <li>Strengthen our position with your delegate wallet</li>
           </ul>

@@ -11,10 +11,12 @@ export function AgentCard({
   snapshot,
   isLoading,
   isMyAgent = false,
+  ownerEthosUsername,
 }: {
   snapshot?: any
   isLoading?: boolean
   isMyAgent?: boolean
+  ownerEthosUsername?: string | null
 }) {
   if (isLoading || !snapshot) {
     return (
@@ -67,6 +69,11 @@ export function AgentCard({
             <div className="mt-1 text-sm uppercase tracking-[1.5px] text-muted-foreground">
               {isMyAgent ? "YOUR AWAKENED AGENT" : `NORMIE #${tokenId} • ERC-8004`}
             </div>
+            {ownerEthosUsername && (
+              <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-xs hover:underline">
+                @ {ownerEthosUsername} on Ethos
+              </a>
+            )}
           </div>
 
           <blockquote className="border-l-2 border-primary/70 pl-4 text-sm leading-tight text-foreground/90">

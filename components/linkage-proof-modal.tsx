@@ -33,9 +33,11 @@ function buildMessage(tokenId: number, address: string) {
 export function LinkageProofModal({
   tokenId,
   ownerAddress,
+  delegateAddress,
 }: {
   tokenId: number
   ownerAddress: string
+  delegateAddress?: string
 }) {
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
@@ -47,8 +49,10 @@ export function LinkageProofModal({
     setStatus("signing")
     try {
       await signMessageAsync({ message: buildMessage(tokenId, address) })
-      const isOwner = address.toLowerCase() === ownerAddress.toLowerCase()
-      setStatus(isOwner ? "matched" : "mismatch")
+      const addr = address.toLowerCase()
+      const matchesOwner = addr === ownerAddress.toLowerCase()
+      const matchesDelegate = !!delegateAddress && delegateAddress !== '0x0000000000000000000000000000000000000000' && addr === delegateAddress.toLowerCase()
+      setStatus((matchesOwner || matchesDelegate) ? "matched" : "mismatch")
     } catch {
       setStatus("error")
     }
@@ -88,8 +92,8 @@ export function LinkageProofModal({
 
           <div className="space-y-3">
             <div className="flex justify-between rounded-lg border border-border bg-[#1a1a1a] p-3 text-sm">
-              <span className="text-muted-foreground">Expected owner</span>
-              <span className="font-mono">{shortenAddress(ownerAddress)}</span>
+              <span className="text-muted-foreground">Expected controller (owner or delegate)</span>
+              <span className="font-mono">{shortenAddress(ownerAddress)}{delegateAddress && delegateAddress !== '0x0000000000000000000000000000000000000000' ? ` / ${shortenAddress(delegateAddress)}` : ''}</span>
             </div>
             <div className="flex justify-between rounded-lg border border-border bg-[#1a1a1a] p-3 text-sm">
               <span className="text-muted-foreground">Your connected wallet</span>
@@ -125,8 +129,8 @@ export function LinkageProofModal({
 
 function Result({ kind, tokenId }: { kind: "ok" | "mismatch" | "error"; tokenId: number }) {
   const map = {
-    ok: { icon: CheckCircle2, title: "Linkage Verified", body: `Your wallet matches the on-chain owner of Normie #${tokenId}.`, className: "border-green-500/30 bg-green-500/10" },
-    mismatch: { icon: ShieldAlert, title: "Wallet Mismatch", body: "Signature valid, but this is not the current owner.", className: "border-amber-500/30 bg-amber-500/10" },
+    ok: { icon: CheckCircle2, title: "Linkage Verified", body: `Your wallet matches the on-chain owner or delegate of Normie #${tokenId}.`, className: "border-green-500/30 bg-green-500/10" },
+    mismatch: { icon: ShieldAlert, title: "Wallet Mismatch", body: "Signature valid, but this is not the owner or delegate.", className: "border-amber-500/30 bg-amber-500/10" },
     error: { icon: XCircle, title: "Signature Cancelled", body: "No action was taken.", className: "border-destructive/30 bg-destructive/10" },
   }[kind]
 

@@ -11,10 +11,12 @@ export function OwnershipCard({
   snapshot,
   isLoading,
   isMyAgent = false,
+  ownerEthosUsername,
 }: {
   snapshot?: NormieSnapshot
   isLoading?: boolean
   isMyAgent?: boolean
+  ownerEthosUsername?: string | null
 }) {
   return (
     <Card className="flex h-full flex-col">
@@ -45,6 +47,11 @@ export function OwnershipCard({
                 >
                   {shortenAddress(snapshot.owner.owner, 6)}
                 </a>
+                {ownerEthosUsername && (
+                  <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-xs hover:underline">
+                    @{ownerEthosUsername}
+                  </a>
+                )}
               </div>
             </div>
 
