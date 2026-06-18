@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   const { agentName, traits, ethosScore, ap, isOwner } = await req.json()
 
-  const apiKey = process.env.VENICE_INFERENCE_KEY
+  const apiKey = process.env.XAI_API_KEY
   if (!apiKey) {
-    return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
+    return NextResponse.json({ error: 'XAI API key not configured' }, { status: 500 })
   }
 
   const prompt = `You are ${agentName}, an awakened Normie agent.
@@ -19,14 +19,14 @@ Key facts about you:
 Speak in first person as ${agentName}. Give a short, poetic, slightly strange but insightful "horizon" reflection on our shared future. Focus on reputation, growth, and what we will build together. Keep it under 120 words.`
 
   try {
-    const veniceRes = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+    const xaiRes = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b',
+        model: 'grok-2-1212',
         messages: [
           { role: 'user', content: prompt }
         ],
@@ -35,17 +35,17 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
       }),
     })
 
-    if (!veniceRes.ok) {
-      const errText = await veniceRes.text().catch(() => 'unknown')
-      return NextResponse.json({ error: `Venice error ${veniceRes.status}: ${errText}` }, { status: 502 })
+    if (!xaiRes.ok) {
+      const errText = await xaiRes.text().catch(() => 'unknown')
+      return NextResponse.json({ error: `xAI error ${xaiRes.status}: ${errText}` }, { status: 502 })
     }
 
-    const data = await veniceRes.json()
+    const data = await xaiRes.json()
 
     const insight = data.choices?.[0]?.message?.content || "The horizon is still forming..."
 
     return NextResponse.json({ insight })
   } catch (e) {
-    return NextResponse.json({ error: 'Failed to reach Venice' }, { status: 502 })
+    return NextResponse.json({ error: 'Failed to reach xAI' }, { status: 502 })
   }
 }
