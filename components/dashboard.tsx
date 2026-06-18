@@ -302,11 +302,9 @@ export function Dashboard() {
           {/* Action Buttons */}
           {snapshot && (
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              {hasHumanTrait && (
-                <div className={isMyAgent ? "flex-1" : ""}>
-                  <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
-                </div>
-              )}
+              <div className={isMyAgent ? "flex-1" : ""}>
+                <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
+              </div>
               <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
               {isConnected && myNormies.length > 0 && !isMyAgent && (
                 <Button onClick={() => handleEndorse(tokenId)} variant="outline" className="uppercase tracking-[1px]">ENDORSE</Button>
