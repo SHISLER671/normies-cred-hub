@@ -3,15 +3,15 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   const { agentName, traits, ethosScore, ap, isOwner } = await req.json()
 
-  const apiKey = process.env.VENICE_INFERENCE_KEY
+  const apiKey = process.env.VENICE_INFERENCE_KEY_
   if (!apiKey) {
-    console.error('VENICE_INFERENCE_KEY is missing or empty')
+    console.error('VENICE_INFERENCE_KEY_ is missing or empty')
     return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
   }
 
-  // Basic sanity check
-  if (!apiKey.startsWith('sk-') && !apiKey.startsWith('vk-')) {
-    console.warn('VENICE_INFERENCE_KEY does not look like a typical Venice key')
+  // Basic sanity check for the provided key
+  if (apiKey.length < 20) {
+    console.warn('VENICE_INFERENCE_KEY_ looks too short')
   }
 
   const prompt = `You are ${agentName}, an awakened Normie agent.
@@ -32,7 +32,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b',
+        model: 'e2ee-gemma-4-31b',
         messages: [
           { role: 'user', content: prompt }
         ],
