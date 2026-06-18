@@ -12,11 +12,15 @@ export function AgentCard({
   isLoading,
   isMyAgent = false,
   ownerEthosUsername,
+  delegateAddress,
+  delegateEnsName,
 }: {
   snapshot?: any
   isLoading?: boolean
   isMyAgent?: boolean
   ownerEthosUsername?: string | null
+  delegateAddress?: string
+  delegateEnsName?: string | null
 }) {
   if (isLoading || !snapshot) {
     return (
@@ -73,6 +77,11 @@ export function AgentCard({
               <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-xs hover:underline">
                 @ {ownerEthosUsername} on Ethos
               </a>
+            )}
+            {isMyAgent && delegateAddress && (
+              <div className="text-[10px] text-muted-foreground mt-0.5">
+                via delegated hot wallet{delegateEnsName ? ` + ${delegateEnsName}` : ""}
+              </div>
             )}
           </div>
 

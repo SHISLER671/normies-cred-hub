@@ -24,3 +24,7 @@ export function etherscanAddress(address: string): string {
 export function etherscanTx(hash: string): string {
   return `https://etherscan.io/tx/${hash}`
 }
+
+export function ensAppUrl(name: string): string {
+  return `https://app.ens.domains/${name}`
+}

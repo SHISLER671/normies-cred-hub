@@ -43,14 +43,19 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | No | WalletConnect project ID |
-| `VENICE_INFERENCE_KEY` | For deeper Horizon insights | Your Venice.ai Inference Key (paid tier recommended) |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | No | WalletConnect project ID (we use a working public default) |
+| `VENICE_INFERENCE_KEY` | For deeper Horizon insights | Your Venice.ai Inference Key (paid tier recommended). Must be server-side only (no NEXT_PUBLIC_). |
+
+**RPC note (important for deployed Vercel):** The app now uses explicit CORS-friendly RPC `https://ethereum.publicnode.com` for all on-chain reads (wagmi + direct viem clients in useMyNormies / ENS). This fixes browser "Failed to fetch" / CORS errors against default public RPCs when running on vercel.app. The Horizon (and personal features) rely on these reads succeeding from the browser.
 
 Create a `.env.local` file if needed:
 
 ```bash
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id_here
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=496bdf12e0267f014d4a8f92d305a9e8
+VENICE_INFERENCE_KEY=your_venice_key_here
 ```
+
+(The app hardcodes solid defaults for WC + RPC; envs override for prod control.)
 
 ## Deployment
 
@@ -74,10 +79,11 @@ pnpm run deploy
 npx vercel --prod
 ```
 
-Add or update environment variables via CLI:
+Add or update environment variables via CLI (especially for production Horizon/Venice):
 
 ```bash
 npx vercel env add NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+npx vercel env add VENICE_INFERENCE_KEY
 ```
 
 The project builds cleanly with Turbopack and uses server-side API proxies for the external data sources.

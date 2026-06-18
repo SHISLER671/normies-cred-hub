@@ -16,6 +16,7 @@ import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
+import { useEnsName } from "@/hooks/use-ens-name"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -46,8 +47,29 @@ export function Dashboard() {
     (t: any) => t.trait_type === 'Type' && t.value === 'Human'
   ) ?? false
 
-  const isMyAgent = !!isConnected && !!address && !!ownerAddress &&
+  const delegate = snapshot?.canvas?.delegate
+  const isZeroAddr = (a?: string | null) =>
+    !a || a === "0x0000000000000000000000000000000000000000"
+
+  const isOwnerMatch =
+    !!isConnected &&
+    !!address &&
+    !!ownerAddress &&
     address.toLowerCase() === ownerAddress.toLowerCase()
+
+  const isDelegateMatch =
+    !!isConnected &&
+    !!address &&
+    !!delegate &&
+    !isZeroAddr(delegate) &&
+    address.toLowerCase() === delegate.toLowerCase()
+
+  // Broaden for personal UI so hot-delegate controllers also get "YOUR" titles, banner, larger Horizon etc.
+  const isMyAgent = isOwnerMatch || isDelegateMatch
+
+  const { data: delegateEnsName } = useEnsName(
+    !isZeroAddr(delegate) ? delegate : undefined
+  )
 
   const { data: myNormies = [] } = useMyNormies(address)
   const { data: ownerAgents = [] } = useMyNormies(ownerAddress)
@@ -268,7 +290,14 @@ export function Dashboard() {
         </Card>
       ) : (
         <>
-          <AgentCard snapshot={snapshot} isLoading={isLoading} isMyAgent={isMyAgent} ownerEthosUsername={ownerUsername} />
+          <AgentCard
+            snapshot={snapshot}
+            isLoading={isLoading}
+            isMyAgent={isMyAgent}
+            ownerEthosUsername={ownerUsername}
+            delegateAddress={delegate}
+            delegateEnsName={delegateEnsName}
+          />
 
           {/* Action Buttons */}
           {snapshot && (
@@ -305,7 +334,15 @@ export function Dashboard() {
               isMyAgent={isMyAgent}
             />
             <Erc8004Card agentId={snapshot?.agent?.agentId ? Number(snapshot.agent.agentId) : ZULO.agentId} isMyAgent={isMyAgent} />
-            <OwnershipCard snapshot={snapshot} isLoading={isLoading} isMyAgent={isMyAgent} ownerEthosUsername={ownerUsername} />
+            <OwnershipCard
+              snapshot={snapshot}
+              isLoading={isLoading}
+              isMyAgent={isMyAgent}
+              ownerEthosUsername={ownerUsername}
+              delegateAddress={delegate}
+              delegateEnsName={delegateEnsName}
+              isDelegateController={isDelegateMatch}
+            />
           </div>
 
           {/* Linked agents via owner (after Ethos box / grid for visibility) */}

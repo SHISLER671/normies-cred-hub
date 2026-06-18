@@ -1,15 +1,9 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { createPublicClient, http } from "viem"
-import { mainnet } from "viem/chains"
 
+import { publicClient } from "@/lib/viem-client"
 import { ERC721_ENUMERABLE_ABI, NORMIES_NFT } from "@/constants/contracts"
-
-const client = createPublicClient({
-  chain: mainnet,
-  transport: http(),
-})
 
 export function useMyNormies(owner?: string) {
   return useQuery({
@@ -18,7 +12,7 @@ export function useMyNormies(owner?: string) {
       if (!owner) return []
 
       try {
-        const balance = (await client.readContract({
+        const balance = (await publicClient.readContract({
           address: NORMIES_NFT,
           abi: ERC721_ENUMERABLE_ABI,
           functionName: "balanceOf",
@@ -30,7 +24,7 @@ export function useMyNormies(owner?: string) {
 
         // Simple loop is fine — most users own very few
         for (let i = 0; i < bal; i++) {
-          const tokenId = (await client.readContract({
+          const tokenId = (await publicClient.readContract({
             address: NORMIES_NFT,
             abi: ERC721_ENUMERABLE_ABI,
             functionName: "tokenOfOwnerByIndex",

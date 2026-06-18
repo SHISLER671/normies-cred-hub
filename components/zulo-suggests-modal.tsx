@@ -75,9 +75,11 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
   const [veniceInsight, setVeniceInsight] = useState<string | null>(null)
   const [veniceLoading, setVeniceLoading] = useState(false)
+  const [veniceError, setVeniceError] = useState<string | null>(null)
 
   const fetchVeniceInsight = async () => {
     setVeniceLoading(true)
+    setVeniceError(null)
     try {
       const res = await fetch('/api/horizon', {
         method: 'POST',
@@ -91,9 +93,14 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
         }),
       })
       const data = await res.json()
-      if (data.insight) setVeniceInsight(data.insight)
+      if (data.insight) {
+        setVeniceInsight(data.insight)
+      } else if (data.error) {
+        setVeniceError(data.error)
+      }
     } catch (e) {
       console.error('Venice insight failed', e)
+      setVeniceError('Could not reach AI insights service.')
     } finally {
       setVeniceLoading(false)
     }
@@ -124,6 +131,8 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
         </div>
         {veniceInsight ? (
           <p className="text-foreground leading-relaxed">{veniceInsight}</p>
+        ) : veniceError ? (
+          <p className="text-destructive text-xs">{veniceError} (data still works server-side)</p>
         ) : (
           <p className="text-muted-foreground text-xs">Click Enhance for AI-augmented insights on top of the Normies data.</p>
         )}

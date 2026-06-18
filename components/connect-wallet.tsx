@@ -6,7 +6,8 @@ import { Wallet } from "lucide-react"
 
 /**
  * Wallet connection is optional for browsing.
- * Connect to make the dashboard come alive with *your* awakened Normie.
+ * Connect (via RainbowKit + Reown) to make the dashboard come alive with *your* awakened Normie.
+ * Supports delegates + ENS (hot wallet pattern).
  */
 export function ConnectWallet() {
   return (
@@ -46,7 +47,7 @@ export function ConnectWallet() {
                   className="gap-2 font-mono uppercase tracking-widest"
                 >
                   <span className="size-1.5 bg-emerald-400" aria-hidden />
-                  {account.displayName}
+                  {account.ensName || account.displayName}
                 </Button>
               )
             })()}
