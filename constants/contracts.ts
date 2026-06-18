@@ -69,3 +69,31 @@ export const IDENTITY_REGISTRY_READ_ABI = [
     outputs: [{ name: "", type: "address" }],
   },
 ] as const
+
+/**
+ * Delegate.xyz Registry (v1)
+ * Used to discover tokens delegated to the connected wallet (hot wallet pattern).
+ */
+export const DELEGATE_REGISTRY = "0x00000000000076A84feF008CDAbe6409d2FE638B" as const
+
+export const DELEGATE_REGISTRY_ABI = [
+  {
+    inputs: [{ name: "to", type: "address" }],
+    name: "getDelegationsByDelegate",
+    outputs: [
+      {
+        components: [
+          { name: "vault", type: "address" },
+          { name: "delegate", type: "address" },
+          { name: "contract_", type: "address" },
+          { name: "tokenId", type: "uint256" },
+          { name: "rights", type: "bytes32" },
+        ],
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const

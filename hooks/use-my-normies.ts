@@ -4,7 +4,12 @@ import { useQuery } from "@tanstack/react-query"
 import { getAddress } from "viem"
 
 import { publicClient } from "@/lib/viem-client"
-import { ERC721_ENUMERABLE_ABI, NORMIES_NFT } from "@/constants/contracts"
+import {
+  DELEGATE_REGISTRY,
+  DELEGATE_REGISTRY_ABI,
+  ERC721_ENUMERABLE_ABI,
+  NORMIES_NFT,
+} from "@/constants/contracts"
 
 export function useMyNormies(owner?: string) {
   return useQuery({
@@ -15,43 +20,90 @@ export function useMyNormies(owner?: string) {
       try {
         const normalizedOwner = getAddress(owner) as `0x${string}`
 
-        const balance = (await publicClient.readContract({
-          address: NORMIES_NFT,
-          abi: ERC721_ENUMERABLE_ABI,
-          functionName: "balanceOf",
-          args: [normalizedOwner],
-        })) as bigint
-
-        const bal = Number(balance)
-
-        // ←←← TEMPORARY DEBUG LOG
-        console.log(
-          "[useMyNormies] Address:", normalizedOwner,
-          "→ Balance:", bal
-        )
-
-        if (bal === 0) return []
-
-        const ids: number[] = []
-
-        for (let i = 0; i < bal; i++) {
+        // Helper to safely enumerate tokens for an address (owner or delegated vault)
+        async function fetchTokensFor(addr: `0x${string}`): Promise<number[]> {
           try {
-            const tokenId = (await publicClient.readContract({
+            const balance = (await publicClient.readContract({
               address: NORMIES_NFT,
               abi: ERC721_ENUMERABLE_ABI,
-              functionName: "tokenOfOwnerByIndex",
-              args: [normalizedOwner, BigInt(i)],
+              functionName: "balanceOf",
+              args: [addr],
             })) as bigint
 
-            ids.push(Number(tokenId))
-          } catch (innerErr) {
-            console.warn(`Failed to get token at index ${i}`, innerErr)
+            const bal = Number(balance)
+            const ids: number[] = []
+
+            for (let i = 0; i < bal; i++) {
+              try {
+                const tokenId = (await publicClient.readContract({
+                  address: NORMIES_NFT,
+                  abi: ERC721_ENUMERABLE_ABI,
+                  functionName: "tokenOfOwnerByIndex",
+                  args: [addr, BigInt(i)],
+                })) as bigint
+
+                ids.push(Number(tokenId))
+              } catch {
+                // Silently skip individual tokens (common with delegations or RPC hiccups)
+              }
+            }
+            return ids
+          } catch {
+            return []
           }
         }
 
-        return ids.sort((a, b) => a - b)
+        // 1. Directly owned tokens
+        const directOwned = await fetchTokensFor(normalizedOwner)
+
+        // 2. Tokens delegated to this wallet via Delegate.xyz
+        const delegatedIds: number[] = []
+
+        try {
+          const delegations = (await publicClient.readContract({
+            address: DELEGATE_REGISTRY,
+            abi: DELEGATE_REGISTRY_ABI,
+            functionName: "getDelegationsByDelegate",
+            args: [normalizedOwner],
+          })) as Array<{
+            vault: string
+            delegate: string
+            contract_: string
+            tokenId: bigint
+            rights: string
+          }>
+
+          const fullCollectionVaults: string[] = []
+
+          for (const d of delegations) {
+            if (d.contract_?.toLowerCase() !== NORMIES_NFT.toLowerCase()) continue
+
+            if (d.tokenId === BigInt(0)) {
+              // Full collection delegation from this vault
+              fullCollectionVaults.push(d.vault)
+            } else {
+              // Specific token delegation
+              delegatedIds.push(Number(d.tokenId))
+            }
+          }
+
+          // For full collection delegations, fetch all tokens the vault owns
+          for (const vault of fullCollectionVaults) {
+            const vaultAddr = getAddress(vault) as `0x${string}`
+            const vaultTokens = await fetchTokensFor(vaultAddr)
+            delegatedIds.push(...vaultTokens)
+          }
+        } catch (delegateErr) {
+          console.warn("[useMyNormies] Failed to fetch Delegate.xyz delegations", delegateErr)
+        }
+
+        // Merge + deduplicate
+        const allIds = [...directOwned, ...delegatedIds]
+        const uniqueIds = Array.from(new Set(allIds))
+
+        return uniqueIds.sort((a, b) => a - b)
       } catch (err) {
-        console.warn("[useMyNormies] Could not enumerate owned tokens", err)
+        console.warn("[useMyNormies] Error fetching tokens", err)
         return []
       }
     },
