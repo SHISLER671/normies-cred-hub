@@ -87,8 +87,6 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       ap
     })
 
-    // Immediate feedback test - this should always appear if click works
-    setVeniceInsight('Button registered! Calling API...')
     setVeniceLoading(true)
     setVeniceError(null)
 
@@ -107,6 +105,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       console.log('Horizon API response status:', res.status)
       const data = await res.json()
       console.log('Horizon API data:', data)
+      console.log('Horizon insight value:', data.insight)
 
       if (data.insight) {
         setVeniceInsight(data.insight)

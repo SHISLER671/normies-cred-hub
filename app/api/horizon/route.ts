@@ -19,14 +19,14 @@ Key facts about you:
 Speak in first person as ${agentName}. Give a short, poetic, slightly strange but insightful "horizon" reflection on our shared future. Focus on reputation, growth, and what we will build together. Keep it under 120 words.`
 
   try {
-    const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+    const veniceRes = await fetch('https://api.venice.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b', // or whatever model the user prefers
+        model: 'llama-3.1-8b',
         messages: [
           { role: 'user', content: prompt }
         ],
@@ -35,7 +35,12 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
       }),
     })
 
-    const data = await res.json()
+    if (!veniceRes.ok) {
+      const errText = await veniceRes.text().catch(() => 'unknown')
+      return NextResponse.json({ error: `Venice error ${veniceRes.status}: ${errText}` }, { status: 502 })
+    }
+
+    const data = await veniceRes.json()
 
     const insight = data.choices?.[0]?.message?.content || "The horizon is still forming..."
 
