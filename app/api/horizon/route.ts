@@ -31,7 +31,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
           'X-Title': 'NormiesCredHub',
         },
         body: JSON.stringify({
-          model: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+          model: 'google/gemma-2-9b-it:free',
           messages: [
             { role: 'user', content: prompt }
           ],
