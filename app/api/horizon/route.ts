@@ -3,7 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   const { agentName, traits, ethosScore, ap, isOwner } = await req.json()
 
-  const apiKey = process.env.VENICE_INFERENCE_KEY_ || process.env.VENICE_INFERENCE_KEY;
+  const rawKey =
+    process.env.VENICE_INFERENCE_KEY_ ||
+    process.env.VENICE_INFERENCE_KEY ||
+    process.env.VENICE_API_KEY ||
+    process.env.VENICE_KEY
+
+  const apiKey = typeof rawKey === 'string' ? rawKey.trim() : ''
 
   if (!apiKey) {
     const available = Object.keys(process.env)
@@ -13,6 +19,9 @@ export async function POST(req: NextRequest) {
     console.error('VENICE key not found. Available key-related env vars:', available || '(none)');
     return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
   }
+
+  // Safe debug (never log full key)
+  console.log(`[horizon] Venice key loaded (len=${apiKey.length}, prefix=${apiKey.slice(0, 6)}..., suffix=...${apiKey.slice(-4)})`)
 
   const prompt = `You are ${agentName}, an awakened Normie agent.
 
@@ -43,6 +52,13 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
 
     if (!veniceRes.ok) {
       const errText = await veniceRes.text().catch(() => 'unknown')
+      if (veniceRes.status === 401) {
+        console.error('[horizon] Venice 401 auth failure. Verify the exact key value in Vercel (must be set for Preview if using *.vercel.app hostname, and Production). Key must be copied precisely from https://venice.ai/settings/api with no extra prefixes/spaces.')
+        return NextResponse.json(
+          { error: 'Venice authentication failed (401). Double-check VENICE_INFERENCE_KEY_ (or VENICE_API_KEY) value in Vercel env vars for this environment. Use the raw key value only.' },
+          { status: 502 }
+        )
+      }
       const status = veniceRes.status === 429 ? 429 : 502;
       return NextResponse.json({ error: `Venice error ${veniceRes.status}: ${errText}` }, { status })
     }

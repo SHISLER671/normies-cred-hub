@@ -101,6 +101,8 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
         const msg = String(data.error);
         if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) {
           setVeniceError('Rate limited by the AI provider. Please try again shortly.');
+        } else if (msg.includes('401') || msg.includes('authentication') || msg.includes('Venice API key')) {
+          setVeniceError('AI key issue (check Vercel env VENICE_INFERENCE_KEY_ for this deploy).');
         } else {
           setVeniceError(msg);
         }
