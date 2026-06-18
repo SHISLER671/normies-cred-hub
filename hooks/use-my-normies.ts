@@ -1,6 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { getAddress } from "viem"
 
 import { publicClient } from "@/lib/viem-client"
 import { ERC721_ENUMERABLE_ABI, NORMIES_NFT } from "@/constants/contracts"
@@ -12,31 +13,39 @@ export function useMyNormies(owner?: string) {
       if (!owner) return []
 
       try {
+        // Normalize the address (fixes most checksum/casing issues)
+        const normalizedOwner = getAddress(owner) as `0x${string}`
+
         const balance = (await publicClient.readContract({
           address: NORMIES_NFT,
           abi: ERC721_ENUMERABLE_ABI,
           functionName: "balanceOf",
-          args: [owner as `0x${string}`],
+          args: [normalizedOwner],
         })) as bigint
 
-        const ids: number[] = []
         const bal = Number(balance)
+        if (bal === 0) return []
 
-        // Simple loop is fine — most users own very few
+        const ids: number[] = []
+
         for (let i = 0; i < bal; i++) {
-          const tokenId = (await publicClient.readContract({
-            address: NORMIES_NFT,
-            abi: ERC721_ENUMERABLE_ABI,
-            functionName: "tokenOfOwnerByIndex",
-            args: [owner as `0x${string}`, BigInt(i)],
-          })) as bigint
+          try {
+            const tokenId = (await publicClient.readContract({
+              address: NORMIES_NFT,
+              abi: ERC721_ENUMERABLE_ABI,
+              functionName: "tokenOfOwnerByIndex",
+              args: [normalizedOwner, BigInt(i)],
+            })) as bigint
 
-          ids.push(Number(tokenId))
+            ids.push(Number(tokenId))
+          } catch (innerErr) {
+            // If one index fails, just skip it instead of failing everything
+            console.warn(`Failed to get token at index ${i}`, innerErr)
+          }
         }
 
         return ids.sort((a, b) => a - b)
       } catch (err) {
-        // Contract may not implement enumerable, or temporary error
         console.warn("[useMyNormies] Could not enumerate owned tokens", err)
         return []
       }
