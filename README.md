@@ -52,7 +52,7 @@ Create a `.env.local` file if needed:
 
 ```bash
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=496bdf12e0267f014d4a8f92d305a9e8
-VENICE_INFERENCE_KEY_=your_venice_key_here  (use the value you provided: OUEgN5Sf...)
+VENICE_INFERENCE_KEY_=your_venice_key_here  (use the value you provided)
 ```
 
 (The app hardcodes solid defaults for WC + RPC; envs override for prod control.)
