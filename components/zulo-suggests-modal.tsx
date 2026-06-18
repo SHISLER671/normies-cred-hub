@@ -106,6 +106,13 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
     }
   }
 
+  // Auto-enhance for your own agents (personal view)
+  useEffect(() => {
+    if (isMyAgent && !veniceInsight && !veniceLoading && !veniceError) {
+      fetchVeniceInsight()
+    }
+  }, [isMyAgent, snapshot]) // run when personal + data ready
+
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
   const hairStyle = traits.find((t: any) => t.trait_type === "Hair Style")?.value || "distinct style"
