@@ -78,15 +78,6 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
   const [veniceError, setVeniceError] = useState<string | null>(null)
 
   const fetchVeniceInsight = async () => {
-    console.log('🟢 Enhance button clicked!', {
-      agentName,
-      isController,
-      isMyAgent,
-      traitsLength: traits.length,
-      ethosScore,
-      ap
-    })
-
     setVeniceLoading(true)
     setVeniceError(null)
 
@@ -102,10 +93,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
           isOwner: isController,
         }),
       })
-      console.log('Horizon API response status:', res.status)
       const data = await res.json()
-      console.log('Horizon API data:', data)
-      console.log('Horizon insight value:', data.insight)
 
       if (data.insight) {
         setVeniceInsight(data.insight)
