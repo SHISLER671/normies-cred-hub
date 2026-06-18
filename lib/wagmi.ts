@@ -26,10 +26,15 @@ const projectId =
  * Prevents "Failed to fetch" / CORS errors from browser on Vercel (normies-cred-hub-dashboard.vercel.app)
  * against default viem public RPCs like https://eth.merkle.io .
  */
+const appUrl =
+  (typeof window !== 'undefined' ? window.location.origin : undefined) ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  'https://normies-cred-hub-dashboard.vercel.app';
+
 export const wagmiConfig = getDefaultConfig({
   appName: 'NormiesCredHub',
   appDescription: 'See the real reputation of your awakened ERC-8004 Normie agent.',
-  appUrl: 'https://normies-cred-hub-dashboard.vercel.app',
+  appUrl,
   appIcon: 'https://normies-cred-hub-dashboard.vercel.app/icon.png',
   projectId,
   chains: [mainnet],
