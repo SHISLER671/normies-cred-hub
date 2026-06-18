@@ -16,8 +16,9 @@ export async function POST(req: NextRequest) {
       .filter(k => k.includes('KEY') || k.includes('VENICE') || k.includes('OPEN') || k.includes('XAI'))
       .sort()
       .join(', ');
-    console.error('VENICE key not found. Available key-related env vars:', available || '(none)');
-    return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
+    const debugInfo = available || '(none)';
+    console.error('VENICE key not found. Available key-related env vars:', debugInfo);
+    return NextResponse.json({ error: `Venice API key not configured. Visible key-related env vars in this deployment: ${debugInfo}` }, { status: 500 })
   }
 
   // Safe debug (never log full key)
