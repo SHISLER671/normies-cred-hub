@@ -107,7 +107,10 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       console.log('Horizon API data:', data)
       console.log('Horizon insight value:', data.insight)
 
-      if (data.insight) {
+      const errMsg = data.error || ''
+      if (res.status === 429 || errMsg.includes('429') || errMsg.toLowerCase().includes('rate') || errMsg.toLowerCase().includes('too many')) {
+        setVeniceError('Rate limited by the free model. Please wait a minute and try again.')
+      } else if (data.insight) {
         setVeniceInsight(data.insight)
       } else if (data.error) {
         setVeniceError(data.error)
