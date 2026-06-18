@@ -48,4 +48,4 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
     return NextResponse.json({ error: 'Failed to reach Venice' }, { status: 502 })
   }
 }
-}
+
