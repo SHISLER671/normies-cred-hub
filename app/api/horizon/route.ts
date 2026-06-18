@@ -5,7 +5,13 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.VENICE_INFERENCE_KEY
   if (!apiKey) {
+    console.error('VENICE_INFERENCE_KEY is missing or empty')
     return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
+  }
+
+  // Basic sanity check
+  if (!apiKey.startsWith('sk-') && !apiKey.startsWith('vk-')) {
+    console.warn('VENICE_INFERENCE_KEY does not look like a typical Venice key')
   }
 
   const prompt = `You are ${agentName}, an awakened Normie agent.
