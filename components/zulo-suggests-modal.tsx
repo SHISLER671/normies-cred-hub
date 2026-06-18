@@ -78,8 +78,20 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
   const [veniceError, setVeniceError] = useState<string | null>(null)
 
   const fetchVeniceInsight = async () => {
+    console.log('🟢 Enhance button clicked!', {
+      agentName,
+      isController,
+      isMyAgent,
+      traitsLength: traits.length,
+      ethosScore,
+      ap
+    })
+
+    // Immediate feedback test - this should always appear if click works
+    setVeniceInsight('Button registered! Calling API...')
     setVeniceLoading(true)
     setVeniceError(null)
+
     try {
       const res = await fetch('/api/horizon', {
         method: 'POST',
@@ -92,11 +104,16 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
           isOwner: isController,
         }),
       })
+      console.log('Horizon API response status:', res.status)
       const data = await res.json()
+      console.log('Horizon API data:', data)
+
       if (data.insight) {
         setVeniceInsight(data.insight)
       } else if (data.error) {
         setVeniceError(data.error)
+      } else {
+        setVeniceError('No insight or error in response')
       }
     } catch (e) {
       console.error('Venice insight failed', e)
@@ -111,7 +128,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
     if (isMyAgent && !veniceInsight && !veniceLoading && !veniceError) {
       fetchVeniceInsight()
     }
-  }, [isMyAgent, snapshot]) // run when personal + data ready
+  }, [isMyAgent]) // snapshot can cause unnecessary re-runs; isMyAgent is sufficient trigger
 
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
