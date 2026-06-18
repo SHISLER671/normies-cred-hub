@@ -3,9 +3,14 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   const { agentName, traits, ethosScore, ap, isOwner } = await req.json()
 
-  const apiKey = process.env.VENICE_INFERENCE_KEY_;
+  const apiKey = process.env.VENICE_INFERENCE_KEY_ || process.env.VENICE_INFERENCE_KEY;
 
   if (!apiKey) {
+    const available = Object.keys(process.env)
+      .filter(k => k.includes('KEY') || k.includes('VENICE') || k.includes('OPEN') || k.includes('XAI'))
+      .sort()
+      .join(', ');
+    console.error('VENICE key not found. Available key-related env vars:', available || '(none)');
     return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
   }
 
