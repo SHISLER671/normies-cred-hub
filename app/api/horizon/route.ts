@@ -37,7 +37,8 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
 
     if (!veniceRes.ok) {
       const errText = await veniceRes.text().catch(() => 'unknown')
-      return NextResponse.json({ error: `Venice error ${veniceRes.status}: ${errText}` }, { status: 502 })
+      const status = veniceRes.status === 429 ? 429 : 502;
+      return NextResponse.json({ error: `Venice error ${veniceRes.status}: ${errText}` }, { status })
     }
 
     const data = await veniceRes.json()

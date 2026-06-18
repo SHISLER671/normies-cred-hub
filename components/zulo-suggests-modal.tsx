@@ -98,9 +98,15 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       if (data.insight) {
         setVeniceInsight(data.insight)
       } else if (data.error) {
-        setVeniceError(data.error)
+        // Clean up the error message for user
+        const raw = data.error || '';
+        if (raw.includes('429') || raw.toLowerCase().includes('rate')) {
+          setVeniceError('Rate limited by the AI provider. Please try again in a minute.');
+        } else {
+          setVeniceError(raw);
+        }
       } else {
-        setVeniceError('No insight or error in response')
+        setVeniceError('No insight or error in response');
       }
     } catch (e) {
       console.error('Venice insight failed', e)
