@@ -13,7 +13,6 @@ export function useMyNormies(owner?: string) {
       if (!owner) return []
 
       try {
-        // Normalize the address (fixes most checksum/casing issues)
         const normalizedOwner = getAddress(owner) as `0x${string}`
 
         const balance = (await publicClient.readContract({
@@ -24,6 +23,13 @@ export function useMyNormies(owner?: string) {
         })) as bigint
 
         const bal = Number(balance)
+
+        // ←←← TEMPORARY DEBUG LOG
+        console.log(
+          "[useMyNormies] Address:", normalizedOwner,
+          "→ Balance:", bal
+        )
+
         if (bal === 0) return []
 
         const ids: number[] = []
@@ -39,7 +45,6 @@ export function useMyNormies(owner?: string) {
 
             ids.push(Number(tokenId))
           } catch (innerErr) {
-            // If one index fails, just skip it instead of failing everything
             console.warn(`Failed to get token at index ${i}`, innerErr)
           }
         }
