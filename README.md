@@ -44,7 +44,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | No | WalletConnect project ID (we use a working public default) |
-| `VENICE_INFERENCE_KEY_` | For deeper Horizon insights | Your Venice.ai Inference Key (add some credit for reliable usage). Must be server-side only (no NEXT_PUBLIC_). |
+| `VENICE_INFERENCE_KEY_` | For deeper Horizon insights | Your Venice.ai Inference Key (the value you provided). Model = e2ee-gemma-4-31b . Must be server-side only (no NEXT_PUBLIC_). |
 
 **RPC note (important for deployed Vercel):** The app now uses explicit CORS-friendly RPC `https://ethereum.publicnode.com` for all on-chain reads (wagmi + direct viem clients in useMyNormies / ENS). This fixes browser "Failed to fetch" / CORS errors against default public RPCs when running on vercel.app. The Horizon (and personal features) rely on these reads succeeding from the browser.
 
@@ -52,7 +52,7 @@ Create a `.env.local` file if needed:
 
 ```bash
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=496bdf12e0267f014d4a8f92d305a9e8
-VENICE_INFERENCE_KEY_=your_venice_key_here
+VENICE_INFERENCE_KEY_=your_venice_key_here  (use the value you provided: OUEgN5Sf...)
 ```
 
 (The app hardcodes solid defaults for WC + RPC; envs override for prod control.)

@@ -3,15 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   const { agentName, traits, ethosScore, ap, isOwner } = await req.json()
 
-  const apiKey = process.env.VENICE_INFERENCE_KEY_
-  if (!apiKey) {
-    console.error('VENICE_INFERENCE_KEY_ is missing or empty')
-    return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
-  }
+  const apiKey = process.env.VENICE_INFERENCE_KEY_;
 
-  // Basic sanity check for the provided key
-  if (apiKey.length < 20) {
-    console.warn('VENICE_INFERENCE_KEY_ looks too short')
+  if (!apiKey) {
+    return NextResponse.json({ error: 'Venice API key not configured' }, { status: 500 })
   }
 
   const prompt = `You are ${agentName}, an awakened Normie agent.
