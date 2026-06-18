@@ -116,7 +116,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       }
     } catch (e) {
       console.error('Venice insight failed', e)
-      setVeniceError('Could not reach xAI Grok insights service.')
+      setVeniceError('Could not reach AI insights service.')
     } finally {
       setVeniceLoading(false)
     }
@@ -147,7 +147,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
       <div className="border-l-2 border-primary pl-4">
         <div className="flex items-center gap-2 mb-2">
-          <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (xAI Grok bonus)</div>
+          <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (AI bonus)</div>
           <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-[10px] uppercase tracking-widest">
             {veniceLoading ? 'Pinging...' : 'Enhance'}
           </Button>
