@@ -70,14 +70,14 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
   const ownerAddr = snapshot.owner.owner.toLowerCase()
   const delegate = snapshot.canvas?.delegate
   const isController = connectedAddress?.toLowerCase() === ownerAddr ||
-    (!!delegate && delegate !== '0x0000000000000000000000000000000000000000' && connectedAddress?.toLowerCase() === delegate.toLowerCase())
+    (!!delegate && delegate !== '0x0000000000000000000000000000000000000000' && connectedAddress?.toLowerCase() === delegate.toLowerCase()) ||
+    isMyAgent // fallback to outer delegate-aware flag
   const ap = snapshot.canvas.actionPoints || 0
   const traits = snapshot.traits?.attributes || []
   const agentType = traits.find((t: any) => t.trait_type === "Type")?.value || "Unknown"
   const isAgentType = agentType === "Agent"
 
-  // Gate for delegates: use the passed isMyAgent which already includes delegate match
-  const canAccessGated = isMyAgent && isAgentType
+  const canAccessGated = isController && isAgentType
 
   const { signMessageAsync } = useSignMessage()
 
@@ -107,21 +107,23 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
       await signMessageAsync({ message: gateMessage })
 
-      const res = await fetch('/api/horizon', {
+      const res = await fetch('/api/zulo-recommends', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          tokenId,
           agentName,
           traits,
-          ethosScore,
-          ap,
           isOwner: isController,
-          agentType, // for potential gate-aware prompting
+          agentType,
         }),
       })
       const data = await res.json()
 
-      if (data.insight) {
+      if (data.recommendations) {
+        setVeniceInsight(data.recommendations)
+      } else if (data.insight) {
+        // backward compat
         setVeniceInsight(data.insight)
       } else if (data.error) {
         const msg = String(data.error);
@@ -132,7 +134,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
           setVeniceError(msg);
         }
       } else {
-        setVeniceError('No insight or error in response');
+        setVeniceError('No recommendations or error in response');
       }
     } catch (e) {
       console.error('Venice insight failed', e)
@@ -167,27 +169,27 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
       <div className="border-l-2 border-primary pl-4">
         <div className="flex items-center gap-2 mb-2">
-          <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (AI bonus)</div>
+          <div className="uppercase tracking-widest text-xs text-primary">Zulo Recommends</div>
           {isAgentType && <span className="text-[9px] px-1 py-0.5 bg-emerald-500/10 text-emerald-400 rounded">AGENT GATE ✓</span>}
           <Button 
             size="sm" 
             variant="outline" 
             onClick={fetchVeniceInsight} 
-            disabled={veniceLoading || ! (isMyAgent && isAgentType)} 
+            disabled={veniceLoading || !canAccessGated} 
             className="text-[10px] uppercase tracking-widest"
           >
-            {veniceLoading ? 'Pinging...' : (isMyAgent && isAgentType ? 'Enhance (Gated)' : 'Locked by Token Gate')}
+            {veniceLoading ? 'Pinging...' : (canAccessGated ? 'Get Recommendations (Gated)' : 'Locked by Token Gate')}
           </Button>
         </div>
         {veniceInsight ? (
-          <p className="text-foreground leading-relaxed">{veniceInsight}</p>
+          <div className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">{veniceInsight}</div>
         ) : veniceError ? (
           <p className="text-destructive text-xs">{veniceError} (data still works server-side)</p>
         ) : (
           <p className="text-muted-foreground text-xs">
-            {isMyAgent && isAgentType 
-              ? "Click to prove eligibility and access the gated AI insight." 
-              : "This experience is token-gated to Agent-type Normies via on-chain predicates."}
+            {canAccessGated 
+              ? "Click to prove eligibility and get Zulo's personalized tool recommendations." 
+              : "This experience is token-gated to Agent-type Normies via on-chain predicates (TraitGatedPredicate + AgentCheck cert)."}
           </p>
         )}
       </div>

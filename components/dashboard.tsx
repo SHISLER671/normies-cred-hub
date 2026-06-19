@@ -6,6 +6,7 @@ import { EthosReputation } from "@/components/ethos-reputation"
 import { LinkageProofModal } from "@/components/linkage-proof-modal"
 import { OwnershipCard } from "@/components/ownership-card"
 import { AgentHorizonModal } from "@/components/zulo-suggests-modal"
+import { ToolsModal } from "@/components/tools-modal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ZULO } from "@/constants/contracts"
@@ -35,6 +36,7 @@ export function Dashboard() {
   const [bridgeUser, setBridgeUser] = useState<any>(null)
 
   const [endorseResult, setEndorseResult] = useState<{ message: string; signature?: string } | null>(null)
+  const [showToolsModal, setShowToolsModal] = useState(false)
 
   const { data: snapshot, isLoading, isError } = useNormie(tokenId)
   const ownerAddress = snapshot?.owner.owner
@@ -328,11 +330,22 @@ export function Dashboard() {
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <div className={isMyAgent ? "flex-1" : ""}>
                 <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
+                <p className="text-xs text-muted-foreground mt-1">Zulo Recommends — AI tool suggestions for your agent (gated to Agent types).</p>
               </div>
               <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
               {isConnected && myNormies.length > 0 && !isMyAgent && (
                 <Button onClick={() => handleEndorse(tokenId)} variant="outline" className="uppercase tracking-[1px]">ENDORSE</Button>
               )}
+              <div>
+                <Button 
+                  onClick={() => setShowToolsModal(true)} 
+                  variant="outline" 
+                  className="uppercase tracking-[1px]"
+                >
+                  Browse Tools
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">Explore community tools. Open to everyone.</p>
+              </div>
             </div>
           )}
 
@@ -345,6 +358,8 @@ export function Dashboard() {
               <button onClick={() => setEndorseResult(null)} className="ml-4">Dismiss</button>
             </div>
           )}
+
+          <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
 
           {/* Trust & Gate Signals (AgentCheck + Trait Gating) */}
           {ownerAddress && snapshot && (
