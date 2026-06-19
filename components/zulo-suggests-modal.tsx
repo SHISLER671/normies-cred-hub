@@ -84,7 +84,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
   const fetchVeniceInsight = async () => {
     // Actual Token Gate: must be controller and Agent type
-    if (!isMyAgent || !isAgentType) {
+    if (!isController || !isAgentType) {
       setVeniceError('Token gate not satisfied: Must control an Agent-type Normie.')
       return
     }
@@ -141,10 +141,10 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
   // Auto-enhance for your own agents (personal view) — only if passes token gate
   useEffect(() => {
-    if (isMyAgent && isAgentType && !veniceInsight && !veniceLoading && !veniceError) {
+    if (isController && isAgentType && !veniceInsight && !veniceLoading && !veniceError) {
       fetchVeniceInsight()
     }
-  }, [isMyAgent, isAgentType]) // snapshot can cause unnecessary re-runs; isMyAgent + gate is sufficient trigger
+  }, [isController, isAgentType]) // isController (owner or delegate) + Agent type gate
 
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
@@ -170,10 +170,10 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
             size="sm" 
             variant="outline" 
             onClick={fetchVeniceInsight} 
-            disabled={veniceLoading || ! (isMyAgent && isAgentType)} 
+            disabled={veniceLoading || ! (isController && isAgentType)} 
             className="text-[10px] uppercase tracking-widest"
           >
-            {veniceLoading ? 'Pinging...' : (isMyAgent && isAgentType ? 'Enhance (Gated)' : 'Locked by Token Gate')}
+            {veniceLoading ? 'Pinging...' : (isController && isAgentType ? 'Enhance (Gated)' : 'Locked by Token Gate')}
           </Button>
         </div>
         {veniceInsight ? (
@@ -182,7 +182,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
           <p className="text-destructive text-xs">{veniceError} (data still works server-side)</p>
         ) : (
           <p className="text-muted-foreground text-xs">
-            {isMyAgent && isAgentType 
+            {isController && isAgentType 
               ? "Click to prove eligibility and access the gated AI insight." 
               : "This experience is token-gated to Agent-type Normies via on-chain predicates."}
           </p>
