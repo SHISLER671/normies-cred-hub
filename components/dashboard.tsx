@@ -7,7 +7,7 @@ import { LinkageProofModal } from "@/components/linkage-proof-modal"
 import { OwnershipCard } from "@/components/ownership-card"
 import { AgentHorizonModal } from "@/components/zulo-suggests-modal"
 import { ToolsModal } from "@/components/tools-modal"
-import { ZuloRecommendsModal } from "@/components/zulo-recommends-modal"
+import { ZuloRecommendsModal, type Recommendation } from "@/components/zulo-recommends-modal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ZULO } from "@/constants/contracts"
@@ -20,8 +20,11 @@ import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
 import { useEnsName } from "@/hooks/use-ens-name"
 import { fetchAgentCheck, isAgentCertified } from "@/lib/api/agentcheck"
+import { isAgentAwakened, normiesApi } from "@/lib/api/normies"
+import { tools } from "@/lib/tools"
 import type { AgentCheckResult } from "@/lib/types"
 import { useQuery } from "@tanstack/react-query"
+import { useConnectModal } from "@rainbow-me/rainbowkit"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -39,6 +42,13 @@ export function Dashboard() {
   const [endorseResult, setEndorseResult] = useState<{ message: string; signature?: string } | null>(null)
   const [showToolsModal, setShowToolsModal] = useState(false)
   const [showZuloRecommendsModal, setShowZuloRecommendsModal] = useState(false)
+
+  const { openConnectModal } = useConnectModal()
+
+  // Zulo Recommends state (lifted for the polished presentational modal)
+  const [zuloRecommendations, setZuloRecommendations] = useState<Recommendation[]>([])
+  const [zuloLoading, setZuloLoading] = useState(false)
+  const [zuloError, setZuloError] = useState<string | null>(null)
 
   const { data: snapshot, isLoading, isError } = useNormie(tokenId)
   const ownerAddress = snapshot?.owner.owner
@@ -201,6 +211,97 @@ export function Dashboard() {
     }
   }
 
+  const handleZuloRecommendsClick = () => {
+    if (!isConnected) {
+      openConnectModal?.()
+      return
+    }
+
+    // Open modal immediately in loading state, then fetch
+    setZuloRecommendations([])
+    setZuloError(null)
+    setZuloLoading(true)
+    setShowZuloRecommendsModal(true)
+
+    performZuloFetch()
+  }
+
+  async function performZuloFetch() {
+    try {
+      const awakened = await isAgentAwakened(tokenId)
+      if (!awakened) {
+        setZuloError('Zulo Recommends is only available to awakened agents. Awaken your Normie first to unlock personalized tool suggestions from Zulo.')
+        setZuloLoading(false)
+        return
+      }
+
+      const agentData = await normiesApi.agentInfo(tokenId)
+
+      const res = await fetch('/api/zulo-recommends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tokenId,
+          agentName: agentData.name,
+          traits: agentData.traits?.attributes || [],
+          agentType: agentData.type,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.error) {
+        setZuloError(data.error)
+        setZuloLoading(false)
+        return
+      }
+
+      if (data.recommendations) {
+        const parsed = parseRecommendations(data.recommendations)
+        setZuloRecommendations(parsed)
+      }
+    } catch (e) {
+      setZuloError('Could not fetch recommendations.')
+    } finally {
+      setZuloLoading(false)
+    }
+  }
+
+  // Parser: converts the AI text response into structured cards (matches tool urls/categories)
+  function parseRecommendations(text: string): Recommendation[] {
+    const recs: Recommendation[] = []
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+    let current: Partial<Recommendation> | null = null
+
+    for (const line of lines) {
+      if (line.startsWith('**') && line.endsWith('**')) {
+        if (current?.name) {
+          const match = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ')[0]))
+          recs.push({
+            name: current.name,
+            reason: current.reason || '',
+            category: match?.category || 'Tool',
+            url: match?.url || '#',
+          })
+        }
+        current = { name: line.replace(/\*\*/g, '').trim(), reason: '' }
+      } else if (current) {
+        current.reason = (current.reason || '') + ' ' + line
+      }
+    }
+
+    if (current?.name) {
+      const match = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ')[0]))
+      recs.push({
+        name: current.name,
+        reason: current.reason || '',
+        category: match?.category || 'Tool',
+        url: match?.url || '#',
+      })
+    }
+
+    return recs.length > 0 ? recs : []
+  }
+
   return (
     <div className="flex flex-col gap-6 px-4 sm:px-6">
       {/* Awakened personal entry — simple & direct */}
@@ -349,14 +450,18 @@ export function Dashboard() {
                 <p className="text-xs text-muted-foreground mt-1">Explore community tools. Open to everyone.</p>
               </div>
               <div>
-                <Button 
-                  onClick={() => setShowZuloRecommendsModal(true)} 
-                  variant="outline" 
-                  className="uppercase tracking-[1px] border-primary text-primary"
+                <button
+                  onClick={handleZuloRecommendsClick}
+                  className="px-6 py-3 rounded-2xl border border-white/20 hover:bg-white hover:text-black transition-all font-medium"
                 >
                   Zulo Recommends
-                </Button>
-                <p className="text-xs text-muted-foreground mt-1">Get tool recommendations from Zulo for your awakened agent.</p>
+                </button>
+
+                <p className="text-xs text-zinc-500 mt-2 max-w-[240px]">
+                  {isConnected 
+                    ? "See what tools Zulo recommends for your agent." 
+                    : "Connect your wallet to get Zulo’s recommendations."}
+                </p>
               </div>
             </div>
           )}
@@ -373,9 +478,16 @@ export function Dashboard() {
 
           <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
           <ZuloRecommendsModal 
-            tokenId={tokenId} 
             isOpen={showZuloRecommendsModal} 
-            onClose={() => setShowZuloRecommendsModal(false)} 
+            onClose={() => {
+              setShowZuloRecommendsModal(false)
+              // reset for next open with potentially different token
+              setZuloRecommendations([])
+              setZuloError(null)
+            }} 
+            recommendations={zuloRecommendations}
+            isLoading={zuloLoading}
+            error={zuloError || undefined}
           />
 
           {/* Trust & Gate Signals (AgentCheck + Trait Gating) */}
