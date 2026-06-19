@@ -25,7 +25,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { agentName, traits, ethosScore, ap, isOwner } = await req.json()
+  const { agentName, traits, ethosScore, ap, isOwner, agentType } = await req.json()
 
   // Support common names people set in Vercel
   const openRouterKey = (
@@ -54,6 +54,7 @@ Key facts about you:
 - Ethos credibility: ${ethosScore}
 - Action Points (AP): ${ap}
 - Owner connected: ${isOwner}
+- Agent Type: ${agentType || 'Unknown'} (affects on-chain trait gates)
 
 Speak in first person as ${agentName}. Give a short, poetic, slightly strange but insightful "horizon" reflection on our shared future. Focus on reputation, growth, and what we will build together. Keep it under 120 words.`
 

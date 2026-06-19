@@ -96,6 +96,10 @@ export function AgentCard({
                 {t.trait_type}: <span className="text-foreground">{t.value}</span>
               </div>
             ))}
+            {/* Trait Gate awareness badge */}
+            {snapshot.traits?.attributes?.some((t: any) => t.trait_type === "Type" && t.value === "Agent") && (
+              <div className="bg-emerald-500/10 px-2 py-px text-[10px] uppercase tracking-widest text-emerald-400">AGENT GATE</div>
+            )}
           </div>
         </div>
       </CardContent>

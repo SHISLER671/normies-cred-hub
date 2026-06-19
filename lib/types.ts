@@ -131,3 +131,19 @@ export interface EthosScoreResult {
   found: boolean
   address: string
 }
+
+/** AgentCheck API response (from agentcheck-bice.vercel.app) */
+export interface AgentCheckResult {
+  rating?: string
+  score?: number
+  forensicFlags?: string[]
+  sanctionsCheck?: {
+    passed: boolean
+    details?: string
+  }
+  safetyCertStatus?: string
+  certified?: boolean
+  report?: string
+  wallet?: string
+  [key: string]: any // flexible for full report
+}

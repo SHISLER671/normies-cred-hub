@@ -1,5 +1,5 @@
 import { createPublicClient, http } from "viem"
-import { mainnet } from "viem/chains"
+import { mainnet, base } from "viem/chains"
 
 /**
  * Shared public client for direct viem reads (useMyNormies, useEnsName, etc.).
@@ -13,4 +13,10 @@ export const RPC_URL = "https://ethereum.publicnode.com"
 export const publicClient = createPublicClient({
   chain: mainnet,
   transport: http(RPC_URL),
+})
+
+/** Public client for Base (used for AgentCheck on-chain cert registry) */
+export const basePublicClient = createPublicClient({
+  chain: base,
+  transport: http("https://base.publicnode.com"),
 })

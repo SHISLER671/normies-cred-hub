@@ -97,3 +97,35 @@ export const DELEGATE_REGISTRY_ABI = [
     type: "function",
   },
 ] as const
+
+/**
+ * AgentCheck — ERC-8257 Tool #13 (trust layer / reputation signal)
+ * API: https://agentcheck-bice.vercel.app/api/check?wallet=...
+ * On-chain cert registry (Base): isCertified(address) for pure on-chain verification
+ *
+ * Also relevant: TraitGatedPredicate for gating by Normies traits (Type: Agent etc.)
+ * and composition with AgentCheck cert.
+ */
+export const AGENT_CHECK = {
+  /** On-chain certification registry on Base */
+  REGISTRY: "0x803A8988E40CBb54897e5782A6A589d907A5B03A" as const,
+  /** Simple public API endpoint (no key, free for normal use) */
+  API_BASE: "https://agentcheck-bice.vercel.app/api/check",
+} as const
+
+/**
+ * Example AgentCheck certification predicate address (for setAccessPredicate on tools).
+ * Used with TraitGatedPredicate for combined gates (Agent trait + cert).
+ */
+export const AGENT_CHECK_PREDICATE = "0x38530729..." as const // replace with full address when available
+
+/** Minimal ABI for the on-chain cert registry */
+export const AGENT_CHECK_REGISTRY_ABI = [
+  {
+    inputs: [{ name: "account", type: "address" }],
+    name: "isCertified",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const

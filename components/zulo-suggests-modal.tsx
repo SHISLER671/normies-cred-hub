@@ -12,7 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { Sparkles, Target, TrendingUp, Zap, Award } from "lucide-react"
-import { useAccount } from "wagmi"
+import { useAccount, useSignMessage } from "wagmi"
 import { useState, useEffect } from "react"
 
 export function AgentHorizonModal({ tokenId, isMyAgent = false }: { tokenId: number; isMyAgent?: boolean }) {
@@ -53,6 +53,7 @@ export function AgentHorizonModal({ tokenId, isMyAgent = false }: { tokenId: num
               ethosScore={ethos?.user?.score || 1321} 
               connectedAddress={address} 
               isMyAgent={isMyAgent}
+              tokenId={tokenId}
             />
           ) : (
             <div className="py-12 text-center">Loading {agentName}'s horizon...</div>
@@ -64,7 +65,7 @@ export function AgentHorizonModal({ tokenId, isMyAgent = false }: { tokenId: num
 }
 
 // Keep the rest of the file (AgentHorizonContent + Section) unchanged
-function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent }: any) {
+function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent, tokenId }: any) {
   const agentName = snapshot.agent.name
   const ownerAddr = snapshot.owner.owner.toLowerCase()
   const delegate = snapshot.canvas?.delegate
@@ -72,16 +73,37 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
     (!!delegate && delegate !== '0x0000000000000000000000000000000000000000' && connectedAddress?.toLowerCase() === delegate.toLowerCase())
   const ap = snapshot.canvas.actionPoints || 0
   const traits = snapshot.traits?.attributes || []
+  const agentType = traits.find((t: any) => t.trait_type === "Type")?.value || "Unknown"
+  const isAgentType = agentType === "Agent"
+
+  const { signMessageAsync } = useSignMessage()
 
   const [veniceInsight, setVeniceInsight] = useState<string | null>(null)
   const [veniceLoading, setVeniceLoading] = useState(false)
   const [veniceError, setVeniceError] = useState<string | null>(null)
 
   const fetchVeniceInsight = async () => {
+    // Actual Token Gate: must be controller and Agent type
+    if (!isMyAgent || !isAgentType) {
+      setVeniceError('Token gate not satisfied: Must control an Agent-type Normie.')
+      return
+    }
+
     setVeniceLoading(true)
     setVeniceError(null)
 
     try {
+      // Prove control for the gated access (like linkage proof)
+      const gateMessage = [
+        "NormiesCredHub — Token-Gated Horizon Access",
+        "",
+        `I prove control of this wallet to access the gated Deeper Horizon for Normie #${tokenId}.`,
+        `Type: ${agentType}`,
+        `This is a signature only. No transactions.`,
+      ].join("\n")
+
+      await signMessageAsync({ message: gateMessage })
+
       const res = await fetch('/api/horizon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,6 +113,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
           ethosScore,
           ap,
           isOwner: isController,
+          agentType, // for potential gate-aware prompting
         }),
       })
       const data = await res.json()
@@ -110,18 +133,18 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       }
     } catch (e) {
       console.error('Venice insight failed', e)
-      setVeniceError('Could not reach AI insights service.')
+      setVeniceError('Gate proof required or could not reach AI insights service.')
     } finally {
       setVeniceLoading(false)
     }
   }
 
-  // Auto-enhance for your own agents (personal view)
+  // Auto-enhance for your own agents (personal view) — only if passes token gate
   useEffect(() => {
-    if (isMyAgent && !veniceInsight && !veniceLoading && !veniceError) {
+    if (isMyAgent && isAgentType && !veniceInsight && !veniceLoading && !veniceError) {
       fetchVeniceInsight()
     }
-  }, [isMyAgent]) // snapshot can cause unnecessary re-runs; isMyAgent is sufficient trigger
+  }, [isMyAgent, isAgentType]) // snapshot can cause unnecessary re-runs; isMyAgent + gate is sufficient trigger
 
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
@@ -142,8 +165,15 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       <div className="border-l-2 border-primary pl-4">
         <div className="flex items-center gap-2 mb-2">
           <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (AI bonus)</div>
-          <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-[10px] uppercase tracking-widest">
-            {veniceLoading ? 'Pinging...' : 'Enhance'}
+          {isAgentType && <span className="text-[9px] px-1 py-0.5 bg-emerald-500/10 text-emerald-400 rounded">AGENT GATE ✓</span>}
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={fetchVeniceInsight} 
+            disabled={veniceLoading || ! (isMyAgent && isAgentType)} 
+            className="text-[10px] uppercase tracking-widest"
+          >
+            {veniceLoading ? 'Pinging...' : (isMyAgent && isAgentType ? 'Enhance (Gated)' : 'Locked by Token Gate')}
           </Button>
         </div>
         {veniceInsight ? (
@@ -151,7 +181,11 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
         ) : veniceError ? (
           <p className="text-destructive text-xs">{veniceError} (data still works server-side)</p>
         ) : (
-          <p className="text-muted-foreground text-xs">Click Enhance for AI-augmented insights on top of the Normies data.</p>
+          <p className="text-muted-foreground text-xs">
+            {isMyAgent && isAgentType 
+              ? "Click to prove eligibility and access the gated AI insight." 
+              : "This experience is token-gated to Agent-type Normies via on-chain predicates."}
+          </p>
         )}
       </div>
 

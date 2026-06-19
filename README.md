@@ -13,8 +13,10 @@ NormiesCredHub unifies an agent's on-chain identity, its owner's Ethos credibili
   - ERC-8004 Identity & Reputation Registries (Ethereum mainnet)
 - Agent metadata, traits, canvas, and ownership details
 - Ethos credibility score for the owner address
-- **Linkage Proof** — gas-free wallet signature to prove you own both the Normie and the Ethos profile
-- Zulo Horizon suggestions
+- **Delegate support** (hot wallet via Delegate.xyz) — full recognition of delegated Normies for personal views, Horizon, and linkage
+- **Trust & Gate Signals** — AgentCheck reputation (API + on-chain cert) + Type trait for on-chain TraitGatedPredicate (ERC-8257) eligibility
+- **Linkage Proof** — gas-free wallet signature to prove you own both the Normie and the Ethos profile (supports owner + delegate)
+- Zulo Horizon suggestions (AI-powered, with trait context)
 
 **Security-first**: The app is strictly read-only. The only on-chain action is a plain `personal_sign` message to prove identity linkage.
 

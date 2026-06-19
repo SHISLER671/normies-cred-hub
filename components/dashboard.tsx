@@ -17,6 +17,9 @@ import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
 import { useEnsName } from "@/hooks/use-ens-name"
+import { fetchAgentCheck, isAgentCertified } from "@/lib/api/agentcheck"
+import type { AgentCheckResult } from "@/lib/types"
+import { useQuery } from "@tanstack/react-query"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -41,11 +44,28 @@ export function Dashboard() {
     isError: ethosError,
   } = useEthosScore(ownerAddress)
 
+  // AgentCheck trust signals (API rating + on-chain cert)
+  const { data: agentCheck, isLoading: agentCheckLoading } = useQuery({
+    queryKey: ["agentcheck", ownerAddress],
+    queryFn: () => fetchAgentCheck(ownerAddress || undefined),
+    enabled: !!ownerAddress,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const { data: isCertified, isLoading: certLoading } = useQuery({
+    queryKey: ["agent-certified", ownerAddress],
+    queryFn: () => isAgentCertified(ownerAddress || undefined),
+    enabled: !!ownerAddress,
+    staleTime: 5 * 60 * 1000,
+  })
+
   const ownerUsername = ethos?.user?.username || null
 
-  const hasHumanTrait = snapshot?.traits?.attributes?.some(
-    (t: any) => t.trait_type === 'Type' && t.value === 'Human'
-  ) ?? false
+  const agentType = snapshot?.traits?.attributes?.find(
+    (t: any) => t.trait_type === "Type"
+  )?.value || "Unknown"
+
+  const isAgentType = agentType === "Agent"
 
   const delegate = snapshot?.canvas?.delegate
   const isZeroAddr = (a?: string | null) =>
@@ -64,7 +84,10 @@ export function Dashboard() {
     !isZeroAddr(delegate) &&
     address.toLowerCase() === delegate.toLowerCase()
 
-  // Broaden for personal UI so hot-delegate controllers also get "YOUR" titles, banner, larger Horizon etc.
+  // Delegate support (hot wallet / cold storage pattern via Delegate.xyz):
+  // - isMyAgent includes delegates so personal features (Horizon auto, titles, storage) work for judges/users using hot wallets.
+  // - Snapshot data (traits, owner, delegate, canvas) is always fetched by tokenId, independent of connected wallet.
+  // - Linkage proof and UI explicitly handle owner + delegate.
   const isMyAgent = isOwnerMatch || isDelegateMatch
 
   const { data: delegateEnsName } = useEnsName(
@@ -271,6 +294,7 @@ export function Dashboard() {
       {isMyAgent && (
         <div className="text-center text-sm uppercase tracking-[3px] border border-primary py-2 text-primary">
           THIS IS YOUR AWAKENED AGENT — THE DASHBOARD IS YOURS
+          {isDelegateMatch && !isOwnerMatch && <span className="block text-[10px] normal-case tracking-normal mt-1 text-primary/70">(accessed via delegated hot wallet)</span>}
         </div>
       )}
 
@@ -319,6 +343,61 @@ export function Dashboard() {
               <div className="font-mono break-all text-primary">{endorseResult.signature}</div>
               <button onClick={() => { navigator.clipboard.writeText(endorseResult.message + '\n\n' + (endorseResult.signature || '')); }} className="mt-2 text-primary underline">Copy to clipboard</button>
               <button onClick={() => setEndorseResult(null)} className="ml-4">Dismiss</button>
+            </div>
+          )}
+
+          {/* Trust & Gate Signals (AgentCheck + Trait Gating) */}
+          {ownerAddress && snapshot && (
+            <div className="text-xs border border-primary/20 bg-card p-3">
+              <div className="uppercase tracking-widest text-[10px] text-primary mb-1 flex items-center gap-2">
+                TRUST &amp; GATE SIGNALS
+                {isMyAgent && <span className="text-[9px] bg-primary/10 px-1 py-0.5 rounded">YOUR AGENT</span>}
+              </div>
+
+              {/* AgentCheck */}
+              <div className="mb-2">
+                {agentCheckLoading || certLoading ? (
+                  <span className="text-muted-foreground">Loading trust signals...</span>
+                ) : agentCheck ? (
+                  <div>
+                    AgentCheck: <span className="font-medium text-primary">{agentCheck.rating || "N/A"}</span>
+                    {(agentCheck.certified || isCertified) && <span className="ml-2 text-emerald-400">✓ Certified</span>}
+                    {Array.isArray(agentCheck.forensicFlags) && agentCheck.forensicFlags.length > 0 && (
+                      <span className="ml-2 text-amber-400">flags: {agentCheck.forensicFlags.slice(0,2).join(", ")}</span>
+                    )}
+                    <a href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`} target="_blank" rel="noopener noreferrer" className="ml-2 underline text-primary">report</a>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">AgentCheck: no data (API fails silently)</span>
+                )}
+                {isCertified === false && <span className="ml-2 text-amber-400">(not on-chain certified)</span>}
+              </div>
+
+              {/* Trait Gate (preview for TraitGatedPredicate + AgentCheck composition) */}
+              {snapshot.traits?.attributes && (
+                <div className="pt-2 border-t border-primary/10">
+                  {snapshot.traits.attributes
+                    .filter((t: any) => t.trait_type === "Type")
+                    .map((t: any, i: number) => {
+                      const isAgentType = t.value === "Agent"
+                      return (
+                        <div key={i}>
+                          Type: <span className="font-medium">{t.value}</span>
+                          {isAgentType && (
+                            <span className="ml-1 text-emerald-400">
+                              → qualifies for Agent trait gates
+                              {isCertified && " + AgentCheck cert"}
+                            </span>
+                          )}
+                          {!isAgentType && <span className="ml-1 text-muted-foreground">(may not pass Agent-only gates)</span>}
+                        </div>
+                      )
+                    })}
+                  <div className="text-[9px] text-muted-foreground mt-1">
+                    On-chain via TraitGatedPredicate (ERC-8257) + AgentCheck cert registry.
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
