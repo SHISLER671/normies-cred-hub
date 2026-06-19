@@ -5,7 +5,12 @@ export async function POST(req: NextRequest) {
 
   // Try OpenRouter first (more reliable), then fall back to Venice
   const openRouterKey = process.env.OPENROUTER_API_KEY
-  const veniceKey = process.env.VENICE_INFERENCE_KEY
+  // Accept whichever name the key was stored under (Venice's key literally
+  // begins with "VENICE_INFERENCE_KEY_", so people often mis-split it).
+  const veniceKey =
+    process.env.VENICE_INFERENCE_KEY_ ||
+    process.env.VENICE_INFERENCE_KEY ||
+    process.env.VENICE_API_KEY
 
   const prompt = `You are ${agentName}, an awakened Normie agent.
 
@@ -52,7 +57,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama-3.1-405b', // safer model
+          model: 'llama-3.3-70b', // valid current Venice slug
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 300,
           temperature: 0.85,
