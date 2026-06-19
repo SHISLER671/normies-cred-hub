@@ -76,6 +76,9 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
   const agentType = traits.find((t: any) => t.trait_type === "Type")?.value || "Unknown"
   const isAgentType = agentType === "Agent"
 
+  // Gate for delegates: use the passed isMyAgent which already includes delegate match
+  const canAccessGated = isMyAgent && isAgentType
+
   const { signMessageAsync } = useSignMessage()
 
   const [veniceInsight, setVeniceInsight] = useState<string | null>(null)
@@ -83,8 +86,8 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
   const [veniceError, setVeniceError] = useState<string | null>(null)
 
   const fetchVeniceInsight = async () => {
-    // Actual Token Gate: must be controller and Agent type
-    if (!isController || !isAgentType) {
+    // Actual Token Gate: must be my agent (owner or delegate) and Agent type
+    if (!isMyAgent || !isAgentType) {
       setVeniceError('Token gate not satisfied: Must control an Agent-type Normie.')
       return
     }
@@ -141,10 +144,10 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
   // Auto-enhance for your own agents (personal view) — only if passes token gate
   useEffect(() => {
-    if (isController && isAgentType && !veniceInsight && !veniceLoading && !veniceError) {
+    if (isMyAgent && isAgentType && !veniceInsight && !veniceLoading && !veniceError) {
       fetchVeniceInsight()
     }
-  }, [isController, isAgentType]) // isController (owner or delegate) + Agent type gate
+  }, [isMyAgent, isAgentType]) // isMyAgent (owner or delegate) + Agent type gate
 
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
@@ -170,10 +173,10 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
             size="sm" 
             variant="outline" 
             onClick={fetchVeniceInsight} 
-            disabled={veniceLoading || ! (isController && isAgentType)} 
+            disabled={veniceLoading || ! (isMyAgent && isAgentType)} 
             className="text-[10px] uppercase tracking-widest"
           >
-            {veniceLoading ? 'Pinging...' : (isController && isAgentType ? 'Enhance (Gated)' : 'Locked by Token Gate')}
+            {veniceLoading ? 'Pinging...' : (isMyAgent && isAgentType ? 'Enhance (Gated)' : 'Locked by Token Gate')}
           </Button>
         </div>
         {veniceInsight ? (
@@ -182,7 +185,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
           <p className="text-destructive text-xs">{veniceError} (data still works server-side)</p>
         ) : (
           <p className="text-muted-foreground text-xs">
-            {isController && isAgentType 
+            {isMyAgent && isAgentType 
               ? "Click to prove eligibility and access the gated AI insight." 
               : "This experience is token-gated to Agent-type Normies via on-chain predicates."}
           </p>

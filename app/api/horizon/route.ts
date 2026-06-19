@@ -61,7 +61,36 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
   const errors: string[] = []
 
   try {
-    // Try OpenRouter
+    // Try Venice first (reliable with your credits)
+    if (veniceKey) {
+      const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${veniceKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'hermes-3-llama-3.1-405b',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 300,
+          temperature: 0.85,
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        const insight = data.choices?.[0]?.message?.content || 'The horizon is still forming...'
+        return NextResponse.json({ insight })
+      } else {
+        const errText = await res.text().catch(() => '')
+        console.error('[horizon] Venice error', res.status, errText)
+        errors.push(`Venice ${res.status}: ${errText.slice(0, 180)}`)
+      }
+    } else {
+      errors.push('No Venice key')
+    }
+
+    // Fallback to OpenRouter only if Venice unavailable
     if (openRouterKey) {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -90,35 +119,6 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
       }
     } else {
       errors.push('No OpenRouter key')
-    }
-
-    // Fallback to Venice
-    if (veniceKey) {
-      const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${veniceKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'hermes-3-llama-3.1-405b',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 300,
-          temperature: 0.85,
-        }),
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        const insight = data.choices?.[0]?.message?.content || 'The horizon is still forming...'
-        return NextResponse.json({ insight })
-      } else {
-        const errText = await res.text().catch(() => '')
-        console.error('[horizon] Venice error', res.status, errText)
-        errors.push(`Venice ${res.status}: ${errText.slice(0, 180)}`)
-      }
-    } else {
-      errors.push('No Venice key')
     }
 
     return NextResponse.json(
