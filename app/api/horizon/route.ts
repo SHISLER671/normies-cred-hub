@@ -28,15 +28,19 @@ export async function POST(req: NextRequest) {
   const { agentName, traits, ethosScore, ap, isOwner } = await req.json()
 
   // Support common names people set in Vercel
-  const openRouterKey =
+  const openRouterKey = (
     process.env.OPENROUTER_API_KEY ||
     process.env.OPENROUTER_KEY ||
-    process.env.OPENROUTER_API_KEY_
+    process.env.OPENROUTER_API_KEY_ ||
+    ''
+  ).trim()
 
-  const veniceKey =
+  const veniceKey = (
     process.env.VENICE_INFERENCE_KEY ||
     process.env.VENICE_INFERENCE_KEY_ ||
-    process.env.VENICE_API_KEY
+    process.env.VENICE_API_KEY ||
+    ''
+  ).trim()
 
   // Safe logging — you will see this in Vercel Function Logs
   console.log(
@@ -96,7 +100,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama-3.1-405b',
+          model: 'hermes-3-llama-3.1-405b',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 300,
           temperature: 0.85,
