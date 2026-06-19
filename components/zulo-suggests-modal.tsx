@@ -12,7 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { Sparkles, Target, TrendingUp, Zap, Award } from "lucide-react"
-import { useAccount, useSignMessage } from "wagmi"
+import { useAccount } from "wagmi"
 import { useState, useEffect } from "react"
 
 export function AgentHorizonModal({ tokenId, isMyAgent = false }: { tokenId: number; isMyAgent?: boolean }) {
@@ -70,71 +70,43 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
   const ownerAddr = snapshot.owner.owner.toLowerCase()
   const delegate = snapshot.canvas?.delegate
   const isController = connectedAddress?.toLowerCase() === ownerAddr ||
-    (!!delegate && delegate !== '0x0000000000000000000000000000000000000000' && connectedAddress?.toLowerCase() === delegate.toLowerCase()) ||
-    isMyAgent // fallback to outer delegate-aware flag
+    (!!delegate && delegate !== '0x0000000000000000000000000000000000000000' && connectedAddress?.toLowerCase() === delegate.toLowerCase())
   const ap = snapshot.canvas.actionPoints || 0
   const traits = snapshot.traits?.attributes || []
-  const agentType = traits.find((t: any) => t.trait_type === "Type")?.value || "Unknown"
-  const isAgentType = agentType === "Agent"
-
-  const canAccessGated = isController && isAgentType
-
-  const { signMessageAsync } = useSignMessage()
 
   const [veniceInsight, setVeniceInsight] = useState<string | null>(null)
   const [veniceLoading, setVeniceLoading] = useState(false)
   const [veniceError, setVeniceError] = useState<string | null>(null)
 
   const fetchVeniceInsight = async () => {
-    // Actual Token Gate: must be my agent (owner or delegate) and Agent type
-    if (!isMyAgent || !isAgentType) {
-      setVeniceError('Token gate not satisfied: Must control an Agent-type Normie.')
-      return
-    }
-
     setVeniceLoading(true)
     setVeniceError(null)
 
     try {
-      // Prove control for the gated access (like linkage proof)
-      const gateMessage = [
-        "NormiesCredHub — Token-Gated Horizon Access",
-        "",
-        `I prove control of this wallet to access the gated Deeper Horizon for Normie #${tokenId}.`,
-        `Type: ${agentType}`,
-        `This is a signature only. No transactions.`,
-      ].join("\n")
-
-      await signMessageAsync({ message: gateMessage })
-
-      const res = await fetch('/api/zulo-recommends', {
+      const res = await fetch('/api/horizon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tokenId,
           agentName,
           traits,
+          ethosScore,
+          ap,
           isOwner: isController,
-          agentType,
         }),
       })
       const data = await res.json()
 
-      if (data.recommendations) {
-        setVeniceInsight(data.recommendations)
-      } else if (data.insight) {
-        // backward compat
+      if (data.insight) {
         setVeniceInsight(data.insight)
       } else if (data.error) {
         const msg = String(data.error);
         if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) {
           setVeniceError('Rate limited by the AI provider. Please try again shortly.');
         } else {
-          // Show the real error from the provider for debugging
           setVeniceError(msg);
         }
       } else {
-        setVeniceError('No recommendations or error in response');
+        setVeniceError('No insight or error in response');
       }
     } catch (e) {
       console.error('Venice insight failed', e)
@@ -144,12 +116,12 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
     }
   }
 
-  // Auto-enhance for your own agents (personal view) — only if passes token gate
+  // Auto-enhance for your own agents (personal view)
   useEffect(() => {
-    if (isMyAgent && isAgentType && !veniceInsight && !veniceLoading && !veniceError) {
+    if (isMyAgent && !veniceInsight && !veniceLoading && !veniceError) {
       fetchVeniceInsight()
     }
-  }, [isMyAgent, isAgentType]) // isMyAgent (owner or delegate) + Agent type gate
+  }, [isMyAgent])
 
   const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
   const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
@@ -169,28 +141,17 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
       <div className="border-l-2 border-primary pl-4">
         <div className="flex items-center gap-2 mb-2">
-          <div className="uppercase tracking-widest text-xs text-primary">Zulo Recommends</div>
-          {isAgentType && <span className="text-[9px] px-1 py-0.5 bg-emerald-500/10 text-emerald-400 rounded">AGENT GATE ✓</span>}
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={fetchVeniceInsight} 
-            disabled={veniceLoading || !canAccessGated} 
-            className="text-[10px] uppercase tracking-widest"
-          >
-            {veniceLoading ? 'Pinging...' : (canAccessGated ? 'Get Recommendations (Gated)' : 'Locked by Token Gate')}
+          <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (AI bonus)</div>
+          <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-[10px] uppercase tracking-widest">
+            {veniceLoading ? 'Pinging...' : 'Enhance'}
           </Button>
         </div>
         {veniceInsight ? (
-          <div className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">{veniceInsight}</div>
+          <p className="text-foreground leading-relaxed">{veniceInsight}</p>
         ) : veniceError ? (
           <p className="text-destructive text-xs">{veniceError} (data still works server-side)</p>
         ) : (
-          <p className="text-muted-foreground text-xs">
-            {canAccessGated 
-              ? "Click to prove eligibility and get Zulo's personalized tool recommendations." 
-              : "This experience is token-gated to Agent-type Normies via on-chain predicates (TraitGatedPredicate + AgentCheck cert)."}
-          </p>
+          <p className="text-muted-foreground text-xs">Click Enhance for AI-augmented insights on top of the Normies data.</p>
         )}
       </div>
 

@@ -34,6 +34,17 @@ export const normiesApi = {
   canvasInfo: (id: number) => getJson<CanvasInfo>(`/${id}/canvas/info`),
   canvasDiff: (id: number) => getJson<CanvasDiff>(`/${id}/canvas/diff`),
   agentInfo: (id: number) => getJson<AgentInfo>(`/${id}/agent`),
+  agentBinding: (id: number) => getJson<any>(`/agents/binding/${id}`),
+}
+
+export async function isAgentAwakened(tokenId: number): Promise<boolean> {
+  try {
+    const binding = await normiesApi.agentBinding(tokenId)
+    // Awakened if the binding endpoint returns meaningful data (has agentId or non-empty)
+    return !!(binding && (binding.agentId || (typeof binding === 'object' && Object.keys(binding).length > 0)))
+  } catch {
+    return false
+  }
 }
 
 /** Fetches every public surface for a Normie in parallel. */

@@ -21,6 +21,9 @@ export async function GET(
   if (segments.length === 2 && segments[1] === "agent") {
     // /api/normies/7141/agent -> /agents/info/7141
     upstream = `${NORMIES_API_BASE}/agents/info/${segments[0]}`
+  } else if (segments.length === 3 && segments[0] === "agents" && segments[1] === "binding") {
+    // support /api/normies/agents/binding/7141 -> /agents/binding/7141
+    upstream = `${NORMIES_API_BASE}/agents/binding/${segments[2]}`
   } else {
     upstream = `${NORMIES_API_BASE}/normie/${segments.join("/")}`
   }

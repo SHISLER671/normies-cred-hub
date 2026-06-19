@@ -7,6 +7,7 @@ import { LinkageProofModal } from "@/components/linkage-proof-modal"
 import { OwnershipCard } from "@/components/ownership-card"
 import { AgentHorizonModal } from "@/components/zulo-suggests-modal"
 import { ToolsModal } from "@/components/tools-modal"
+import { ZuloRecommendsModal } from "@/components/zulo-recommends-modal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ZULO } from "@/constants/contracts"
@@ -37,6 +38,7 @@ export function Dashboard() {
 
   const [endorseResult, setEndorseResult] = useState<{ message: string; signature?: string } | null>(null)
   const [showToolsModal, setShowToolsModal] = useState(false)
+  const [showZuloRecommendsModal, setShowZuloRecommendsModal] = useState(false)
 
   const { data: snapshot, isLoading, isError } = useNormie(tokenId)
   const ownerAddress = snapshot?.owner.owner
@@ -330,7 +332,7 @@ export function Dashboard() {
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <div className={isMyAgent ? "flex-1" : ""}>
                 <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
-                <p className="text-xs text-muted-foreground mt-1">Zulo Recommends — AI tool suggestions for your agent (gated to Agent types).</p>
+                <p className="text-xs text-muted-foreground mt-1">Zulo Horizon — AI-powered insights for your agent.</p>
               </div>
               <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
               {isConnected && myNormies.length > 0 && !isMyAgent && (
@@ -346,6 +348,16 @@ export function Dashboard() {
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">Explore community tools. Open to everyone.</p>
               </div>
+              <div>
+                <Button 
+                  onClick={() => setShowZuloRecommendsModal(true)} 
+                  variant="outline" 
+                  className="uppercase tracking-[1px] border-primary text-primary"
+                >
+                  Zulo Recommends
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">Get tool recommendations from Zulo for your awakened agent.</p>
+              </div>
             </div>
           )}
 
@@ -360,6 +372,11 @@ export function Dashboard() {
           )}
 
           <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
+          <ZuloRecommendsModal 
+            tokenId={tokenId} 
+            isOpen={showZuloRecommendsModal} 
+            onClose={() => setShowZuloRecommendsModal(false)} 
+          />
 
           {/* Trust & Gate Signals (AgentCheck + Trait Gating) */}
           {ownerAddress && snapshot && (
