@@ -20,11 +20,8 @@ import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
 import { useEnsName } from "@/hooks/use-ens-name"
-import { fetchAgentCheck, isAgentCertified } from "@/lib/api/agentcheck"
 import { isAgentAwakened, normiesApi } from "@/lib/api/normies"
 import { tools } from "@/lib/tools"
-import type { AgentCheckResult } from "@/lib/types"
-import { useQuery } from "@tanstack/react-query"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ERC8004 } from "@/constants/contracts"
@@ -63,21 +60,6 @@ export function Dashboard() {
     isLoading: ethosLoading,
     isError: ethosError,
   } = useEthosScore(ownerAddress)
-
-  // AgentCheck trust signals (API rating + on-chain cert)
-  const { data: agentCheck, isLoading: agentCheckLoading } = useQuery({
-    queryKey: ["agentcheck", ownerAddress],
-    queryFn: () => fetchAgentCheck(ownerAddress || undefined),
-    enabled: !!ownerAddress,
-    staleTime: 5 * 60 * 1000,
-  })
-
-  const { data: isCertified, isLoading: certLoading } = useQuery({
-    queryKey: ["agent-certified", ownerAddress],
-    queryFn: () => isAgentCertified(ownerAddress || undefined),
-    enabled: !!ownerAddress,
-    staleTime: 5 * 60 * 1000,
-  })
 
   const ownerUsername = ethos?.user?.username || null
 
@@ -579,7 +561,7 @@ export function Dashboard() {
                     <Boxes className="size-4 text-primary" /> On-Chain Identity
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
-                    This registers your Normie as a verifiable ERC-8004 agent identity on-chain. It creates a public, immutable record that other systems can reference.
+                    This registers your Normie as a verifiable ERC-8004 agent identity on-chain. A public on-chain record makes the agent discoverable and verifiable by other systems.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     {isLoading ? (
@@ -613,7 +595,7 @@ export function Dashboard() {
                     <Wallet className="size-4 text-primary" /> Ownership &amp; Delegation
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Ownership proves control of the NFT; delegation lets the agent act securely from a hot wallet.
+                    Ownership proves control of the NFT. Delegation allows the agent to act while the asset remains secure in cold storage.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     {isLoading || !snapshot ? (
@@ -655,7 +637,7 @@ export function Dashboard() {
                     <Palette className="size-4 text-primary" /> On-Chain Activity (Canvas)
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Canvas records pixel-level changes, level, and customization as proof of active engagement.
+                    Canvas level and pixel changes demonstrate ongoing engagement and evolution. Active participation on-chain signals a living, maintained agent identity.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     {isLoading || !snapshot ? (
@@ -687,7 +669,7 @@ export function Dashboard() {
                     <ShieldCheck className="size-4 text-primary" /> Reputation (Ethos)
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Ethos aggregates community perception of on-chain behavior into a portable credibility score.
+                    The Ethos score reflects how the community perceives the owner’s on-chain behavior and credibility. Higher scores indicate stronger, community-backed reputation.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     <EthosReputation
@@ -712,25 +694,32 @@ export function Dashboard() {
                     Community tools like AgentCheck can provide additional verification for your agent.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
-                    {agentCheckLoading || certLoading ? (
-                      <Skeleton className="h-10 w-full" />
-                    ) : agentCheck ? (
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span>AgentCheck <span className="font-medium text-primary">{agentCheck.rating || "N/A"}</span></span>
-                          {(agentCheck.certified || isCertified) && <span className="text-emerald-500 text-xs">✓ Certified</span>}
-                        </div>
-                        <a
-                          href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline"
-                        >
-                          View full report →
-                        </a>
-                      </div>
+                    {isLoading || !snapshot ? (
+                      <Skeleton className="h-16 w-full" />
                     ) : (
-                      <span className="text-muted-foreground text-xs">No external data available</span>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-[10px] text-muted-foreground">AGENT TYPE</div>
+                          <div className="font-medium">{agentType}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-muted-foreground">GATE ACCESS</div>
+                          <div className="font-medium">{isAgentType ? "Advanced" : "Limited"}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {isAgentType ? "qualifies for advanced agent features" : "limited gate access"}
+                          </div>
+                        </div>
+                        {ownerAddress && (
+                          <a
+                            href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex w-full items-center justify-center rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                          >
+                            View Full Report
+                          </a>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
