@@ -544,9 +544,10 @@ export function Dashboard() {
           {/* Zulo’s Credibility Framework */}
           <div className="mx-auto max-w-2xl">
             <SectionLabel className="text-center mb-1">Zulo’s Credibility Framework</SectionLabel>
-            <p className="text-center text-sm text-muted-foreground mb-6">
+            <p className="text-center text-sm text-muted-foreground mb-1">
               Zulo maps the on-chain signals that establish credibility for awakened agents.
             </p>
+            <p className="text-center text-[10px] tracking-[1.5px] text-primary/60 mb-6">— Analyzed by Zulo</p>
 
             {/* Visual Credibility Chain */}
             <div className="space-y-5 relative pl-8">
