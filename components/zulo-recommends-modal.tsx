@@ -66,7 +66,7 @@ export function ZuloRecommendsModal({
                   </div>
 
                   <div className="mt-4 flex items-center justify-between">
-                    <div className="text-xs px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border">
+                    <div className="text-sm px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border">
                       {rec.category}
                     </div>
                     

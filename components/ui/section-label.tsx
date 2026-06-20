@@ -8,7 +8,7 @@ export function SectionLabel({ children, className, ...props }: SectionLabelProp
   return (
     <div
       className={cn(
-        "text-[10px] tracking-[1.5px] text-muted-foreground font-medium",
+        "text-xs tracking-[1.5px] text-muted-foreground font-medium",
         className
       )}
       {...props}

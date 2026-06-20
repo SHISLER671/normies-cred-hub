@@ -294,7 +294,7 @@ export function Dashboard() {
     return (
       <div className="flex flex-col items-center py-2.5">
         <span className="font-heading text-lg font-bold tabular-nums tracking-[-1px]">{value}</span>
-        <span className="text-[10px] tracking-[1.5px] text-muted-foreground">{label}</span>
+        <span className="text-xs tracking-[1.5px] text-muted-foreground">{label}</span>
       </div>
     )
   }
@@ -343,7 +343,7 @@ export function Dashboard() {
               placeholder="Enter token id"
               className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none border-b border-border py-2"
             />
-            <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-xs">LOAD</Button>
+            <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-sm">LOAD</Button>
           </div>
         </div>
       )}
@@ -378,7 +378,7 @@ export function Dashboard() {
 
       {isMyAgent && (
         <div className="mx-auto text-center">
-          <div className="inline-block text-xs tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-full text-primary">
+          <div className="inline-block text-sm tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-full text-primary">
             Your Awakened Agent
             {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[9px] normal-case tracking-normal text-primary/60">• via delegate</span>}
           </div>
@@ -423,7 +423,7 @@ export function Dashboard() {
                   Zulo analyzes your agent's on-chain data — its traits, canvas state, level, and activity — to surface the most relevant tools from the ecosystem.
                 </p>
 
-                <p className="text-xs text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-4">
                   {isConnected 
                     ? "These recommendations are personalized to help this specific agent grow." 
                     : "Connect your wallet to unlock Zulo's personalized recommendations for this agent."}
@@ -453,7 +453,7 @@ export function Dashboard() {
                   <Sparkles className="size-4 text-primary" />
                   <span className="font-semibold">Zulo Horizon</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Talk to your agent and get deeper insights.</p>
+                <p className="text-sm text-muted-foreground">Talk to your agent and get deeper insights.</p>
               </button>
 
               {/* Prove Linkage Card */}
@@ -465,7 +465,7 @@ export function Dashboard() {
                   <Fingerprint className="size-4 text-primary" />
                   <span className="font-semibold">Prove Linkage</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Unlock full features by verifying your agent.</p>
+                <p className="text-sm text-muted-foreground">Unlock full features by verifying your agent.</p>
               </button>
 
               {/* Browse Tools Card */}
@@ -477,7 +477,7 @@ export function Dashboard() {
                   <Search className="size-4 text-primary" />
                   <span className="font-semibold">Browse Tools</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Explore community-built tools for Normies.</p>
+                <p className="text-sm text-muted-foreground">Explore community-built tools for Normies.</p>
               </button>
             </div>
           )}
@@ -498,16 +498,16 @@ export function Dashboard() {
                 />
                 <Button type="submit" variant="outline" size="sm" className="ml-2">Search</Button>
               </div>
-              <p className="text-center text-[10px] text-muted-foreground mt-2 tracking-widest">Explore any Normie — public or personal</p>
+              <p className="text-center text-xs text-muted-foreground mt-2 tracking-widest">Explore any Normie — public or personal</p>
             </form>
           </div>
 
           {endorseResult && (
-            <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-xl p-5 text-xs">
+            <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-xl p-5 text-sm">
               <SectionLabel className="text-primary mb-2">Endorsement Signature</SectionLabel>
               <div className="font-mono text-[10px] break-all bg-background/60 p-3 rounded mb-3">{endorseResult.message}</div>
               <div className="font-mono text-[10px] break-all text-primary mb-4">{endorseResult.signature}</div>
-              <div className="flex gap-4 text-xs">
+              <div className="flex gap-4 text-sm">
                 <button onClick={() => { navigator.clipboard.writeText(endorseResult.message + '\n\n' + (endorseResult.signature || '')); }} className="text-primary hover:underline">Copy signature</button>
                 <button onClick={() => setEndorseResult(null)} className="text-muted-foreground hover:text-foreground">Dismiss</button>
               </div>
@@ -560,7 +560,7 @@ export function Dashboard() {
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Boxes className="size-4 text-primary" /> On-Chain Identity
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-2">
                     This registers your Normie as a verifiable ERC-8004 agent identity on-chain. A public on-chain record makes the agent discoverable and verifiable by other systems.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
@@ -594,7 +594,7 @@ export function Dashboard() {
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Wallet className="size-4 text-primary" /> Ownership &amp; Delegation
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-2">
                     Ownership proves control of the NFT. Delegation allows the agent to act while the asset remains secure in cold storage.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
@@ -603,7 +603,7 @@ export function Dashboard() {
                     ) : (
                       <div className="space-y-2">
                         <div>
-                          <div className="text-[10px] text-muted-foreground">OWNER</div>
+                          <div className="text-xs text-muted-foreground">OWNER</div>
                           <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" className="font-mono text-foreground hover:text-primary">
                             {shortenAddress(snapshot.owner.owner, 6)}
                           </a>
@@ -611,7 +611,7 @@ export function Dashboard() {
                         </div>
                         {delegate && !isZeroAddr(delegate) && (
                           <div>
-                            <div className="text-[10px] text-muted-foreground">DELEGATE</div>
+                            <div className="text-xs text-muted-foreground">DELEGATE</div>
                             <a href={etherscanAddress(delegate)} target="_blank" className="font-mono text-foreground hover:text-primary">
                               {shortenAddress(delegate, 6)}
                             </a>
@@ -619,7 +619,7 @@ export function Dashboard() {
                           </div>
                         )}
                         {isMyAgent && delegate && !isZeroAddr(delegate) && (
-                          <div className="text-[10px] text-muted-foreground pt-1 border-t border-border/60">
+                          <div className="text-xs text-muted-foreground pt-1 border-t border-border/60">
                             Cold storage → hot ENS (verifiable)
                           </div>
                         )}
@@ -636,7 +636,7 @@ export function Dashboard() {
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Palette className="size-4 text-primary" /> On-Chain Activity (Canvas)
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-2">
                     Canvas level and pixel changes demonstrate ongoing engagement and evolution. Active participation on-chain signals a living, maintained agent identity.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
@@ -646,11 +646,11 @@ export function Dashboard() {
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
-                          <div className="border px-1.5 py-px text-[10px] tracking-[1.5px]">
+                          <div className="border px-1.5 py-px text-xs tracking-[1.5px]">
                             {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
                           </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-1 text-center text-xs">
+                        <div className="grid grid-cols-3 gap-1 text-center text-sm">
                           <div>+{snapshot.canvasDiff.addedCount} <span className="text-muted-foreground">added</span></div>
                           <div>-{snapshot.canvasDiff.removedCount} <span className="text-muted-foreground">removed</span></div>
                           <div>{snapshot.canvasDiff.netChange} <span className="text-muted-foreground">net</span></div>
@@ -668,7 +668,7 @@ export function Dashboard() {
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <ShieldCheck className="size-4 text-primary" /> Reputation (Ethos)
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-2">
                     The Ethos score reflects how the community perceives the owner’s on-chain behavior and credibility. Higher scores indicate stronger, community-backed reputation.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
@@ -690,7 +690,7 @@ export function Dashboard() {
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Award className="size-4 text-primary" /> External Trust Signals
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-sm text-muted-foreground mb-2">
                     Community tools like AgentCheck can provide additional verification for your agent.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
@@ -699,13 +699,13 @@ export function Dashboard() {
                     ) : (
                       <div className="space-y-3">
                         <div>
-                          <div className="text-[10px] text-muted-foreground">AGENT TYPE</div>
+                          <div className="text-xs text-muted-foreground">AGENT TYPE</div>
                           <div className="font-medium">{agentType}</div>
                         </div>
                         <div>
-                          <div className="text-[10px] text-muted-foreground">GATE ACCESS</div>
+                          <div className="text-xs text-muted-foreground">GATE ACCESS</div>
                           <div className="font-medium">{isAgentType ? "Advanced" : "Limited"}</div>
-                          <div className="text-[10px] text-muted-foreground">
+                          <div className="text-xs text-muted-foreground">
                             {isAgentType ? "qualifies for advanced agent features" : "limited gate access"}
                           </div>
                         </div>
@@ -714,7 +714,7 @@ export function Dashboard() {
                             href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex w-full items-center justify-center rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                            className="inline-flex w-full items-center justify-center rounded-md border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
                           >
                             View Full Report
                           </a>
@@ -726,7 +726,7 @@ export function Dashboard() {
               </div>
             </div>
 
-            <p className="text-center text-[10px] text-muted-foreground mt-6">
+            <p className="text-center text-xs text-muted-foreground mt-6">
               As the ecosystem matures, these combined signals may help agents interact with greater context and confidence.
             </p>
           </div>
@@ -746,7 +746,7 @@ export function Dashboard() {
                         setTokenId(id);
                         setInput(String(id));
                       }}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] border transition-all ${tokenId === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition-all ${tokenId === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
                     >
                       <img src={normieImageUrl(id)} alt={`#${id}`} className="size-4 pixel-frame" width={16} height={16} />
                       <span>#{id}</span>

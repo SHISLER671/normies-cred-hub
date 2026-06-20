@@ -52,7 +52,7 @@ export function OwnershipCard({
                   {shortenAddress(snapshot.owner.owner, 6)}
                 </a>
                 {ownerEthosUsername && (
-                  <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-xs hover:underline">
+                  <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-sm hover:underline">
                     @{ownerEthosUsername}
                   </a>
                 )}
@@ -71,7 +71,7 @@ export function OwnershipCard({
                   {shortenAddress(delegateAddress)}
                 </a>
                 {delegateEnsName && (
-                  <span className="text-primary text-xs font-mono">{delegateEnsName}</span>
+                  <span className="text-primary text-sm font-mono">{delegateEnsName}</span>
                 )}
               </div>
             ) : snapshot.canvas.delegate &&
@@ -92,7 +92,7 @@ export function OwnershipCard({
 
             {/* Personal delegation highlight — the core request: Ledger cold, hot ENS delegate, agent acts, all verifiable */}
             {isMyAgent && delegateAddress && !isZeroAddrLocal(delegateAddress) && (
-              <div className="px-3 py-2 text-xs border-t border-primary/20 mt-1 space-y-1">
+              <div className="px-3 py-2 text-sm border-t border-primary/20 mt-1 space-y-1">
                 <SectionLabel className="text-primary">Delegation Chain — Cold Ledger → Hot ENS (Verifiable On-Chain)</SectionLabel>
                 <div>
                   Primary owner (cold storage / e.g. Ledger):{" "}
@@ -135,9 +135,9 @@ export function OwnershipCard({
                   Your Normie NFT is chillin' in cold storage. You've delegated a hot wallet with ENS so the awakened agent can now act on-chain. All verifiable.
                 </div>
                 {isDelegateController && (
-                  <div className="text-[10px] text-muted-foreground">(connected as the delegated hot signer)</div>
+                  <div className="text-xs text-muted-foreground">(connected as the delegated hot signer)</div>
                 )}
-                <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1 text-[10px] text-primary">
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1 text-xs text-primary">
                   <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" rel="noopener noreferrer" className="hover:underline">owner on etherscan</a>
                   <a href={etherscanAddress(delegateAddress)} target="_blank" rel="noopener noreferrer" className="hover:underline">delegate on etherscan</a>
                   {delegateEnsName && (
@@ -147,7 +147,7 @@ export function OwnershipCard({
               </div>
             )}
 
-            <p className="mt-auto pt-2 text-[10px] text-muted-foreground">
+            <p className="mt-auto pt-2 text-xs text-muted-foreground">
               LIVE NORMIES REGISTRY. OWNERSHIP &amp; DELEGATION VERIFIED ON-CHAIN.
             </p>
           </>
@@ -161,7 +161,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col items-center py-2.5">
       <span className="font-heading text-lg font-bold tabular-nums tracking-[-1px]">{value}</span>
-      <span className="text-[10px] tracking-[1.5px] text-muted-foreground">{label}</span>
+      <span className="text-xs tracking-[1.5px] text-muted-foreground">{label}</span>
     </div>
   )
 }

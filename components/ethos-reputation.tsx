@@ -39,7 +39,7 @@ function ScoreArc({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-x-0 bottom-0 flex flex-col items-center">
         <span className="font-heading text-5xl font-bold tabular-nums tracking-[-2px]">{score}</span>
-        <span className="text-[10px] text-muted-foreground">/ 2800</span>
+        <span className="text-xs text-muted-foreground">/ 2800</span>
       </div>
       <span className="sr-only">{`Credibility score ${score} — ${meta.level}`}</span>
     </div>
@@ -132,7 +132,7 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
         <div className={cn("border px-3 py-0.5 text-sm font-bold tracking-[1px]", meta.className)}>
           {meta.level.toUpperCase()}
         </div>
-        <p className="max-w-[220px] text-center text-xs leading-snug text-muted-foreground">
+        <p className="max-w-[220px] text-center text-sm leading-snug text-muted-foreground">
           {meta.description}
         </p>
       </div>
@@ -148,7 +148,7 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
         href={user.username ? `https://app.ethos.network/profile/x/${user.username}` : user.links.scoreBreakdown}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-xs tracking-widest hover:bg-primary hover:text-background"
+        className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-sm tracking-widest hover:bg-primary hover:text-background"
       >
         {user.username ? 'VIEW ON ETHOS' : 'FULL BREAKDOWN'} <ExternalLink className="size-3" />
       </a>
@@ -162,13 +162,13 @@ function EthosFallback({ address }: { address: string }) {
       <ShieldCheck className="size-5 text-muted-foreground" />
       <div>
         <div className="font-bold">SCORE UNAVAILABLE</div>
-        <div className="text-xs text-muted-foreground mt-1">COULD NOT LOAD ETHOS DATA</div>
+        <div className="text-sm text-muted-foreground mt-1">COULD NOT LOAD ETHOS DATA</div>
       </div>
       <a
         href={`https://app.ethos.network/profile/x/${address}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs tracking-widest text-primary hover:underline"
+        className="text-sm tracking-widest text-primary hover:underline"
       >
         VIEW ON ETHOS
       </a>

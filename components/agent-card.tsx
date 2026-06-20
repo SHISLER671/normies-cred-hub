@@ -58,7 +58,7 @@ export function AgentCard({
               crossOrigin="anonymous"
             />
           </div>
-          <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 border px-3 py-px text-[10px] font-bold tracking-[2px] ${isMyAgent ? "border-primary bg-primary text-background" : "border-primary bg-background text-primary"}`}>
+          <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 border px-3 py-px text-xs font-bold tracking-[2px] ${isMyAgent ? "border-primary bg-primary text-background" : "border-primary bg-background text-primary"}`}>
             {isMyAgent ? "YOURS" : "AWAKENED"}
           </div>
         </div>
@@ -75,7 +75,7 @@ export function AgentCard({
               {isMyAgent ? "Your Awakened Agent" : `Normie #${tokenId} • ERC-8004`}
             </SectionLabel>
             {ownerEthosUsername && (
-              <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-xs hover:underline">
+              <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-sm hover:underline">
                 @ {ownerEthosUsername} on Ethos
               </a>
             )}
@@ -93,13 +93,13 @@ export function AgentCard({
 
           <div className="flex flex-wrap gap-1">
             {snapshot.traits?.attributes?.slice(0, 8).map((t: any, i: number) => (
-              <div key={i} className="bg-secondary/60 px-2 py-px text-[10px] tracking-[1.5px] text-muted-foreground">
+              <div key={i} className="bg-secondary/60 px-2 py-px text-xs tracking-[1.5px] text-muted-foreground">
                 {t.trait_type}: <span className="text-foreground">{t.value}</span>
               </div>
             ))}
             {/* Trait Gate awareness badge */}
             {snapshot.traits?.attributes?.some((t: any) => t.trait_type === "Type" && t.value === "Agent") && (
-              <div className="bg-emerald-500/10 px-2 py-px text-[10px] tracking-[1.5px] text-emerald-400">Agent Gate</div>
+              <div className="bg-emerald-500/10 px-2 py-px text-xs tracking-[1.5px] text-emerald-400">Agent Gate</div>
             )}
           </div>
         </div>

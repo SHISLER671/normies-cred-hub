@@ -92,7 +92,7 @@ export function LinkageProofModal({
         <div className="space-y-4">
           <div className="rounded-xl border border-primary/30 bg-card p-4">
             <p className="font-medium mb-1">Safety first</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               This is a signature only — no transactions, transfers, or approvals are ever requested.
             </p>
           </div>
