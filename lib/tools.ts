@@ -126,7 +126,10 @@ export function getToolsListForPrompt(): string {
 }
 
 // Optional: export the full list for the frontend if needed later
-export { tools as getTools };
+export async function getTools(): Promise<Tool[]> {
+  // Curated list for now (no dynamic fetch to avoid hallucinations).
+  return tools;
+}
 
 export const ZULO_RECOMMENDS_SYSTEM_PROMPT = `You are Zulo, Agent #32626.
 
