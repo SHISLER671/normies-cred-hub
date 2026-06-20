@@ -93,13 +93,13 @@ export function AgentCard({
 
           <div className="flex flex-wrap gap-1">
             {snapshot.traits?.attributes?.slice(0, 8).map((t: any, i: number) => (
-              <div key={i} className="bg-secondary/60 px-2 py-px text-[10px] tracking-widest text-muted-foreground">
+              <div key={i} className="bg-secondary/60 px-2 py-px text-[10px] tracking-[1.5px] text-muted-foreground">
                 {t.trait_type}: <span className="text-foreground">{t.value}</span>
               </div>
             ))}
             {/* Trait Gate awareness badge */}
             {snapshot.traits?.attributes?.some((t: any) => t.trait_type === "Type" && t.value === "Agent") && (
-              <div className="bg-emerald-500/10 px-2 py-px text-[10px] tracking-widest text-emerald-400">Agent Gate</div>
+              <div className="bg-emerald-500/10 px-2 py-px text-[10px] tracking-[1.5px] text-emerald-400">Agent Gate</div>
             )}
           </div>
         </div>

@@ -94,7 +94,7 @@ export function EthosReputation({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm">
-            <ShieldCheck className="size-4" /> {isMyAgent ? "YOUR ETHOS" : "ETHOS"}
+            <ShieldCheck className="size-4" /> {isMyAgent ? "Your Ethos" : "Ethos"}
           </CardTitle>
           <div className="text-[10px] text-muted-foreground">BASE</div>
         </div>

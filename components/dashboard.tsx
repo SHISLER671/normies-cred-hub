@@ -304,7 +304,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl mx-auto divide-y divide-border/60 pixel-texture">
+    <div className="flex flex-col gap-10 max-w-4xl mx-auto pixel-texture">
       {/* Personal / Awakened View — focused and premium */}
       {isConnected && (
         <div className="rounded-2xl border border-border bg-card/70 p-5">
@@ -354,8 +354,11 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Search — centered, focused */}
-      <form onSubmit={handleSearch} className="mx-auto max-w-xl">
+      {/* Discover */}
+      <div className="space-y-4">
+        <SectionLabel className="text-center">Discover</SectionLabel>
+        {/* Search — centered, focused */}
+        <form onSubmit={handleSearch} className="mx-auto max-w-xl">
         <div className="flex items-center rounded-2xl border border-border bg-card px-4 py-1.5 shadow-sm">
           <Search className="pointer-events-none size-4 text-muted-foreground mr-3" />
           <input
@@ -367,13 +370,14 @@ export function Dashboard() {
           />
           <Button type="submit" variant="outline" size="sm" className="ml-2">Search</Button>
         </div>
-        <p className="text-center text-[10px] text-muted-foreground mt-2 tracking-widest">EXPLORE ANY NORMIE — PUBLIC OR PERSONAL</p>
+        <p className="text-center text-[10px] text-muted-foreground mt-2 tracking-widest">Explore any Normie — public or personal</p>
       </form>
+      </div>
 
       {/* Profile Bridge UI - sexy linked profiles */}
       {(bridgeUsername || bridgeAddress) && (
         <div className="border border-primary/30 bg-card p-4">
-          <div className="uppercase tracking-[2px] text-sm text-primary mb-2">PROFILE BRIDGE</div>
+          <SectionLabel className="text-primary mb-2">Profile Bridge</SectionLabel>
           {bridgeUser && (
             <div className="mb-2">
               <a href={bridgeUser.links?.profile || `https://app.ethos.network/profile/x/${bridgeUser.username}`} target="_blank" className="text-primary">
@@ -384,7 +388,7 @@ export function Dashboard() {
           )}
           {bridgeAgents.length > 0 && (
             <div>
-              <div className="text-xs mb-1">Agents:</div>
+              <SectionLabel className="mb-1">Agents</SectionLabel>
               <div className="flex flex-wrap gap-2">
                 {bridgeAgents.map((id: number) => (
                   <button key={id} onClick={() => { setTokenId(id); setInput(String(id)); }} className="border px-2 py-1 text-xs flex items-center gap-1">
@@ -400,8 +404,8 @@ export function Dashboard() {
 
       {isMyAgent && (
         <div className="mx-auto text-center">
-          <div className="inline-block text-xs uppercase tracking-[3.5px] border border-primary/60 px-4 py-1 rounded-full text-primary">
-            YOUR AWAKENED AGENT
+          <div className="inline-block text-xs tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-full text-primary">
+            Your Awakened Agent
             {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[9px] normal-case tracking-normal text-primary/60">• via delegate</span>}
           </div>
         </div>
@@ -409,7 +413,7 @@ export function Dashboard() {
 
       {!isConnected && (
         <div className="text-center text-sm text-muted-foreground max-w-xs mx-auto">
-          Connect your wallet to unlock personal views, Zulo Recommends, and your agent’s full dashboard.
+          Connect your wallet to unlock your agent's full view and Zulo's personalized recommendations.
         </div>
       )}
 
@@ -423,24 +427,52 @@ export function Dashboard() {
         </Card>
       ) : (
         <>
-          <AgentCard
-            snapshot={snapshot}
-            isLoading={isLoading}
-            isMyAgent={isMyAgent}
-            ownerEthosUsername={ownerUsername}
-            delegateAddress={delegate}
-            delegateEnsName={delegateEnsName}
-          />
+          {/* Your Agent + Zulo — core focused block */}
+          <div className="space-y-6">
+            <AgentCard
+              snapshot={snapshot}
+              isLoading={isLoading}
+              isMyAgent={isMyAgent}
+              ownerEthosUsername={ownerUsername}
+              delegateAddress={delegate}
+              delegateEnsName={delegateEnsName}
+            />
 
-          {/* Action Buttons — focused, premium, on-center */}
+            {/* Zulo Recommends — elevated as a core agent skill */}
+            {snapshot && (
+              <div className="bg-card border border-primary/40 rounded-2xl p-6 text-center shadow-sm">
+                <SectionLabel className="text-primary mb-1.5">ZULO'S AGENT SKILL</SectionLabel>
+                <h3 className="font-heading text-2xl tracking-tight mb-1.5">Zulo Recommends</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-2">
+                  Tailored to <span className="text-foreground">this specific agent's</span> on-chain signals.
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {isConnected 
+                    ? "Zulo has analyzed the data and is ready with personalized suggestions." 
+                    : "Connect your wallet to unlock Zulo's recommendations for this agent."}
+                </p>
+                <Button 
+                  onClick={handleZuloRecommendsClick}
+                  variant="default"
+                  className="glow-primary px-8 py-3 text-base"
+                >
+                  <Sparkles className="size-4 mr-2" />
+                  Get Zulo's Recommendations
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Secondary actions — Explore & Verify */}
           {snapshot && (
-            <div className="pt-4">
-              <SectionLabel className="text-center mb-4">Tools &amp; Actions</SectionLabel>
+            <div className="pt-2">
+              <SectionLabel className="text-center mb-3">Explore &amp; Verify</SectionLabel>
+              <p className="text-center text-[10px] text-muted-foreground mb-2">Including more from Zulo</p>
 
               <div className="flex flex-wrap justify-center gap-3">
                 <div className="text-center">
                   <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
-                  <p className="text-[10px] text-muted-foreground mt-1.5">Zulo Horizon</p>
+                  <p className="text-[10px] text-muted-foreground mt-1.5">Zulo Horizon Insights</p>
                 </div>
 
                 <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
@@ -460,26 +492,13 @@ export function Dashboard() {
                   </Button>
                   <p className="text-[10px] text-muted-foreground mt-1.5">Community tools</p>
                 </div>
-
-                <div className="text-center">
-                  <Button 
-                    onClick={handleZuloRecommendsClick}
-                    variant="outline"
-                    className="glow-primary"
-                  >
-                    Zulo Recommends
-                  </Button>
-                  <p className="text-[10px] text-muted-foreground mt-1.5 max-w-[200px] mx-auto">
-                    {isConnected ? "Personalized tool suggestions" : "Connect to unlock"}
-                  </p>
-                </div>
               </div>
             </div>
           )}
 
           {endorseResult && (
             <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-xl p-5 text-xs">
-              <div className="font-medium mb-3 tracking-widest text-primary">ENDORSEMENT SIGNATURE</div>
+              <SectionLabel className="text-primary mb-2">Endorsement Signature</SectionLabel>
               <div className="font-mono text-[10px] break-all bg-background/60 p-3 rounded mb-3">{endorseResult.message}</div>
               <div className="font-mono text-[10px] break-all text-primary mb-4">{endorseResult.signature}</div>
               <div className="flex gap-4 text-xs">
@@ -549,8 +568,10 @@ export function Dashboard() {
             </div>
           )}
 
-          {/* Cards Grid — focused and balanced */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
+          {/* On-Chain Insights */}
+          <div>
+            <SectionLabel className="text-center mb-4">On-Chain Insights</SectionLabel>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
             <EthosReputation
               result={ethos}
               isLoading={isLoading || ethosLoading}
@@ -568,6 +589,7 @@ export function Dashboard() {
               delegateEnsName={delegateEnsName}
               isDelegateController={isDelegateMatch}
             />
+          </div>
           </div>
 
           {/* Linked agents via owner — subtle & centered */}

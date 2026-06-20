@@ -73,7 +73,7 @@ export function OwnershipCard({
                 <SectionLabel>Canvas</SectionLabel>
                 <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
               </div>
-              <div className="border px-1.5 py-px text-[10px] tracking-widest">
+              <div className="border px-1.5 py-px text-[10px] tracking-[1.5px]">
                 {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
               </div>
             </div>
@@ -186,7 +186,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col items-center py-2.5">
       <span className="font-heading text-lg font-bold tabular-nums tracking-[-1px]">{value}</span>
-      <span className="text-[10px] uppercase tracking-[2px] text-muted-foreground">{label}</span>
+      <span className="text-[10px] tracking-[1.5px] text-muted-foreground">{label}</span>
     </div>
   )
 }
