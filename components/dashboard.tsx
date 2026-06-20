@@ -555,7 +555,7 @@ export function Dashboard() {
 
               {/* 1. On-Chain Identity */}
               <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">1</div>
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">1</div>
                 <div className="flex-1">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Boxes className="size-4 text-primary" /> On-Chain Identity
@@ -589,7 +589,7 @@ export function Dashboard() {
 
               {/* 2. Ownership & Delegation */}
               <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">2</div>
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">2</div>
                 <div className="flex-1">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Wallet className="size-4 text-primary" /> Ownership &amp; Delegation
@@ -631,7 +631,7 @@ export function Dashboard() {
 
               {/* 3. On-Chain Activity (Canvas) */}
               <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">3</div>
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">3</div>
                 <div className="flex-1">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Palette className="size-4 text-primary" /> On-Chain Activity (Canvas)
@@ -663,7 +663,7 @@ export function Dashboard() {
 
               {/* 4. Reputation (Ethos) */}
               <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">4</div>
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">4</div>
                 <div className="flex-1">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <ShieldCheck className="size-4 text-primary" /> Reputation (Ethos)
@@ -685,7 +685,7 @@ export function Dashboard() {
 
               {/* 5. External Trust Signals */}
               <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">5</div>
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">5</div>
                 <div className="flex-1">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Award className="size-4 text-primary" /> External Trust Signals
