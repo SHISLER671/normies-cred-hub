@@ -354,26 +354,6 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Discover */}
-      <div className="space-y-4">
-        <SectionLabel className="text-center">Discover</SectionLabel>
-        {/* Search — centered, focused */}
-        <form onSubmit={handleSearch} className="mx-auto max-w-xl">
-        <div className="flex items-center rounded-2xl border border-border bg-card px-4 py-1.5 shadow-sm">
-          <Search className="pointer-events-none size-4 text-muted-foreground mr-3" />
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            inputMode="numeric"
-            placeholder="Search token, @username, or 0x address"
-            className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none py-2"
-          />
-          <Button type="submit" variant="outline" size="sm" className="ml-2">Search</Button>
-        </div>
-        <p className="text-center text-[10px] text-muted-foreground mt-2 tracking-widest">Explore any Normie — public or personal</p>
-      </form>
-      </div>
-
       {/* Profile Bridge UI - sexy linked profiles */}
       {(bridgeUsername || bridgeAddress) && (
         <div className="border border-primary/30 bg-card p-4">
@@ -463,7 +443,7 @@ export function Dashboard() {
             )}
           </div>
 
-          {/* Secondary actions — Explore & Verify */}
+          {/* Explore & Verify */}
           {snapshot && (
             <div className="pt-2">
               <SectionLabel className="text-center mb-3">Explore &amp; Verify</SectionLabel>
@@ -482,19 +462,42 @@ export function Dashboard() {
                     Endorse
                   </Button>
                 )}
-
-                <div className="text-center">
-                  <Button 
-                    onClick={() => setShowToolsModal(true)} 
-                    variant="outline"
-                  >
-                    Browse Tools
-                  </Button>
-                  <p className="text-[10px] text-muted-foreground mt-1.5">Community tools</p>
-                </div>
               </div>
             </div>
           )}
+
+          {/* Browse Tools */}
+          {snapshot && (
+            <div className="text-center">
+              <Button 
+                onClick={() => setShowToolsModal(true)} 
+                variant="outline"
+              >
+                Browse Tools
+              </Button>
+              <p className="text-[10px] text-muted-foreground mt-1.5">Community tools</p>
+            </div>
+          )}
+
+          {/* Discover */}
+          <div className="space-y-4">
+            <SectionLabel className="text-center">Discover</SectionLabel>
+            {/* Search — centered, focused */}
+            <form onSubmit={handleSearch} className="mx-auto max-w-xl">
+              <div className="flex items-center rounded-2xl border border-border bg-card px-4 py-1.5 shadow-sm">
+                <Search className="pointer-events-none size-4 text-muted-foreground mr-3" />
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  inputMode="numeric"
+                  placeholder="Search token, @username, or 0x address"
+                  className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none py-2"
+                />
+                <Button type="submit" variant="outline" size="sm" className="ml-2">Search</Button>
+              </div>
+              <p className="text-center text-[10px] text-muted-foreground mt-2 tracking-widest">Explore any Normie — public or personal</p>
+            </form>
+          </div>
 
           {endorseResult && (
             <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-xl p-5 text-xs">
@@ -571,25 +574,25 @@ export function Dashboard() {
           {/* On-Chain Insights */}
           <div>
             <SectionLabel className="text-center mb-4">On-Chain Insights</SectionLabel>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
-            <EthosReputation
-              result={ethos}
-              isLoading={isLoading || ethosLoading}
-              error={ethosError}
-              address={ownerAddress ?? ""}
-              isMyAgent={isMyAgent}
-            />
-            <Erc8004Card agentId={snapshot?.agent?.agentId ? Number(snapshot.agent.agentId) : ZULO.agentId} isMyAgent={isMyAgent} />
-            <OwnershipCard
-              snapshot={snapshot}
-              isLoading={isLoading}
-              isMyAgent={isMyAgent}
-              ownerEthosUsername={ownerUsername}
-              delegateAddress={delegate}
-              delegateEnsName={delegateEnsName}
-              isDelegateController={isDelegateMatch}
-            />
-          </div>
+            <div className="flex flex-col gap-4 animate-fade-in">
+              <EthosReputation
+                result={ethos}
+                isLoading={isLoading || ethosLoading}
+                error={ethosError}
+                address={ownerAddress ?? ""}
+                isMyAgent={isMyAgent}
+              />
+              <Erc8004Card agentId={snapshot?.agent?.agentId ? Number(snapshot.agent.agentId) : ZULO.agentId} isMyAgent={isMyAgent} />
+              <OwnershipCard
+                snapshot={snapshot}
+                isLoading={isLoading}
+                isMyAgent={isMyAgent}
+                ownerEthosUsername={ownerUsername}
+                delegateAddress={delegate}
+                delegateEnsName={delegateEnsName}
+                isDelegateController={isDelegateMatch}
+              />
+            </div>
           </div>
 
           {/* Linked agents via owner — subtle & centered */}

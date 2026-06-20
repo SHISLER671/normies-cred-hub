@@ -28,7 +28,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col bg-popover border-border">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col bg-popover border-border overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Browse Tools
@@ -57,32 +57,34 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </select>
         </div>
 
-        <ScrollArea className="flex-1 pr-2">
-          {filteredTools.length === 0 && (
-            <p className="text-sm text-muted-foreground">No tools match your search.</p>
-          )}
-          {filteredTools.map((tool) => (
-            <div key={tool.id} className="card group border border-border rounded-2xl p-5 mb-3 hover:border-primary/30 transition-all">
-              <div className="flex justify-between items-start gap-3">
-                <div>
-                  <h3 className="font-semibold tracking-tight">{tool.name}</h3>
-                  <span className="inline-block text-[10px] tracking-[1.5px] text-muted-foreground bg-muted px-2 py-0.5 rounded mt-1.5">
-                    {tool.category}
-                  </span>
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full pr-2">
+            {filteredTools.length === 0 && (
+              <p className="text-sm text-muted-foreground">No tools match your search.</p>
+            )}
+            {filteredTools.map((tool) => (
+              <div key={tool.id} className="card group border border-border rounded-2xl p-5 mb-3 hover:border-primary/30 transition-all">
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <h3 className="font-semibold tracking-tight">{tool.name}</h3>
+                    <span className="inline-block text-[10px] tracking-[1.5px] text-muted-foreground bg-muted px-2 py-0.5 rounded mt-1.5">
+                      {tool.category}
+                    </span>
+                  </div>
+                  <a
+                    href={tool.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="glow-primary text-sm px-4 py-1.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap mt-1"
+                  >
+                    Visit →
+                  </a>
                 </div>
-                <a
-                  href={tool.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="glow-primary text-sm px-4 py-1.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap mt-1"
-                >
-                  Visit →
-                </a>
+                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{tool.description}</p>
               </div>
-              <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{tool.description}</p>
-            </div>
-          ))}
-        </ScrollArea>
+            ))}
+          </ScrollArea>
+        </div>
 
         <p className="text-[10px] text-muted-foreground mt-2">
           Tools curated from community sources including https://www.normies.art/tools.
