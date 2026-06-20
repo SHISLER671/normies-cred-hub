@@ -66,12 +66,12 @@ function Stat({
   value: string | number
 }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-3">
-      <Icon className="size-3.5 text-muted-foreground" aria-hidden />
-      <div className="flex flex-col leading-none text-sm">
-        <span className="font-medium data tabular-nums">{value}</span>
-        <SectionLabel>{label}</SectionLabel>
+    <div className="flex flex-col items-center px-4 py-1.5">
+      <div className="flex items-center gap-1.5">
+        <Icon className="size-3.5 text-muted-foreground" aria-hidden />
+        <span className="font-medium tabular-nums text-base">{value}</span>
       </div>
+      <SectionLabel className="mt-0.5 text-center">{label}</SectionLabel>
     </div>
   )
 }
@@ -96,7 +96,9 @@ export function EthosReputation({
           <div className="flex flex-col items-center gap-4">
             <Skeleton className="h-[104px] w-[180px] rounded-lg" />
             <Skeleton className="h-7 w-28" />
-            <div className="grid w-full grid-cols-2 gap-2">
+            <div className="flex flex-col w-full gap-2">
+              <Skeleton className="h-12" />
+              <Skeleton className="h-12" />
               <Skeleton className="h-12" />
               <Skeleton className="h-12" />
             </div>
@@ -135,7 +137,7 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-1">
+      <div className="flex flex-col items-center gap-1">
         <Stat icon={TrendingUp} label="XP" value={user.xpTotal.toLocaleString()} />
         <Stat icon={Users} label="INFLUENCE" value={`${Math.round(user.influenceFactor)}`} />
         <Stat icon={ThumbsUp} label="REVIEWS" value={reviews?.positive ?? 0} />

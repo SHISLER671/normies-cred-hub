@@ -14,7 +14,7 @@ import { SectionLabel } from "@/components/ui/section-label"
 import { ZULO } from "@/constants/contracts"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Boxes, Layers, Search, ShieldCheck, Sparkles } from "lucide-react"
+import { AlertTriangle, Boxes, Layers, Palette, Search, ShieldCheck, Sparkles } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -303,6 +303,15 @@ export function Dashboard() {
     return recs.length > 0 ? recs : []
   }
 
+  function Metric({ label, value }: { label: string; value: string }) {
+    return (
+      <div className="flex flex-col items-center py-2.5">
+        <span className="font-heading text-lg font-bold tabular-nums tracking-[-1px]">{value}</span>
+        <span className="text-[10px] tracking-[1.5px] text-muted-foreground">{label}</span>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-10 max-w-4xl mx-auto pixel-texture">
       {/* Personal / Awakened View — focused and premium */}
@@ -578,29 +587,17 @@ export function Dashboard() {
           <div>
             <SectionLabel className="text-center mb-4">On-Chain Insights</SectionLabel>
 
-            {/* 1. On-Chain Identity */}
+            {/* On-Chain Identity, Ownership & Delegate */}
             <div className="mb-6">
               <div className="mb-3">
                 <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
-                  <Boxes className="size-4" /> On-Chain Identity
+                  <Boxes className="size-4" /> On-Chain Identity, Ownership &amp; Delegate
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  This confirms your Normie has been awakened and registered as an ERC-8004 agent. It allows your agent to interact with tools, other agents, and future features in the ecosystem.
+                  This confirms your Normie has been awakened and registered as an ERC-8004 agent. Your ownership shows who controls the NFT. Delegation allows your agent to act on-chain while your NFT stays secure in cold storage.
                 </p>
               </div>
               <Erc8004Card agentId={snapshot?.agent?.agentId ? Number(snapshot.agent.agentId) : ZULO.agentId} isMyAgent={isMyAgent} />
-            </div>
-
-            {/* 2. Ownership & Canvas */}
-            <div className="mb-6">
-              <div className="mb-3">
-                <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
-                  <Layers className="size-4" /> Ownership &amp; Canvas
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Your ownership and canvas status show how you’re engaging with your Normie. Delegation allows your agent to act on-chain while your NFT stays secure in cold storage.
-                </p>
-              </div>
               <OwnershipCard
                 snapshot={snapshot}
                 isLoading={isLoading}
@@ -612,7 +609,45 @@ export function Dashboard() {
               />
             </div>
 
-            {/* 3. Ethos Reputation */}
+            {/* Canvas */}
+            {snapshot && (
+              <div className="mb-6">
+                <div className="mb-3">
+                  <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
+                    <Palette className="size-4" /> Canvas
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Your canvas shows your Normie's current on-chain pixel state, level, and recent activity.
+                  </p>
+                </div>
+                <Card className="flex h-full flex-col">
+                  <CardContent className="flex flex-1 flex-col gap-3 text-sm">
+                    <div className="flex items-center gap-3 px-3 py-2.5">
+                      <Palette className="size-4 shrink-0 text-muted-foreground" />
+                      <div className="flex flex-1 flex-col leading-tight text-sm">
+                        <SectionLabel>Canvas</SectionLabel>
+                        <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
+                      </div>
+                      <div className="border px-1.5 py-px text-[10px] tracking-[1.5px]">
+                        {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1 text-center text-sm">
+                      <Metric label="ADDED" value={`+${snapshot.canvasDiff.addedCount}`} />
+                      <Metric label="REMOVED" value={`-${snapshot.canvasDiff.removedCount}`} />
+                      <Metric label="NET" value={`${snapshot.canvasDiff.netChange}`} />
+                    </div>
+
+                    <p className="mt-auto pt-2 text-[10px] text-muted-foreground">
+                      {isMyAgent ? "YOUR PIXELS. YOUR PROOF. YOUR AGENT." : "LIVE NORMIES REGISTRY. PIXEL CANVAS BY THE PEOPLE."}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Ethos Reputation */}
             <div>
               <div className="mb-3">
                 <h3 className="font-semibold text-base flex items-center gap-2 text-primary">

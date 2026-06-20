@@ -59,23 +59,6 @@ export function OwnershipCard({
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-3 py-2.5">
-              <Palette className="size-4 shrink-0 text-muted-foreground" />
-              <div className="flex flex-1 flex-col leading-tight text-sm">
-                <SectionLabel>Canvas</SectionLabel>
-                <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
-              </div>
-              <div className="border px-1.5 py-px text-[10px] tracking-[1.5px]">
-                {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-1 text-center text-sm">
-              <Metric label="ADDED" value={`+${snapshot.canvasDiff.addedCount}`} />
-              <Metric label="REMOVED" value={`-${snapshot.canvasDiff.removedCount}`} />
-              <Metric label="NET" value={`${snapshot.canvasDiff.netChange}`} />
-            </div>
-
             {delegateAddress && !isZeroAddrLocal(delegateAddress) ? (
               <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                 <span className="text-muted-foreground">DELEGATE</span>
@@ -165,7 +148,7 @@ export function OwnershipCard({
             )}
 
             <p className="mt-auto pt-2 text-[10px] text-muted-foreground">
-              {isMyAgent ? "YOUR PIXELS. YOUR PROOF. YOUR AGENT." : "LIVE NORMIES REGISTRY. PIXEL CANVAS BY THE PEOPLE."}
+              LIVE NORMIES REGISTRY. OWNERSHIP &amp; DELEGATION VERIFIED ON-CHAIN.
             </p>
           </>
         )}
