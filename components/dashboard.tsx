@@ -14,7 +14,7 @@ import { SectionLabel } from "@/components/ui/section-label"
 import { ZULO } from "@/constants/contracts"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Boxes, Layers, Palette, Search, ShieldCheck, Sparkles } from "lucide-react"
+import { AlertTriangle, Boxes, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -43,6 +43,8 @@ export function Dashboard() {
   const [endorseResult, setEndorseResult] = useState<{ message: string; signature?: string } | null>(null)
   const [showToolsModal, setShowToolsModal] = useState(false)
   const [showZuloRecommendsModal, setShowZuloRecommendsModal] = useState(false)
+  const [showHorizonModal, setShowHorizonModal] = useState(false)
+  const [showLinkageModal, setShowLinkageModal] = useState(false)
 
   const { openConnectModal } = useConnectModal()
 
@@ -425,69 +427,73 @@ export function Dashboard() {
               delegateEnsName={delegateEnsName}
             />
 
-            {/* Zulo Recommends — elevated as a core agent skill */}
+            {/* Zulo Recommends — Zulo's flagship agent skill */}
             {snapshot && (
-              <div className="bg-card border border-primary/40 rounded-2xl p-6 text-center shadow-sm">
-                <SectionLabel className="text-primary mb-1.5">ZULO'S AGENT SKILL</SectionLabel>
-                <h3 className="font-heading text-2xl tracking-tight mb-1.5">Zulo Recommends</h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-2">
-                  Tailored to <span className="text-foreground">this specific agent's</span> on-chain signals.
+              <div className="bg-card border border-primary/60 border-l-4 border-l-primary/70 rounded-2xl p-7 text-center shadow-sm">
+                <SectionLabel className="text-primary mb-1.5 tracking-[2px]">ZULO'S AGENT SKILL</SectionLabel>
+                
+                <h3 className="font-heading text-2xl tracking-tight mb-2">Zulo Recommends</h3>
+                
+                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-3">
+                  Zulo analyzes your agent's on-chain data — its traits, canvas state, level, and activity — to surface the most relevant tools from the ecosystem.
                 </p>
+
                 <p className="text-xs text-muted-foreground mb-4">
                   {isConnected 
-                    ? "Zulo has analyzed the data and is ready with personalized suggestions." 
-                    : "Connect your wallet to unlock Zulo's recommendations for this agent."}
+                    ? "These recommendations are personalized to help this specific agent grow." 
+                    : "Connect your wallet to unlock Zulo's personalized recommendations for this agent."}
                 </p>
+
                 <Button 
                   onClick={handleZuloRecommendsClick}
                   variant="default"
-                  className="glow-primary px-8 py-3 text-base"
+                  className="glow-primary px-8 py-3 text-base font-medium"
                 >
                   <Sparkles className="size-4 mr-2" />
-                  Get Zulo's Recommendations
+                  Ask Zulo for Recommendations
                 </Button>
               </div>
             )}
           </div>
 
-          {/* Prove Linkage — centered */}
+          {/* Key Actions — card style buttons */}
           {snapshot && (
-            <div className="text-center">
-              <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
-            </div>
-          )}
-
-          {/* Explore & Verify */}
-          {snapshot && (
-            <div className="pt-2">
-              <SectionLabel className="text-center mb-3">Explore &amp; Verify</SectionLabel>
-              <p className="text-center text-[10px] text-muted-foreground mb-2">Including more from Zulo</p>
-
-              <div className="flex flex-wrap justify-center gap-3">
-                <div className="text-center">
-                  <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
-                  <p className="text-[10px] text-muted-foreground mt-1.5">Zulo Horizon Insights</p>
-                </div>
-
-                {isConnected && myNormies.length > 0 && !isMyAgent && (
-                  <Button onClick={() => handleEndorse(tokenId)} variant="outline" size="sm">
-                    Endorse
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Browse Tools */}
-          {snapshot && (
-            <div className="text-center">
-              <Button 
-                onClick={() => setShowToolsModal(true)} 
-                variant="outline"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Zulo Horizon Card */}
+              <button
+                onClick={() => setShowHorizonModal(true)}
+                className="group flex flex-col items-start gap-2 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
-                Browse Tools
-              </Button>
-              <p className="text-[10px] text-muted-foreground mt-1.5">Community tools</p>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-primary" />
+                  <span className="font-semibold">Zulo Horizon</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Talk to your agent and get deeper insights.</p>
+              </button>
+
+              {/* Prove Linkage Card */}
+              <button
+                onClick={() => setShowLinkageModal(true)}
+                className="group flex flex-col items-start gap-2 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <Fingerprint className="size-4 text-primary" />
+                  <span className="font-semibold">Prove Linkage</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Unlock full features by verifying your agent.</p>
+              </button>
+
+              {/* Browse Tools Card */}
+              <button
+                onClick={() => setShowToolsModal(true)}
+                className="group flex flex-col items-start gap-2 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <Search className="size-4 text-primary" />
+                  <span className="font-semibold">Browse Tools</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Explore community-built tools for Normies.</p>
+              </button>
             </div>
           )}
 
@@ -524,6 +530,19 @@ export function Dashboard() {
           )}
 
           <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
+          <AgentHorizonModal 
+            tokenId={tokenId} 
+            isMyAgent={isMyAgent} 
+            open={showHorizonModal}
+            onOpenChange={setShowHorizonModal}
+          />
+          <LinkageProofModal 
+            tokenId={tokenId} 
+            ownerAddress={snapshot?.owner.owner || ""} 
+            delegateAddress={snapshot?.canvas.delegate} 
+            open={showLinkageModal}
+            onOpenChange={setShowLinkageModal}
+          />
           <ZuloRecommendsModal 
             isOpen={showZuloRecommendsModal} 
             onClose={() => {

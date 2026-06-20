@@ -34,15 +34,29 @@ export function LinkageProofModal({
   tokenId,
   ownerAddress,
   delegateAddress,
+  open,
+  onOpenChange,
 }: {
   tokenId: number
   ownerAddress: string
   delegateAddress?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
   const [status, setStatus] = useState<Status>("idle")
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+
+  const isOpen = open !== undefined ? open : internalOpen
+  const setIsOpen = (o: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(o)
+    } else {
+      setInternalOpen(o)
+    }
+    if (!o) reset()
+  }
 
   async function handleSign() {
     if (!address) return
@@ -63,14 +77,7 @@ export function LinkageProofModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-      <DialogTrigger>
-        <Button variant="outline" className="gap-2">
-          <Fingerprint className="size-4" />
-          Prove Linkage
-        </Button>
-      </DialogTrigger>
-
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-md bg-popover border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

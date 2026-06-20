@@ -36,7 +36,7 @@ export function ZuloRecommendsModal({
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
           <DialogTitle className="font-heading text-2xl tracking-tight">Zulo Recommends</DialogTitle>
           <DialogDescription>
-            Personalized tool suggestions for your awakened agent.
+            Zulo analyzed this agent's on-chain signals and found these tools most useful right now.
           </DialogDescription>
         </DialogHeader>
 
