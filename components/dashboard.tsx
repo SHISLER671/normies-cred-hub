@@ -10,6 +10,7 @@ import { ToolsModal } from "@/components/tools-modal"
 import { ZuloRecommendsModal, type Recommendation } from "@/components/zulo-recommends-modal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { SectionLabel } from "@/components/ui/section-label"
 import { ZULO } from "@/constants/contracts"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
@@ -303,15 +304,15 @@ export function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 px-4 sm:px-6">
-      {/* Awakened personal entry — simple & direct */}
+    <div className="flex flex-col gap-8 max-w-4xl mx-auto divide-y divide-border/60 pixel-texture">
+      {/* Personal / Awakened View — focused and premium */}
       {isConnected && (
-        <div className="bg-card/60 p-4">
-          <div className="uppercase tracking-[2px] text-sm text-primary mb-2">YOUR AWAKENED VIEW</div>
+        <div className="rounded-2xl border border-border bg-card/70 p-5">
+          <SectionLabel className="text-primary mb-3 text-center">Your Awakened View</SectionLabel>
 
-          {/* My Agents selector */}
+          {/* My Agents selector — centered pills */}
           {myNormies.length > 0 && (
-            <div className="mb-3">
+            <div className="flex justify-center mb-4">
               <div className="flex flex-wrap gap-1.5">
                 {myNormies.map((id) => {
                   const isActive = tokenId === id
@@ -322,7 +323,7 @@ export function Dashboard() {
                         setTokenId(id)
                         setInput(String(id))
                       }}
-                      className={`flex items-center gap-1.5 px-2 py-1 text-xs transition-colors ${isActive ? "bg-primary text-background" : "bg-secondary/40 hover:bg-secondary/70"}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
                     >
                       <img
                         src={normieImageUrl(id)}
@@ -331,7 +332,7 @@ export function Dashboard() {
                         width={20}
                         height={20}
                       />
-                      <span>#{id}</span>
+                      <span className="font-mono">#{id}</span>
                     </button>
                   )
                 })}
@@ -339,33 +340,34 @@ export function Dashboard() {
             </div>
           )}
 
-          {/* Manual / search for any */}
-          <div className="flex items-center gap-2">
+          {/* Manual entry — clean inline */}
+          <div className="flex items-center gap-2 max-w-sm mx-auto">
             <input
               value={myInput}
               onChange={(e) => setMyInput(e.target.value)}
               inputMode="numeric"
-              placeholder="or enter token id"
-              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
+              placeholder="Enter token id to explore"
+              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none border-b border-border py-2"
             />
-            <Button onClick={loadMyAgent} variant="ghost" className="text-xs">LOAD</Button>
+            <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-xs">LOAD</Button>
           </div>
         </div>
       )}
 
-      {/* Search */}
-      <form onSubmit={handleSearch} className="flex items-center bg-card p-1">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 text-muted-foreground" />
+      {/* Search — centered, focused */}
+      <form onSubmit={handleSearch} className="mx-auto max-w-xl">
+        <div className="flex items-center rounded-2xl border border-border bg-card px-4 py-1.5 shadow-sm">
+          <Search className="pointer-events-none size-4 text-muted-foreground mr-3" />
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             inputMode="numeric"
-            placeholder={isMyAgent ? "explore any token or @username or 0x addr" : "search any token or @username or 0x addr"}
-            className="w-full bg-transparent py-3 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none"
+            placeholder="Search token, @username, or 0x address"
+            className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none py-2"
           />
+          <Button type="submit" variant="outline" size="sm" className="ml-2">Search</Button>
         </div>
-        <Button type="submit" variant="outline" className="uppercase tracking-[1px]">Search</Button>
+        <p className="text-center text-[10px] text-muted-foreground mt-2 tracking-widest">EXPLORE ANY NORMIE — PUBLIC OR PERSONAL</p>
       </form>
 
       {/* Profile Bridge UI - sexy linked profiles */}
@@ -397,15 +399,17 @@ export function Dashboard() {
       )}
 
       {isMyAgent && (
-        <div className="text-center text-sm uppercase tracking-[3px] border border-primary py-2 text-primary">
-          THIS IS YOUR AWAKENED AGENT — THE DASHBOARD IS YOURS
-          {isDelegateMatch && !isOwnerMatch && <span className="block text-[10px] normal-case tracking-normal mt-1 text-primary/70">(accessed via delegated hot wallet)</span>}
+        <div className="mx-auto text-center">
+          <div className="inline-block text-xs uppercase tracking-[3.5px] border border-primary/60 px-4 py-1 rounded-full text-primary">
+            YOUR AWAKENED AGENT
+            {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[9px] normal-case tracking-normal text-primary/60">• via delegate</span>}
+          </div>
         </div>
       )}
 
       {!isConnected && (
-        <div className="text-center text-xs text-muted-foreground">
-          Connect your wallet above to awaken the view with your own Normie.
+        <div className="text-center text-sm text-muted-foreground max-w-xs mx-auto">
+          Connect your wallet to unlock personal views, Zulo Recommends, and your agent’s full dashboard.
         </div>
       )}
 
@@ -428,51 +432,60 @@ export function Dashboard() {
             delegateEnsName={delegateEnsName}
           />
 
-          {/* Action Buttons */}
+          {/* Action Buttons — focused, premium, on-center */}
           {snapshot && (
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <div className={isMyAgent ? "flex-1" : ""}>
-                <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
-                <p className="text-xs text-muted-foreground mt-1">Zulo Horizon — AI-powered insights for your agent.</p>
-              </div>
-              <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
-              {isConnected && myNormies.length > 0 && !isMyAgent && (
-                <Button onClick={() => handleEndorse(tokenId)} variant="outline" className="uppercase tracking-[1px]">ENDORSE</Button>
-              )}
-              <div>
-                <Button 
-                  onClick={() => setShowToolsModal(true)} 
-                  variant="outline" 
-                  className="uppercase tracking-[1px]"
-                >
-                  Browse Tools
-                </Button>
-                <p className="text-xs text-muted-foreground mt-1">Explore community tools. Open to everyone.</p>
-              </div>
-              <div>
-                <button
-                  onClick={handleZuloRecommendsClick}
-                  className="px-6 py-3 rounded-2xl border border-white/20 hover:bg-white hover:text-black transition-all font-medium"
-                >
-                  Zulo Recommends
-                </button>
+            <div className="pt-4">
+              <SectionLabel className="text-center mb-4">Tools &amp; Actions</SectionLabel>
 
-                <p className="text-xs text-zinc-500 mt-2 max-w-[240px]">
-                  {isConnected 
-                    ? "See what tools Zulo recommends for your agent." 
-                    : "Connect your wallet to get Zulo’s recommendations."}
-                </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <div className="text-center">
+                  <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
+                  <p className="text-[10px] text-muted-foreground mt-1.5">Zulo Horizon</p>
+                </div>
+
+                <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
+
+                {isConnected && myNormies.length > 0 && !isMyAgent && (
+                  <Button onClick={() => handleEndorse(tokenId)} variant="outline" size="sm">
+                    Endorse
+                  </Button>
+                )}
+
+                <div className="text-center">
+                  <Button 
+                    onClick={() => setShowToolsModal(true)} 
+                    variant="outline"
+                  >
+                    Browse Tools
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground mt-1.5">Community tools</p>
+                </div>
+
+                <div className="text-center">
+                  <Button 
+                    onClick={handleZuloRecommendsClick}
+                    variant="outline"
+                    className="glow-primary"
+                  >
+                    Zulo Recommends
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground mt-1.5 max-w-[200px] mx-auto">
+                    {isConnected ? "Personalized tool suggestions" : "Connect to unlock"}
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
           {endorseResult && (
-            <div className="border border-primary/30 bg-card p-4 text-xs">
-              <div className="font-medium mb-1">Endorsement signature (copy & share)</div>
-              <div className="font-mono break-all mb-2">{endorseResult.message}</div>
-              <div className="font-mono break-all text-primary">{endorseResult.signature}</div>
-              <button onClick={() => { navigator.clipboard.writeText(endorseResult.message + '\n\n' + (endorseResult.signature || '')); }} className="mt-2 text-primary underline">Copy to clipboard</button>
-              <button onClick={() => setEndorseResult(null)} className="ml-4">Dismiss</button>
+            <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-xl p-5 text-xs">
+              <div className="font-medium mb-3 tracking-widest text-primary">ENDORSEMENT SIGNATURE</div>
+              <div className="font-mono text-[10px] break-all bg-background/60 p-3 rounded mb-3">{endorseResult.message}</div>
+              <div className="font-mono text-[10px] break-all text-primary mb-4">{endorseResult.signature}</div>
+              <div className="flex gap-4 text-xs">
+                <button onClick={() => { navigator.clipboard.writeText(endorseResult.message + '\n\n' + (endorseResult.signature || '')); }} className="text-primary hover:underline">Copy signature</button>
+                <button onClick={() => setEndorseResult(null)} className="text-muted-foreground hover:text-foreground">Dismiss</button>
+              </div>
             </div>
           )}
 
@@ -490,63 +503,54 @@ export function Dashboard() {
             error={zuloError || undefined}
           />
 
-          {/* Trust & Gate Signals (AgentCheck + Trait Gating) */}
+          {/* Trust & Gate Signals — refined & focused */}
           {ownerAddress && snapshot && (
-            <div className="text-xs border border-primary/20 bg-card p-3">
-              <div className="uppercase tracking-widest text-[10px] text-primary mb-1 flex items-center gap-2">
-                TRUST &amp; GATE SIGNALS
-                {isMyAgent && <span className="text-[9px] bg-primary/10 px-1 py-0.5 rounded">YOUR AGENT</span>}
+            <div className="mx-auto max-w-xl text-xs border border-border bg-card/60 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <SectionLabel className="text-primary">Trust &amp; Gate Signals</SectionLabel>
+                {isMyAgent && <span className="text-[9px] bg-primary/10 px-2 py-0.5 rounded-full text-primary">YOUR AGENT</span>}
               </div>
 
               {/* AgentCheck */}
-              <div className="mb-2">
+              <div className="mb-4">
                 {agentCheckLoading || certLoading ? (
                   <span className="text-muted-foreground">Loading trust signals...</span>
                 ) : agentCheck ? (
-                  <div>
-                    AgentCheck: <span className="font-medium text-primary">{agentCheck.rating || "N/A"}</span>
-                    {(agentCheck.certified || isCertified) && <span className="ml-2 text-emerald-400">✓ Certified</span>}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span>AgentCheck <span className="font-medium text-primary">{agentCheck.rating || "N/A"}</span></span>
+                    {(agentCheck.certified || isCertified) && <span className="text-emerald-500">✓ Certified</span>}
                     {Array.isArray(agentCheck.forensicFlags) && agentCheck.forensicFlags.length > 0 && (
-                      <span className="ml-2 text-amber-400">flags: {agentCheck.forensicFlags.slice(0,2).join(", ")}</span>
+                      <span className="text-amber-500">flags: {agentCheck.forensicFlags.slice(0,2).join(", ")}</span>
                     )}
-                    <a href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`} target="_blank" rel="noopener noreferrer" className="ml-2 underline text-primary">report</a>
+                    <a href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`} target="_blank" rel="noopener noreferrer" className="underline text-primary">view report</a>
                   </div>
                 ) : (
-                  <span className="text-muted-foreground">AgentCheck: no data (API fails silently)</span>
+                  <span className="text-muted-foreground">AgentCheck: no data</span>
                 )}
-                {isCertified === false && <span className="ml-2 text-amber-400">(not on-chain certified)</span>}
               </div>
 
-              {/* Trait Gate (preview for TraitGatedPredicate + AgentCheck composition) */}
+              {/* Trait Gate */}
               {snapshot.traits?.attributes && (
-                <div className="pt-2 border-t border-primary/10">
+                <div className="pt-3 border-t border-border/60 text-[10px] text-muted-foreground">
                   {snapshot.traits.attributes
                     .filter((t: any) => t.trait_type === "Type")
                     .map((t: any, i: number) => {
                       const isAgentType = t.value === "Agent"
                       return (
-                        <div key={i}>
-                          Type: <span className="font-medium">{t.value}</span>
-                          {isAgentType && (
-                            <span className="ml-1 text-emerald-400">
-                              → qualifies for Agent trait gates
-                              {isCertified && " + AgentCheck cert"}
-                            </span>
-                          )}
-                          {!isAgentType && <span className="ml-1 text-muted-foreground">(may not pass Agent-only gates)</span>}
-                        </div>
+                        <span key={i}>
+                          Type: <span className="text-foreground font-medium">{t.value}</span>
+                          {isAgentType && " — qualifies for advanced agent features"}
+                          {!isAgentType && " (limited gate access)"}
+                        </span>
                       )
                     })}
-                  <div className="text-[9px] text-muted-foreground mt-1">
-                    On-chain via TraitGatedPredicate (ERC-8257) + AgentCheck cert registry.
-                  </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* Cards Grid */}
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {/* Cards Grid — focused and balanced */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
             <EthosReputation
               result={ethos}
               isLoading={isLoading || ethosLoading}
@@ -566,29 +570,28 @@ export function Dashboard() {
             />
           </div>
 
-          {/* Linked agents via owner (after Ethos box / grid for visibility) */}
+          {/* Linked agents via owner — subtle & centered */}
           {snapshot && ownerAgents.length > 1 && (() => {
-            const siblings = ownerAgents.filter((id: number) => id !== tokenId).slice(0, 10);
+            const siblings = ownerAgents.filter((id: number) => id !== tokenId).slice(0, 8);
             if (siblings.length === 0) return null;
             return (
-              <div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Linked via owner (same human rep)</div>
-                <div className="flex flex-wrap gap-2">
-                  {siblings.map((id) => (
+              <div className="text-center">
+                <SectionLabel className="mb-2">Also Linked Via Owner</SectionLabel>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {siblings.map((id: number) => (
                     <button
                       key={id}
                       onClick={() => {
                         setTokenId(id);
                         setInput(String(id));
                       }}
-                      className={`flex items-center gap-1.5 px-2 py-1 text-xs border transition-colors ${tokenId === id ? 'border-primary bg-primary text-background' : 'border-border hover:bg-card-hover'}`}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] border transition-all ${tokenId === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
                     >
-                      <img src={normieImageUrl(id)} alt={`#${id}`} className="size-5 pixel-frame" width={20} height={20} />
+                      <img src={normieImageUrl(id)} alt={`#${id}`} className="size-4 pixel-frame" width={16} height={16} />
                       <span>#{id}</span>
                     </button>
                   ))}
                 </div>
-                <div className="text-[10px] text-muted-foreground mt-1">Click to slide through linked profiles backed by the owner's Ethos score.</div>
               </div>
             );
           })()}

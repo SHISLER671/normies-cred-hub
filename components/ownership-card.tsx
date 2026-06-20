@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { SectionLabel } from "@/components/ui/section-label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ensAppUrl, etherscanAddress, shortenAddress } from "@/lib/format"
 import type { NormieSnapshot } from "@/lib/types"
@@ -30,8 +31,10 @@ export function OwnershipCard({
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-widest">
-          <Layers className="size-4" /> {isMyAgent ? "YOUR OWNERSHIP &amp; CANVAS" : "OWNERSHIP &amp; CANVAS"}
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <SectionLabel>
+            <Layers className="size-4" /> {isMyAgent ? "Your Ownership &amp; Canvas" : "Ownership &amp; Canvas"}
+          </SectionLabel>
         </CardTitle>
       </CardHeader>
 
@@ -47,7 +50,7 @@ export function OwnershipCard({
             <div className="flex items-center gap-3 px-3 py-2.5">
               <Wallet className="size-4 shrink-0 text-muted-foreground" />
               <div className="flex flex-1 flex-col leading-tight text-sm">
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">OWNER</div>
+                <SectionLabel>Owner</SectionLabel>
                 <a
                   href={etherscanAddress(snapshot.owner.owner)}
                   target="_blank"
@@ -67,7 +70,7 @@ export function OwnershipCard({
             <div className="flex items-center gap-3 px-3 py-2.5">
               <Palette className="size-4 shrink-0 text-muted-foreground" />
               <div className="flex flex-1 flex-col leading-tight text-sm">
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">CANVAS</div>
+                <SectionLabel>Canvas</SectionLabel>
                 <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
               </div>
               <div className="border px-1.5 py-px text-[10px] tracking-widest">
@@ -115,7 +118,7 @@ export function OwnershipCard({
             {/* Personal delegation highlight — the core request: Ledger cold, hot ENS delegate, agent acts, all verifiable */}
             {isMyAgent && delegateAddress && !isZeroAddrLocal(delegateAddress) && (
               <div className="px-3 py-2 text-xs border-t border-primary/20 mt-1 space-y-1">
-                <div className="uppercase tracking-[1px] text-primary">DELEGATION CHAIN — COLD LEDGER → HOT ENS (VERIFIABLE ON-CHAIN)</div>
+                <SectionLabel className="text-primary">Delegation Chain — Cold Ledger → Hot ENS (Verifiable On-Chain)</SectionLabel>
                 <div>
                   Primary owner (cold storage / e.g. Ledger):{" "}
                   <a

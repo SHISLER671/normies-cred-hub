@@ -1,11 +1,25 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Space_Grotesk, Inter } from 'next/font/google'
 import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'], weight: ['400', '500', '600', '700'] })
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'], weight: ['400', '500', '700'] })
+
+// Premium, slightly artistic headings — Space Grotesk
+const spaceGrotesk = Space_Grotesk({ 
+  variable: '--font-space-grotesk', 
+  subsets: ['latin'], 
+  weight: ['500', '600', '700'] 
+})
+
+// Clean, highly legible body — Inter
+const inter = Inter({ 
+  variable: '--font-inter', 
+  subsets: ['latin'], 
+  weight: ['400', '500', '600'] 
+})
 
 export const metadata: Metadata = {
   title: 'NormiesCredHub — Awakened Normie Reputation Dashboard',
@@ -21,15 +35,22 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'dark',
-  themeColor: '#0b0b0c',
+  colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f9f7f3' },
+    { media: '(prefers-color-scheme: dark)', color: '#0c0b09' },
+  ],
 }
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} dark`}>
+    <html 
+      lang="en" 
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${inter.variable}`}
+    >
       <body>
         <Providers>
           {children}

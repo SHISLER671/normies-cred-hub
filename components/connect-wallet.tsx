@@ -24,9 +24,9 @@ export function ConnectWallet() {
             {(() => {
               if (!connected) {
                 return (
-                  <Button onClick={openConnectModal} size="sm" variant="outline" className="gap-2 uppercase tracking-widest">
+                  <Button onClick={openConnectModal} size="sm" variant="outline" className="gap-2">
                     <Wallet className="size-4" />
-                    CONNECT
+                    Connect
                   </Button>
                 )
               }
@@ -44,7 +44,7 @@ export function ConnectWallet() {
                   onClick={openAccountModal}
                   size="sm"
                   variant="secondary"
-                  className="gap-2 font-mono uppercase tracking-widest"
+                  className="gap-2 font-mono tracking-widest"
                 >
                   <span className="size-1.5 bg-emerald-400" aria-hidden />
                   {account.ensName || account.displayName}

@@ -28,16 +28,16 @@ export function AgentHorizonModal({ tokenId, isMyAgent = false }: { tokenId: num
       <DialogTrigger>
         <Button 
           size={isMyAgent ? "lg" : "default"}
-          className={`group w-full sm:w-auto gap-3 ${isMyAgent 
-            ? "border-primary bg-primary text-background hover:bg-primary/90 text-base py-3" 
-            : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-background uppercase tracking-[1px]"}`}
+          className={`group w-full sm:w-auto gap-3 glow-primary ${isMyAgent 
+            ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90 text-base py-3" 
+            : "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"}`}
         >
           <Sparkles className="size-5 group-hover:rotate-12 transition-transform" />
-          {isMyAgent ? `${agentName} Horizon — Talk to your agent` : `${agentName} HORIZON`}
+          {isMyAgent ? `${agentName} Horizon — Talk to your agent` : `${agentName} Horizon`}
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-lg max-h-[90vh] bg-popover border-border">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] modal-content">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="size-5 text-primary" />

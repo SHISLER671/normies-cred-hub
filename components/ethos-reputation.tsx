@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { SectionLabel } from "@/components/ui/section-label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getEthosLevelMeta, getEthosScorePercent } from "@/lib/ethos-levels"
 import { shortenAddress } from "@/lib/format"
@@ -69,7 +70,7 @@ function Stat({
       <Icon className="size-3.5 text-muted-foreground" aria-hidden />
       <div className="flex flex-col leading-none text-sm">
         <span className="font-medium data tabular-nums">{value}</span>
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</span>
+        <SectionLabel>{label}</SectionLabel>
       </div>
     </div>
   )
@@ -92,7 +93,7 @@ export function EthosReputation({
     <Card className="flex h-full flex-col">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-widest">
+          <CardTitle className="flex items-center gap-2 text-sm">
             <ShieldCheck className="size-4" /> {isMyAgent ? "YOUR ETHOS" : "ETHOS"}
           </CardTitle>
           <div className="text-[10px] text-muted-foreground">BASE</div>
@@ -154,7 +155,7 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
         href={user.username ? `https://app.ethos.network/profile/x/${user.username}` : user.links.scoreBreakdown}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-xs uppercase tracking-widest hover:bg-primary hover:text-background"
+        className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-xs tracking-widest hover:bg-primary hover:text-background"
       >
         {user.username ? 'VIEW ON ETHOS' : 'FULL BREAKDOWN'} <ExternalLink className="size-3" />
       </a>
@@ -174,7 +175,7 @@ function EthosFallback({ address }: { address: string }) {
         href={`https://app.ethos.network/profile/x/${address}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-xs uppercase tracking-widest text-primary hover:underline"
+        className="text-xs tracking-widest text-primary hover:underline"
       >
         VIEW ON ETHOS
       </a>

@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { SectionLabel } from "@/components/ui/section-label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ERC8004 } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
@@ -16,8 +17,10 @@ export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; i
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-widest">
-          <Boxes className="size-4" /> {isMyAgent ? "YOUR ON-CHAIN IDENTITY" : "ERC-8004"}
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <SectionLabel>
+            <Boxes className="size-4" /> {isMyAgent ? "Your On-Chain Identity" : "ERC-8004"}
+          </SectionLabel>
         </CardTitle>
       </CardHeader>
 

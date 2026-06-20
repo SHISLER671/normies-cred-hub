@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { tools, Tool, getTools } from "@/lib/tools";
 
 export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -41,7 +42,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] bg-popover border-border">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col bg-popover border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Browse Tools
@@ -56,14 +57,14 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           <input
             type="text"
             placeholder="Search tools..."
-            className="flex-1 bg-card border border-border rounded px-3 py-2 text-sm"
+            className="flex-1 bg-card border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary/50"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as "name" | "category")}
-            className="bg-card border border-border rounded px-3 text-sm"
+            className="bg-card border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
           >
             <option value="name">Alphabetical</option>
             <option value="category">Category</option>
@@ -72,16 +73,16 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
         {loading && <p className="text-sm text-muted-foreground">Loading tools...</p>}
 
-        <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+        <ScrollArea className="flex-1 pr-2">
           {filteredTools.length === 0 && !loading && (
             <p className="text-sm text-muted-foreground">No tools match your search.</p>
           )}
           {filteredTools.map((tool) => (
-            <div key={tool.id} className="border border-border rounded-lg p-4 bg-card">
-              <div className="flex justify-between items-start gap-2">
+            <div key={tool.id} className="card group border border-border rounded-2xl p-5 mb-3 hover:border-primary/30 transition-all">
+              <div className="flex justify-between items-start gap-3">
                 <div>
-                  <h3 className="font-medium text-base">{tool.name}</h3>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                  <h3 className="font-semibold tracking-tight">{tool.name}</h3>
+                  <span className="inline-block text-[10px] uppercase tracking-[1.5px] text-muted-foreground bg-muted px-2 py-0.5 rounded mt-1.5">
                     {tool.category}
                   </span>
                 </div>
@@ -89,15 +90,15 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                   href={tool.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary text-sm hover:underline whitespace-nowrap"
+                  className="glow-primary text-sm px-4 py-1.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap mt-1"
                 >
                   Visit →
                 </a>
               </div>
-              <p className="text-sm text-muted-foreground mt-2 leading-snug">{tool.description}</p>
+              <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{tool.description}</p>
             </div>
           ))}
-        </div>
+        </ScrollArea>
 
         <p className="text-[10px] text-muted-foreground mt-2">
           Tools curated from community sources including https://www.normies.art/tools. Dynamic list updates on load.

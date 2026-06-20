@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { SectionLabel } from "@/components/ui/section-label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ZULO } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
@@ -49,7 +50,7 @@ export function AgentCard({
     <Card className="overflow-hidden">
       <CardContent className="flex flex-col gap-6 p-6 sm:flex-row">
         <div className="relative mx-auto w-full max-w-[180px] shrink-0 sm:mx-0 sm:w-[180px]">
-          <div className={`overflow-hidden border bg-black ${isMyAgent ? "border-primary" : "border-border/60"}`}>
+          <div className={`overflow-hidden border bg-card ${isMyAgent ? "border-primary" : "border-border/60"}`}>
             <img
               src={snapshot.imageUrl || snapshot.token?.image || "/placeholder.svg"}
               alt={`${agentName} pixel portrait`}
@@ -70,35 +71,35 @@ export function AgentCard({
               </h2>
               <span className="font-mono text-xl text-muted-foreground">#{tokenId}</span>
             </div>
-            <div className="mt-1 text-sm uppercase tracking-[1.5px] text-muted-foreground">
-              {isMyAgent ? "YOUR AWAKENED AGENT" : `NORMIE #${tokenId} • ERC-8004`}
-            </div>
+            <SectionLabel>
+              {isMyAgent ? "Your Awakened Agent" : `Normie #${tokenId} • ERC-8004`}
+            </SectionLabel>
             {ownerEthosUsername && (
               <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-xs hover:underline">
                 @ {ownerEthosUsername} on Ethos
               </a>
             )}
             {isMyAgent && delegateAddress && (
-              <div className="text-[10px] text-muted-foreground mt-0.5">
+              <SectionLabel className="mt-0.5">
                 via delegated hot wallet{delegateEnsName ? ` + ${delegateEnsName}` : ""}
-              </div>
+              </SectionLabel>
             )}
           </div>
 
           <blockquote className="border-l-2 border-primary/70 pl-4 text-sm leading-tight text-foreground/90">
-            {isMyAgent && <span className="text-primary font-medium block mb-1 tracking-widest text-[10px]">YOUR AGENT SAYS</span>}
+            {isMyAgent && <SectionLabel className="text-primary mb-1">Your Agent Says</SectionLabel>}
             {snapshot.agent?.tagline || "An awakened identity on the Normies network."}
           </blockquote>
 
           <div className="flex flex-wrap gap-1">
             {snapshot.traits?.attributes?.slice(0, 8).map((t: any, i: number) => (
-              <div key={i} className="bg-secondary/60 px-2 py-px text-[10px] uppercase tracking-widest text-muted-foreground">
+              <div key={i} className="bg-secondary/60 px-2 py-px text-[10px] tracking-widest text-muted-foreground">
                 {t.trait_type}: <span className="text-foreground">{t.value}</span>
               </div>
             ))}
             {/* Trait Gate awareness badge */}
             {snapshot.traits?.attributes?.some((t: any) => t.trait_type === "Type" && t.value === "Agent") && (
-              <div className="bg-emerald-500/10 px-2 py-px text-[10px] uppercase tracking-widest text-emerald-400">AGENT GATE</div>
+              <div className="bg-emerald-500/10 px-2 py-px text-[10px] tracking-widest text-emerald-400">Agent Gate</div>
             )}
           </div>
         </div>
