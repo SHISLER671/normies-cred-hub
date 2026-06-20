@@ -14,7 +14,7 @@ import { SectionLabel } from "@/components/ui/section-label"
 import { ZULO } from "@/constants/contracts"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Boxes, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles } from "lucide-react"
+import { AlertTriangle, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -26,6 +26,9 @@ import { tools } from "@/lib/tools"
 import type { AgentCheckResult } from "@/lib/types"
 import { useQuery } from "@tanstack/react-query"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ERC8004 } from "@/constants/contracts"
+import { etherscanAddress, shortenAddress } from "@/lib/format"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -602,88 +605,152 @@ export function Dashboard() {
             </div>
           )}
 
-          {/* On-Chain Insights */}
-          <div>
-            <SectionLabel className="text-center mb-4">On-Chain Insights</SectionLabel>
+          {/* On-Chain Credibility */}
+          <div className="mx-auto max-w-2xl">
+            <SectionLabel className="text-center mb-2">On-Chain Credibility</SectionLabel>
+            <p className="text-center text-sm text-muted-foreground mb-6">
+              On-chain signals form a connected chain that establishes credibility for your awakened agent.
+            </p>
 
-            {/* On-Chain Identity, Ownership & Delegate */}
-            <div className="mb-6">
-              <div className="mb-3">
-                <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
-                  <Boxes className="size-4" /> On-Chain Identity, Ownership &amp; Delegate
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  This confirms your Normie has been awakened and registered as an ERC-8004 agent. Your ownership shows who controls the NFT. Delegation allows your agent to act on-chain while your NFT stays secure in cold storage.
-                </p>
-              </div>
-              <Erc8004Card agentId={snapshot?.agent?.agentId ? Number(snapshot.agent.agentId) : ZULO.agentId} isMyAgent={isMyAgent} />
-              <OwnershipCard
-                snapshot={snapshot}
-                isLoading={isLoading}
-                isMyAgent={isMyAgent}
-                ownerEthosUsername={ownerUsername}
-                delegateAddress={delegate}
-                delegateEnsName={delegateEnsName}
-                isDelegateController={isDelegateMatch}
-              />
-            </div>
+            {/* Visual Credibility Chain */}
+            <div className="space-y-5 relative pl-8">
+              {/* Connecting vertical line */}
+              <div className="absolute left-[15px] top-4 bottom-4 w-px bg-border/60" />
 
-            {/* Canvas */}
-            {snapshot && (
-              <div className="mb-6">
-                <div className="mb-3">
-                  <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
-                    <Palette className="size-4" /> Canvas
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Your canvas shows your Normie's current on-chain pixel state, level, and recent activity.
+              {/* 1. On-Chain Identity */}
+              <div className="relative flex gap-4">
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">1</div>
+                <div className="flex-1">
+                  <div className="font-medium mb-1 flex items-center gap-2">
+                    <Boxes className="size-4 text-primary" /> On-Chain Identity
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    This registers your Normie as a verifiable ERC-8004 agent identity.
                   </p>
+                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                    {isLoading ? (
+                      <Skeleton className="h-16 w-full" />
+                    ) : snapshot?.agent?.agentId ? (
+                      <div>
+                        <div className="flex items-center gap-2 text-emerald-400">
+                          <CircleCheck className="size-4" />
+                          <span>Registered on-chain</span>
+                        </div>
+                        <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{snapshot.agent.agentId} recognized</div>
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-amber-400">
+                        <Clock className="size-4" />
+                        <span>On-chain status pending</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <Card className="flex h-full flex-col">
-                  <CardContent className="flex flex-1 flex-col gap-3 text-sm">
-                    <div className="flex items-center gap-3 px-3 py-2.5">
-                      <Palette className="size-4 shrink-0 text-muted-foreground" />
-                      <div className="flex flex-1 flex-col leading-tight text-sm">
-                        <SectionLabel>Canvas</SectionLabel>
-                        <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
-                      </div>
-                      <div className="border px-1.5 py-px text-[10px] tracking-[1.5px]">
-                        {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-1 text-center text-sm">
-                      <Metric label="ADDED" value={`+${snapshot.canvasDiff.addedCount}`} />
-                      <Metric label="REMOVED" value={`-${snapshot.canvasDiff.removedCount}`} />
-                      <Metric label="NET" value={`${snapshot.canvasDiff.netChange}`} />
-                    </div>
-
-                    <p className="mt-auto pt-2 text-[10px] text-muted-foreground">
-                      {isMyAgent ? "YOUR PIXELS. YOUR PROOF. YOUR AGENT." : "LIVE NORMIES REGISTRY. PIXEL CANVAS BY THE PEOPLE."}
-                    </p>
-                  </CardContent>
-                </Card>
               </div>
-            )}
 
-            {/* Ethos Reputation */}
-            <div>
-              <div className="mb-3">
-                <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
-                  <ShieldCheck className="size-4" /> Ethos Reputation
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Your Ethos score reflects how the community perceives your on-chain behavior. Higher scores can unlock better opportunities and trust within the ecosystem.
-                </p>
+              {/* 2. Ownership & Delegation */}
+              <div className="relative flex gap-4">
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">2</div>
+                <div className="flex-1">
+                  <div className="font-medium mb-1 flex items-center gap-2">
+                    <Wallet className="size-4 text-primary" /> Ownership &amp; Delegation
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Ownership proves control of the NFT; delegation lets the agent act securely from a hot wallet.
+                  </p>
+                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                    {isLoading || !snapshot ? (
+                      <div className="space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div>
+                          <div className="text-[10px] text-muted-foreground">OWNER</div>
+                          <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" className="font-mono text-foreground hover:text-primary">
+                            {shortenAddress(snapshot.owner.owner, 6)}
+                          </a>
+                          {ownerUsername && <span className="text-primary text-xs ml-2">@{ownerUsername}</span>}
+                        </div>
+                        {delegate && !isZeroAddr(delegate) && (
+                          <div>
+                            <div className="text-[10px] text-muted-foreground">DELEGATE</div>
+                            <a href={etherscanAddress(delegate)} target="_blank" className="font-mono text-foreground hover:text-primary">
+                              {shortenAddress(delegate, 6)}
+                            </a>
+                            {delegateEnsName && <span className="text-primary text-xs ml-2">{delegateEnsName}</span>}
+                          </div>
+                        )}
+                        {isMyAgent && delegate && !isZeroAddr(delegate) && (
+                          <div className="text-[10px] text-muted-foreground pt-1 border-t border-border/60">
+                            Cold storage → hot ENS (verifiable)
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              <EthosReputation
-                result={ethos}
-                isLoading={isLoading || ethosLoading}
-                error={ethosError}
-                address={ownerAddress ?? ""}
-                isMyAgent={isMyAgent}
-              />
+
+              {/* 3. On-Chain Activity (Canvas) */}
+              <div className="relative flex gap-4">
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">3</div>
+                <div className="flex-1">
+                  <div className="font-medium mb-1 flex items-center gap-2">
+                    <Palette className="size-4 text-primary" /> On-Chain Activity (Canvas)
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Canvas records pixel-level changes, level, and customization as proof of active engagement.
+                  </p>
+                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                    {isLoading || !snapshot ? (
+                      <Skeleton className="h-16 w-full" />
+                    ) : (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
+                          <div className="border px-1.5 py-px text-[10px] tracking-[1.5px]">
+                            {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-center text-xs">
+                          <div>+{snapshot.canvasDiff.addedCount} <span className="text-muted-foreground">added</span></div>
+                          <div>-{snapshot.canvasDiff.removedCount} <span className="text-muted-foreground">removed</span></div>
+                          <div>{snapshot.canvasDiff.netChange} <span className="text-muted-foreground">net</span></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Reputation (Ethos) */}
+              <div className="relative flex gap-4">
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">4</div>
+                <div className="flex-1">
+                  <div className="font-medium mb-1 flex items-center gap-2">
+                    <ShieldCheck className="size-4 text-primary" /> Reputation (Ethos)
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Ethos aggregates community perception of on-chain behavior into a portable credibility score.
+                  </p>
+                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                    <EthosReputation
+                      result={ethos}
+                      isLoading={isLoading || ethosLoading}
+                      error={ethosError}
+                      address={ownerAddress ?? ""}
+                      isMyAgent={isMyAgent}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <p className="text-center text-[10px] text-muted-foreground mt-6">
+              As the ecosystem evolves, these signals may become more relevant for agent interactions.
+            </p>
           </div>
 
           {/* Linked agents via owner — subtle & centered */}
