@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,14 @@ import { tools } from "@/lib/tools";
 export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "category">("name");
+
+  // Reset search when modal opens to always show the full list
+  useEffect(() => {
+    if (isOpen) {
+      setSearch("");
+      setSortBy("name");
+    }
+  }, [isOpen]);
 
   const filteredTools = [...tools]
     .filter((tool) =>
@@ -39,26 +47,26 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-3 mb-4">
-          <input
-            type="text"
-            placeholder="Search tools..."
-            className="flex-1 bg-card border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary/50"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as "name" | "category")}
-            className="bg-card border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
-          >
-            <option value="name">Alphabetical</option>
-            <option value="category">Category</option>
-          </select>
-        </div>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex gap-3 mb-4 flex-shrink-0">
+            <input
+              type="text"
+              placeholder="Search tools..."
+              className="flex-1 bg-card border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary/50"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as "name" | "category")}
+              className="bg-card border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
+            >
+              <option value="name">Alphabetical</option>
+              <option value="category">Category</option>
+            </select>
+          </div>
 
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full pr-2">
+          <ScrollArea className="flex-1 pr-2">
             {filteredTools.length === 0 && (
               <p className="text-sm text-muted-foreground">No tools match your search.</p>
             )}
@@ -86,7 +94,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </ScrollArea>
         </div>
 
-        <p className="text-[10px] text-muted-foreground mt-2">
+        <p className="text-[10px] text-muted-foreground mt-2 flex-shrink-0">
           Tools curated from community sources including https://www.normies.art/tools.
         </p>
       </DialogContent>

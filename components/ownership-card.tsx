@@ -30,14 +30,6 @@ export function OwnershipCard({
 
   return (
     <Card className="flex h-full flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <SectionLabel>
-            <Layers className="size-4" /> {isMyAgent ? "Your Ownership &amp; Canvas" : "Ownership &amp; Canvas"}
-          </SectionLabel>
-        </CardTitle>
-      </CardHeader>
-
       <CardContent className="flex flex-1 flex-col gap-3 text-sm">
         {isLoading || !snapshot ? (
           <>

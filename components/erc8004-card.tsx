@@ -16,14 +16,6 @@ export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; i
 
   return (
     <Card className="flex h-full flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <SectionLabel>
-            <Boxes className="size-4" /> {isMyAgent ? "Your On-Chain Identity" : "ERC-8004"}
-          </SectionLabel>
-        </CardTitle>
-      </CardHeader>
-
       <CardContent className="flex flex-1 flex-col gap-4 text-sm">
         {isLoading ? (
           <Skeleton className="h-24 w-full" />

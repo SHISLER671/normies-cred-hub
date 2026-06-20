@@ -14,7 +14,7 @@ import { SectionLabel } from "@/components/ui/section-label"
 import { ZULO } from "@/constants/contracts"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Search, Sparkles } from "lucide-react"
+import { AlertTriangle, Boxes, Layers, Search, ShieldCheck, Sparkles } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -308,8 +308,6 @@ export function Dashboard() {
       {/* Personal / Awakened View — focused and premium */}
       {isConnected && (
         <div className="rounded-2xl border border-border bg-card/70 p-5">
-          <SectionLabel className="text-primary mb-3 text-center">Your Awakened View</SectionLabel>
-
           {/* My Agents selector — centered pills */}
           {myNormies.length > 0 && (
             <div className="flex justify-center mb-4">
@@ -346,7 +344,7 @@ export function Dashboard() {
               value={myInput}
               onChange={(e) => setMyInput(e.target.value)}
               inputMode="numeric"
-              placeholder="Enter token id to explore"
+              placeholder="Enter token id"
               className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none border-b border-border py-2"
             />
             <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-xs">LOAD</Button>
@@ -443,6 +441,13 @@ export function Dashboard() {
             )}
           </div>
 
+          {/* Prove Linkage — centered */}
+          {snapshot && (
+            <div className="text-center">
+              <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
+            </div>
+          )}
+
           {/* Explore & Verify */}
           {snapshot && (
             <div className="pt-2">
@@ -454,8 +459,6 @@ export function Dashboard() {
                   <AgentHorizonModal tokenId={tokenId} isMyAgent={isMyAgent} />
                   <p className="text-[10px] text-muted-foreground mt-1.5">Zulo Horizon Insights</p>
                 </div>
-
-                <LinkageProofModal tokenId={tokenId} ownerAddress={snapshot.owner.owner} delegateAddress={snapshot.canvas.delegate} />
 
                 {isConnected && myNormies.length > 0 && !isMyAgent && (
                   <Button onClick={() => handleEndorse(tokenId)} variant="outline" size="sm">
@@ -574,15 +577,30 @@ export function Dashboard() {
           {/* On-Chain Insights */}
           <div>
             <SectionLabel className="text-center mb-4">On-Chain Insights</SectionLabel>
-            <div className="flex flex-col gap-4 animate-fade-in">
-              <EthosReputation
-                result={ethos}
-                isLoading={isLoading || ethosLoading}
-                error={ethosError}
-                address={ownerAddress ?? ""}
-                isMyAgent={isMyAgent}
-              />
+
+            {/* 1. On-Chain Identity */}
+            <div className="mb-6">
+              <div className="mb-3">
+                <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
+                  <Boxes className="size-4" /> On-Chain Identity
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  This confirms your Normie has been awakened and registered as an ERC-8004 agent. It allows your agent to interact with tools, other agents, and future features in the ecosystem.
+                </p>
+              </div>
               <Erc8004Card agentId={snapshot?.agent?.agentId ? Number(snapshot.agent.agentId) : ZULO.agentId} isMyAgent={isMyAgent} />
+            </div>
+
+            {/* 2. Ownership & Canvas */}
+            <div className="mb-6">
+              <div className="mb-3">
+                <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
+                  <Layers className="size-4" /> Ownership &amp; Canvas
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Your ownership and canvas status show how you’re engaging with your Normie. Delegation allows your agent to act on-chain while your NFT stays secure in cold storage.
+                </p>
+              </div>
               <OwnershipCard
                 snapshot={snapshot}
                 isLoading={isLoading}
@@ -591,6 +609,25 @@ export function Dashboard() {
                 delegateAddress={delegate}
                 delegateEnsName={delegateEnsName}
                 isDelegateController={isDelegateMatch}
+              />
+            </div>
+
+            {/* 3. Ethos Reputation */}
+            <div>
+              <div className="mb-3">
+                <h3 className="font-semibold text-base flex items-center gap-2 text-primary">
+                  <ShieldCheck className="size-4" /> Ethos Reputation
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Your Ethos score reflects how the community perceives your on-chain behavior. Higher scores can unlock better opportunities and trust within the ecosystem.
+                </p>
+              </div>
+              <EthosReputation
+                result={ethos}
+                isLoading={isLoading || ethosLoading}
+                error={ethosError}
+                address={ownerAddress ?? ""}
+                isMyAgent={isMyAgent}
               />
             </div>
           </div>

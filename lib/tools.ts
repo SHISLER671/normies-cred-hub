@@ -96,6 +96,27 @@ export const tools: Tool[] = [
     category: "On-Chain",
     url: "https://api.normies.art",
   },
+  {
+    id: "github-normies-tools",
+    name: "Normies Tools (GitHub)",
+    description: "Community tooling and examples for building on Normies.",
+    category: "Development",
+    url: "https://github.com/0xAxiom/normies-tools",
+  },
+  {
+    id: "swarm-skill",
+    name: "Swarm Skill",
+    description: "Multi-agent coordination for tasks like trading.",
+    category: "Agents",
+    url: "https://swarm.normies.art",
+  },
+  {
+    id: "agent-hub",
+    name: "Agent Hub",
+    description: "Tools for agent memory, persona, and tool routing.",
+    category: "Agents",
+    url: "https://github.com/ygtdmn/normies",
+  },
 ];
 
 export function getToolsListForPrompt(): string {

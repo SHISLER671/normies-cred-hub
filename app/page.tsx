@@ -30,11 +30,6 @@ export default function Page() {
           </p>
         </section>
 
-        {/* Subtle context line */}
-        <div className="mx-auto max-w-lg text-center mb-14 text-sm text-muted-foreground font-body">
-          Browse any Normie. See Ethos, on-chain status, and AI-powered tool recommendations.
-        </div>
-
         {/* Main dashboard content — centered focus */}
         <div className="pb-16">
           <Dashboard />
