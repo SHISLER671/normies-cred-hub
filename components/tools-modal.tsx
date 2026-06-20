@@ -10,27 +10,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { tools, Tool, getTools } from "@/lib/tools";
+import { tools } from "@/lib/tools";
 
 export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "category">("name");
-  const [toolList, setToolList] = useState<Tool[]>(tools);
-  const [loading, setLoading] = useState(false);
 
-  // Load dynamic list when modal opens
-  if (isOpen && !loading && toolList === tools) {
-    setLoading(true);
-    getTools().then((fetched) => {
-      setToolList(fetched);
-      setLoading(false);
-    }).catch(() => {
-      setToolList(tools);
-      setLoading(false);
-    });
-  }
-
-  const filteredTools = [...toolList]
+  const filteredTools = [...tools]
     .filter((tool) =>
       tool.name.toLowerCase().includes(search.toLowerCase()) ||
       tool.description.toLowerCase().includes(search.toLowerCase())
@@ -71,10 +57,8 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </select>
         </div>
 
-        {loading && <p className="text-sm text-muted-foreground">Loading tools...</p>}
-
         <ScrollArea className="flex-1 pr-2">
-          {filteredTools.length === 0 && !loading && (
+          {filteredTools.length === 0 && (
             <p className="text-sm text-muted-foreground">No tools match your search.</p>
           )}
           {filteredTools.map((tool) => (
@@ -101,7 +85,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
         </ScrollArea>
 
         <p className="text-[10px] text-muted-foreground mt-2">
-          Tools curated from community sources including https://www.normies.art/tools. Dynamic list updates on load.
+          Tools curated from community sources including https://www.normies.art/tools.
         </p>
       </DialogContent>
     </Dialog>
