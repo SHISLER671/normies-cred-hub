@@ -14,7 +14,7 @@ import { SectionLabel } from "@/components/ui/section-label"
 import { ZULO } from "@/constants/contracts"
 import { useEthosScore, useNormie } from "@/hooks/use-normie"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet } from "lucide-react"
+import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -559,63 +559,17 @@ export function Dashboard() {
             error={zuloError || undefined}
           />
 
-          {/* Trust & Gate Signals — refined & focused */}
-          {ownerAddress && snapshot && (
-            <div className="mx-auto max-w-xl text-xs border border-border bg-card/60 rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-3">
-                <SectionLabel className="text-primary">Trust &amp; Gate Signals</SectionLabel>
-                {isMyAgent && <span className="text-[9px] bg-primary/10 px-2 py-0.5 rounded-full text-primary">YOUR AGENT</span>}
-              </div>
-
-              {/* AgentCheck */}
-              <div className="mb-4">
-                {agentCheckLoading || certLoading ? (
-                  <span className="text-muted-foreground">Loading trust signals...</span>
-                ) : agentCheck ? (
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span>AgentCheck <span className="font-medium text-primary">{agentCheck.rating || "N/A"}</span></span>
-                    {(agentCheck.certified || isCertified) && <span className="text-emerald-500">✓ Certified</span>}
-                    {Array.isArray(agentCheck.forensicFlags) && agentCheck.forensicFlags.length > 0 && (
-                      <span className="text-amber-500">flags: {agentCheck.forensicFlags.slice(0,2).join(", ")}</span>
-                    )}
-                    <a href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`} target="_blank" rel="noopener noreferrer" className="underline text-primary">view report</a>
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground">AgentCheck: no data</span>
-                )}
-              </div>
-
-              {/* Trait Gate */}
-              {snapshot.traits?.attributes && (
-                <div className="pt-3 border-t border-border/60 text-[10px] text-muted-foreground">
-                  {snapshot.traits.attributes
-                    .filter((t: any) => t.trait_type === "Type")
-                    .map((t: any, i: number) => {
-                      const isAgentType = t.value === "Agent"
-                      return (
-                        <span key={i}>
-                          Type: <span className="text-foreground font-medium">{t.value}</span>
-                          {isAgentType && " — qualifies for advanced agent features"}
-                          {!isAgentType && " (limited gate access)"}
-                        </span>
-                      )
-                    })}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* On-Chain Credibility */}
           <div className="mx-auto max-w-2xl">
             <SectionLabel className="text-center mb-2">On-Chain Credibility</SectionLabel>
             <p className="text-center text-sm text-muted-foreground mb-6">
-              On-chain signals form a connected chain that establishes credibility for your awakened agent.
+              On-chain signals form a connected chain that builds credibility for your awakened agent.
             </p>
 
             {/* Visual Credibility Chain */}
             <div className="space-y-5 relative pl-8">
               {/* Connecting vertical line */}
-              <div className="absolute left-[15px] top-4 bottom-4 w-px bg-border/60" />
+              <div className="absolute left-[15px] top-4 bottom-2 w-px bg-border/60" />
 
               {/* 1. On-Chain Identity */}
               <div className="relative flex gap-4">
@@ -625,7 +579,7 @@ export function Dashboard() {
                     <Boxes className="size-4 text-primary" /> On-Chain Identity
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
-                    This registers your Normie as a verifiable ERC-8004 agent identity.
+                    This registers your Normie as a verifiable ERC-8004 agent identity on-chain. It creates a public, immutable record that other systems can reference.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     {isLoading ? (
@@ -746,10 +700,45 @@ export function Dashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* 5. External Trust Signals */}
+              <div className="relative flex gap-4">
+                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-xs font-medium text-primary z-10">5</div>
+                <div className="flex-1">
+                  <div className="font-medium mb-1 flex items-center gap-2">
+                    <Award className="size-4 text-primary" /> External Trust Signals
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Community tools like AgentCheck can provide additional verification for your agent.
+                  </p>
+                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                    {agentCheckLoading || certLoading ? (
+                      <Skeleton className="h-10 w-full" />
+                    ) : agentCheck ? (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span>AgentCheck <span className="font-medium text-primary">{agentCheck.rating || "N/A"}</span></span>
+                          {(agentCheck.certified || isCertified) && <span className="text-emerald-500 text-xs">✓ Certified</span>}
+                        </div>
+                        <a
+                          href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          View full report →
+                        </a>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">No external data available</span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <p className="text-center text-[10px] text-muted-foreground mt-6">
-              As the ecosystem evolves, these signals may become more relevant for agent interactions.
+              As the ecosystem matures, these combined signals may help agents interact with greater context and confidence.
             </p>
           </div>
 
