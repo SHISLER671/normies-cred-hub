@@ -549,22 +549,20 @@ export function Dashboard() {
             </p>
             <p className="text-center text-[10px] tracking-[1.5px] text-primary/60 mb-6">— Analyzed by Zulo</p>
 
-            {/* Visual Credibility Chain */}
-            <div className="space-y-5 relative pl-8">
-              {/* Connecting vertical line */}
-              <div className="absolute left-[15px] top-4 bottom-2 w-px bg-border/60" />
-
+            <div className="cred-framework">
               {/* 1. On-Chain Identity */}
-              <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">1</div>
-                <div className="flex-1">
+              <div className="cred-stage">
+                <div>
+                  <div className="cred-number">1</div>
+                </div>
+                <div className="cred-content">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Boxes className="size-4 text-primary" /> On-Chain Identity
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     This registers your Normie as a verifiable ERC-8004 agent on-chain. It creates a public, immutable record that other systems can reference.
                   </p>
-                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                  <div className="cred-data">
                     {isLoading ? (
                       <Skeleton className="h-16 w-full" />
                     ) : snapshot?.agent?.agentId ? (
@@ -588,17 +586,21 @@ export function Dashboard() {
                 </div>
               </div>
 
+              <div className="cred-connector h-4" />
+
               {/* 2. Ownership & Delegation */}
-              <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">2</div>
-                <div className="flex-1">
+              <div className="cred-stage">
+                <div>
+                  <div className="cred-number">2</div>
+                </div>
+                <div className="cred-content">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Wallet className="size-4 text-primary" /> Ownership &amp; Delegation
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     Ownership proves control of the NFT. Delegation lets the agent operate while the asset stays secure in cold storage.
                   </p>
-                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                  <div className="cred-data">
                     {isLoading || !snapshot ? (
                       <div className="space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>
                     ) : (
@@ -630,17 +632,21 @@ export function Dashboard() {
                 </div>
               </div>
 
+              <div className="cred-connector h-4" />
+
               {/* 3. On-Chain Activity (Canvas) */}
-              <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">3</div>
-                <div className="flex-1">
+              <div className="cred-stage">
+                <div>
+                  <div className="cred-number">3</div>
+                </div>
+                <div className="cred-content">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Palette className="size-4 text-primary" /> On-Chain Activity (Canvas)
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     Canvas level and pixel changes show ongoing engagement and evolution. Consistent activity signals a living, maintained agent identity.
                   </p>
-                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                  <div className="cred-data">
                     {isLoading || !snapshot ? (
                       <Skeleton className="h-16 w-full" />
                     ) : (
@@ -662,17 +668,21 @@ export function Dashboard() {
                 </div>
               </div>
 
+              <div className="cred-connector h-4" />
+
               {/* 4. Reputation (Ethos) */}
-              <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">4</div>
-                <div className="flex-1">
+              <div className="cred-stage">
+                <div>
+                  <div className="cred-number">4</div>
+                </div>
+                <div className="cred-content">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <ShieldCheck className="size-4 text-primary" /> Reputation (Ethos)
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     The Ethos score reflects how the community perceives the owner’s on-chain behavior. Higher scores indicate stronger, community-backed credibility.
                   </p>
-                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                  <div className="cred-data">
                     <EthosReputation
                       result={ethos}
                       isLoading={isLoading || ethosLoading}
@@ -684,17 +694,21 @@ export function Dashboard() {
                 </div>
               </div>
 
+              <div className="cred-connector h-4" />
+
               {/* 5. External Trust Signals */}
-              <div className="relative flex gap-4">
-                <div className="absolute -left-8 top-0 w-8 h-8 rounded-full border border-primary/50 bg-card flex items-center justify-center text-sm font-medium text-primary z-10">5</div>
-                <div className="flex-1">
+              <div className="cred-stage">
+                <div>
+                  <div className="cred-number">5</div>
+                </div>
+                <div className="cred-content">
                   <div className="font-medium mb-1 flex items-center gap-2">
                     <Award className="size-4 text-primary" /> External Trust Signals
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     Community tools like AgentCheck can provide additional verification for your agent.
                   </p>
-                  <div className="bg-card border border-border rounded-xl p-4 text-sm">
+                  <div className="cred-data">
                     {isLoading || !snapshot ? (
                       <Skeleton className="h-16 w-full" />
                     ) : (

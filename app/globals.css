@@ -200,6 +200,58 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+/* Zulo’s Credibility Framework styles */
+.cred-framework {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background-color: color-mix(in oklab, var(--card) 25%, transparent);
+}
+
+.cred-stage {
+  display: flex;
+  gap: 1rem;
+}
+
+.cred-number {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 2px solid var(--primary);
+  background-color: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+  z-index: 10;
+  position: relative;
+}
+
+.cred-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.cred-connector {
+  width: 2px;
+  background-color: var(--border);
+  margin-left: 0.875rem;
+  margin-top: 0.125rem;
+  margin-bottom: 0.125rem;
+  min-height: 0.75rem;
+}
+
+.cred-data {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.875rem;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
 /* ---------- MODAL / DIALOG BASE PATTERNS (for future unification) ---------- */
 .modal-content {
   background-color: var(--popover);
