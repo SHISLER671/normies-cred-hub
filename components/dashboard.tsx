@@ -541,11 +541,11 @@ export function Dashboard() {
             error={zuloError || undefined}
           />
 
-          {/* On-Chain Credibility */}
+          {/* Zulo’s Credibility Framework */}
           <div className="mx-auto max-w-2xl">
-            <SectionLabel className="text-center mb-2">On-Chain Credibility</SectionLabel>
+            <SectionLabel className="text-center mb-1">Zulo’s Credibility Framework</SectionLabel>
             <p className="text-center text-sm text-muted-foreground mb-6">
-              On-chain signals form a connected chain that builds credibility for your awakened agent.
+              Zulo maps the on-chain signals that establish credibility for awakened agents.
             </p>
 
             {/* Visual Credibility Chain */}
@@ -561,7 +561,7 @@ export function Dashboard() {
                     <Boxes className="size-4 text-primary" /> On-Chain Identity
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    This registers your Normie as a verifiable ERC-8004 agent identity on-chain. A public on-chain record makes the agent discoverable and verifiable by other systems.
+                    This registers your Normie as a verifiable ERC-8004 agent on-chain. It creates a public, immutable record that other systems can reference.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     {isLoading ? (
@@ -595,7 +595,7 @@ export function Dashboard() {
                     <Wallet className="size-4 text-primary" /> Ownership &amp; Delegation
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Ownership proves control of the NFT. Delegation allows the agent to act while the asset remains secure in cold storage.
+                    Ownership proves control of the NFT. Delegation lets the agent operate while the asset stays secure in cold storage.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     {isLoading || !snapshot ? (
@@ -637,7 +637,7 @@ export function Dashboard() {
                     <Palette className="size-4 text-primary" /> On-Chain Activity (Canvas)
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Canvas level and pixel changes demonstrate ongoing engagement and evolution. Active participation on-chain signals a living, maintained agent identity.
+                    Canvas level and pixel changes show ongoing engagement and evolution. Consistent activity signals a living, maintained agent identity.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     {isLoading || !snapshot ? (
@@ -669,7 +669,7 @@ export function Dashboard() {
                     <ShieldCheck className="size-4 text-primary" /> Reputation (Ethos)
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    The Ethos score reflects how the community perceives the owner’s on-chain behavior and credibility. Higher scores indicate stronger, community-backed reputation.
+                    The Ethos score reflects how the community perceives the owner’s on-chain behavior. Higher scores indicate stronger, community-backed credibility.
                   </p>
                   <div className="bg-card border border-border rounded-xl p-4 text-sm">
                     <EthosReputation
@@ -727,7 +727,7 @@ export function Dashboard() {
             </div>
 
             <p className="text-center text-xs text-muted-foreground mt-6">
-              As the ecosystem matures, these combined signals may help agents interact with greater context and confidence.
+              As the ecosystem grows, these signals may become more useful for understanding and interacting with awakened agents.
             </p>
           </div>
 
