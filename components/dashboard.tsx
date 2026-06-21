@@ -264,14 +264,16 @@ export function Dashboard() {
       if (line.startsWith('**') && line.endsWith('**')) {
         if (current?.name) {
           const exactMatch = tools.find(t => t.name.toLowerCase() === current!.name!.toLowerCase())
-          const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase()))
+          const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ').pop() || ''))
           const match = exactMatch || fuzzyMatch
-          recs.push({
-            name: current.name,
-            reason: current.reason || '',
-            category: match?.category || 'Tool',
-            url: match?.url || '#',
-          })
+          if (match) {
+            recs.push({
+              name: current.name,
+              reason: current.reason || '',
+              category: match.category || 'Tool',
+              url: match.url || '#',
+            })
+          }
         }
         current = { name: line.replace(/\*\*/g, '').trim(), reason: '' }
       } else if (current) {
@@ -281,17 +283,30 @@ export function Dashboard() {
 
     if (current?.name) {
       const exactMatch = tools.find(t => t.name.toLowerCase() === current!.name!.toLowerCase())
-      const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase()))
+      const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ').pop() || ''))
       const match = exactMatch || fuzzyMatch
-      recs.push({
-        name: current.name,
-        reason: current.reason || '',
-        category: match?.category || 'Tool',
-        url: match?.url || '#',
-      })
+      if (match) {
+        recs.push({
+          name: current.name,
+          reason: current.reason || '',
+          category: match.category || 'Tool',
+          url: match.url || '#',
+        })
+      }
     }
 
-    return recs.length > 0 ? recs : []
+    // Deduplicate by name, keep first occurrence
+    const uniqueRecs: Recommendation[] = []
+    const seen = new Set<string>()
+    for (const rec of recs) {
+      const key = rec.name.toLowerCase()
+      if (!seen.has(key)) {
+        seen.add(key)
+        uniqueRecs.push(rec)
+      }
+    }
+
+    return uniqueRecs
   }
 
   function Metric({ label, value }: { label: string; value: string }) {

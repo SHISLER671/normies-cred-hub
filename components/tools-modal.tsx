@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { tools } from "@/lib/tools";
 
 export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -70,7 +69,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             {filteredTools.length} tools
           </div>
 
-          <ScrollArea className="flex-1 h-full pr-2">
+          <div className="flex-1 overflow-y-auto pr-2 custom-scroll">
             {filteredTools.length === 0 && (
               <p className="text-sm text-muted-foreground">No tools match your search.</p>
             )}
@@ -95,7 +94,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{tool.description}</p>
               </div>
             ))}
-          </ScrollArea>
+          </div>
         </div>
 
         <p className="text-[10px] text-muted-foreground mt-2 flex-shrink-0">
