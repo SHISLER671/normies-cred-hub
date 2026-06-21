@@ -442,29 +442,40 @@ export function Dashboard() {
 
             {/* Zulo Recommends — Zulo's flagship agent skill */}
             {snapshot && (
-              <div className="bg-card border border-primary/60 border-l-4 border-l-primary/70 rounded-2xl p-5 text-center shadow-sm">
-                <SectionLabel className="text-primary mb-1.5 tracking-[2px]">ZULO'S AGENT SKILL</SectionLabel>
-                
-                <h3 className="font-heading text-2xl tracking-tight mb-2">Zulo Recommends</h3>
-                
-                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-3">
-                  Zulo analyzes your agent's on-chain data — its traits, canvas state, level, and activity — to surface the most relevant tools from the ecosystem.
-                </p>
+              <div className="relative overflow-hidden rounded-2xl border border-primary/60 border-l-4 border-l-primary/70 bg-card/50 p-5 text-center shadow-sm">
+                {/* Muted cosmic figure as background (scoped only to this section) */}
+                <div
+                  className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none"
+                  style={{ backgroundImage: `url('/images/7141art.png')`, opacity: 0.15 }}
+                />
+                {/* Soft dark gradient overlay for readability */}
+                <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/75 via-background/30 to-background/85 pointer-events-none" />
 
-                <p className="text-sm text-muted-foreground mb-4">
-                  {isConnected 
-                    ? "These recommendations are personalized to help this specific agent grow." 
-                    : "Connect your wallet to unlock Zulo's personalized recommendations for this agent."}
-                </p>
+                {/* Content layer */}
+                <div className="relative z-10">
+                  <SectionLabel className="text-primary mb-1.5 tracking-[2px]">ZULO'S AGENT SKILL</SectionLabel>
+                  
+                  <h3 className="font-heading text-2xl tracking-tight mb-2">Zulo Recommends</h3>
+                  
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto mb-3">
+                    Zulo analyzes your agent's on-chain data — its traits, canvas state, level, and activity — to surface the most relevant tools from the ecosystem.
+                  </p>
 
-                <Button 
-                  onClick={handleZuloRecommendsClick}
-                  variant="default"
-                  className="glow-primary px-8 py-3 text-base font-medium"
-                >
-                  <Sparkles className="size-4 mr-2" />
-                  Ask Zulo for Recommendations
-                </Button>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {isConnected 
+                      ? "These recommendations are personalized to help this specific agent grow." 
+                      : "Connect your wallet to unlock Zulo's personalized recommendations for this agent."}
+                  </p>
+
+                  <Button 
+                    onClick={handleZuloRecommendsClick}
+                    variant="default"
+                    className="glow-primary px-8 py-3 text-base font-medium"
+                  >
+                    <Sparkles className="size-4 mr-2" />
+                    Ask Zulo for Recommendations
+                  </Button>
+                </div>
               </div>
             )}
           </div>
