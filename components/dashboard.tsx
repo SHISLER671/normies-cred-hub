@@ -32,7 +32,6 @@ export function Dashboard() {
   const { signMessageAsync } = useSignMessage()
 
   const [tokenId, setTokenId] = useState<number>(ZULO.tokenId)
-  const [input, setInput] = useState<string>(String(ZULO.tokenId))
   const [myInput, setMyInput] = useState<string>("")
 
   // Bridge search state
@@ -111,7 +110,6 @@ export function Dashboard() {
         const savedId = Number.parseInt(saved, 10)
         if (Number.isFinite(savedId) && savedId !== tokenId) {
           setTokenId(savedId)
-          setInput(String(savedId))
         }
       }
     }
@@ -122,7 +120,6 @@ export function Dashboard() {
     if (isConnected && myNormies.length > 0 && tokenId === ZULO.tokenId) {
       const first = myNormies[0]
       setTokenId(first)
-      setInput(String(first))
     }
   }, [isConnected, myNormies])
 
@@ -133,37 +130,12 @@ export function Dashboard() {
     }
   }, [isMyAgent, tokenId, storageKey])
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = input.trim()
-    if (/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
-      // Bridge: address -> list agents
-      setBridgeAddress(trimmed)
-      setBridgeUsername("")
-      setBridgeUser(null)
-      setTokenId(ZULO.tokenId)
-    } else if (!/^\d+$/.test(trimmed)) {
-      // username
-      setBridgeUsername(trimmed)
-      setBridgeAddress("")
-      loadBridgeByUsername(trimmed)
-      setTokenId(ZULO.tokenId)
-    } else {
-      const parsed = Number.parseInt(trimmed, 10)
-      if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 9999) {
-        setTokenId(parsed)
-        setBridgeAddress("")
-        setBridgeUsername("")
-        setBridgeUser(null)
-      }
-    }
-  }
+
 
   function loadMyAgent() {
     const parsed = Number.parseInt(myInput, 10)
     if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 9999) {
       setTokenId(parsed)
-      setInput(String(parsed))
       setMyInput("")
       setBridgeAddress("")
       setBridgeUsername("")
@@ -372,7 +344,6 @@ export function Dashboard() {
                       key={id}
                       onClick={() => {
                         setTokenId(id)
-                        setInput(String(id))
                       }}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
                     >
@@ -422,7 +393,7 @@ export function Dashboard() {
               <SectionLabel className="mb-1">Agents</SectionLabel>
               <div className="flex flex-wrap gap-2">
                 {bridgeAgents.map((id: number) => (
-                  <button key={id} onClick={() => { setTokenId(id); setInput(String(id)); }} className="border px-2 py-1 text-xs flex items-center gap-1">
+                  <button key={id} onClick={() => { setTokenId(id); }} className="border px-2 py-1 text-xs flex items-center gap-1">
                     <img src={normieImageUrl(id)} className="size-5 pixel-frame" />
                     #{id}
                   </button>
@@ -457,7 +428,7 @@ export function Dashboard() {
           </CardContent>
         </Card>
       ) : (
-        <>
+        <div style={{ display: 'contents' }}>
           {/* Your Agent + Zulo — core focused block */}
           <div className="space-y-6">
             <AgentCard
@@ -538,65 +509,6 @@ export function Dashboard() {
               </button>
             </div>
           )}
-
-          {/* Discover */}
-          <div className="space-y-4">
-            <SectionLabel className="text-center">Discover</SectionLabel>
-            {/* Search — centered, focused */}
-            <form onSubmit={handleSearch} className="mx-auto max-w-xl">
-              <div className="flex items-center rounded-2xl border border-border bg-card px-4 py-1.5 shadow-sm">
-                <Search className="pointer-events-none size-4 text-muted-foreground mr-3" />
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  inputMode="numeric"
-                  placeholder="Search token, @username, or 0x address"
-                  className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none py-2"
-                />
-                <Button type="submit" variant="outline" size="sm" className="ml-2">Search</Button>
-              </div>
-              <p className="text-center text-xs text-muted-foreground mt-2 tracking-widest">Explore any Normie — public or personal</p>
-            </form>
-          </div>
-
-          {endorseResult && (
-            <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-2xl p-5 text-sm">
-              <SectionLabel className="text-primary mb-2">Endorsement Signature</SectionLabel>
-              <div className="font-mono text-xs break-all bg-background/60 p-3 rounded-2xl mb-3">{endorseResult.message}</div>
-              <div className="font-mono text-xs break-all text-primary mb-4">{endorseResult.signature}</div>
-              <div className="flex gap-4 text-xs">
-                <button onClick={() => { navigator.clipboard.writeText(endorseResult.message + '\n\n' + (endorseResult.signature || '')); }} className="text-primary hover:underline">Copy signature</button>
-                <button onClick={() => setEndorseResult(null)} className="text-muted-foreground hover:text-foreground">Dismiss</button>
-              </div>
-            </div>
-          )}
-
-          <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
-          <AgentHorizonModal 
-            tokenId={tokenId} 
-            isMyAgent={isMyAgent} 
-            open={showHorizonModal}
-            onOpenChange={setShowHorizonModal}
-          />
-          <LinkageProofModal 
-            tokenId={tokenId} 
-            ownerAddress={snapshot?.owner.owner || ""} 
-            delegateAddress={snapshot?.canvas.delegate} 
-            open={showLinkageModal}
-            onOpenChange={setShowLinkageModal}
-          />
-          <ZuloRecommendsModal 
-            isOpen={showZuloRecommendsModal} 
-            onClose={() => {
-              setShowZuloRecommendsModal(false)
-              // reset for next open with potentially different token
-              setZuloRecommendations([])
-              setZuloError(null)
-            }} 
-            recommendations={zuloRecommendations}
-            isLoading={zuloLoading}
-            error={zuloError || undefined}
-          />
 
           {/* Zulo’s Credibility Framework */}
           <div className="mx-auto max-w-2xl">
@@ -816,7 +728,6 @@ export function Dashboard() {
                       key={id}
                       onClick={() => {
                         setTokenId(id);
-                        setInput(String(id));
                       }}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition-all ${tokenId === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
                     >
@@ -828,7 +739,34 @@ export function Dashboard() {
               </div>
             );
           })()}
-        </>
+
+          <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
+          <AgentHorizonModal 
+            tokenId={tokenId} 
+            isMyAgent={isMyAgent} 
+            open={showHorizonModal}
+            onOpenChange={setShowHorizonModal}
+          />
+          <LinkageProofModal 
+            tokenId={tokenId} 
+            ownerAddress={snapshot?.owner.owner || ""} 
+            delegateAddress={snapshot?.canvas.delegate} 
+            open={showLinkageModal}
+            onOpenChange={setShowLinkageModal}
+          />
+          <ZuloRecommendsModal 
+            isOpen={showZuloRecommendsModal} 
+            onClose={() => {
+              setShowZuloRecommendsModal(false)
+              // reset for next open with potentially different token
+              setZuloRecommendations([])
+              setZuloError(null)
+            }} 
+            recommendations={zuloRecommendations}
+            isLoading={zuloLoading}
+            error={zuloError || undefined}
+          />
+        </div>
       )}
     </div>
   )
