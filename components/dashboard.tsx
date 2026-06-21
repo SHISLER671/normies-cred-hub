@@ -263,9 +263,16 @@ export function Dashboard() {
     for (const line of lines) {
       if (line.startsWith('**') && line.endsWith('**')) {
         if (current?.name) {
-          const exactMatch = tools.find(t => t.name.toLowerCase() === current!.name!.toLowerCase())
-          const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ').pop() || ''))
-          const match = exactMatch || fuzzyMatch
+          const nameLower = current.name.toLowerCase().trim()
+          let match = tools.find(t => t.name.toLowerCase() === nameLower)
+          if (!match) {
+            // Try fuzzy: normalize and check if key words match
+            const recWords = nameLower.split(/\s+/).filter(w => w.length > 2)
+            match = tools.find(t => {
+              const tLower = t.name.toLowerCase()
+              return recWords.some(w => tLower.includes(w)) || tLower.includes(nameLower)
+            })
+          }
           if (match) {
             recs.push({
               name: current.name,
@@ -282,9 +289,15 @@ export function Dashboard() {
     }
 
     if (current?.name) {
-      const exactMatch = tools.find(t => t.name.toLowerCase() === current!.name!.toLowerCase())
-      const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ').pop() || ''))
-      const match = exactMatch || fuzzyMatch
+      const nameLower = current.name.toLowerCase().trim()
+      let match = tools.find(t => t.name.toLowerCase() === nameLower)
+      if (!match) {
+        const recWords = nameLower.split(/\s+/).filter(w => w.length > 2)
+        match = tools.find(t => {
+          const tLower = t.name.toLowerCase()
+          return recWords.some(w => tLower.includes(w)) || tLower.includes(nameLower)
+        })
+      }
       if (match) {
         recs.push({
           name: current.name,
@@ -304,6 +317,17 @@ export function Dashboard() {
         seen.add(key)
         uniqueRecs.push(rec)
       }
+    }
+
+    if (uniqueRecs.length === 0 && text.length > 10) {
+      // Fallback: recommend a default tool with the raw text as reason
+      const fallback = tools[0]
+      uniqueRecs.push({
+        name: fallback.name,
+        reason: text.substring(0, 300),
+        category: fallback.category,
+        url: fallback.url,
+      })
     }
 
     return uniqueRecs
