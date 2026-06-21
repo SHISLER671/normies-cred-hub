@@ -137,7 +137,7 @@ export function OwnershipCard({
                 {isDelegateController && (
                   <div className="text-xs text-muted-foreground">(connected as the delegated hot signer)</div>
                 )}
-                <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1 text-xs text-primary">
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1 text-xs tracking-[1.5px] text-primary">
                   <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" rel="noopener noreferrer" className="hover:underline">owner on etherscan</a>
                   <a href={etherscanAddress(delegateAddress)} target="_blank" rel="noopener noreferrer" className="hover:underline">delegate on etherscan</a>
                   {delegateEnsName && (
@@ -147,7 +147,7 @@ export function OwnershipCard({
               </div>
             )}
 
-            <p className="mt-auto pt-2 text-xs text-muted-foreground">
+            <p className="mt-auto pt-2 text-xs tracking-[1.5px] text-muted-foreground">
               LIVE NORMIES REGISTRY. OWNERSHIP &amp; DELEGATION VERIFIED ON-CHAIN.
             </p>
           </>

@@ -35,9 +35,10 @@
   --destructive: #dc2626;
   --ring: #7c3aed;
 
-  /* Premium radii */
+  /* Premium radii - standardized on 2xl for cards/containers for modern feel */
   --radius: 0.5rem;
   --radius-lg: 0.75rem;
+  --radius-xl: 1rem; /* for main cards */
 
   /* Soft, intentional shadows */
   --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
@@ -186,7 +187,7 @@ body {
 .card {
   background-color: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-xl);
   transition: border-color 0.15s ease, box-shadow 0.2s ease;
 }
 
@@ -203,7 +204,7 @@ body {
 /* Zulo’s Credibility Framework styles */
 .cred-framework {
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   padding: 1.25rem;
   background-color: color-mix(in oklab, var(--card) 25%, transparent);
 }
@@ -223,7 +224,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--primary);
   z-index: 10;
@@ -246,8 +247,8 @@ body {
 
 .cred-data {
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  padding: 0.875rem;
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -256,7 +257,7 @@ body {
 .modal-content {
   background-color: var(--popover);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
 }
 

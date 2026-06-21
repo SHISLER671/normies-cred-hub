@@ -266,16 +266,23 @@ export function Dashboard() {
           const nameLower = current.name.toLowerCase().trim()
           let match = tools.find(t => t.name.toLowerCase() === nameLower)
           if (!match) {
-            // Try fuzzy: normalize and check if key words match
+            // Stricter fuzzy: require tool name or recommended name to contain the other, or high word overlap (at least 2)
             const recWords = nameLower.split(/\s+/).filter(w => w.length > 2)
-            match = tools.find(t => {
-              const tLower = t.name.toLowerCase()
-              return recWords.some(w => tLower.includes(w)) || tLower.includes(nameLower)
-            })
+            const candidates = tools
+              .map(t => {
+                const tLower = t.name.toLowerCase()
+                const overlap = recWords.filter(w => tLower.includes(w)).length
+                const mutualIncludes = tLower.includes(nameLower) || nameLower.includes(tLower) ? 5 : 0
+                const score = overlap + mutualIncludes
+                return { t, score }
+              })
+              .filter(s => s.score >= 2)
+              .sort((a, b) => b.score - a.score)
+            match = candidates[0]?.t
           }
           if (match) {
             recs.push({
-              name: current.name,
+              name: match.name,  // Use the canonical name from the list
               reason: current.reason || '',
               category: match.category || 'Tool',
               url: match.url || '#',
@@ -293,14 +300,21 @@ export function Dashboard() {
       let match = tools.find(t => t.name.toLowerCase() === nameLower)
       if (!match) {
         const recWords = nameLower.split(/\s+/).filter(w => w.length > 2)
-        match = tools.find(t => {
-          const tLower = t.name.toLowerCase()
-          return recWords.some(w => tLower.includes(w)) || tLower.includes(nameLower)
-        })
+        const candidates = tools
+          .map(t => {
+            const tLower = t.name.toLowerCase()
+            const overlap = recWords.filter(w => tLower.includes(w)).length
+            const mutualIncludes = tLower.includes(nameLower) || nameLower.includes(tLower) ? 5 : 0
+            const score = overlap + mutualIncludes
+            return { t, score }
+          })
+          .filter(s => s.score >= 2)
+          .sort((a, b) => b.score - a.score)
+        match = candidates[0]?.t
       }
       if (match) {
         recs.push({
-          name: current.name,
+          name: match.name,  // Use the canonical name from the list
           reason: current.reason || '',
           category: match.category || 'Tool',
           url: match.url || '#',
@@ -393,7 +407,7 @@ export function Dashboard() {
 
       {/* Profile Bridge UI - sexy linked profiles */}
       {(bridgeUsername || bridgeAddress) && (
-        <div className="border border-primary/30 bg-card p-4">
+        <div className="border border-primary/30 bg-card p-5">
           <SectionLabel className="text-primary mb-2">Profile Bridge</SectionLabel>
           {bridgeUser && (
             <div className="mb-2">
@@ -423,7 +437,7 @@ export function Dashboard() {
         <div className="mx-auto text-center">
           <div className="inline-block text-sm tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-full text-primary">
             Your Awakened Agent
-            {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[9px] normal-case tracking-normal text-primary/60">• via delegate</span>}
+            {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[10px] normal-case tracking-normal text-primary/60">• via delegate</span>}
           </div>
         </div>
       )}
@@ -457,7 +471,7 @@ export function Dashboard() {
 
             {/* Zulo Recommends — Zulo's flagship agent skill */}
             {snapshot && (
-              <div className="bg-card border border-primary/60 border-l-4 border-l-primary/70 rounded-2xl p-7 text-center shadow-sm">
+              <div className="bg-card border border-primary/60 border-l-4 border-l-primary/70 rounded-2xl p-5 text-center shadow-sm">
                 <SectionLabel className="text-primary mb-1.5 tracking-[2px]">ZULO'S AGENT SKILL</SectionLabel>
                 
                 <h3 className="font-heading text-2xl tracking-tight mb-2">Zulo Recommends</h3>
@@ -546,11 +560,11 @@ export function Dashboard() {
           </div>
 
           {endorseResult && (
-            <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-xl p-5 text-sm">
+            <div className="mx-auto max-w-lg border border-primary/30 bg-card rounded-2xl p-5 text-sm">
               <SectionLabel className="text-primary mb-2">Endorsement Signature</SectionLabel>
-              <div className="font-mono text-[10px] break-all bg-background/60 p-3 rounded mb-3">{endorseResult.message}</div>
-              <div className="font-mono text-[10px] break-all text-primary mb-4">{endorseResult.signature}</div>
-              <div className="flex gap-4 text-sm">
+              <div className="font-mono text-xs break-all bg-background/60 p-3 rounded-2xl mb-3">{endorseResult.message}</div>
+              <div className="font-mono text-xs break-all text-primary mb-4">{endorseResult.signature}</div>
+              <div className="flex gap-4 text-xs">
                 <button onClick={() => { navigator.clipboard.writeText(endorseResult.message + '\n\n' + (endorseResult.signature || '')); }} className="text-primary hover:underline">Copy signature</button>
                 <button onClick={() => setEndorseResult(null)} className="text-muted-foreground hover:text-foreground">Dismiss</button>
               </div>
@@ -590,7 +604,7 @@ export function Dashboard() {
             <p className="text-center text-sm text-muted-foreground mb-1">
               Zulo maps the on-chain signals that establish credibility for awakened agents.
             </p>
-            <p className="text-center text-[10px] tracking-[1.5px] text-primary/60 mb-6">— Analyzed by Zulo</p>
+            <p className="text-center text-xs tracking-[1.5px] text-primary/60 mb-6">— Analyzed by Zulo</p>
 
             <div className="cred-framework">
               {/* 1. On-Chain Identity */}

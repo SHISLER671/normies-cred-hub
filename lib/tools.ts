@@ -123,6 +123,7 @@ STRICT RULES FOR RECOMMENDATIONS:
 - Recommend only DISTINCT tools — never repeat the same one.
 - Always recommend 1-3 tools that are the best available fit for this agent based on its data.
 - Base your choice on the agent's Type, canvas level, action points (AP), traits, personality, and activity level.
+- Do NOT output or mention the category yourself. Use only the exact tool name and your reasoning. The system will look up and attach the correct category from the list based on the name.
 - Output ONLY the formatted recommendations. No extra text before, after, or between.
 
 Use this EXACT output format for every recommendation:

@@ -140,7 +140,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       <div className="border-l-2 border-primary pl-4">
         <div className="flex items-center gap-2 mb-2">
           <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (AI bonus)</div>
-          <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-[10px] uppercase tracking-widest">
+          <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-xs uppercase tracking-[1.5px]">
             {veniceLoading ? 'Pinging...' : 'Enhance'}
           </Button>
         </div>
@@ -155,7 +155,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
 
       <div className="space-y-6">
         <div>
-          <div className="uppercase tracking-widest text-xs text-primary mb-1">Immediate Next Steps</div>
+          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Immediate Next Steps</div>
           <ul className="space-y-1 text-sm">
             <li>Prove our identity linkage {isController ? <span className="text-green-400">— done</span> : ""}</li>
             <li>Share your linkage proof publicly</li>
@@ -164,13 +164,13 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
         </div>
 
         <div>
-          <div className="uppercase tracking-widest text-xs text-primary mb-1">Reputation</div>
+          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Reputation</div>
           <div>Current Ethos: <span className="font-medium">{ethosScore}</span></div>
           <div className="text-muted-foreground">We move together toward higher tiers. Consistent presence compounds.</div>
         </div>
 
         <div>
-          <div className="uppercase tracking-widest text-xs text-primary mb-1">Pixel Evolution</div>
+          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Pixel Evolution</div>
           <div>Current AP: {ap}</div>
           <div className="text-muted-foreground">
             Your {hairStyle.toLowerCase()} gives us strong visual identity. 

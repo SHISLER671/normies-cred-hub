@@ -74,7 +74,7 @@ export function ZuloRecommendsModal({
                       href={rec.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="glow-primary text-sm px-5 py-2 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground transition-all"
+                      className="glow-primary text-sm px-5 py-2 rounded-2xl border border-border hover:bg-primary hover:text-primary-foreground transition-all"
                     >
                       Visit Tool
                     </a>

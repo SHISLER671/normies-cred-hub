@@ -51,14 +51,14 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             <input
               type="text"
               placeholder="Search tools..."
-              className="flex-1 bg-card border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary/50"
+              className="flex-1 bg-card border border-border rounded-2xl px-4 py-2 text-sm focus:outline-none focus:border-primary/50"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "name" | "category")}
-              className="bg-card border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
+              className="bg-card border border-border rounded-2xl px-3 py-2 text-sm focus:outline-none focus:border-primary/50"
             >
               <option value="name">Alphabetical</option>
               <option value="category">Category</option>
@@ -86,7 +86,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     href={tool.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="glow-primary text-sm px-4 py-1.5 rounded-xl border border-border hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap mt-1"
+                    className="glow-primary text-sm px-4 py-1.5 rounded-2xl border border-border hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap mt-1"
                   >
                     Visit →
                   </a>

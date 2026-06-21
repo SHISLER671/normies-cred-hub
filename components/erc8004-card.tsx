@@ -25,7 +25,7 @@ export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; i
               <CircleCheck className="size-4" />
               <span className="font-medium">Registered on-chain</span>
             </div>
-            <div className="text-sm text-emerald-400/70 ml-6">Agent #{agentId} recognized</div>
+            <div className="text-xs text-emerald-400/70 ml-6">Agent #{agentId} recognized</div>
           </div>
         ) : (
           <div className="px-1">
@@ -33,11 +33,11 @@ export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; i
               <Clock className="size-4" />
               <span className="font-medium">On-chain status pending</span>
             </div>
-            <div className="text-sm text-amber-400/70 ml-6">Live on Normies + OpenSea. Registry data often lags.</div>
+            <div className="text-xs text-amber-400/70 ml-6">Live on Normies + OpenSea. Registry data often lags.</div>
           </div>
         )}
 
-        <div className="mt-auto text-sm text-muted-foreground">
+        <div className="mt-auto text-xs text-muted-foreground">
           Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
         </div>
       </CardContent>

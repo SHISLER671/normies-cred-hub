@@ -84,8 +84,8 @@ Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
       body: JSON.stringify({
         model: 'hermes-3-llama-3.1-405b',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 600,
-        temperature: 0.75,
+        max_tokens: 800,
+        temperature: 0.4,
       }),
     })
 

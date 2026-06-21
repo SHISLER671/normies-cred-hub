@@ -50,7 +50,7 @@ export function AgentCard({
     <Card className="overflow-hidden">
       <CardContent className="flex flex-col gap-6 p-6 sm:flex-row">
         <div className="relative mx-auto w-full max-w-[180px] shrink-0 sm:mx-0 sm:w-[180px]">
-          <div className={`overflow-hidden border bg-card ${isMyAgent ? "border-primary" : "border-border/60"}`}>
+          <div className={`overflow-hidden border bg-card rounded-2xl ${isMyAgent ? "border-primary" : "border-border/60"}`}>
             <img
               src={snapshot.imageUrl || snapshot.token?.image || "/placeholder.svg"}
               alt={`${agentName} pixel portrait`}
@@ -58,7 +58,7 @@ export function AgentCard({
               crossOrigin="anonymous"
             />
           </div>
-          <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 border px-3 py-px text-xs font-bold tracking-[2px] ${isMyAgent ? "border-primary bg-primary text-background" : "border-primary bg-background text-primary"}`}>
+          <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 border px-3 py-px text-xs font-bold tracking-[1.5px] ${isMyAgent ? "border-primary bg-primary text-background" : "border-primary bg-background text-primary"}`}>
             {isMyAgent ? "YOURS" : "AWAKENED"}
           </div>
         </div>
