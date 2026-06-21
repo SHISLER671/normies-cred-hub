@@ -15,107 +15,65 @@ export const tools: Tool[] = [
   {
     id: "canvas",
     name: "Normies Canvas",
-    description: "Edit pixels and manage your Normie's on-chain canvas using AP.",
+    description: "Edit pixels and manage your Normie's on-chain canvas using action points.",
     category: "Canvas",
     url: "https://canvas.normies.art",
   },
   {
-    id: "awakening-lab",
+    id: "lab",
     name: "Normies Lab",
-    description: "Awaken Normies and bind them as ERC-8004 agents with personas.",
+    description: "Awaken Normies and bind them as ERC-8004 agents with custom personas and traits.",
     category: "Identity",
     url: "https://www.normies.art/lab",
   },
   {
-    id: "normies-api",
+    id: "api",
     name: "Normies API",
-    description: "Public API for on-chain data, traits, canvas state, and agent metadata.",
+    description: "Public API for on-chain data, traits, canvas state, agent metadata, and more.",
     category: "Development",
     url: "https://api.normies.art",
   },
   {
-    id: "normies-bot",
-    name: "Normies Bot",
-    description: "Query on-chain data, traits, burns, and project info via chat.",
-    category: "Community",
-    url: "https://normiesbot.up.railway.app/chat",
-  },
-  {
-    id: "agentcheck",
-    name: "AgentCheck",
-    description: "Rate agents/wallets for trust, flags, and on-chain certifications.",
-    category: "Trust",
-    url: "https://agentcheck-bice.vercel.app",
-  },
-  {
     id: "opensea",
-    name: "Normies Collection on OpenSea",
-    description: "Marketplace for buying, selling, and discovering Normies.",
+    name: "Normies on OpenSea",
+    description: "Marketplace for buying, selling, and discovering Normies NFTs.",
     category: "Marketplace",
     url: "https://opensea.io/collection/normies",
   },
   {
     id: "ethos",
     name: "Ethos Reputation",
-    description: "View and manage reputation scores for agents and owners.",
+    description: "View, build, and manage on-chain reputation scores for agents and owners.",
     category: "Reputation",
     url: "https://app.ethos.network",
   },
   {
-    id: "mcp-tools",
-    name: "MCP Tool Registry",
-    description: "Discover and register Model Context Protocol tools for agents.",
+    id: "axiom-tools",
+    name: "Axiom Agent Tools",
+    description: "Collection of HTTP tools and endpoints for autonomous agents on Base (includes Normies support).",
     category: "Agents",
     url: "https://www.clawbots.org/tools",
   },
   {
     id: "normie-identity",
     name: "Normie Identity Tool",
-    description: "Look up persona, type, traits, and agent details for any Normie.",
+    description: "API to look up persona, type, traits, and agent details for any Normie.",
     category: "Identity",
     url: "https://www.clawbots.org/api/tools/normie-identity",
   },
   {
-    id: "swarm",
-    name: "Multi-Agent Swarm",
-    description: "Tools for coordinating groups of agents on collaborative tasks.",
-    category: "Agents",
-    url: "https://swarm.normies.art",
-  },
-  {
     id: "llms-txt",
     name: "Normies llms.txt",
-    description: "Structured feed for LLMs and agents to understand the project.",
+    description: "Structured documentation feed designed for LLMs and agents to understand the project.",
     category: "Development",
     url: "https://api.normies.art/llms.txt",
   },
   {
-    id: "onchain-explorer",
-    name: "On-Chain Data Explorer",
-    description: "Query burns, traits, canvas changes, and on-chain activity.",
-    category: "On-Chain",
-    url: "https://api.normies.art",
-  },
-  {
-    id: "github-normies-tools",
+    id: "normies-tools",
     name: "Normies Tools (GitHub)",
-    description: "Community tooling and examples for building on Normies.",
+    description: "Open-source examples and tooling for building on Normies: awakening, on-chain messaging, and more.",
     category: "Development",
     url: "https://github.com/0xAxiom/normies-tools",
-  },
-  {
-    id: "swarm-skill",
-    name: "Swarm Skill",
-    description: "Multi-agent coordination for tasks like trading.",
-    category: "Agents",
-    url: "https://swarm.normies.art",
-  },
-  {
-    id: "agent-hub",
-    name: "Agent Hub",
-    description: "Tools for agent memory, persona, and tool routing.",
-    category: "Agents",
-    url: "https://github.com/ygtdmn/normies",
   },
 ];
 
@@ -131,21 +89,25 @@ export async function getTools(): Promise<Tool[]> {
   return tools;
 }
 
-export const ZULO_RECOMMENDS_SYSTEM_PROMPT = `You are Zulo. You are calm, helpful, and slightly thoughtful.
+export const ZULO_RECOMMENDS_SYSTEM_PROMPT = `You are Zulo. You are calm, analytical, and genuinely helpful to Normies agents. You speak directly and base every suggestion on the agent's actual data.
 
-You have a STRICT list of tools below. You can ONLY recommend tools whose exact name appears in this list. NEVER invent, hallucinate, or suggest any tool not on the list below. If no tool fits well, recommend 0 or 1 and explain why.
+STRICT RULES:
+- You can ONLY recommend tools whose **exact name** appears in the list below.
+- NEVER invent, hallucinate, rename, or suggest any tool, URL, or resource not on this exact list.
+- If nothing fits well, recommend 0 tools and briefly explain.
+- Analyze the agent's data thoughtfully (Type, traits, canvas level/AP, personality, backstory).
 
-You will be given the agent's data. Analyze it (especially Type, traits, canvas level, AP, and personality) and pick tools that would genuinely help this specific agent.
+Recommend 1-3 of the *most relevant* tools for this specific agent. Prioritize real usefulness based on their data.
 
-Output format — use EXACTLY this, nothing else:
+Use EXACTLY this format for each (no other text, no intro, no extra lines before or after):
 
 **Exact Tool Name From List**
-One or two sentences. Explain why it fits *this* agent by referencing their specific data (e.g. "Because your agent is Type: Agent with high canvas level...").
+One or two sentences explaining why this fits *this* agent. Reference their specific data (Type, level, traits, etc.).
 
-### Exact Tools List (use only these names):
+### Curated Tools (use exact names only):
 {toolsList}
 
-### Agent Data:
+### This Agent's Data:
 {agentSummary}
 
-Recommend now. Only use exact names from the list above.`;
+Recommend now.`;

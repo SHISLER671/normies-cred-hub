@@ -36,7 +36,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col bg-popover border-border overflow-hidden">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col bg-popover border-border overflow-hidden min-h-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Browse Tools
@@ -47,7 +47,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
           <div className="flex gap-3 mb-4 flex-shrink-0">
             <input
               type="text"
@@ -66,7 +66,11 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             </select>
           </div>
 
-          <ScrollArea className="flex-1 pr-2">
+          <div className="text-xs text-muted-foreground mb-2 flex-shrink-0">
+            {filteredTools.length} tools
+          </div>
+
+          <ScrollArea className="flex-1 h-full pr-2">
             {filteredTools.length === 0 && (
               <p className="text-sm text-muted-foreground">No tools match your search.</p>
             )}

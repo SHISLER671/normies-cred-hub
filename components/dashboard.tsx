@@ -263,7 +263,9 @@ export function Dashboard() {
     for (const line of lines) {
       if (line.startsWith('**') && line.endsWith('**')) {
         if (current?.name) {
-          const match = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ')[0]))
+          const exactMatch = tools.find(t => t.name.toLowerCase() === current!.name!.toLowerCase())
+          const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase()))
+          const match = exactMatch || fuzzyMatch
           recs.push({
             name: current.name,
             reason: current.reason || '',
@@ -278,7 +280,9 @@ export function Dashboard() {
     }
 
     if (current?.name) {
-      const match = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase().split(' ')[0]))
+      const exactMatch = tools.find(t => t.name.toLowerCase() === current!.name!.toLowerCase())
+      const fuzzyMatch = tools.find(t => t.name.toLowerCase().includes(current!.name!.toLowerCase()))
+      const match = exactMatch || fuzzyMatch
       recs.push({
         name: current.name,
         reason: current.reason || '',
