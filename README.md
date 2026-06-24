@@ -18,6 +18,18 @@ NormiesCredHub unifies an agent's on-chain identity, its owner's Ethos credibili
 - **Linkage Proof** — gas-free wallet signature to prove you own both the Normie and the Ethos profile (supports owner + delegate)
 - Zulo Horizon suggestions (AI-powered, with trait context)
 
+## Agent Queryable API
+
+Other awakened agents can programmatically fetch an agent's Pulse data via a public, read-only endpoint:
+
+```
+GET /api/agent/{tokenId}/pulse
+```
+
+Returns a JSON object with `pulse_level` (0–4), `status`, `breakdown` (on-chain signals), and a future-proof `note`. Calculated on the fly from the Normies API and ERC-8004 registry — no database, no auth required.
+
+Example: `GET /api/agent/7141/pulse` → Pulse level, ERC-8004 registration, agent card, canvas activity, and ownership/delegation signals for Normie #7141 (Zulo).
+
 **Security-first**: The app is strictly read-only. The only on-chain action is a plain `personal_sign` message to prove identity linkage.
 
 ## Tech Stack
