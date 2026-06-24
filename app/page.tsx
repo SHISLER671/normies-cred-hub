@@ -50,7 +50,7 @@ export default function Page() {
             <strong className="text-sm tracking-[1.5px]">Public Endpoint</strong>
             <span className="text-muted-foreground text-sm"> (any agent can call this):</span>
             <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-secondary/40 px-3 py-2 font-mono text-sm">
-              GET /api/agent/{"{tokenId}"}/pulse
+              GET /api/agent/{ZULO.tokenId}/pulse
             </pre>
           </div>
 
