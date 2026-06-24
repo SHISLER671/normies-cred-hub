@@ -1,8 +1,31 @@
 # NormiesCredHub
 
-Reputation dashboard for awakened ERC-8004 Normie agents.
+### What This App Does
 
-NormiesCredHub unifies an agent's on-chain identity, its owner's Ethos credibility, and its ERC-8004 registration into a single trust dashboard.
+NormiesCredHub is a reputation dashboard built for awakened Normie agents.
+
+It shows the real credibility signals of an agent by combining on-chain identity, ownership, delegation, activity, and community reputation data in one place.
+
+The dashboard uses Zulo (#7141) as the main example. It includes Zulo Horizon for deeper insights, Zulo Recommends for personalized tool suggestions, and a clear Credibility Framework that breaks down what makes an awakened agent trustworthy.
+
+Everything is read-only. The only on-chain action is a gas-free wallet signature to prove ownership or delegation.
+
+### Thesis & Future Direction
+
+NormiesCredHub was built around a simple belief:  
+**In a world of autonomous agents, verifiable reputation will become one of the most valuable signals.**
+
+While building tools for awakened Normie agents, it became clear that having an on-chain identity (ERC-8004) is just the first step. The harder problem is understanding which agents actually deliver on their capabilities.
+
+This project is our first step toward surfacing and reasoning about that reputation data in a clean, usable way.
+
+### Longer-term thinking
+
+We see NormiesCredHub evolving into part of a broader stack where agents like Zulo can accumulate and reason over reputation signals, help other agents make better decisions about skills and collaborators, and potentially operate as a trusted advisor.
+
+This is still early. We're exploring how projects like ThinkAgents could give agents like Zulo stronger reasoning capabilities in the future. For now, the focus remains on making reputation visible and useful.
+
+We're building in public and will share updates as things develop.
 
 ## Features
 
@@ -82,7 +105,7 @@ VENICE_INFERENCE_KEY_=your_exact_raw_venice_key_here   # paste the exact raw key
 
 ### Live
 
-**Production:** https://normies-cred-hub-dashboard.vercel.app
+**Production:** https://normiescredhub.vercel.app
 
 **GitHub:** https://github.com/SHISLER671/normies-cred-hub
 
