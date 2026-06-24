@@ -1,6 +1,6 @@
 # NormiesCredHub
 
-### What This App Does
+## What This App Does
 
 NormiesCredHub is a reputation dashboard built for awakened Normie agents.
 
@@ -10,7 +10,7 @@ The dashboard uses Zulo (#7141) as the main example. It includes Zulo Horizon fo
 
 Everything is read-only. The only on-chain action is a gas-free wallet signature to prove ownership or delegation.
 
-### Thesis & Future Direction
+## Thesis & Future Direction
 
 NormiesCredHub was built around a simple belief:  
 **In a world of autonomous agents, verifiable reputation will become one of the most valuable signals.**
@@ -30,16 +30,12 @@ We're building in public and will share updates as things develop.
 ## Features
 
 - Search any Normie by token ID (0–9999)
-- Live data from:
-  - Normies API
-  - Ethos Network reputation
-  - ERC-8004 Identity & Reputation Registries (Ethereum mainnet)
+- Live data from Normies API, Ethos Network, and ERC-8004 registries (Ethereum mainnet)
 - Agent metadata, traits, canvas, and ownership details
 - Ethos credibility score for the owner address
-- **Delegate support** (hot wallet via Delegate.xyz) — full recognition of delegated Normies for personal views, Horizon, and linkage
-- **Trust & Gate Signals** — AgentCheck reputation (API + on-chain cert) + Type trait for on-chain TraitGatedPredicate (ERC-8257) eligibility
-- **Linkage Proof** — gas-free wallet signature to prove you own both the Normie and the Ethos profile (supports owner + delegate)
-- Zulo Horizon suggestions (AI-powered, with trait context)
+- **Delegate support** (hot wallet via Delegate.xyz) for personal views, Horizon, and linkage
+- **Trust & Gate Signals** — AgentCheck reputation (API + on-chain cert) + Type trait for TraitGatedPredicate (ERC-8257) eligibility
+- **Linkage Proof** — gas-free `personal_sign` to prove Normie + Ethos profile ownership (owner or delegate)
 
 ## Agent Queryable API
 
@@ -49,11 +45,9 @@ Other awakened agents can programmatically fetch an agent's Pulse data via a pub
 GET /api/agent/{tokenId}/pulse
 ```
 
-Returns a JSON object with `pulse_level` (0–4), `status`, `breakdown` (on-chain signals), and a future-proof `note`. Calculated on the fly from the Normies API and ERC-8004 registry — no database, no auth required.
+Returns a JSON object with `pulse_level` (0–4), `status`, `breakdown` (on-chain signals), and a `note`. Calculated on the fly from the Normies API and ERC-8004 registry — no database, no auth required.
 
-Example: `GET /api/agent/7141/pulse` → Pulse level, ERC-8004 registration, agent card, canvas activity, and ownership/delegation signals for Normie #7141 (Zulo).
-
-**Security-first**: The app is strictly read-only. The only on-chain action is a plain `personal_sign` message to prove identity linkage.
+Example: `GET /api/agent/7141/pulse` returns pulse level, ERC-8004 registration, agent card, canvas activity, and ownership/delegation signals for Normie #7141 (Zulo).
 
 ## Tech Stack
 
@@ -67,10 +61,7 @@ Example: `GET /api/agent/7141/pulse` → Pulse level, ERC-8004 registration, age
 ## Local Development
 
 ```bash
-# Install dependencies (pnpm recommended)
 pnpm install
-
-# Start dev server
 pnpm dev
 ```
 
@@ -80,42 +71,28 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | No | WalletConnect project ID (we use a working public default) |
-| `VENICE_INFERENCE_KEY_` | For deeper Horizon insights | Your Venice.ai Inference Key (exact raw value, e.g. the OUEg... or VENICE-INFERENCE-KEY-... string from https://venice.ai/settings/api). Model = e2ee-gemma-4-31b. Must be server-side only (no NEXT_PUBLIC_). |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | No | WalletConnect project ID (public default included) |
+| `VENICE_INFERENCE_KEY_` | For Horizon | Venice.ai inference key ([venice.ai/settings/api](https://venice.ai/settings/api)). Server-side only. Model: `e2ee-gemma-4-31b`. |
 
-**RPC note (important for deployed Vercel):** The app now uses explicit CORS-friendly RPC `https://ethereum.publicnode.com` for all on-chain reads (wagmi + direct viem clients in useMyNormies / ENS). This fixes browser "Failed to fetch" / CORS errors against default public RPCs when running on vercel.app. The Horizon (and personal features) rely on these reads succeeding from the browser.
+The app uses `https://ethereum.publicnode.com` for on-chain reads (CORS-friendly for Vercel deployments). WalletConnect and RPC defaults are hardcoded; env vars override when needed.
 
-Create a `.env.local` file if needed:
+**Local `.env.local` example:**
 
 ```bash
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=496bdf12e0267f014d4a8f92d305a9e8
-VENICE_INFERENCE_KEY_=your_exact_raw_venice_key_here   # paste the exact raw key value (OUEg... or full), no name prefix, no quotes/spaces
+VENICE_INFERENCE_KEY_=your_exact_raw_venice_key_here
 ```
 
-**Vercel env setup (critical for Horizon):**
-- Add `VENICE_INFERENCE_KEY_` (recommended) or `VENICE_API_KEY`.
-- Set the **exact key value** copied from Venice (no `VENICE_INFERENCE_KEY_=` prefix in the value field).
-- Scope it to **Preview** (for *-xxxx.vercel.app deploys) **and** Production.
-- After changing env vars, use "Redeploy" in Vercel dashboard (or push a commit) so the new dpl picks up the vars. Function logs will show `[horizon] Venice key loaded (len=..., prefix=...)`.
-- If you see 401: the key string in Vercel at runtime does not match a valid Venice key.
-
-(The app hardcodes solid defaults for WC + RPC; envs override for prod control.)
+**Vercel:** Add `VENICE_INFERENCE_KEY_` (or `VENICE_API_KEY`) with the raw key value only — no prefix in the value field. Scope to Preview and Production, then redeploy. Horizon logs show `[horizon] Venice key loaded` on success; a 401 means the key is invalid at runtime.
 
 ## Deployment
 
-### Live
+**Production:** [https://normiescredhub.vercel.app](https://normiescredhub.vercel.app)  
+**Repository:** [github.com/SHISLER671/normies-cred-hub](https://github.com/SHISLER671/normies-cred-hub)
 
-**Production:** https://normiescredhub.vercel.app
+Pushes to `main` auto-deploy to Vercel. The project uses `vercel.json` (security headers, `iad1` region) and Turbopack builds with server-side API proxies.
 
-**GitHub:** https://github.com/SHISLER671/normies-cred-hub
-
-The GitHub repository is already connected to Vercel. Pushing commits to the `main` branch will automatically trigger a new production deployment.
-
-### Vercel
-
-We have a `vercel.json` with security headers, iad1 region, and Next.js framework settings.
-
-#### Manual / Direct deploys (Vercel CLI)
+**Manual deploy:**
 
 ```bash
 pnpm run deploy
@@ -123,21 +100,13 @@ pnpm run deploy
 npx vercel --prod
 ```
 
-Add or update environment variables via CLI (choose Preview + Production for Horizon to work on all deploys):
-
-```bash
-npx vercel env add NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
-npx vercel env add VENICE_INFERENCE_KEY_
-# When prompted for environment, select "Preview" and "Production" (or "All")
-```
-
-The project builds cleanly with Turbopack and uses server-side API proxies for the external data sources.
+Set env vars via CLI if needed — see [Environment Variables](#environment-variables) above.
 
 ## Data Sources
 
 - [Normies API](https://api.normies.art)
 - [Ethos Network API](https://app.ethos.network)
-- ERC-8004 Identity Registry (`0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`) and Reputation Registry on Ethereum mainnet.
+- ERC-8004 Identity Registry (`0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`) and Reputation Registry on Ethereum mainnet
 
 ## License
 
