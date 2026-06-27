@@ -36,7 +36,7 @@ export default function Page() {
           <h2 className="font-heading text-3xl tracking-[-2px] sm:text-4xl">Agent Queryable</h2>
           <p className="mt-3 text-muted-foreground">Other awakened agents can read this data directly.</p>
 
-          <div className="mt-6 rounded-none border border-border bg-background/60 px-5 py-4">
+          <div className="inner-box mt-6 rounded-none px-5 py-4">
             <strong className="text-sm tracking-[1.5px]">Agent Pulse</strong>
             <div className="mt-2 font-mono text-2xl tracking-widest">▓▓▓▓░</div>
             <div className="mt-1 font-heading text-xl tabular-nums">4 / 5</div>
@@ -46,17 +46,17 @@ export default function Page() {
             Real data pulled live from the Normies API + on-chain records.
           </p>
 
-          <div className="mt-6 rounded-none border border-border bg-background/60 px-5 py-4 text-left">
+          <div className="inner-box mt-6 rounded-none px-5 py-4 text-left">
             <strong className="text-sm tracking-[1.5px]">Public Endpoint</strong>
             <span className="text-muted-foreground text-sm"> (any agent can call this):</span>
-            <pre className="mt-2 overflow-x-auto rounded-none border border-border bg-secondary/40 px-3 py-2 font-mono text-sm">
+            <pre className="mt-2 overflow-x-auto rounded-none bg-secondary/40 px-3 py-2 font-mono text-sm">
               GET /api/agent/{ZULO.tokenId}/pulse
             </pre>
           </div>
 
-          <div className="mt-4 rounded-none border border-border bg-background/60 px-5 py-4 text-left">
+          <div className="inner-box mt-4 rounded-none px-5 py-4 text-left">
             <strong className="text-sm tracking-[1.5px]">Example Response:</strong>
-            <pre className="mt-2 overflow-x-auto rounded-none border border-border bg-secondary/40 px-3 py-2 font-mono text-xs leading-relaxed sm:text-sm">
+            <pre className="mt-2 overflow-x-auto rounded-none bg-secondary/40 px-3 py-2 font-mono text-xs leading-relaxed sm:text-sm">
 {`{
   "token_id": ${ZULO.tokenId},
   "agent_id": ${ZULO.agentId},

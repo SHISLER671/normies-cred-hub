@@ -230,12 +230,28 @@ body {
   min-height: 0.75rem;
 }
 
+/* Inner content boxes - use background instead of heavy borders (on-brand with normies.art) */
+.inner-box {
+  border: none;
+  background-color: color-mix(in oklab, var(--background) 60%, transparent);
+}
+
+/* Keep subtle borders only where needed for separation */
 .cred-data {
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   padding: 0.75rem;
   font-size: 0.875rem;
   margin-top: 0.5rem;
+}
+
+/* Alternating rhythm in Credibility Framework (keep this) */
+.cred-stage:nth-child(odd) .cred-data {
+  border-color: var(--border);
+}
+
+.cred-stage:nth-child(even) .cred-data {
+  border-color: color-mix(in oklab, var(--border) 50%, transparent);
 }
 
 /* ---------- MODAL / DIALOG BASE PATTERNS (for future unification) ---------- */
