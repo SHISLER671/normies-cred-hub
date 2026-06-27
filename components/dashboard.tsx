@@ -332,7 +332,7 @@ export function Dashboard() {
     <div className="flex flex-col gap-10 max-w-4xl mx-auto pixel-texture">
       {/* Personal / Awakened View — focused and premium */}
       {isConnected && (
-        <div className="rounded-2xl border border-border bg-card/70 p-5">
+        <div className="rounded-none border border-border bg-card/70 p-5">
           {/* My Agents selector — centered pills */}
           {myNormies.length > 0 && (
             <div className="flex justify-center mb-4">
@@ -345,7 +345,7 @@ export function Dashboard() {
                       onClick={() => {
                         setTokenId(id)
                       }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
                     >
                       <img
                         src={normieImageUrl(id)}
@@ -406,7 +406,7 @@ export function Dashboard() {
 
       {isMyAgent && (
         <div className="mx-auto text-center">
-          <div className="inline-block text-sm tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-full text-primary">
+          <div className="inline-block text-sm tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-none text-primary">
             Your Awakened Agent
             {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[10px] normal-case tracking-normal text-primary/60">• via delegate</span>}
           </div>
@@ -442,7 +442,7 @@ export function Dashboard() {
 
             {/* Zulo Recommends — Zulo's flagship agent skill */}
             {snapshot && (
-              <div className="relative overflow-hidden rounded-2xl border border-primary/60 border-l-4 border-l-primary/70 bg-card/55 p-5 text-center shadow-sm">
+              <div className="relative overflow-hidden rounded-none border border-primary/60 border-l-4 border-l-primary/70 bg-card/55 p-5 text-center shadow-sm">
                 {/* Muted cosmic figure as background (scoped only to this section) */}
                 <div
                   className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none"
@@ -486,7 +486,7 @@ export function Dashboard() {
               {/* Zulo Horizon Card */}
               <button
                 onClick={() => setShowHorizonModal(true)}
-                className="group flex flex-col items-start gap-2 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="group flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">
                   <Sparkles className="size-4 text-primary" />
@@ -498,7 +498,7 @@ export function Dashboard() {
               {/* Prove Linkage Card */}
               <button
                 onClick={() => setShowLinkageModal(true)}
-                className="group flex flex-col items-start gap-2 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="group flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">
                   <Fingerprint className="size-4 text-primary" />
@@ -510,7 +510,7 @@ export function Dashboard() {
               {/* Browse Tools Card */}
               <button
                 onClick={() => setShowToolsModal(true)}
-                className="group flex flex-col items-start gap-2 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="group flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">
                   <Search className="size-4 text-primary" />
@@ -709,7 +709,7 @@ export function Dashboard() {
                             href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex w-full items-center justify-center rounded-md border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                            className="inline-flex w-full items-center justify-center rounded-none border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
                           >
                             View Full Report
                           </a>
@@ -740,7 +740,7 @@ export function Dashboard() {
                       onClick={() => {
                         setTokenId(id);
                       }}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition-all ${tokenId === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs border transition-all ${tokenId === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
                     >
                       <img src={normieImageUrl(id)} alt={`#${id}`} className="size-4 pixel-frame" width={16} height={16} />
                       <span>#{id}</span>

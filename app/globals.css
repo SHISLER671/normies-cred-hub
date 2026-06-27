@@ -35,10 +35,10 @@
   --destructive: #dc2626;
   --ring: #7c3aed;
 
-  /* Premium radii - standardized on 2xl for cards/containers for modern feel */
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 0; /* for main cards */
+  /* Radius variables - all squared */
+  --radius: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 
   /* Soft, intentional shadows */
   --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
@@ -265,5 +265,27 @@ body {
 @media (max-width: 767px) {
   .modal-content {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
+/* Force square corners everywhere */
+.card,
+.cred-framework,
+.cred-data,
+.modal-content,
+button,
+input,
+select,
+textarea {
+  border-radius: 0 !important;
+}
+
+.cred-number {
+  border-radius: 0 !important;
+}
+
+@media (max-width: 767px) {
+  .modal-content {
+    border-radius: 0 !important;
   }
 }

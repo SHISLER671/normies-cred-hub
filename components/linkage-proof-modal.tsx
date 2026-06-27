@@ -90,7 +90,7 @@ export function LinkageProofModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-primary/30 bg-card p-4">
+          <div className="rounded-none border border-primary/30 bg-card p-4">
             <p className="font-medium mb-1">Safety first</p>
             <p className="text-sm text-muted-foreground">
               This is a signature only — no transactions, transfers, or approvals are ever requested.
@@ -98,11 +98,11 @@ export function LinkageProofModal({
           </div>
 
           <div className="space-y-3">
-            <div className="flex justify-between rounded-2xl border border-border bg-card p-3 text-sm">
+            <div className="flex justify-between rounded-none border border-border bg-card p-3 text-sm">
               <span className="text-muted-foreground">Expected controller (owner or delegate)</span>
               <span className="font-mono">{shortenAddress(ownerAddress)}{delegateAddress && delegateAddress !== '0x0000000000000000000000000000000000000000' ? ` / ${shortenAddress(delegateAddress)}` : ''}</span>
             </div>
-            <div className="flex justify-between rounded-2xl border border-border bg-card p-3 text-sm">
+            <div className="flex justify-between rounded-none border border-border bg-card p-3 text-sm">
               <span className="text-muted-foreground">Your connected wallet</span>
               <span className="font-mono">
                 {isConnected && address ? shortenAddress(address) : "Not connected"}
@@ -144,7 +144,7 @@ function Result({ kind, tokenId }: { kind: "ok" | "mismatch" | "error"; tokenId:
   const Icon = map.icon
 
   return (
-    <div className={`rounded-2xl border p-4 ${map.className}`}>
+    <div className={`rounded-none border p-4 ${map.className}`}>
       <div className="flex items-start gap-3">
         <Icon className="size-5 shrink-0 mt-0.5" />
         <div>
