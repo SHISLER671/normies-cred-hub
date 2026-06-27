@@ -50,7 +50,7 @@ export function AgentCard({
     <Card className="overflow-hidden">
       <CardContent className="flex flex-col gap-6 p-6 sm:flex-row">
         <div className="relative mx-auto w-full max-w-[180px] shrink-0 sm:mx-0 sm:w-[180px]">
-          <div className={`overflow-hidden border bg-card rounded-2xl ${isMyAgent ? "border-primary" : "border-border/60"}`}>
+          <div className={`overflow-hidden border bg-card rounded-none ${isMyAgent ? "border-primary" : "border-border/60"}`}>
             <img
               src={snapshot.imageUrl || snapshot.token?.image || "/placeholder.svg"}
               alt={`${agentName} pixel portrait`}
