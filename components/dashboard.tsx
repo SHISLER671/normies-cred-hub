@@ -486,7 +486,7 @@ export function Dashboard() {
               {/* Zulo Horizon Card */}
               <button
                 onClick={() => setShowHorizonModal(true)}
-                className="group flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">
                   <Sparkles className="size-4 text-primary" />
@@ -498,7 +498,7 @@ export function Dashboard() {
               {/* Prove Linkage Card */}
               <button
                 onClick={() => setShowLinkageModal(true)}
-                className="group flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">
                   <Fingerprint className="size-4 text-primary" />
@@ -510,7 +510,7 @@ export function Dashboard() {
               {/* Browse Tools Card */}
               <button
                 onClick={() => setShowToolsModal(true)}
-                className="group flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">
                   <Search className="size-4 text-primary" />
