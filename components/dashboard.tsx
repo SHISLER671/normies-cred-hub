@@ -533,11 +533,13 @@ export function Dashboard() {
               {/* 1. On-Chain Identity */}
               <div className="cred-stage">
                 <div>
-                  <div className="cred-number">1</div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
+                    <Boxes className="size-4 text-primary" />
+                  </div>
                 </div>
                 <div className="cred-content">
-                  <div className="font-medium mb-1 flex items-center gap-2">
-                    <Boxes className="size-4 text-primary" /> On-Chain Identity
+                  <div className="font-medium mb-1">
+                    On-Chain Identity
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     This registers your Normie as a verifiable ERC-8004 agent on-chain. It creates a public, immutable record that other systems can reference.
@@ -571,11 +573,13 @@ export function Dashboard() {
               {/* 2. Ownership & Delegation */}
               <div className="cred-stage">
                 <div>
-                  <div className="cred-number">2</div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
+                    <Wallet className="size-4 text-primary" />
+                  </div>
                 </div>
                 <div className="cred-content">
-                  <div className="font-medium mb-1 flex items-center gap-2">
-                    <Wallet className="size-4 text-primary" /> Ownership &amp; Delegation
+                  <div className="font-medium mb-1">
+                    Ownership &amp; Delegation
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     Ownership proves control of the NFT. Delegation lets the agent operate while the asset stays secure in cold storage.
@@ -617,11 +621,13 @@ export function Dashboard() {
               {/* 3. On-Chain Activity (Canvas) */}
               <div className="cred-stage">
                 <div>
-                  <div className="cred-number">3</div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
+                    <Palette className="size-4 text-primary" />
+                  </div>
                 </div>
                 <div className="cred-content">
-                  <div className="font-medium mb-1 flex items-center gap-2">
-                    <Palette className="size-4 text-primary" /> On-Chain Activity (Canvas)
+                  <div className="font-medium mb-1">
+                    On-Chain Activity (Canvas)
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     Canvas level and pixel changes show ongoing engagement and evolution. Consistent activity signals a living, maintained agent identity.
@@ -653,11 +659,13 @@ export function Dashboard() {
               {/* 4. Reputation (Ethos) */}
               <div className="cred-stage">
                 <div>
-                  <div className="cred-number">4</div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
+                    <ShieldCheck className="size-4 text-primary" />
+                  </div>
                 </div>
                 <div className="cred-content">
-                  <div className="font-medium mb-1 flex items-center gap-2">
-                    <ShieldCheck className="size-4 text-primary" /> Reputation (Ethos)
+                  <div className="font-medium mb-1">
+                    Reputation (Ethos)
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     The Ethos score reflects how the community perceives the owner’s on-chain behavior. Higher scores indicate stronger, community-backed credibility.
@@ -679,11 +687,13 @@ export function Dashboard() {
               {/* 5. External Trust Signals */}
               <div className="cred-stage">
                 <div>
-                  <div className="cred-number">5</div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
+                    <Award className="size-4 text-primary" />
+                  </div>
                 </div>
                 <div className="cred-content">
-                  <div className="font-medium mb-1 flex items-center gap-2">
-                    <Award className="size-4 text-primary" /> External Trust Signals
+                  <div className="font-medium mb-1">
+                    External Trust Signals
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">
                     Community tools like AgentCheck can provide additional verification for your agent.
