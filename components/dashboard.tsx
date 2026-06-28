@@ -688,7 +688,7 @@ export function Dashboard() {
                         <Clock className="size-4" />
                         <span>Coming soon – Wire signals</span>
                       </div>
-                      <p className="text-xs text-muted-foreground/80 mt-2">
+                      <p className="text-sm leading-relaxed text-muted-foreground mt-2 text-pretty">
                         Verifiable execution history, settlement certainty, and cross-chain reliability will appear here when Wire integration is live.
                       </p>
                     </>
@@ -703,7 +703,7 @@ export function Dashboard() {
                         <Clock className="size-4" />
                         <span>Coming soon – ERC-8257 tooling</span>
                       </div>
-                      <p className="text-xs text-muted-foreground/80 mt-2">
+                      <p className="text-sm leading-relaxed text-muted-foreground mt-2 text-pretty">
                         Today the ecosystem tools are a curated list. ERC-8257 (draft) turns them into a permissionless on-chain registry — each tool content-addressed and verifiable, with access gated by predicate contracts like awakened-agent ownership. The framework is already schema-ready for it.
                       </p>
                     </>
@@ -719,7 +719,7 @@ export function Dashboard() {
               ))}
             </div>
 
-            <p className="text-center text-xs text-muted-foreground mt-6">
+            <p className="text-center text-sm leading-relaxed text-muted-foreground mt-6 max-w-prose mx-auto text-pretty">
               As the ecosystem grows, these signals may become more useful for understanding and interacting with awakened agents.
             </p>
           </div>

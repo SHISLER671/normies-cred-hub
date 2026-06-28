@@ -212,6 +212,7 @@ body {
 .cred-stage {
   display: flex;
   gap: 1rem;
+  padding-block: 0.25rem;
 }
 
 /* .cred-number — removed; stages now use icon markers instead */
@@ -240,8 +241,9 @@ body {
 .cred-data {
   border: 1px solid var(--border);
   border-radius: 0;
-  padding: 0.75rem;
-  font-size: 0.875rem;
+  padding: 1rem 1.1rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
   margin-top: 0.5rem;
 }
 

@@ -28,9 +28,9 @@ export function CredibilitySignal({
         </div>
       </div>
       <div className="cred-content">
-        <div className="font-medium mb-1">{signal.title}</div>
+        <h3 className="font-heading text-base font-semibold leading-snug mb-1.5">{signal.title}</h3>
         {signal.description ? (
-          <p className="text-sm text-muted-foreground mb-2">{signal.description}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground mb-3 max-w-prose text-pretty">{signal.description}</p>
         ) : null}
         <div className="cred-data">{children}</div>
       </div>
