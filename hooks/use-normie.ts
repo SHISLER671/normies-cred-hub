@@ -1,6 +1,7 @@
 "use client"
 
 import { fetchEthosScore } from "@/lib/api/ethos"
+import { fetchAgentCheck } from "@/lib/api/agentcheck"
 import { fetchNormieSnapshot, normiesApi } from "@/lib/api/normies"
 import { useQuery } from "@tanstack/react-query"
 
@@ -32,6 +33,21 @@ export function useEthosScore(address?: string) {
   return useQuery({
     queryKey: ["ethos", address?.toLowerCase()],
     queryFn: () => fetchEthosScore(address as string),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  })
+}
+
+/**
+ * AgentCheck wallet trust rating for an address (ERC-8257 Tool #13).
+ * Disabled until a valid-looking address is provided. Cached 5–15 min.
+ */
+export function useAgentCheck(address?: string) {
+  const enabled = !!address && /^0x[a-fA-F0-9]{40}$/.test(address)
+  return useQuery({
+    queryKey: ["agentcheck", address?.toLowerCase()],
+    queryFn: () => fetchAgentCheck(address as string),
     enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
