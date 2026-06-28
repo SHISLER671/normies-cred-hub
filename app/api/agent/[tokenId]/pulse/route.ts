@@ -1,12 +1,19 @@
 import { ERC8004, IDENTITY_REGISTRY_READ_ABI, NORMIES_API_BASE } from "@/constants/contracts"
 import { publicClient } from "@/lib/viem-client"
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import type { AgentInfo, CanvasDiff, CanvasInfo, NormieOwner } from "@/lib/types"
 import { type NextRequest, NextResponse } from "next/server"
 
-const MAX_LEVEL = 4
+// 4 signals are measurable today; the 5th level is reserved for future
+// on-chain usage metrics — there's always room for improvement. This keeps the
+// public scale (x / 5) consistent with what the landing page advertises.
+const MAX_LEVEL = 5
 
 const NOTE =
-  "This Pulse uses currently available signals from the Normies API. As more agents transact and interact on-chain, real usage metrics will be added in future updates."
+  "This Pulse uses currently available signals from the Normies API. The 5th level unlocks as more agents transact and interact on-chain in future updates — there's always room for improvement."
+
+const NEXT_SIGNAL =
+  "Reserved for future on-chain usage metrics (transactions, interactions, swarm activity)."
 
 const STATUS_BY_LEVEL: Record<number, string> = {
   0: "Dormant",
@@ -14,14 +21,19 @@ const STATUS_BY_LEVEL: Record<number, string> = {
   2: "Building",
   3: "Solid",
   4: "Strong",
+  5: "Luminous",
 }
 
 async function fetchNormies<T>(path: string): Promise<T | null> {
   try {
-    const res = await fetch(`${NORMIES_API_BASE}${path}`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 300 },
-    })
+    const res = await fetchWithTimeout(
+      `${NORMIES_API_BASE}${path}`,
+      {
+        headers: { Accept: "application/json" },
+        next: { revalidate: 300 },
+      },
+      8_000,
+    )
     if (!res.ok) return null
     return res.json() as Promise<T>
   } catch {
@@ -135,6 +147,7 @@ export async function GET(
       max_level: MAX_LEVEL,
       status: STATUS_BY_LEVEL[pulse_level] ?? "Dormant",
       breakdown,
+      next_signal: pulse_level < MAX_LEVEL ? NEXT_SIGNAL : null,
       note: NOTE,
     },
     {

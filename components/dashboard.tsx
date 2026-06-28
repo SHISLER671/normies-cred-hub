@@ -376,12 +376,15 @@ export function Dashboard() {
 
           {/* Manual entry — clean inline */}
           <div className="flex items-center gap-2 max-w-sm mx-auto">
+            <label htmlFor="token-id-input" className="sr-only">Normie token ID</label>
             <input
+              id="token-id-input"
               value={myInput}
               onChange={(e) => setMyInput(e.target.value)}
               inputMode="numeric"
               placeholder="Enter token id"
-              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none border-b border-border py-2"
+              aria-label="Normie token ID"
+              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none border-b border-border py-2 focus:border-primary transition-colors"
             />
             <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-sm">LOAD</Button>
           </div>
@@ -397,19 +400,26 @@ export function Dashboard() {
               <a href={bridgeUser.links?.profile || `https://app.ethos.network/profile/x/${bridgeUser.username}`} target="_blank" className="text-primary">
                 @{bridgeUser.username} (score {bridgeUser.score})
               </a>
-              {bridgeUser.avatarUrl && <img src={bridgeUser.avatarUrl} className="inline size-6 ml-2" />}
+              {bridgeUser.avatarUrl && <img src={bridgeUser.avatarUrl || "/placeholder.svg"} alt={`${bridgeUser.username} avatar`} className="inline size-6 ml-2" width={24} height={24} />}
             </div>
           )}
           {bridgeAgents.length > 0 && (
             <div>
               <SectionLabel className="mb-1">Agents</SectionLabel>
-              <div className="flex flex-wrap gap-2">
-                {bridgeAgents.map((id: number) => (
-                  <button key={id} onClick={() => { setTokenId(id); }} className="border px-2 py-1 text-xs flex items-center gap-1">
-                    <img src={normieImageUrl(id)} className="size-5 pixel-frame" />
-                    #{id}
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-1.5">
+                {bridgeAgents.map((id: number) => {
+                  const isActive = tokenId === id
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => { setTokenId(id); }}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
+                    >
+                      <img src={normieImageUrl(id)} alt={`Normie #${id}`} className="size-5 pixel-frame" width={20} height={20} />
+                      <span className="font-mono">#{id}</span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}

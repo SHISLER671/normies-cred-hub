@@ -1,11 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToolsListForPrompt, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
-
-const NORMIES_API_BASE = 'https://api.normies.art'
+import { NORMIES_API_BASE } from '@/constants/contracts'
+import { checkRateLimit } from '@/lib/ratelimit'
+import { fetchWithTimeout, isTimeoutError } from '@/lib/fetch-with-timeout'
 
 export async function POST(req: NextRequest) {
+  // Protect Venice credits: this route runs the 405B model, so keep it tight.
+  const rl = await checkRateLimit(req, 'zulo-recommends', 5, 60)
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please slow down.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
+
   try {
-    const { tokenId } = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const { tokenId } = body ?? {}
 
     if (!tokenId) {
       return NextResponse.json({ error: 'tokenId is required' }, { status: 400 })
@@ -14,7 +31,7 @@ export async function POST(req: NextRequest) {
     // 1. Check if the agent is awakened (ERC-8004 binding)
     let isAwakened = false
     try {
-      const bindingRes = await fetch(`${NORMIES_API_BASE}/agents/binding/${tokenId}`)
+      const bindingRes = await fetchWithTimeout(`${NORMIES_API_BASE}/agents/binding/${tokenId}`, {}, 8_000)
       if (bindingRes.ok) {
         const binding = await bindingRes.json()
         isAwakened = !!(binding && binding.agentId)
@@ -23,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     if (!isAwakened) {
       try {
-        const infoRes = await fetch(`${NORMIES_API_BASE}/agents/info/${tokenId}`)
+        const infoRes = await fetchWithTimeout(`${NORMIES_API_BASE}/agents/info/${tokenId}`, {}, 8_000)
         if (infoRes.ok) {
           const info = await infoRes.json()
           isAwakened = !!(info && info.agentId)
@@ -40,7 +57,7 @@ export async function POST(req: NextRequest) {
     // 2. Fetch agent data
     let agentData: any = null
     try {
-      const res = await fetch(`${NORMIES_API_BASE}/agents/info/${tokenId}`)
+      const res = await fetchWithTimeout(`${NORMIES_API_BASE}/agents/info/${tokenId}`, {}, 8_000)
       if (res.ok) {
         agentData = await res.json()
       }
@@ -69,13 +86,18 @@ Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
       .replace('{agentSummary}', agentSummary)
 
     // 3. Call Venice AI
-    const veniceKey = process.env.VENICE_INFERENCE_KEY_ || process.env.VENICE_INFERENCE_KEY
+    const veniceKey = (
+      process.env.VENICE_INFERENCE_KEY ||
+      process.env.VENICE_INFERENCE_KEY_ ||
+      process.env.VENICE_API_KEY ||
+      ''
+    ).trim()
 
     if (!veniceKey) {
       return NextResponse.json({ error: 'Venice API key not configured on server' }, { status: 500 })
     }
 
-    const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+    const res = await fetchWithTimeout('https://api.venice.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${veniceKey}`,
@@ -87,7 +109,7 @@ Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
         max_tokens: 800,
         temperature: 0.4,
       }),
-    })
+    }, 25_000)
 
     if (!res.ok) {
       const errText = await res.text().catch(() => 'unknown')
@@ -101,6 +123,10 @@ Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
     return NextResponse.json({ recommendations })
 
   } catch (err: any) {
+    if (isTimeoutError(err)) {
+      console.error('[zulo-recommends] Upstream timed out')
+      return NextResponse.json({ error: 'The recommendation service timed out. Please try again.' }, { status: 504 })
+    }
     console.error('[zulo-recommends] Uncaught error:', err?.message || err)
     return NextResponse.json({ error: 'Internal error generating recommendations' }, { status: 500 })
   }
