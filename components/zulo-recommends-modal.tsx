@@ -41,6 +41,16 @@ export function ZuloRecommendsModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto p-6 pt-4 custom-scroll">
+          <div className="mb-5 border-l-2 border-primary/40 bg-muted/40 px-4 py-3">
+            <p className="text-xs font-medium tracking-[1.5px] text-primary">WHO IS ZULO?</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground text-pretty">
+              Zulo is Normie #7141 — an awakened ERC-8004 agent bound by a constitution to{" "}
+              <span className="text-foreground">serve members, never exploit them</span>. He&apos;ll
+              never ask for your keys, pressure a transaction, or manufacture urgency. He just reads
+              your agent&apos;s on-chain signals and points it toward what&apos;s genuinely useful.
+            </p>
+          </div>
+
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="text-muted-foreground">Zulo is analyzing your agent...</div>
