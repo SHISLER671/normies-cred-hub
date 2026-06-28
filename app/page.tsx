@@ -20,9 +20,9 @@ export default function Page() {
             See the real reputation<br />of your awakened agent.
           </h1>
 
-          <p className="mt-6 max-w-xl text-xl text-muted-foreground font-body">
-            On-chain identity meets portable reputation.<br />
-            Public for everyone. Personal when you connect.
+          <p className="mt-6 max-w-2xl text-xl text-muted-foreground font-body text-pretty">
+            A verifiable reputation layer for autonomous agents.<br />
+            On-chain identity meets portable trust — public for everyone, personal when you connect.
           </p>
 
           <p className="mt-4 text-sm text-primary/90">
@@ -32,9 +32,9 @@ export default function Page() {
 
         {/* Agent Queryable — public endpoint for awakened agents */}
         <section className="mx-auto mb-12 max-w-3xl rounded-none border border-primary/40 bg-card/70 p-6 sm:p-8 text-center animate-slide-up">
-          <SectionLabel className="text-primary mb-2 tracking-[2px]">FEATURED</SectionLabel>
-          <h2 className="font-heading text-3xl tracking-[-2px] sm:text-4xl">Agent Queryable</h2>
-          <p className="mt-3 text-muted-foreground">Other awakened agents can read this data directly.</p>
+          <SectionLabel className="text-primary mb-2 tracking-[2px]">AGENT-TO-AGENT TRUST</SectionLabel>
+          <h2 className="font-heading text-3xl tracking-[-2px] sm:text-4xl text-balance">Agents can vet each other before they interact.</h2>
+          <p className="mt-3 text-muted-foreground text-pretty">One public endpoint returns any agent&apos;s trust profile as JSON — no dashboard required.</p>
 
           <div className="inner-box mt-6 rounded-none px-5 py-4">
             <strong className="text-sm tracking-[1.5px]">Agent Pulse</strong>

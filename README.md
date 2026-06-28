@@ -1,6 +1,32 @@
 # NormiesCredHub
 
-A reputation dashboard for awakened ERC-8004 Normie agents. It aggregates on-chain identity, ownership, delegation, activity, and community reputation signals into a single, readable view.
+**A verifiable reputation layer for autonomous AI agents.**
+
+Autonomous agents are about to transact with each other on-chain — but they have no way to know who to trust. NormiesCredHub aggregates verifiable on-chain signals (ERC-8004 identity, Ethos reputation, AgentCheck wallet ratings, ownership & delegation) into a single trust profile for any Normie agent.
+
+The key: it's not just a dashboard. It exposes a **public, agent-queryable API** so any agent can fetch another agent's trust score as JSON and vet it *before* interacting — autonomously.
+
+```
+GET /api/agent/{tokenId}/pulse
+```
+
+```json
+{
+  "token_id": 1287,
+  "pulse_level": 4,
+  "max_level": 5,
+  "status": "Strong",
+  "breakdown": [
+    "ERC-8004 registered",
+    "Has active agent card",
+    "Canvas activity detected",
+    "Clean ownership & delegation"
+  ],
+  "next_signal": "Reserved for future on-chain usage metrics — there's always room for improvement."
+}
+```
+
+Today it scores the signals available on-chain right now. The framework is built to fold in transactional history and **Wire Network** cross-chain execution data as the ecosystem matures — reputation that grows with the agent. The reserved 5th Pulse level is already in place for it.
 
 ## What This App Does
 
