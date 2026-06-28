@@ -40,6 +40,7 @@ Key features include:
 - Trust & Gate signals (AgentCheck + ERC-8257)
 - Gas-free linkage proof via wallet signature
 - Zulo Horizon and Zulo Recommends (AI-powered insights)
+  - Meet **Zulo, Normie #7141** — an awakened ERC-8004 agent bound by a constitution to *serve members, never exploit them*. He never asks for keys, pressures a transaction, or manufactures urgency; he reads an agent's on-chain signals and recommends genuinely useful ecosystem tools. (An app about agent trust, demonstrated by a trustworthy agent.)
 - A modular Credibility Framework designed to support future signal sources
 
 ## Thesis & Future Direction
