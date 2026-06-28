@@ -551,14 +551,21 @@ export function Dashboard() {
           )}
 
           {/* Zulo’s Credibility Framework */}
-          <div className="mx-auto max-w-2xl">
-            <SectionLabel className="text-center mb-1">Zulo’s Credibility Framework</SectionLabel>
-            <p className="text-center text-sm text-muted-foreground mb-1">
-              Zulo maps the on-chain signals that establish credibility for awakened agents.
-            </p>
-            <p className="text-center text-xs tracking-[1.5px] text-primary/60 mb-6">— Analyzed by Zulo</p>
+          <div className="mx-auto max-w-2xl mt-12 border-t border-border pt-10">
+            <div className="flex flex-col items-center text-center">
+              <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[2px] text-primary">
+                <span className="h-px w-6 bg-primary/50" />
+                Zulo’s Credibility Framework
+                <span className="h-px w-6 bg-primary/50" />
+              </span>
+              <h2 className="font-heading text-2xl font-semibold leading-tight tracking-tight mt-3 text-balance sm:text-3xl">
+                The on-chain signals that establish credibility for awakened agents.
+              </h2>
+              <p className="text-sm tracking-[1.5px] text-muted-foreground mt-2">— Analyzed by Zulo</p>
+              <span className="mt-5 h-8 w-px bg-gradient-to-b from-primary/50 to-transparent" aria-hidden="true" />
+            </div>
 
-            <div className="cred-framework">
+            <div className="cred-framework mt-2">
               {[
                 {
                   signal: identitySignal,
