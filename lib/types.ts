@@ -175,16 +175,31 @@ export interface WireExecutionSignal {
 
 /** AgentCheck API response (from agentcheck-bice.vercel.app) */
 export interface AgentCheckResult {
-  rating?: string
-  score?: number
-  forensicFlags?: string[]
-  sanctionsCheck?: {
-    passed: boolean
-    details?: string
-  }
-  safetyCertStatus?: string
-  certified?: boolean
-  report?: string
   wallet?: string
-  [key: string]: any // flexible for full report
+  network?: string
+  /** S&P-style grade, e.g. "AAA", "BB", "C", "D" */
+  rating?: string
+  outlook?: string
+  verdict?: string
+  /** 0–100 */
+  trust_score?: number
+  /** 0–100 */
+  risk_score?: number
+  agent_score?: number
+  composite?: number
+  address_type?: {
+    is_contract?: boolean
+    is_eoa?: boolean
+    known?: boolean
+    label?: string
+    category?: string
+    verified?: boolean
+  }
+  report?: {
+    highlights?: string[]
+    risk_flags?: string[]
+    [key: string]: any
+  }
+  checked_at?: string
+  [key: string]: any // flexible for the full report payload
 }

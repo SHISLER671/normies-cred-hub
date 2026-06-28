@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SectionLabel } from "@/components/ui/section-label"
 import { ZULO } from "@/constants/contracts"
-import { useEthosScore, useNormie } from "@/hooks/use-normie"
+import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
+import { AgentCheckCard } from "@/components/agentcheck-card"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
 import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet } from "lucide-react"
 import { Fragment, useState, useEffect } from "react"
@@ -63,6 +64,11 @@ export function Dashboard() {
   } = useEthosScore(ownerAddress)
 
   const ownerUsername = ethos?.user?.username || null
+
+  const {
+    data: agentCheck,
+    isLoading: agentCheckLoading,
+  } = useAgentCheck(ownerAddress)
 
   const agentType = snapshot?.traits?.attributes?.find(
     (t: any) => t.trait_type === "Type"
@@ -660,14 +666,14 @@ export function Dashboard() {
                         </div>
                       </div>
                       {ownerAddress && (
-                        <a
-                          href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex w-full items-center justify-center rounded-none border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
-                        >
-                          View Full Report
-                        </a>
+                        <div className="border-t border-border pt-3">
+                          <div className="mb-2 text-xs text-muted-foreground">AGENTCHECK · WALLET TRUST</div>
+                          <AgentCheckCard
+                            result={agentCheck}
+                            isLoading={agentCheckLoading}
+                            address={ownerAddress}
+                          />
+                        </div>
                       )}
                     </div>
                   ),
