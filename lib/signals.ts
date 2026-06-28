@@ -2,6 +2,7 @@ import type {
   CredibilitySignal,
   EthosScoreResult,
   NormieSnapshot,
+  ToolRegistrySignal,
   WireExecutionSignal,
 } from "@/lib/types"
 
@@ -131,6 +132,22 @@ export function buildWirePlaceholderSignal(
   })
 }
 
+/** ERC-8257 tool-registry placeholder — no live registry yet. */
+export function buildToolRegistryPlaceholderSignal(
+  agentId?: string | number
+): CredibilitySignal {
+  return normalizeSignal({
+    id: `tool-registry-placeholder-${agentId ?? "pending"}`,
+    source: "erc8257",
+    category: "tooling",
+    title: "Verifiable Tooling (ERC-8257)",
+    description:
+      "ERC-8257 turns the curated tool list into a permissionless on-chain registry — each tool content-addressed and verifiable, with access gated by predicate contracts (e.g. awakened-agent ownership). Today the list is curated; the framework is schema-ready for the registry.",
+    verifiable: false,
+    metadata: { status: "coming_soon", standard: "erc-8257", draft: true },
+  })
+}
+
 /**
  * Returns the ordered list of framework signals for the current agent context.
  * Section content is still rendered in the dashboard; this layer owns metadata.
@@ -149,6 +166,7 @@ export function getCurrentSignals(input: {
     buildEthosSignal(ethos, ownerAddress),
     buildExternalSignal(snapshot),
     buildWirePlaceholderSignal(snapshot?.agent?.agentId),
+    buildToolRegistryPlaceholderSignal(snapshot?.agent?.agentId),
   ]
 }
 
@@ -210,5 +228,63 @@ export function wireExecutionToSignal(
       ...execution.metadata,
     },
     timestamp: execution.lastVerifiedExecution,
+  })
+}
+
+/**
+ * Placeholder for ERC-8257 (draft) tool-registry signals.
+ * Not yet wired to a live registry — returns an empty list until integration
+ * lands. Future signals will reflect on-chain tool discoverability,
+ * content-hash integrity, and predicate-gated access for the connected agent.
+ */
+export async function getToolRegistrySignals(
+  agentId: string | number
+): Promise<CredibilitySignal[]> {
+  void agentId
+
+  // Future: read the ERC-8257 registry and map each registered tool, e.g.:
+  // - uri + contentHash → verifiable, content-addressed manifest
+  // - gatePredicate → whether this agent satisfies the access gate
+  // - registeredAt → freshness timestamp
+
+  return []
+}
+
+/** Normalize a raw ERC-8257 registry entry into a structured signal shape. */
+export function normalizeToolRegistryEntry(
+  raw: Partial<ToolRegistrySignal> & Pick<ToolRegistrySignal, "toolId">
+): ToolRegistrySignal {
+  return {
+    uri: undefined,
+    contentHash: undefined,
+    gatePredicate: undefined,
+    registered: undefined,
+    accessGranted: undefined,
+    registeredAt: undefined,
+    metadata: undefined,
+    ...raw,
+  }
+}
+
+/** Map an ERC-8257 registry entry into a framework-ready CredibilitySignal. */
+export function toolRegistryToSignal(
+  entry: ToolRegistrySignal
+): CredibilitySignal {
+  return normalizeSignal({
+    id: `tool-registry-${entry.toolId}`,
+    source: "erc8257",
+    category: "tooling",
+    title: "Verifiable Tooling (ERC-8257)",
+    description:
+      "On-chain, content-addressed tool registration with predicate-gated access.",
+    verifiable: !!entry.registered,
+    metadata: {
+      uri: entry.uri,
+      contentHash: entry.contentHash,
+      gatePredicate: entry.gatePredicate,
+      accessGranted: entry.accessGranted,
+      ...entry.metadata,
+    },
+    timestamp: entry.registeredAt,
   })
 }
