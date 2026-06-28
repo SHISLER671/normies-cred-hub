@@ -39,6 +39,46 @@ export function buildIdentitySignal(
   })
 }
 
+/** Ownership & delegation signal for the Credibility Framework. */
+export function buildOwnershipSignal(
+  snapshot: NormieSnapshot | undefined
+): CredibilitySignal {
+  return normalizeSignal({
+    id: `ownership-${snapshot?.tokenId ?? "unknown"}`,
+    source: "erc8004",
+    category: "ownership",
+    title: "Ownership & Delegation",
+    description:
+      "Ownership proves control of the NFT. Delegation lets the agent operate while the asset stays secure in cold storage.",
+    verifiable: !!snapshot?.owner?.owner,
+    metadata: snapshot?.owner
+      ? { owner: snapshot.owner.owner, delegate: snapshot.canvas?.delegate }
+      : undefined,
+  })
+}
+
+/** On-chain canvas activity signal for the Credibility Framework. */
+export function buildCanvasSignal(
+  snapshot: NormieSnapshot | undefined
+): CredibilitySignal {
+  return normalizeSignal({
+    id: `canvas-${snapshot?.tokenId ?? "unknown"}`,
+    source: "erc8004",
+    category: "identity",
+    title: "On-Chain Activity (Canvas)",
+    description:
+      "Canvas level and pixel changes show ongoing engagement and evolution. Consistent activity signals a living, maintained agent identity.",
+    verifiable: !!snapshot?.canvas,
+    metadata: snapshot?.canvas
+      ? {
+          level: snapshot.canvas.level,
+          actionPoints: snapshot.canvas.actionPoints,
+          customized: snapshot.canvas.customized,
+        }
+      : undefined,
+  })
+}
+
 /** Ethos reputation signal for the Credibility Framework. */
 export function buildEthosSignal(
   ethos: EthosScoreResult | undefined,
@@ -57,6 +97,59 @@ export function buildEthosSignal(
       ? { level: ethos.level, username: ethos.user.username }
       : undefined,
   })
+}
+
+/** External trust / AgentCheck signal for the Credibility Framework. */
+export function buildExternalSignal(
+  snapshot: NormieSnapshot | undefined
+): CredibilitySignal {
+  return normalizeSignal({
+    id: `external-${snapshot?.tokenId ?? "unknown"}`,
+    source: "erc8004",
+    category: "external",
+    title: "External Trust Signals",
+    description:
+      "Community tools like AgentCheck can provide additional verification for your agent.",
+    verifiable: false,
+    metadata: snapshot ? { tokenId: snapshot.tokenId } : undefined,
+  })
+}
+
+/** Wire UTL placeholder — no live data yet. */
+export function buildWirePlaceholderSignal(
+  agentId?: string | number
+): CredibilitySignal {
+  return normalizeSignal({
+    id: `wire-placeholder-${agentId ?? "pending"}`,
+    source: "wire",
+    category: "execution",
+    title: "Cross-Chain Execution (Wire)",
+    description:
+      "Wire Network UTL provides deterministic, verifiable cross-chain execution history — transaction certainty and reliability signals for autonomous agents.",
+    verifiable: false,
+    metadata: { status: "coming_soon" },
+  })
+}
+
+/**
+ * Returns the ordered list of framework signals for the current agent context.
+ * Section content is still rendered in the dashboard; this layer owns metadata.
+ */
+export function getCurrentSignals(input: {
+  snapshot?: NormieSnapshot
+  ethos?: EthosScoreResult
+  ownerAddress?: string
+}): CredibilitySignal[] {
+  const { snapshot, ethos, ownerAddress } = input
+
+  return [
+    buildIdentitySignal(snapshot),
+    buildOwnershipSignal(snapshot),
+    buildCanvasSignal(snapshot),
+    buildEthosSignal(ethos, ownerAddress),
+    buildExternalSignal(snapshot),
+    buildWirePlaceholderSignal(snapshot?.agent?.agentId),
+  ]
 }
 
 /**
