@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit } from '@/lib/ratelimit'
+import { fetchWithTimeout, isTimeoutError } from '@/lib/fetch-with-timeout'
 
 // GET /api/horizon  — visit in browser (or curl) to inspect what keys the function sees
 // (safe: only presence + length + short prefix, never the full secret)
@@ -25,7 +27,30 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { agentName, traits, ethosScore, ap, isOwner, agentType } = await req.json()
+  // Protect Venice credits: cap requests per client IP.
+  const rl = await checkRateLimit(req, 'horizon', 10, 60)
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please slow down.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    )
+  }
+
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const { agentName, traits, ethosScore, ap, isOwner, agentType } = body ?? {}
+
+  if (!agentName || !Array.isArray(traits)) {
+    return NextResponse.json(
+      { error: 'agentName and traits[] are required' },
+      { status: 400 },
+    )
+  }
 
   // Support common names people set in Vercel
   const openRouterKey = (
@@ -93,7 +118,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
   try {
     // Try Venice first (reliable with your credits)
     if (veniceKey) {
-      const res = await fetch('https://api.venice.ai/api/v1/chat/completions', {
+      const res = await fetchWithTimeout('https://api.venice.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${veniceKey}`,
@@ -105,7 +130,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
           max_tokens: 300,
           temperature: 0.85,
         }),
-      })
+      }, 20_000)
 
       if (res.ok) {
         const data = await res.json()
@@ -122,7 +147,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
 
     // Fallback to OpenRouter only if Venice unavailable
     if (openRouterKey) {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const res = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${openRouterKey}`,
@@ -136,7 +161,7 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
           max_tokens: 300,
           temperature: 0.85,
         }),
-      })
+      }, 20_000)
 
       if (res.ok) {
         const data = await res.json()
@@ -156,6 +181,10 @@ Speak in first person as ${agentName}. Give a short, poetic, slightly strange bu
       { status: 502 }
     )
   } catch (e: any) {
+    if (isTimeoutError(e)) {
+      console.error('[horizon] Upstream timed out')
+      return NextResponse.json({ error: 'AI provider timed out. Please try again.' }, { status: 504 })
+    }
     console.error('[horizon] Unexpected error:', e)
     return NextResponse.json({ error: 'Failed to generate horizon' }, { status: 502 })
   }
