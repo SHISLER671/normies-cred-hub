@@ -61,7 +61,7 @@ export default function Page() {
   "token_id": ${ZULO.tokenId},
   "agent_id": ${ZULO.agentId},
   "pulse_level": 4,
-  "max_level": 4,
+  "max_level": 5,
   "status": "Strong",
   "breakdown": [
     "ERC-8004 registered",
@@ -69,7 +69,8 @@ export default function Page() {
     "Canvas activity detected",
     "Clean ownership & delegation"
   ],
-  "note": "This Pulse uses currently available signals from the Normies API. As more agents transact and interact on-chain, real usage metrics will be added in future updates."
+  "next_signal": "Reserved for future on-chain usage metrics — there's always room for improvement.",
+  "note": "This Pulse uses currently available signals from the Normies API. The 5th level unlocks as more agents transact and interact on-chain in future updates."
 }`}
             </pre>
           </div>
