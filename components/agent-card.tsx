@@ -67,7 +67,7 @@ export function AgentCard({
           <div>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="font-heading text-4xl tracking-[-2px]">
-                {isMyAgent ? "YOUR" : ""} {agentName}
+                {agentName}
               </h2>
               <span className="font-mono text-xl text-muted-foreground">#{tokenId}</span>
             </div>
@@ -87,7 +87,7 @@ export function AgentCard({
           </div>
 
           <blockquote className="border-l-2 border-primary/70 pl-4 text-sm leading-tight text-foreground/90">
-            {isMyAgent && <SectionLabel className="text-primary mb-1">Your Agent Says</SectionLabel>}
+            {isMyAgent && <SectionLabel className="text-primary mb-1">Agent Says</SectionLabel>}
             {snapshot.agent?.tagline || "An awakened identity on the Normies network."}
           </blockquote>
 
