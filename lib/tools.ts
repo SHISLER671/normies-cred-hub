@@ -4,6 +4,21 @@ export type Tool = {
   description: string;
   category: string;
   url: string;
+  /**
+   * Optional ERC-8257 (draft) registry metadata. Lets a tool become
+   * on-chain discoverable + verifiable instead of hardcoded. Unset today;
+   * the curated list is schema-ready for when the registry is live.
+   */
+  registry?: {
+    /** Content-addressed manifest location (e.g. ipfs:// or https://). */
+    uri?: string;
+    /** Manifest hash for integrity verification. */
+    contentHash?: string;
+    /** Predicate contract gating access (NFT ownership, subscription, etc.). */
+    gatePredicate?: string;
+    /** Registered on the ERC-8257 registry. */
+    registered?: boolean;
+  };
 };
 
 /**

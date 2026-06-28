@@ -134,7 +134,7 @@ export interface EthosScoreResult {
 
 // ---- Credibility signals (modular, source-agnostic) ----
 
-export type CredibilitySignalSource = "erc8004" | "ethos" | "wire" | (string & {})
+export type CredibilitySignalSource = "erc8004" | "ethos" | "wire" | "erc8257" | (string & {})
 
 export type CredibilitySignalCategory =
   | "identity"
@@ -142,6 +142,7 @@ export type CredibilitySignalCategory =
   | "execution"
   | "reputation"
   | "external"
+  | "tooling"
 
 /** Normalized credibility signal consumed by the framework UI. */
 export interface CredibilitySignal {
@@ -170,6 +171,29 @@ export interface WireExecutionSignal {
   settlementCertainty?: number
   totalTransactions?: number
   verifiedExecutionHistory?: string[]
+  metadata?: Record<string, any>
+}
+
+/**
+ * Prepared for ERC-8257 (draft) — a permissionless on-chain registry where
+ * agent tools are registered with a content-addressed URI and may be
+ * access-gated by predicate contracts (e.g. NFT ownership or subscription).
+ * Lets the curated tools list become on-chain discoverable + verifiable.
+ */
+export interface ToolRegistrySignal {
+  /** Stable tool id (matches the curated `Tool.id` where applicable). */
+  toolId: string
+  /** Content-addressed location of the tool manifest (e.g. ipfs:// or https://). */
+  uri?: string
+  /** Hash of the manifest for integrity verification. */
+  contentHash?: string
+  /** Predicate contract address gating access (NFT/subscription/etc.). */
+  gatePredicate?: string
+  /** Whether this tool is registered on the ERC-8257 registry. */
+  registered?: boolean
+  /** Whether the connected agent currently satisfies the gate predicate. */
+  accessGranted?: boolean
+  registeredAt?: string
   metadata?: Record<string, any>
 }
 

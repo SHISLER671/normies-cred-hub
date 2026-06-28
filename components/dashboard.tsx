@@ -15,7 +15,7 @@ import { ZULO } from "@/constants/contracts"
 import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
 import { AgentCheckCard } from "@/components/agentcheck-card"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet } from "lucide-react"
+import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet, Wrench } from "lucide-react"
 import { Fragment, useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -84,6 +84,7 @@ export function Dashboard() {
     ethosSignal,
     externalSignal,
     wireSignal,
+    toolRegistrySignal,
   ] = frameworkSignals
 
   const delegate = snapshot?.canvas?.delegate
@@ -689,6 +690,21 @@ export function Dashboard() {
                       </div>
                       <p className="text-xs text-muted-foreground/80 mt-2">
                         Verifiable execution history, settlement certainty, and cross-chain reliability will appear here when Wire integration is live.
+                      </p>
+                    </>
+                  ),
+                },
+                {
+                  signal: toolRegistrySignal,
+                  icon: Wrench,
+                  content: (
+                    <>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Clock className="size-4" />
+                        <span>Coming soon – ERC-8257 tooling</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground/80 mt-2">
+                        Today the ecosystem tools are a curated list. ERC-8257 (draft) turns them into a permissionless on-chain registry — each tool content-addressed and verifiable, with access gated by predicate contracts like awakened-agent ownership. The framework is already schema-ready for it.
                       </p>
                     </>
                   ),
