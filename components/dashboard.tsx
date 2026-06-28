@@ -24,8 +24,10 @@ import { isAgentAwakened, normiesApi } from "@/lib/api/normies"
 import { tools } from "@/lib/tools"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { Skeleton } from "@/components/ui/skeleton"
+import { CredibilityConnector, CredibilityStage } from "@/components/credibility-stage"
 import { ERC8004 } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
+import { buildEthosSignal, buildIdentitySignal } from "@/lib/signals"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -67,6 +69,9 @@ export function Dashboard() {
   )?.value || "Unknown"
 
   const isAgentType = agentType === "Agent"
+
+  const identitySignal = buildIdentitySignal(snapshot)
+  const ethosSignal = buildEthosSignal(ethos, ownerAddress)
 
   const delegate = snapshot?.canvas?.delegate
   const isZeroAddr = (a?: string | null) =>
@@ -530,205 +535,163 @@ export function Dashboard() {
             <p className="text-center text-xs tracking-[1.5px] text-primary/60 mb-6">— Analyzed by Zulo</p>
 
             <div className="cred-framework">
-              {/* 1. On-Chain Identity */}
-              <div className="cred-stage">
-                <div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
-                    <Boxes className="size-4 text-primary" />
+              <CredibilityStage
+                icon={Boxes}
+                title="On-Chain Identity"
+                description="This registers your Normie as a verifiable ERC-8004 agent on-chain. It creates a public, immutable record that other systems can reference."
+                signal={identitySignal}
+              >
+                {isLoading ? (
+                  <Skeleton className="h-16 w-full" />
+                ) : snapshot?.agent?.agentId ? (
+                  <div>
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CircleCheck className="size-4" />
+                      <span>Registered on-chain</span>
+                    </div>
+                    <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{snapshot.agent.agentId} recognized</div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
+                    </div>
                   </div>
-                </div>
-                <div className="cred-content">
-                  <div className="font-medium mb-1">
-                    On-Chain Identity
+                ) : (
+                  <div className="flex items-center gap-2 text-amber-400">
+                    <Clock className="size-4" />
+                    <span>On-chain status pending</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    This registers your Normie as a verifiable ERC-8004 agent on-chain. It creates a public, immutable record that other systems can reference.
-                  </p>
-                  <div className="cred-data">
-                    {isLoading ? (
-                      <Skeleton className="h-16 w-full" />
-                    ) : snapshot?.agent?.agentId ? (
+                )}
+              </CredibilityStage>
+
+              <CredibilityConnector />
+
+              <CredibilityStage
+                icon={Wallet}
+                title="Ownership & Delegation"
+                description="Ownership proves control of the NFT. Delegation lets the agent operate while the asset stays secure in cold storage."
+              >
+                {isLoading || !snapshot ? (
+                  <div className="space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>
+                ) : (
+                  <div className="space-y-2">
+                    <div>
+                      <div className="text-xs text-muted-foreground">OWNER</div>
+                      <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" className="font-mono text-foreground hover:text-primary">
+                        {shortenAddress(snapshot.owner.owner, 6)}
+                      </a>
+                      {ownerUsername && <span className="text-primary text-xs ml-2">@{ownerUsername}</span>}
+                    </div>
+                    {delegate && !isZeroAddr(delegate) && (
                       <div>
-                        <div className="flex items-center gap-2 text-emerald-400">
-                          <CircleCheck className="size-4" />
-                          <span>Registered on-chain</span>
-                        </div>
-                        <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{snapshot.agent.agentId} recognized</div>
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
-                        </div>
+                        <div className="text-xs text-muted-foreground">DELEGATE</div>
+                        <a href={etherscanAddress(delegate)} target="_blank" className="font-mono text-foreground hover:text-primary">
+                          {shortenAddress(delegate, 6)}
+                        </a>
+                        {delegateEnsName && <span className="text-primary text-xs ml-2">{delegateEnsName}</span>}
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-amber-400">
-                        <Clock className="size-4" />
-                        <span>On-chain status pending</span>
+                    )}
+                    {isMyAgent && delegate && !isZeroAddr(delegate) && (
+                      <div className="text-xs text-muted-foreground pt-1 border-t border-border/60">
+                        Cold storage → hot ENS (verifiable)
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
+                )}
+              </CredibilityStage>
 
-              <div className="cred-connector h-4" />
+              <CredibilityConnector />
 
-              {/* 2. Ownership & Delegation */}
-              <div className="cred-stage">
-                <div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
-                    <Wallet className="size-4 text-primary" />
-                  </div>
-                </div>
-                <div className="cred-content">
-                  <div className="font-medium mb-1">
-                    Ownership &amp; Delegation
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Ownership proves control of the NFT. Delegation lets the agent operate while the asset stays secure in cold storage.
-                  </p>
-                  <div className="cred-data">
-                    {isLoading || !snapshot ? (
-                      <div className="space-y-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div>
-                          <div className="text-xs text-muted-foreground">OWNER</div>
-                          <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" className="font-mono text-foreground hover:text-primary">
-                            {shortenAddress(snapshot.owner.owner, 6)}
-                          </a>
-                          {ownerUsername && <span className="text-primary text-xs ml-2">@{ownerUsername}</span>}
-                        </div>
-                        {delegate && !isZeroAddr(delegate) && (
-                          <div>
-                            <div className="text-xs text-muted-foreground">DELEGATE</div>
-                            <a href={etherscanAddress(delegate)} target="_blank" className="font-mono text-foreground hover:text-primary">
-                              {shortenAddress(delegate, 6)}
-                            </a>
-                            {delegateEnsName && <span className="text-primary text-xs ml-2">{delegateEnsName}</span>}
-                          </div>
-                        )}
-                        {isMyAgent && delegate && !isZeroAddr(delegate) && (
-                          <div className="text-xs text-muted-foreground pt-1 border-t border-border/60">
-                            Cold storage → hot ENS (verifiable)
-                          </div>
-                        )}
+              <CredibilityStage
+                icon={Palette}
+                title="On-Chain Activity (Canvas)"
+                description="Canvas level and pixel changes show ongoing engagement and evolution. Consistent activity signals a living, maintained agent identity."
+              >
+                {isLoading || !snapshot ? (
+                  <Skeleton className="h-16 w-full" />
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
+                      <div className="border px-1.5 py-px text-xs tracking-[1.5px]">
+                        {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
                       </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 text-center text-sm">
+                      <div>+{snapshot.canvasDiff.addedCount} <span className="text-muted-foreground">added</span></div>
+                      <div>-{snapshot.canvasDiff.removedCount} <span className="text-muted-foreground">removed</span></div>
+                      <div>{snapshot.canvasDiff.netChange} <span className="text-muted-foreground">net</span></div>
+                    </div>
+                  </div>
+                )}
+              </CredibilityStage>
+
+              <CredibilityConnector />
+
+              <CredibilityStage
+                icon={ShieldCheck}
+                title="Reputation (Ethos)"
+                description="The Ethos score reflects how the community perceives the owner's on-chain behavior. Higher scores indicate stronger, community-backed credibility."
+                signal={ethosSignal}
+              >
+                <EthosReputation
+                  result={ethos}
+                  isLoading={isLoading || ethosLoading}
+                  error={ethosError}
+                  address={ownerAddress ?? ""}
+                  isMyAgent={isMyAgent}
+                />
+              </CredibilityStage>
+
+              <CredibilityConnector />
+
+              <CredibilityStage
+                icon={Award}
+                title="External Trust Signals"
+                description="Community tools like AgentCheck can provide additional verification for your agent."
+              >
+                {isLoading || !snapshot ? (
+                  <Skeleton className="h-16 w-full" />
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-xs text-muted-foreground">AGENT TYPE</div>
+                      <div className="font-medium">{agentType}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">GATE ACCESS</div>
+                      <div className="font-medium">{isAgentType ? "Advanced" : "Limited"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {isAgentType ? "qualifies for advanced agent features" : "limited gate access"}
+                      </div>
+                    </div>
+                    {ownerAddress && (
+                      <a
+                        href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full items-center justify-center rounded-none border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                      >
+                        View Full Report
+                      </a>
                     )}
                   </div>
-                </div>
-              </div>
+                )}
+              </CredibilityStage>
 
-              <div className="cred-connector h-4" />
+              <CredibilityConnector />
 
-              {/* 3. On-Chain Activity (Canvas) */}
-              <div className="cred-stage">
-                <div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
-                    <Palette className="size-4 text-primary" />
-                  </div>
+              <CredibilityStage
+                icon={Layers}
+                title="Cross-Chain Execution (Wire)"
+                description="Wire Network UTL provides deterministic, verifiable cross-chain execution history — transaction certainty and reliability signals for autonomous agents."
+              >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="size-4" />
+                  <span>Coming soon – Wire signals</span>
                 </div>
-                <div className="cred-content">
-                  <div className="font-medium mb-1">
-                    On-Chain Activity (Canvas)
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Canvas level and pixel changes show ongoing engagement and evolution. Consistent activity signals a living, maintained agent identity.
-                  </p>
-                  <div className="cred-data">
-                    {isLoading || !snapshot ? (
-                      <Skeleton className="h-16 w-full" />
-                    ) : (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
-                          <div className="border px-1.5 py-px text-xs tracking-[1.5px]">
-                            {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1 text-center text-sm">
-                          <div>+{snapshot.canvasDiff.addedCount} <span className="text-muted-foreground">added</span></div>
-                          <div>-{snapshot.canvasDiff.removedCount} <span className="text-muted-foreground">removed</span></div>
-                          <div>{snapshot.canvasDiff.netChange} <span className="text-muted-foreground">net</span></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="cred-connector h-4" />
-
-              {/* 4. Reputation (Ethos) */}
-              <div className="cred-stage">
-                <div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
-                    <ShieldCheck className="size-4 text-primary" />
-                  </div>
-                </div>
-                <div className="cred-content">
-                  <div className="font-medium mb-1">
-                    Reputation (Ethos)
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    The Ethos score reflects how the community perceives the owner’s on-chain behavior. Higher scores indicate stronger, community-backed credibility.
-                  </p>
-                  <div className="cred-data">
-                    <EthosReputation
-                      result={ethos}
-                      isLoading={isLoading || ethosLoading}
-                      error={ethosError}
-                      address={ownerAddress ?? ""}
-                      isMyAgent={isMyAgent}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="cred-connector h-4" />
-
-              {/* 5. External Trust Signals */}
-              <div className="cred-stage">
-                <div>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-none border border-primary bg-primary/10">
-                    <Award className="size-4 text-primary" />
-                  </div>
-                </div>
-                <div className="cred-content">
-                  <div className="font-medium mb-1">
-                    External Trust Signals
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Community tools like AgentCheck can provide additional verification for your agent.
-                  </p>
-                  <div className="cred-data">
-                    {isLoading || !snapshot ? (
-                      <Skeleton className="h-16 w-full" />
-                    ) : (
-                      <div className="space-y-3">
-                        <div>
-                          <div className="text-xs text-muted-foreground">AGENT TYPE</div>
-                          <div className="font-medium">{agentType}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">GATE ACCESS</div>
-                          <div className="font-medium">{isAgentType ? "Advanced" : "Limited"}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {isAgentType ? "qualifies for advanced agent features" : "limited gate access"}
-                          </div>
-                        </div>
-                        {ownerAddress && (
-                          <a
-                            href={`https://agentcheck-bice.vercel.app/api/check?wallet=${ownerAddress}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex w-full items-center justify-center rounded-none border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
-                          >
-                            View Full Report
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                <p className="text-xs text-muted-foreground/80 mt-2">
+                  Verifiable execution history, settlement certainty, and cross-chain reliability will appear here when Wire integration is live.
+                </p>
+              </CredibilityStage>
             </div>
 
             <p className="text-center text-xs text-muted-foreground mt-6">

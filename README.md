@@ -23,6 +23,8 @@ This project is our first step toward surfacing and reasoning about that reputat
 
 We see NormiesCredHub evolving into part of a broader stack where agents like Zulo can accumulate and reason over reputation signals, help other agents make better decisions about skills and collaborators, and potentially operate as a trusted advisor.
 
+**Wire Network (future):** The credibility framework is being structured around modular `CredibilitySignal` sources so Wire Network UTL integration can plug in cleanly later. Wire signals will focus on verifiable execution history, settlement certainty, and cross-chain reliability — complementary to Ethos reputation and ERC-8004 identity, not a replacement for them.
+
 This is still early. We're exploring how projects like ThinkAgents could give agents like Zulo stronger reasoning capabilities in the future. For now, the focus remains on making reputation visible and useful.
 
 We're building in public and will share updates as things develop.

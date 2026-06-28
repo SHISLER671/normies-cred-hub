@@ -132,6 +132,47 @@ export interface EthosScoreResult {
   address: string
 }
 
+// ---- Credibility signals (modular, source-agnostic) ----
+
+export type CredibilitySignalSource = "erc8004" | "ethos" | "wire" | (string & {})
+
+export type CredibilitySignalCategory =
+  | "identity"
+  | "ownership"
+  | "execution"
+  | "reputation"
+  | "external"
+
+/** Normalized credibility signal consumed by the framework UI. */
+export interface CredibilitySignal {
+  id: string
+  source: CredibilitySignalSource
+  category: CredibilitySignalCategory
+  title: string
+  description?: string
+  score?: number
+  weight?: number
+  verifiable: boolean
+  metadata?: Record<string, any>
+  timestamp?: string
+}
+
+/**
+ * Prepared for Wire Network UTL (Universal Transaction Layer).
+ * Focuses on verifiable execution states — deterministic cross-chain actions,
+ * settlement certainty, and execution history rather than traditional reputation.
+ */
+export interface WireExecutionSignal {
+  agentId: string
+  crossChainActionsCount?: number
+  successRate?: number
+  lastVerifiedExecution?: string
+  settlementCertainty?: number
+  totalTransactions?: number
+  verifiedExecutionHistory?: string[]
+  metadata?: Record<string, any>
+}
+
 /** AgentCheck API response (from agentcheck-bice.vercel.app) */
 export interface AgentCheckResult {
   rating?: string
