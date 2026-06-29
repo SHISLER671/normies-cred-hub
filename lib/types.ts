@@ -70,6 +70,13 @@ export interface AgentInfo {
   txHash?: string
 }
 
+/** Owned Normie summary for the "Your Normies" wallet section. */
+export interface OwnedNormie {
+  tokenId: number
+  type: string
+  isAwakened: boolean
+}
+
 /** Combined snapshot used by the dashboard. */
 export interface NormieSnapshot {
   tokenId: number

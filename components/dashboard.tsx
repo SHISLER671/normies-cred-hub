@@ -16,10 +16,15 @@ import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
 import { AgentCheckCard } from "@/components/agentcheck-card"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
 import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet, Wrench } from "lucide-react"
-import { Fragment, useState, useEffect } from "react"
+import { Fragment, useState, useEffect, useRef } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
+import { YourNormies } from "@/components/your-normies"
+import {
+  getLastSelectedNormie,
+  setLastSelectedNormie,
+} from "@/lib/last-selected-normie"
 import { useEnsName } from "@/hooks/use-ens-name"
 import { isAgentAwakened, normiesApi } from "@/lib/api/normies"
 import { tools } from "@/lib/tools"
@@ -127,47 +132,50 @@ export function Dashboard() {
     !isZeroAddr(delegate) ? delegate : undefined
   )
 
-  const { data: myNormies = [] } = useMyNormies(address)
+  const {
+    data: myNormies = [],
+    isLoading: myNormiesLoading,
+    isError: myNormiesError,
+  } = useMyNormies(address)
   const { data: ownerAgents = [] } = useMyNormies(ownerAddress)
   const { data: bridgeAgents = [] } = useMyNormies(bridgeAddress || undefined)
 
-  // Simple persistence — remember last personal token per wallet
-  const storageKey = address ? `my-normie-${address.toLowerCase()}` : null
+  const restoredWalletRef = useRef<string | null>(null)
 
-  // Restore on connect
-  useEffect(() => {
-    if (storageKey && typeof window !== "undefined") {
-      const saved = localStorage.getItem(storageKey)
-      if (saved) {
-        const savedId = Number.parseInt(saved, 10)
-        if (Number.isFinite(savedId) && savedId !== tokenId) {
-          setTokenId(savedId)
-        }
-      }
+  function selectNormie(id: number) {
+    setTokenId(id)
+    if (address) {
+      setLastSelectedNormie(address, id)
     }
-  }, [storageKey])
+  }
 
-  // If connected and we have discovered agents but no personal selected yet, default to first
+  // Restore last selected Normie per wallet (if still owned), else default to first owned
   useEffect(() => {
-    if (isConnected && myNormies.length > 0 && tokenId === ZULO.tokenId) {
-      const first = myNormies[0]
-      setTokenId(first)
-    }
-  }, [isConnected, myNormies])
+    if (!isConnected || !address || myNormiesLoading) return
+    if (restoredWalletRef.current === address.toLowerCase()) return
 
-  // Save when viewing own
+    const ownedIds = new Set(myNormies.map((n) => n.tokenId))
+    const saved = getLastSelectedNormie(address)
+
+    if (saved !== null && ownedIds.has(saved)) {
+      setTokenId(saved)
+    } else if (myNormies.length > 0) {
+      setTokenId((current) => (current === ZULO.tokenId ? myNormies[0].tokenId : current))
+    }
+
+    restoredWalletRef.current = address.toLowerCase()
+  }, [isConnected, address, myNormiesLoading, myNormies])
+
   useEffect(() => {
-    if (isMyAgent && storageKey && typeof window !== "undefined") {
-      localStorage.setItem(storageKey, String(tokenId))
+    if (!address) {
+      restoredWalletRef.current = null
     }
-  }, [isMyAgent, tokenId, storageKey])
-
-
+  }, [address])
 
   function loadMyAgent() {
     const parsed = Number.parseInt(myInput, 10)
     if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 9999) {
-      setTokenId(parsed)
+      selectNormie(parsed)
       setMyInput("")
       setBridgeAddress("")
       setBridgeUsername("")
@@ -177,7 +185,7 @@ export function Dashboard() {
 
   async function handleEndorse(targetId: number) {
     if (!address || myNormies.length === 0) return
-    const endorserId = myNormies[0]
+    const endorserId = myNormies[0].tokenId
     const message = `I (owner of Normie #${endorserId}) endorse Normie #${targetId} as a high quality awakened agent with strong on-chain reputation and clean signal.\nWallet: ${address}\nIssued: ${new Date().toISOString()}\n\nThis signature is a public, verifiable endorsement from one awakened owner to another. Use it to build trust in the network.`
     try {
       const signature = await signMessageAsync({ message })
@@ -362,39 +370,9 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-10 max-w-4xl mx-auto pixel-texture">
-      {/* Personal / Awakened View — focused and premium */}
+      {/* Search bar — manual Normie lookup */}
       {isConnected && (
         <div className="rounded-none border border-border bg-card/70 p-5">
-          {/* My Agents selector — centered pills */}
-          {myNormies.length > 0 && (
-            <div className="flex justify-center mb-4">
-              <div className="flex flex-wrap gap-1.5">
-                {myNormies.map((id) => {
-                  const isActive = tokenId === id
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => {
-                        setTokenId(id)
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
-                    >
-                      <img
-                        src={normieImageUrl(id)}
-                        alt={`Normie #${id}`}
-                        className="size-5 pixel-frame"
-                        width={20}
-                        height={20}
-                      />
-                      <span className="font-mono">#{id}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Manual entry — clean inline */}
           <div className="flex items-center gap-2 max-w-sm mx-auto">
             <label htmlFor="token-id-input" className="sr-only">Normie token ID</label>
             <input
@@ -409,6 +387,18 @@ export function Dashboard() {
             <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-sm">LOAD</Button>
           </div>
         </div>
+      )}
+
+      {/* Your Normies — owned collection (layout placeholder) */}
+      {isConnected && (
+        <YourNormies
+          walletAddress={address}
+          normies={myNormies}
+          isLoading={myNormiesLoading}
+          isError={myNormiesError}
+          selectedTokenId={tokenId}
+          onSelect={selectNormie}
+        />
       )}
 
       {/* Profile Bridge UI - sexy linked profiles */}
@@ -427,16 +417,16 @@ export function Dashboard() {
             <div>
               <SectionLabel className="mb-1">Agents</SectionLabel>
               <div className="flex flex-wrap gap-1.5">
-                {bridgeAgents.map((id: number) => {
-                  const isActive = tokenId === id
+                {bridgeAgents.map((normie) => {
+                  const isActive = tokenId === normie.tokenId
                   return (
                     <button
-                      key={id}
-                      onClick={() => { setTokenId(id); }}
+                      key={normie.tokenId}
+                      onClick={() => { selectNormie(normie.tokenId) }}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
                     >
-                      <img src={normieImageUrl(id)} alt={`Normie #${id}`} className="size-5 pixel-frame" width={20} height={20} />
-                      <span className="font-mono">#{id}</span>
+                      <img src={normieImageUrl(normie.tokenId)} alt={`Normie #${normie.tokenId}`} className="size-5 pixel-frame" width={20} height={20} />
+                      <span className="font-mono">#{normie.tokenId}</span>
                     </button>
                   )
                 })}
@@ -757,22 +747,22 @@ export function Dashboard() {
 
           {/* Linked agents via owner — subtle & centered */}
           {snapshot && ownerAgents.length > 1 && (() => {
-            const siblings = ownerAgents.filter((id: number) => id !== tokenId).slice(0, 8);
+            const siblings = ownerAgents.filter((n) => n.tokenId !== tokenId).slice(0, 8);
             if (siblings.length === 0) return null;
             return (
               <div className="text-center">
                 <SectionLabel className="mb-2">Also Linked Via Owner</SectionLabel>
                 <div className="flex flex-wrap justify-center gap-1.5">
-                  {siblings.map((id: number) => (
+                  {siblings.map((normie) => (
                     <button
-                      key={id}
+                      key={normie.tokenId}
                       onClick={() => {
-                        setTokenId(id);
+                        selectNormie(normie.tokenId);
                       }}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs border transition-all ${tokenId === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs border transition-all ${tokenId === normie.tokenId ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-card'}`}
                     >
-                      <img src={normieImageUrl(id)} alt={`#${id}`} className="size-4 pixel-frame" width={16} height={16} />
-                      <span>#{id}</span>
+                      <img src={normieImageUrl(normie.tokenId)} alt={`#${normie.tokenId}`} className="size-4 pixel-frame" width={16} height={16} />
+                      <span>#{normie.tokenId}</span>
                     </button>
                   ))}
                 </div>

@@ -1,43 +1,53 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { type NextRequest, NextResponse } from "next/server"
 
-/**
- * Read-only proxy for the public Normies API.
- *
- * Maps `/api/normies/<...path>` to `https://api.normies.art/normie/<...path>`,
- * with one special case: `/api/normies/<id>/agent` → `/agents/info/<id>`.
- *
- * This keeps all third-party calls server-side (no CORS, centralized caching)
- * and only ever performs GET requests — no writes are possible through here.
- */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> },
-) {
-  const { path } = await params
-  const segments = path ?? []
-
-  let upstream: string
-  if (segments.length === 2 && segments[1] === "agent") {
-    // /api/normies/7141/agent -> /agents/info/7141
-    upstream = `${NORMIES_API_BASE}/agents/info/${segments[0]}`
-  } else if (segments.length === 3 && segments[0] === "agents" && segments[1] === "binding") {
-    // support /api/normies/agents/binding/7141 -> /agents/binding/7141
-    upstream = `${NORMIES_API_BASE}/agents/binding/${segments[2]}`
-  } else {
-    upstream = `${NORMIES_API_BASE}/normie/${segments.join("/")}`
+function resolveUpstream(segments: string[]): string {
+  if (segments.length === 2 && segments[0] === "holders") {
+    return `${NORMIES_API_BASE}/holders/${segments[1]}`
   }
 
+  if (segments.length === 2 && segments[1] === "agent") {
+    return `${NORMIES_API_BASE}/agents/info/${segments[0]}`
+  }
+
+  if (segments.length === 3 && segments[0] === "agents" && segments[1] === "binding") {
+    return `${NORMIES_API_BASE}/agents/binding/${segments[2]}`
+  }
+
+  if (segments.length === 3 && segments[0] === "agents" && segments[1] === "identity") {
+    return `${NORMIES_API_BASE}/agents/identity/${segments[2]}`
+  }
+
+  if (
+    segments.length === 3 &&
+    segments[0] === "agents" &&
+    segments[1] === "binding" &&
+    segments[2] === "batch"
+  ) {
+    return `${NORMIES_API_BASE}/agents/binding/batch`
+  }
+
+  return `${NORMIES_API_BASE}/normie/${segments.join("/")}`
+}
+
+async function proxyJson(
+  upstream: string,
+  init?: RequestInit,
+  cacheSeconds = 300,
+): Promise<NextResponse> {
   try {
     const res = await fetch(upstream, {
-      headers: { Accept: "application/json" },
-      // Cache upstream responses for 5 minutes, allow stale-while-revalidate.
-      next: { revalidate: 300 },
+      ...init,
+      headers: {
+        Accept: "application/json",
+        ...(init?.headers ?? {}),
+      },
+      next: { revalidate: cacheSeconds },
     })
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: `Upstream returned ${res.status}`, path: segments.join("/") },
+        { error: `Upstream returned ${res.status}` },
         { status: res.status },
       )
     }
@@ -45,7 +55,7 @@ export async function GET(
     const data = await res.json()
     return NextResponse.json(data, {
       headers: {
-        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        "Cache-Control": `public, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds * 2}`,
       },
     })
   } catch (err) {
@@ -54,4 +64,52 @@ export async function GET(
       { status: 502 },
     )
   }
+}
+
+/**
+ * Read-only proxy for the public Normies API.
+ *
+ * Maps `/api/normies/<...path>` to the corresponding `https://api.normies.art` route.
+ * Keeps third-party calls server-side (no CORS, centralized caching).
+ */
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> },
+) {
+  const { path } = await params
+  const segments = path ?? []
+  const upstream = resolveUpstream(segments)
+  const cacheSeconds = segments[0] === "holders" ? 10 : 300
+  return proxyJson(upstream, undefined, cacheSeconds)
+}
+
+/** Batch binding lookup — read-only POST passthrough. */
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> },
+) {
+  const { path } = await params
+  const segments = path ?? []
+
+  if (
+    segments.length !== 3 ||
+    segments[0] !== "agents" ||
+    segments[1] !== "binding" ||
+    segments[2] !== "batch"
+  ) {
+    return NextResponse.json({ error: "Method not allowed for this path" }, { status: 405 })
+  }
+
+  const body = await req.text()
+  const upstream = `${NORMIES_API_BASE}/agents/binding/batch`
+
+  return proxyJson(
+    upstream,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    },
+    60,
+  )
 }

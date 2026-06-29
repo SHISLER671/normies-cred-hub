@@ -6,6 +6,7 @@ import type {
   NormieOwner,
   NormieSnapshot,
   NormieTraits,
+  OwnedNormie,
 } from "@/lib/types"
 
 /**
@@ -27,6 +28,28 @@ export function normieImageUrl(tokenId: number): string {
   return `https://api.normies.art/normie/${tokenId}/image.svg`
 }
 
+export interface HoldersResponse {
+  address: string
+  tokenIds: Array<number | string>
+}
+
+export interface AgentIdentityResponse {
+  tokenId: number
+  name: string
+  type: string
+  traits: Record<string, string>
+}
+
+export interface BindingBatchResponse {
+  bindings: Record<
+    string,
+    {
+      agentId?: string
+      tokenId?: string
+    }
+  >
+}
+
 export const normiesApi = {
   traits: (id: number) => getJson<NormieTraits>(`/${id}/traits`),
   metadata: (id: number) => getJson<NormieMetadata>(`/${id}/metadata`),
@@ -35,6 +58,63 @@ export const normiesApi = {
   canvasDiff: (id: number) => getJson<CanvasDiff>(`/${id}/canvas/diff`),
   agentInfo: (id: number) => getJson<AgentInfo>(`/${id}/agent`),
   agentBinding: (id: number) => getJson<any>(`/agents/binding/${id}`),
+  agentIdentity: (id: number) => getJson<AgentIdentityResponse>(`/agents/identity/${id}`),
+  holders: (address: string) => getJson<HoldersResponse>(`/holders/${address}`),
+}
+
+export async function fetchBindingsBatch(
+  tokenIds: number[],
+): Promise<BindingBatchResponse["bindings"]> {
+  if (tokenIds.length === 0) return {}
+
+  const res = await fetch("/api/normies/agents/binding/batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tokenIds }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Normies batch binding error (${res.status})`)
+  }
+
+  const data = (await res.json()) as BindingBatchResponse
+  return data.bindings ?? {}
+}
+
+/** Enriches token IDs with type and awakened status from the Normies API. */
+export async function enrichOwnedNormies(tokenIds: number[]): Promise<OwnedNormie[]> {
+  if (tokenIds.length === 0) return []
+
+  const [bindings, identities] = await Promise.all([
+    fetchBindingsBatch(tokenIds).catch(() => ({} as BindingBatchResponse["bindings"])),
+    Promise.all(
+      tokenIds.map(async (id) => {
+        try {
+          return await normiesApi.agentIdentity(id)
+        } catch {
+          try {
+            const traits = await normiesApi.traits(id)
+            const type =
+              traits.attributes.find((t) => t.trait_type === "Type")?.value?.toString() ??
+              "Unknown"
+            return { tokenId: id, name: `Normie #${id}`, type, traits: {} }
+          } catch {
+            return { tokenId: id, name: `Normie #${id}`, type: "Unknown", traits: {} }
+          }
+        }
+      }),
+    ),
+  ])
+
+  return tokenIds.map((tokenId) => {
+    const identity = identities.find((item) => item.tokenId === tokenId)
+    const binding = bindings[String(tokenId)]
+    return {
+      tokenId,
+      type: identity?.type ?? "Unknown",
+      isAwakened: !!binding?.agentId,
+    }
+  })
 }
 
 export async function isAgentAwakened(tokenId: number): Promise<boolean> {
