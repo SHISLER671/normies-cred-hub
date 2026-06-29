@@ -8,6 +8,7 @@ import type {
   NormieTraits,
   OwnedNormie,
 } from "@/lib/types"
+import { ZERO_ADDRESS } from "@/lib/normie-control"
 
 /**
  * Client-side Normies API helpers.
@@ -127,16 +128,64 @@ export async function isAgentAwakened(tokenId: number): Promise<boolean> {
   }
 }
 
+function emptyAgentInfo(tokenId: number): AgentInfo {
+  return {
+    tokenId: String(tokenId),
+    agentId: "",
+    chainId: 1,
+    name: `Normie #${tokenId}`,
+    type: "Unknown",
+    tagline: "",
+    backstory: "",
+    greeting: "",
+    personalityTraits: [],
+    communicationStyle: "",
+    quirks: [],
+    systemPrompt: "",
+  }
+}
+
 /** Fetches every public surface for a Normie in parallel. */
 export async function fetchNormieSnapshot(tokenId: number): Promise<NormieSnapshot> {
-  const [metadata, traits, owner, canvas, canvasDiff, agent] = await Promise.all([
+  const results = await Promise.allSettled([
     normiesApi.metadata(tokenId),
     normiesApi.traits(tokenId),
     normiesApi.owner(tokenId),
     normiesApi.canvasInfo(tokenId),
     normiesApi.canvasDiff(tokenId),
     normiesApi.agentInfo(tokenId),
+    normiesApi.agentBinding(tokenId),
   ])
+
+  const fulfilled = <T>(index: number, fallback: T): T =>
+    results[index]?.status === "fulfilled" ? (results[index] as PromiseFulfilledResult<T>).value : fallback
+
+  const metadata = fulfilled(0, { name: `Normie #${tokenId}`, attributes: [], image: normieImageUrl(tokenId) })
+  const traits = fulfilled(1, { raw: "", attributes: [] })
+  const owner = fulfilled(2, { tokenId: String(tokenId), owner: "" })
+  const canvas = fulfilled(3, {
+    actionPoints: 0,
+    level: 0,
+    customized: false,
+    delegate: ZERO_ADDRESS,
+    delegateSetBy: ZERO_ADDRESS,
+  })
+  const canvasDiff = fulfilled(4, {
+    added: [],
+    removed: [],
+    addedCount: 0,
+    removedCount: 0,
+    netChange: 0,
+  })
+  const agentRaw = fulfilled(5, null as AgentInfo | null)
+  const binding = fulfilled(6, null as { agentId?: string } | null)
+
+  const agent =
+    agentRaw && agentRaw.agentId
+      ? agentRaw
+      : binding?.agentId
+        ? { ...emptyAgentInfo(tokenId), ...agentRaw, agentId: binding.agentId }
+        : agentRaw ?? emptyAgentInfo(tokenId)
 
   return {
     tokenId,
@@ -146,6 +195,7 @@ export async function fetchNormieSnapshot(tokenId: number): Promise<NormieSnapsh
     canvas,
     canvasDiff,
     agent,
+    binding,
     imageUrl: normieImageUrl(tokenId),
   }
 }

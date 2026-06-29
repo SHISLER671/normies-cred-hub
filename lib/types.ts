@@ -77,6 +77,12 @@ export interface OwnedNormie {
   isAwakened: boolean
 }
 
+/** ERC-8004 binding record (may exist when agent info endpoint is sparse). */
+export interface AgentBinding {
+  agentId?: string
+  tokenId?: string
+}
+
 /** Combined snapshot used by the dashboard. */
 export interface NormieSnapshot {
   tokenId: number
@@ -86,6 +92,7 @@ export interface NormieSnapshot {
   canvas: CanvasInfo
   canvasDiff: CanvasDiff
   agent: AgentInfo
+  binding?: AgentBinding | null
   imageUrl: string
 }
 

@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { shortenAddress } from "@/lib/format"
+import { controlsNormie, isZeroAddress } from "@/lib/normie-control"
 import { CheckCircle2, Fingerprint, ShieldAlert, ShieldCheck, XCircle } from "lucide-react"
 import { useState } from "react"
 import { useAccount, useSignMessage } from "wagmi"
@@ -55,10 +56,7 @@ export function LinkageProofModal({
     try {
       const nonce = crypto.randomUUID().replace(/-/g, "").slice(0, 8)
       await signMessageAsync({ message: buildMessage(tokenId, nonce) })
-      const addr = address.toLowerCase()
-      const matchesOwner = addr === ownerAddress.toLowerCase()
-      const matchesDelegate = !!delegateAddress && delegateAddress !== '0x0000000000000000000000000000000000000000' && addr === delegateAddress.toLowerCase()
-      setStatus((matchesOwner || matchesDelegate) ? "matched" : "mismatch")
+      setStatus(controlsNormie(address, ownerAddress, delegateAddress) ? "matched" : "mismatch")
     } catch {
       setStatus("error")
     }
@@ -92,7 +90,7 @@ export function LinkageProofModal({
           <div className="space-y-3">
             <div className="flex justify-between rounded-none border border-border bg-card p-3 text-sm">
               <span className="text-muted-foreground">Expected controller (owner or delegate)</span>
-              <span className="font-mono">{shortenAddress(ownerAddress)}{delegateAddress && delegateAddress !== '0x0000000000000000000000000000000000000000' ? ` / ${shortenAddress(delegateAddress)}` : ''}</span>
+              <span className="font-mono">{shortenAddress(ownerAddress)}{delegateAddress && !isZeroAddress(delegateAddress) ? ` / ${shortenAddress(delegateAddress)}` : ''}</span>
             </div>
             <div className="flex justify-between rounded-none border border-border bg-card p-3 text-sm">
               <span className="text-muted-foreground">Your connected wallet</span>

@@ -27,6 +27,14 @@ import {
 } from "@/lib/last-selected-normie"
 import { useEnsName } from "@/hooks/use-ens-name"
 import { isAgentAwakened, normiesApi } from "@/lib/api/normies"
+import {
+  controlsNormie,
+  getResolvedAgentId,
+  isAwakenedFromSnapshot,
+  isCanvasDelegate,
+  isNormieOwner,
+  isZeroAddress,
+} from "@/lib/normie-control"
 import { tools } from "@/lib/tools"
 import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -80,7 +88,8 @@ export function Dashboard() {
     (t: any) => t.trait_type === "Type"
   )?.value || "Unknown"
 
-  const isAwakened = !!snapshot?.agent?.agentId
+  const isAwakened = isAwakenedFromSnapshot(snapshot)
+  const resolvedAgentId = getResolvedAgentId(snapshot?.agent, snapshot?.binding)
 
   const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
   const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
@@ -107,8 +116,6 @@ export function Dashboard() {
   ] = frameworkSignals
 
   const delegate = snapshot?.canvas?.delegate
-  const isZeroAddr = (a?: string | null) =>
-    !a || a === "0x0000000000000000000000000000000000000000"
 
   const horizonAgentContext: HorizonAgentContext | null =
     snapshot && !isError
@@ -117,38 +124,27 @@ export function Dashboard() {
           name: snapshot.agent?.name || `Normie #${tokenId}`,
           type: String(agentType),
           isAwakened,
-          agentId: snapshot.agent?.agentId,
+          agentId: resolvedAgentId,
           traits: snapshot.traits?.attributes,
           canvasLevel: snapshot.canvas?.level,
           actionPoints: snapshot.canvas?.actionPoints,
           canvasCustomized: snapshot.canvas?.customized,
           canvasNetChange: snapshot.canvasDiff?.netChange,
-          hasDelegate: !!delegate && !isZeroAddr(delegate),
+          hasDelegate: !!delegate && !isZeroAddress(delegate),
           ethosScore: ethos?.user?.score,
         }
       : null
 
   const isOwnerMatch =
-    !!isConnected &&
-    !!address &&
-    !!ownerAddress &&
-    address.toLowerCase() === ownerAddress.toLowerCase()
-
+    isConnected && isNormieOwner(address, ownerAddress)
   const isDelegateMatch =
-    !!isConnected &&
-    !!address &&
-    !!delegate &&
-    !isZeroAddr(delegate) &&
-    address.toLowerCase() === delegate.toLowerCase()
+    isConnected && isCanvasDelegate(address, delegate)
 
-  // Delegate support (hot wallet / cold storage pattern via Delegate.xyz):
-  // - isMyAgent includes delegates so personal features (Horizon auto, titles, storage) work for judges/users using hot wallets.
-  // - Snapshot data (traits, owner, delegate, canvas) is always fetched by tokenId, independent of connected wallet.
-  // - Linkage proof and UI explicitly handle owner + delegate.
-  const isMyAgent = isOwnerMatch || isDelegateMatch
+  // Owner or Canvas delegate — same feature access for both.
+  const isMyAgent = controlsNormie(address, ownerAddress, delegate)
 
   const { data: delegateEnsName } = useEnsName(
-    !isZeroAddr(delegate) ? delegate : undefined
+    !isZeroAddress(delegate) ? delegate : undefined
   )
 
   const {
@@ -596,13 +592,13 @@ export function Dashboard() {
                   icon: Boxes,
                   content: isLoading ? (
                     <Skeleton className="h-16 w-full" />
-                  ) : snapshot?.agent?.agentId ? (
+                  ) : resolvedAgentId ? (
                     <div>
                       <div className="flex items-center gap-2 text-emerald-400">
                         <CircleCheck className="size-4" />
                         <span>Registered on-chain</span>
                       </div>
-                      <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{snapshot.agent.agentId} recognized</div>
+                      <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{resolvedAgentId} recognized</div>
                       <div className="mt-2 text-xs text-muted-foreground">
                         Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
                       </div>
@@ -628,7 +624,7 @@ export function Dashboard() {
                         </a>
                         {ownerUsername && <span className="text-primary text-xs ml-2">@{ownerUsername}</span>}
                       </div>
-                      {delegate && !isZeroAddr(delegate) && (
+                      {delegate && !isZeroAddress(delegate) && (
                         <div>
                           <div className="text-xs text-muted-foreground">DELEGATE</div>
                           <a href={etherscanAddress(delegate)} target="_blank" className="font-mono text-foreground hover:text-primary">
@@ -637,7 +633,7 @@ export function Dashboard() {
                           {delegateEnsName && <span className="text-primary text-xs ml-2">{delegateEnsName}</span>}
                         </div>
                       )}
-                      {isMyAgent && delegate && !isZeroAddr(delegate) && (
+                      {isMyAgent && delegate && !isZeroAddress(delegate) && (
                         <div className="text-xs text-muted-foreground pt-1 border-t border-border/60">
                           Cold storage → hot ENS (verifiable)
                         </div>

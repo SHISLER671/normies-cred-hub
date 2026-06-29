@@ -1,3 +1,4 @@
+import { getResolvedAgentId, isNormieAwakened } from "@/lib/normie-control"
 import type {
   CredibilitySignal,
   CredibilitySignalCategory,
@@ -134,9 +135,9 @@ export function buildIdentitySignal(
     title: "On-Chain Identity",
     description:
       "This registers your Normie as a verifiable ERC-8004 agent on-chain. It creates a public, immutable record that other systems can reference.",
-    verifiable: !!snapshot?.agent?.agentId,
-    metadata: snapshot?.agent?.agentId
-      ? { agentId: snapshot.agent.agentId, registry: "erc-8004" }
+    verifiable: isNormieAwakened(snapshot?.agent, snapshot?.binding),
+    metadata: getResolvedAgentId(snapshot?.agent, snapshot?.binding)
+      ? { agentId: getResolvedAgentId(snapshot?.agent, snapshot?.binding), registry: "erc-8004" }
       : undefined,
     timestamp: snapshot?.agent?.registeredAt,
   })
@@ -267,8 +268,8 @@ export function getCurrentSignals(input: {
     buildCanvasSignal(snapshot),
     buildEthosSignal(ethos, ownerAddress),
     buildExternalSignal(snapshot),
-    buildWirePlaceholderSignal(snapshot?.agent?.agentId),
-    buildToolRegistryPlaceholderSignal(snapshot?.agent?.agentId),
+    buildWirePlaceholderSignal(getResolvedAgentId(snapshot?.agent, snapshot?.binding)),
+    buildToolRegistryPlaceholderSignal(getResolvedAgentId(snapshot?.agent, snapshot?.binding)),
   ]
 }
 
