@@ -693,7 +693,7 @@ export function Dashboard() {
                             >
                               normies.art/lab
                             </a>{" "}
-                            to unlock full access and advanced features.
+                            to unlock full access.
                           </p>
                         )}
                       </div>
