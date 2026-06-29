@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { fetchControlledNormies } from "@/lib/controlled-normies"
 
+/** Includes Canvas delegate scan across all awakened agents. */
+export const maxDuration = 60
+
 /**
  * Returns Normies controlled by a wallet:
  * direct owner, Delegate.xyz vault delegate, or Normies Canvas hot-wallet delegate.

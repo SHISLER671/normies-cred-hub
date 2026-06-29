@@ -153,11 +153,16 @@ export function YourNormies({
       </div>
 
       {isLoading ? (
-        <NormieScrollList>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <NormieCardSkeleton key={i} />
-          ))}
-        </NormieScrollList>
+        <>
+          <p className="mb-2 text-[11px] text-muted-foreground/80">
+            Checking direct ownership, Delegate.xyz, and Canvas delegations…
+          </p>
+          <NormieScrollList>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <NormieCardSkeleton key={i} />
+            ))}
+          </NormieScrollList>
+        </>
       ) : normies.length === 1 ? (
         <div className="flex">
           <NormieCard
