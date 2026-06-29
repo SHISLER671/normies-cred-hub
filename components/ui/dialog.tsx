@@ -55,8 +55,8 @@ function DialogContent({
         className={cn(
           "modal-content fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 p-6 text-sm text-popover-foreground duration-150 outline-none sm:max-w-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           // Mobile bottom-sheet friendly pattern (our recommended standard)
-          "md:rounded-[var(--radius-lg)] md:p-6",
-          "max-md:bottom-0 max-md:top-auto max-md:translate-y-0 max-md:rounded-t-[var(--radius-lg)] max-md:rounded-b-none max-md:p-5 max-md:pb-8",
+          "md:rounded-none md:p-6",
+          "max-md:bottom-0 max-md:top-auto max-md:translate-y-0 max-md:rounded-none max-md:p-5 max-md:pb-8",
           className
         )}
         {...props}
@@ -104,7 +104,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-[var(--radius-xl)] border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-none border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}

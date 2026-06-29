@@ -28,7 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CredibilityConnector, CredibilitySignal } from "@/components/credibility-signal"
 import { ERC8004 } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
-import { getCurrentSignals } from "@/lib/signals"
+import { getCurrentSignals, validateSignals } from "@/lib/signals"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -76,7 +76,20 @@ export function Dashboard() {
 
   const isAgentType = agentType === "Agent"
 
-  const frameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
+  const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
+  const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
+  // Use validated signals when all pass; otherwise keep trusted builders to avoid UI regressions
+  const frameworkSignals =
+    validSignals.length === rawFrameworkSignals.length
+      ? validSignals
+      : rawFrameworkSignals
+
+  useEffect(() => {
+    if (invalidSignals.length > 0 && process.env.NODE_ENV === "development") {
+      console.warn("[Credibility] Invalid signals detected:", invalidSignals)
+    }
+  }, [invalidSignals])
+
   const [
     identitySignal,
     ownershipSignal,
@@ -693,7 +706,7 @@ export function Dashboard() {
                     <>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Clock className="size-4" />
-                        <span>Coming soon – Wire signals</span>
+                        <span>Coming soon — Wire UTL integration</span>
                       </div>
                       <p className="text-sm leading-relaxed text-muted-foreground mt-2 text-pretty">
                         Verifiable execution history, settlement certainty, and cross-chain reliability will appear here when Wire integration is live.

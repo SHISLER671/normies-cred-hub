@@ -1,10 +1,112 @@
 import type {
   CredibilitySignal,
+  CredibilitySignalCategory,
   EthosScoreResult,
   NormieSnapshot,
   ToolRegistrySignal,
   WireExecutionSignal,
 } from "@/lib/types"
+
+const ALLOWED_CATEGORIES: CredibilitySignalCategory[] = [
+  "identity",
+  "ownership",
+  "execution",
+  "reputation",
+  "external",
+]
+
+export type SignalValidationResult = {
+  isValid: boolean
+  errors: string[]
+}
+
+export type InvalidSignalRecord = {
+  signal: unknown
+  errors: string[]
+}
+
+/** Validate a single credibility signal before UI consumption. */
+export function validateSignal(signal: unknown): SignalValidationResult {
+  const errors: string[] = []
+
+  if (!signal || typeof signal !== "object") {
+    return { isValid: false, errors: ["Signal must be a non-null object"] }
+  }
+
+  const s = signal as Record<string, unknown>
+
+  if (typeof s.id !== "string" || s.id.trim() === "") {
+    errors.push("id is required and must be a non-empty string")
+  }
+
+  if (typeof s.source !== "string" || s.source.trim() === "") {
+    errors.push("source is required and must be a non-empty string")
+  }
+
+  if (
+    typeof s.category !== "string" ||
+    !ALLOWED_CATEGORIES.includes(s.category as CredibilitySignalCategory)
+  ) {
+    errors.push(
+      `category must be one of: ${ALLOWED_CATEGORIES.join(", ")}`
+    )
+  }
+
+  if (typeof s.title !== "string" || s.title.trim() === "") {
+    errors.push("title is required and must be a non-empty string")
+  }
+
+  if (typeof s.verifiable !== "boolean") {
+    errors.push("verifiable is required and must be a boolean")
+  }
+
+  if (s.score !== undefined && s.score !== null) {
+    if (typeof s.score !== "number" || Number.isNaN(s.score)) {
+      errors.push("score must be a number when provided")
+    } else if (s.score < 0 || s.score > 100) {
+      errors.push("score must be between 0 and 100 when provided")
+    }
+  }
+
+  if (s.weight !== undefined && s.weight !== null) {
+    if (typeof s.weight !== "number" || Number.isNaN(s.weight)) {
+      errors.push("weight must be a number when provided")
+    } else if (s.weight < 0 || s.weight > 1) {
+      errors.push("weight must be between 0 and 1 when provided")
+    }
+  }
+
+  return { isValid: errors.length === 0, errors }
+}
+
+/** Batch-validate signals; partition into valid and invalid sets. */
+export function validateSignals(signals: unknown[]): {
+  validSignals: CredibilitySignal[]
+  invalidSignals: InvalidSignalRecord[]
+} {
+  if (!Array.isArray(signals)) {
+    return {
+      validSignals: [],
+      invalidSignals: [
+        { signal: signals, errors: ["Input must be an array of signals"] },
+      ],
+    }
+  }
+
+  const validSignals: CredibilitySignal[] = []
+  const invalidSignals: InvalidSignalRecord[] = []
+
+  for (const signal of signals) {
+    const result = validateSignal(signal)
+    if (result.isValid) {
+      validSignals.push(signal as CredibilitySignal)
+    } else {
+      invalidSignals.push({ signal, errors: result.errors })
+    }
+  }
+
+  return { validSignals, invalidSignals }
+}
 
 /** Ensure a partial signal has consistent defaults before rendering or aggregation. */
 export function normalizeSignal(
@@ -124,9 +226,9 @@ export function buildWirePlaceholderSignal(
     id: `wire-placeholder-${agentId ?? "pending"}`,
     source: "wire",
     category: "execution",
-    title: "Cross-Chain Execution (Wire)",
+    title: "Cross-Chain Execution (Wire Network)",
     description:
-      "Wire Network UTL provides deterministic, verifiable cross-chain execution history — transaction certainty and reliability signals for autonomous agents.",
+      "Prepared for Wire Network integration. Future signals will include verifiable cross-chain execution history and transaction reliability for awakened agents.",
     verifiable: false,
     metadata: { status: "coming_soon" },
   })
@@ -214,9 +316,9 @@ export function wireExecutionToSignal(
     id: `wire-execution-${execution.agentId}`,
     source: "wire",
     category: "execution",
-    title: "Cross-Chain Execution (Wire)",
+    title: "Cross-Chain Execution (Wire Network)",
     description:
-      "Verifiable execution history and settlement certainty from Wire Network UTL.",
+      "Prepared for Wire Network integration. Future signals will include verifiable cross-chain execution history and transaction reliability for awakened agents.",
     score: execution.settlementCertainty,
     verifiable: true,
     metadata: {

@@ -94,7 +94,7 @@ export function EthosReputation({
       <CardContent className="flex flex-1 flex-col gap-4">
         {isLoading ? (
           <div className="flex flex-col items-center gap-4">
-            <Skeleton className="h-[104px] w-[180px] rounded-2xl" />
+            <Skeleton className="h-[104px] w-[180px] rounded-none" />
             <Skeleton className="h-7 w-28" />
             <div className="flex flex-col w-full gap-2">
               <Skeleton className="h-12" />
@@ -148,7 +148,7 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
         href={user.username ? `https://app.ethos.network/profile/x/${user.username}` : user.links.scoreBreakdown}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-sm tracking-widest rounded-2xl hover:bg-primary hover:text-background"
+        className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-sm tracking-widest rounded-none hover:bg-primary hover:text-background"
       >
         {user.username ? 'VIEW ON ETHOS' : 'FULL BREAKDOWN'} <ExternalLink className="size-3" />
       </a>

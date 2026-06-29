@@ -78,7 +78,7 @@ export function ToolsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 <div className="flex justify-between items-start gap-3">
                   <div>
                     <h3 className="font-semibold tracking-tight">{tool.name}</h3>
-                    <span className="inline-block text-[10px] tracking-[1.5px] text-muted-foreground bg-muted px-2 py-0.5 rounded mt-1.5">
+                    <span className="inline-block text-[10px] tracking-[1.5px] text-muted-foreground bg-muted px-2 py-0.5 rounded-none mt-1.5">
                       {tool.category}
                     </span>
                   </div>
