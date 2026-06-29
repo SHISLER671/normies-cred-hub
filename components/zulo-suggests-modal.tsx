@@ -62,6 +62,8 @@ export function AgentHorizonModal({
   useEffect(() => {
     if (open) {
       resetSession()
+      const timer = window.setTimeout(() => inputRef.current?.focus(), 150)
+      return () => window.clearTimeout(timer)
     }
   }, [open, resetSession])
 
@@ -161,7 +163,7 @@ export function AgentHorizonModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[min(88vh,780px)] max-h-[88vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl max-md:h-[92dvh] max-md:max-h-[92dvh]">
+      <DialogContent className="!flex h-[min(88vh,780px)] max-h-[88vh] min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl max-md:h-[92dvh] max-md:max-h-[92dvh]">
         <DialogHeader className="shrink-0 space-y-0 border-b border-border px-4 py-3 sm:px-5 sm:py-3.5">
           <div className="flex items-center justify-between gap-3 pr-10">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -185,8 +187,8 @@ export function AgentHorizonModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Insights — compact row on wide screens to preserve chat height */}
-        <section className="shrink-0 border-b border-border bg-card/30 px-4 py-3 sm:px-5">
+        {/* Insights — capped height on small screens so chat input stays visible */}
+        <section className="shrink-0 border-b border-border bg-card/30 px-4 py-3 sm:px-5 max-md:max-h-[26vh] max-md:overflow-y-auto">
           <SectionLabel className="mb-2 text-[10px] text-primary tracking-[2px] sm:text-xs">
             Zulo&apos;s Take
           </SectionLabel>
@@ -207,20 +209,20 @@ export function AgentHorizonModal({
           </div>
         </section>
 
-        {/* Chat — primary interactive area */}
-        <section className="flex min-h-0 flex-1 flex-col bg-secondary/10">
+        {/* Chat — primary interactive area; input pinned to bottom */}
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-secondary/10">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 px-4 py-2 sm:px-5">
             <SectionLabel className="text-foreground tracking-[2px]">Talk to Zulo</SectionLabel>
             <p className="text-right text-[10px] tracking-[0.5px] text-muted-foreground">
               {remainingUserMessages > 0
-                ? `${remainingUserMessages} left · ${ZULO_HORIZON_LIMITS.maxInputChars} chars`
-                : "Limit reached"}
+                ? `${remainingUserMessages} left · ${ZULO_HORIZON_LIMITS.maxInputChars} char max · 10 min session`
+                : "Session limit reached — start a new chat to continue"}
             </p>
           </div>
 
           <div
             ref={chatScrollRef}
-            className="min-h-[min(42vh,320px)] flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 [scrollbar-width:thin]"
+            className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 [scrollbar-width:thin]"
           >
             <div className="flex flex-col gap-3.5 sm:gap-4">
               {messages.map((msg, i) => (
@@ -235,47 +237,49 @@ export function AgentHorizonModal({
             </div>
           </div>
 
-          {error && (
-            <div className="shrink-0 border-t border-destructive/20 bg-destructive/5 px-4 py-2.5 text-sm text-destructive sm:px-5">
-              {error}
-            </div>
-          )}
+          <div className="shrink-0 border-t border-border bg-popover">
+            {error && (
+              <div className="border-b border-destructive/20 bg-destructive/5 px-4 py-2 text-sm text-destructive sm:px-5">
+                {error}
+              </div>
+            )}
 
-          <div className="shrink-0 border-t border-border bg-card/70 px-4 py-3.5 sm:px-5 sm:py-4">
-            <div className="flex items-end gap-3">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) =>
-                  setInput(e.target.value.slice(0, ZULO_HORIZON_LIMITS.maxInputChars))
-                }
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  limitReached
-                    ? "Start a new chat to continue…"
-                    : "Ask Zulo anything about Normies, Canvas, or your agent…"
-                }
-                disabled={isLoading || limitReached}
-                rows={2}
-                className="min-h-[52px] max-h-[120px] flex-1 resize-none rounded-none border border-border bg-background px-3.5 py-2.5 text-sm leading-relaxed placeholder:text-muted-foreground focus:border-primary focus:outline-none disabled:opacity-50"
-                aria-label="Message to Zulo"
-              />
-              <Button
-                type="button"
-                size="icon"
-                onClick={() => void sendMessage()}
-                disabled={!canSend}
-                className="size-11 shrink-0 rounded-none"
-                aria-label="Send message"
-              >
-                <Send className="size-4" />
-              </Button>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
-              <span>Enter to send · Shift+Enter for newline</span>
-              <span>
-                {input.length}/{ZULO_HORIZON_LIMITS.maxInputChars}
-              </span>
+            <div className="px-4 py-3.5 sm:px-5 sm:py-4">
+              <div className="flex items-end gap-3">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) =>
+                    setInput(e.target.value.slice(0, ZULO_HORIZON_LIMITS.maxInputChars))
+                  }
+                  onKeyDown={handleKeyDown}
+                  placeholder={
+                    limitReached
+                      ? "Start a new chat to continue…"
+                      : "Ask Zulo anything about Normies, Canvas, or your agent…"
+                  }
+                  disabled={isLoading || limitReached}
+                  rows={2}
+                  className="min-h-[52px] max-h-[120px] flex-1 resize-none rounded-none border border-border bg-background px-3.5 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Message to Zulo"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  onClick={() => void sendMessage()}
+                  disabled={!canSend}
+                  className="size-11 shrink-0 rounded-none"
+                  aria-label="Send message"
+                >
+                  <Send className="size-4" />
+                </Button>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+                <span>Enter to send · Shift+Enter for newline</span>
+                <span>
+                  {input.length}/{ZULO_HORIZON_LIMITS.maxInputChars}
+                </span>
+              </div>
             </div>
           </div>
         </section>
