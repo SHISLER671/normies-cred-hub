@@ -1,35 +1,32 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-import { getCanvasDelegatedTokenIds } from "@/lib/canvas-delegate-index"
-
-/** Canvas delegate scan walks ~12 pages of awakened agents; allow extra time on Vercel. */
-export const maxDuration = 60
+import { scanCanvasDelegatePage } from "@/lib/canvas-delegate-index"
 
 /**
- * Returns token IDs where the wallet is set as the Normies Canvas delegate.
- * Result is cached per address for 10 minutes.
+ * Scans one page of awakened agents per request (~5–9s) so each call stays
+ * within Vercel Hobby's 10s serverless limit. Clients paginate with `cursor`.
  */
+export const maxDuration = 10
+
 export async function GET(req: NextRequest) {
   const address = req.nextUrl.searchParams.get("address")?.trim()
+  const cursor = req.nextUrl.searchParams.get("cursor")?.trim() || null
 
   if (!address || !/^0x[a-fA-F0-9]{40}$/i.test(address)) {
     return NextResponse.json({ error: "A valid address query param is required." }, { status: 400 })
   }
 
   try {
-    const tokenIds = await getCanvasDelegatedTokenIds(address)
-    return NextResponse.json(
-      { tokenIds },
-      {
-        headers: {
-          "Cache-Control": "private, max-age=60, stale-while-revalidate=300",
-        },
+    const page = await scanCanvasDelegatePage(address, cursor)
+    return NextResponse.json(page, {
+      headers: {
+        "Cache-Control": "private, max-age=30, stale-while-revalidate=120",
       },
-    )
+    })
   } catch (err) {
-    console.error("[canvas-delegates] scan failed", err)
+    console.error("[canvas-delegates] page scan failed", err)
     return NextResponse.json(
-      { error: "Could not resolve Canvas delegate Normies for this wallet." },
+      { error: "Could not scan Canvas delegates for this page." },
       { status: 502 },
     )
   }

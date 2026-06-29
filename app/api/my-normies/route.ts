@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { fetchControlledNormies } from "@/lib/controlled-normies"
 
-/** Includes Canvas delegate scan across all awakened agents. */
-export const maxDuration = 60
+/** Canvas delegate scan is paginated client-side; this route only serves fast paths. */
+export const maxDuration = 10
 
 /**
  * Returns Normies controlled by a wallet:

@@ -12,6 +12,8 @@ import { enrichOwnedNormies, normiesApi } from "@/lib/api/normies"
 import { publicClient } from "@/lib/viem-client"
 import type { OwnedNormie } from "@/lib/types"
 
+const CANVAS_DELEGATE_CACHE_MS = 10 * 60 * 1000
+
 async function fetchDelegateXyzTokenIds(wallet: `0x${string}`): Promise<number[]> {
   const delegatedIds: number[] = []
 
@@ -60,28 +62,84 @@ async function fetchDelegateXyzTokenIds(wallet: `0x${string}`): Promise<number[]
   return delegatedIds
 }
 
-/** Server-cached scan for Normies Canvas hot-wallet delegates. */
-async function fetchCanvasDelegatedTokenIds(address: string): Promise<number[]> {
+function readCanvasDelegateCache(address: string): number[] | null {
   try {
-    const res = await fetch(
-      `/api/canvas-delegates?address=${encodeURIComponent(address)}`,
-    )
-    if (!res.ok) return []
-
-    const data = (await res.json()) as { tokenIds?: Array<number | string> }
-    return (data.tokenIds ?? [])
-      .map((id) => Number(id))
-      .filter((id) => Number.isFinite(id))
+    const raw = sessionStorage.getItem(`canvas-delegates:${address.toLowerCase()}`)
+    if (!raw) return null
+    const { ts, ids } = JSON.parse(raw) as { ts: number; ids: number[] }
+    if (Date.now() - ts > CANVAS_DELEGATE_CACHE_MS) return null
+    return ids
   } catch {
-    return []
+    return null
   }
+}
+
+function writeCanvasDelegateCache(address: string, ids: number[]): void {
+  try {
+    sessionStorage.setItem(
+      `canvas-delegates:${address.toLowerCase()}`,
+      JSON.stringify({ ts: Date.now(), ids }),
+    )
+  } catch {
+    // sessionStorage may be unavailable
+  }
+}
+
+/**
+ * Paginated Canvas delegate scan — one serverless page per request to avoid
+ * Vercel's 10s timeout on full scans (~13 pages total).
+ */
+async function fetchCanvasDelegatedTokenIds(address: string): Promise<number[]> {
+  const cached = readCanvasDelegateCache(address)
+  if (cached) return cached
+
+  const allIds: number[] = []
+  let cursor: string | null = null
+  let hasMore = true
+  let pages = 0
+  const maxPages = 20
+
+  while (hasMore && pages < maxPages) {
+    const params = new URLSearchParams({ address })
+    if (cursor) params.set("cursor", cursor)
+
+    const res = await fetch(`/api/canvas-delegates?${params.toString()}`)
+    if (!res.ok) {
+      console.warn("[useMyNormies] Canvas delegate page failed", res.status)
+      break
+    }
+
+    const data = (await res.json()) as {
+      tokenIds?: Array<number | string>
+      nextCursor?: string | null
+      hasMore?: boolean
+    }
+
+    for (const id of data.tokenIds ?? []) {
+      const parsed = Number(id)
+      if (Number.isFinite(parsed)) allIds.push(parsed)
+    }
+
+    hasMore = !!data.hasMore
+    cursor = data.nextCursor ?? null
+    pages += 1
+
+    if (hasMore && !cursor) break
+  }
+
+  const unique = Array.from(new Set(allIds)).sort((a, b) => a - b)
+  if (unique.length > 0 || pages >= maxPages || !hasMore) {
+    writeCanvasDelegateCache(address, unique)
+  }
+
+  return unique
 }
 
 /**
  * Normies controlled by a wallet:
  * - direct owner (holders API)
  * - Delegate.xyz vault delegate (on-chain registry)
- * - Normies Canvas hot-wallet delegate (server scan + cache)
+ * - Normies Canvas hot-wallet delegate (paginated server scan + session cache)
  */
 export function useMyNormies(address?: string) {
   return useQuery({

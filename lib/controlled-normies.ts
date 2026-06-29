@@ -1,6 +1,6 @@
 import { getAddress } from "viem"
 
-import { getCanvasDelegatedTokenIds } from "@/lib/canvas-delegate-index"
+import { scanAllCanvasDelegatedTokenIds } from "@/lib/canvas-delegate-index"
 import { enrichOwnedNormiesServer } from "@/lib/normies-server"
 import {
   DELEGATE_REGISTRY,
@@ -82,7 +82,7 @@ export async function fetchControlledTokenIds(address: string): Promise<number[]
   const [directIds, delegateXyzIds, canvasDelegateIds] = await Promise.all([
     fetchDirectHolderIds(normalized),
     fetchDelegateXyzTokenIds(normalized),
-    getCanvasDelegatedTokenIds(normalized),
+    scanAllCanvasDelegatedTokenIds(normalized).catch(() => [] as number[]),
   ])
 
   const uniqueIds = Array.from(new Set([...directIds, ...delegateXyzIds, ...canvasDelegateIds]))
