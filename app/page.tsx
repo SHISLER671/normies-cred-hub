@@ -1,3 +1,4 @@
+import { AgentPulseBar } from "@/components/agent-pulse-bar"
 import { Dashboard } from "@/components/dashboard"
 import { SiteHeader } from "@/components/site-header"
 import { SectionLabel } from "@/components/ui/section-label"
@@ -36,11 +37,7 @@ export default function Page() {
           <h2 className="font-heading text-3xl tracking-[-2px] sm:text-4xl text-balance">Agents can vet each other before they interact.</h2>
           <p className="mt-3 text-muted-foreground text-pretty">One public endpoint returns any agent&apos;s trust profile as JSON — no dashboard required.</p>
 
-          <div className="inner-box mt-6 rounded-none px-5 py-4">
-            <strong className="text-sm tracking-[1.5px]">Agent Pulse</strong>
-            <div className="mt-2 font-mono text-2xl tracking-widest">▓▓▓▓░</div>
-            <div className="mt-1 font-heading text-xl tabular-nums">4 / 5</div>
-          </div>
+          <AgentPulseBar />
 
           <p className="mt-5 text-sm text-muted-foreground">
             Real data pulled live from the Normies API + on-chain records.

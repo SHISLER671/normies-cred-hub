@@ -122,6 +122,60 @@ body {
   transform: translateY(0.5px) scale(0.985);
 }
 
+/* Agent Pulse — calm breathing glow scaled by pulse level (higher = stronger) */
+.pulse-bar {
+  --pulse-ratio: calc(var(--pulse-level) / var(--pulse-max));
+  --pulse-glow-min: calc(6px + var(--pulse-ratio) * 6px);
+  --pulse-glow-max: calc(16px + var(--pulse-ratio) * 18px);
+  --pulse-glow-strength-min: calc(18% + var(--pulse-ratio) * 14%);
+  --pulse-glow-strength-max: calc(32% + var(--pulse-ratio) * 28%);
+  animation: pulse-breathe 4.5s ease-in-out infinite;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) calc(22% + var(--pulse-ratio) * 30%), transparent),
+    0 0 var(--pulse-glow-min) -3px color-mix(in oklab, var(--primary) var(--pulse-glow-strength-min), transparent);
+}
+
+.pulse-bar:hover,
+.pulse-bar:focus-visible {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) calc(40% + var(--pulse-ratio) * 35%), transparent),
+    0 0 calc(12px + var(--pulse-ratio) * 14px) -2px color-mix(in oklab, var(--primary) calc(30% + var(--pulse-ratio) * 25%), transparent);
+}
+
+.pulse-bar:active {
+  transform: translateY(0.5px) scale(0.985);
+}
+
+.pulse-bar-glyphs {
+  animation: pulse-glyphs 4.5s ease-in-out infinite;
+  text-shadow: 0 0 calc(6px + var(--pulse-ratio) * 10px)
+    color-mix(in oklab, var(--primary) calc(28% + var(--pulse-ratio) * 36%), transparent);
+}
+
+@keyframes pulse-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) calc(22% + var(--pulse-ratio) * 30%), transparent),
+      0 0 var(--pulse-glow-min) -3px color-mix(in oklab, var(--primary) var(--pulse-glow-strength-min), transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) calc(36% + var(--pulse-ratio) * 38%), transparent),
+      0 0 var(--pulse-glow-max) -2px color-mix(in oklab, var(--primary) var(--pulse-glow-strength-max), transparent);
+  }
+}
+
+@keyframes pulse-glyphs {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: calc(0.94 + var(--pulse-ratio) * 0.05);
+    filter: brightness(calc(1 + var(--pulse-ratio) * 0.1));
+  }
+}
+
 /* Very faint monochrome pixel texture — Normies inspired, extremely subtle */
 .pixel-texture {
   background-image: 
