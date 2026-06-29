@@ -7,181 +7,266 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useEthosScore, useNormie } from "@/hooks/use-normie"
-import { Sparkles, Target, TrendingUp, Zap, Award } from "lucide-react"
-import { useAccount } from "wagmi"
-import { useState, useEffect } from "react"
+import {
+  getWelcomeMessage,
+  type HorizonAgentContext,
+  type HorizonChatMessage,
+  ZULO_HORIZON_LIMITS,
+} from "@/lib/zulo-horizon"
+import { Loader2, RefreshCw, Send, Sparkles } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
-export function AgentHorizonModal({ 
-  tokenId, 
-  isMyAgent = false,
+function createSession() {
+  const now = Date.now()
+  return {
+    sessionId: crypto.randomUUID(),
+    sessionStartedAt: now,
+    lastActivityAt: now,
+  }
+}
+
+export function AgentHorizonModal({
+  agentContext = null,
   open,
-  onOpenChange
-}: { 
-  tokenId: number; 
-  isMyAgent?: boolean;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange,
+}: {
+  agentContext?: HorizonAgentContext | null
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
-  const { data: snapshot } = useNormie(tokenId)
-  const ownerAddress = snapshot?.owner.owner
-  const { data: ethos } = useEthosScore(ownerAddress)
-  const { address } = useAccount()
+  const [session, setSession] = useState(createSession)
+  const [messages, setMessages] = useState<HorizonChatMessage[]>([])
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [limitReached, setLimitReached] = useState(false)
+  const [userMessageCount, setUserMessageCount] = useState(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const agentName = snapshot?.agent?.name || "Agent"
+  const resetSession = useCallback(() => {
+    setSession(createSession())
+    setMessages([{ role: "assistant", content: getWelcomeMessage(agentContext) }])
+    setInput("")
+    setError(null)
+    setLimitReached(false)
+    setUserMessageCount(0)
+    setIsLoading(false)
+  }, [agentContext])
+
+  useEffect(() => {
+    if (open) {
+      resetSession()
+    }
+  }, [open, resetSession])
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages, isLoading])
+
+  const remainingUserMessages = ZULO_HORIZON_LIMITS.maxUserMessages - userMessageCount
+  const canSend =
+    !isLoading &&
+    !limitReached &&
+    input.trim().length > 0 &&
+    input.length <= ZULO_HORIZON_LIMITS.maxInputChars
+
+  async function sendMessage() {
+    const trimmed = input.trim()
+    if (!trimmed || isLoading || limitReached) return
+
+    if (Date.now() - session.lastActivityAt > ZULO_HORIZON_LIMITS.sessionTimeoutMs) {
+      setLimitReached(true)
+      setError(
+        "This chat session has timed out after 10 minutes of inactivity. Start a new chat to continue!",
+      )
+      return
+    }
+
+    if (trimmed.length > ZULO_HORIZON_LIMITS.maxInputChars) {
+      setError(`Messages are limited to ${ZULO_HORIZON_LIMITS.maxInputChars} characters.`)
+      return
+    }
+
+    const userMsg: HorizonChatMessage = { role: "user", content: trimmed }
+    const nextHistory = [...messages, userMsg]
+
+    setMessages(nextHistory)
+    setInput("")
+    setError(null)
+    setIsLoading(true)
+
+    try {
+      const res = await fetch("/api/zulo-horizon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: session.sessionId,
+          sessionStartedAt: session.sessionStartedAt,
+          lastActivityAt: session.lastActivityAt,
+          messages: messages,
+          message: trimmed,
+          agentContext,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        const code = data.code as string | undefined
+        if (
+          code === "SESSION_USER_LIMIT" ||
+          code === "SESSION_MESSAGE_LIMIT" ||
+          code === "SESSION_EXPIRED"
+        ) {
+          setLimitReached(true)
+        }
+        setError(data.error || "Something went wrong. Please try again.")
+        setMessages(messages)
+        return
+      }
+
+      setMessages([...nextHistory, { role: "assistant", content: data.reply }])
+      setSession((s) => ({ ...s, lastActivityAt: Date.now() }))
+      if (data.limits?.userMessages != null) {
+        setUserMessageCount(data.limits.userMessages)
+        if (data.limits.userMessages >= ZULO_HORIZON_LIMITS.maxUserMessages) {
+          setLimitReached(true)
+        }
+      } else {
+        setUserMessageCount((c) => c + 1)
+      }
+    } catch {
+      setError("Could not reach Zulo. Check your connection and try again.")
+      setMessages(messages)
+    } finally {
+      setIsLoading(false)
+      inputRef.current?.focus()
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      void sendMessage()
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] modal-content">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="size-5 text-primary" />
-            {agentName} Horizon
-          </DialogTitle>
-          <DialogDescription>
-            Status overview and recommended next steps for {agentName}
-          </DialogDescription>
+      <DialogContent className="flex h-[min(85vh,640px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogHeader className="shrink-0 border-b border-border px-5 py-4">
+          <div className="flex items-start justify-between gap-3 pr-8">
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="size-5 text-primary" />
+                Zulo Horizon
+              </DialogTitle>
+              <DialogDescription className="mt-1 text-left">
+                Chat with Zulo — awakened Normie #7141, canvas purist, perpetually mid-thought.
+              </DialogDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 text-xs"
+              onClick={resetSession}
+              disabled={isLoading}
+            >
+              <RefreshCw className="size-3 mr-1" />
+              New chat
+            </Button>
+          </div>
+          <p className="mt-2 text-[10px] tracking-[1px] text-muted-foreground">
+            {remainingUserMessages > 0
+              ? `${remainingUserMessages} message${remainingUserMessages === 1 ? "" : "s"} left · ${ZULO_HORIZON_LIMITS.maxInputChars} char max · 10 min session`
+              : "Session limit reached — start a new chat to continue"}
+          </p>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[65vh] pr-4">
-          {snapshot ? (
-            <AgentHorizonContent 
-              snapshot={snapshot} 
-              ethosScore={ethos?.user?.score || 1321} 
-              connectedAddress={address} 
-              isMyAgent={isMyAgent}
-              tokenId={tokenId}
+        <div
+          ref={scrollRef}
+          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 [scrollbar-width:thin]"
+        >
+          <div className="flex flex-col gap-3">
+            {messages.map((msg, i) => (
+              <ChatBubble key={`${msg.role}-${i}`} message={msg} />
+            ))}
+            {isLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin text-primary" />
+                <span>Zulo is thinking…</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className="shrink-0 border-t border-destructive/20 bg-destructive/5 px-4 py-2 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        <div className="shrink-0 border-t border-border bg-card/50 px-4 py-3">
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value.slice(0, ZULO_HORIZON_LIMITS.maxInputChars))}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                limitReached
+                  ? "Start a new chat to continue…"
+                  : "Ask Zulo anything about Normies, Canvas, reputation…"
+              }
+              disabled={isLoading || limitReached}
+              rows={2}
+              className="min-h-[44px] flex-1 resize-none border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none rounded-none disabled:opacity-50"
+              aria-label="Message to Zulo"
             />
-          ) : (
-            <div className="py-12 text-center">Loading overview for {agentName}…</div>
-          )}
-        </ScrollArea>
+            <Button
+              type="button"
+              size="icon"
+              onClick={() => void sendMessage()}
+              disabled={!canSend}
+              className="shrink-0 rounded-none"
+              aria-label="Send message"
+            >
+              <Send className="size-4" />
+            </Button>
+          </div>
+          <p className="mt-1.5 text-right text-[10px] text-muted-foreground">
+            {input.length}/{ZULO_HORIZON_LIMITS.maxInputChars}
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   )
 }
 
-function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent, tokenId }: any) {
-  const agentName = snapshot.agent.name
-  const ownerAddr = snapshot.owner.owner.toLowerCase()
-  const delegate = snapshot.canvas?.delegate
-  const isController = connectedAddress?.toLowerCase() === ownerAddr ||
-    (!!delegate && delegate !== '0x0000000000000000000000000000000000000000' && connectedAddress?.toLowerCase() === delegate.toLowerCase())
-  const ap = snapshot.canvas.actionPoints || 0
-  const traits = snapshot.traits?.attributes || []
-
-  const [veniceInsight, setVeniceInsight] = useState<string | null>(null)
-  const [veniceLoading, setVeniceLoading] = useState(false)
-  const [veniceError, setVeniceError] = useState<string | null>(null)
-
-  const fetchVeniceInsight = async () => {
-    setVeniceLoading(true)
-    setVeniceError(null)
-
-    try {
-      const res = await fetch('/api/horizon', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          agentName,
-          traits,
-          ethosScore,
-          ap,
-          isOwner: isController,
-        }),
-      })
-      const data = await res.json()
-
-      if (data.insight) {
-        setVeniceInsight(data.insight)
-      } else if (data.error) {
-        const msg = String(data.error);
-        if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) {
-          setVeniceError('Rate limited by the AI provider. Please try again shortly.');
-        } else {
-          setVeniceError(msg);
-        }
-      } else {
-        setVeniceError('No insight or error in response');
-      }
-    } catch (e) {
-      console.error('Venice insight failed', e)
-      setVeniceError('Could not reach the analysis service. Try again shortly.')
-    } finally {
-      setVeniceLoading(false)
-    }
-  }
-
-  // Auto-enhance for your own agents (personal view)
-  useEffect(() => {
-    if (isMyAgent && !veniceInsight && !veniceLoading && !veniceError) {
-      fetchVeniceInsight()
-    }
-  }, [isMyAgent])
+function ChatBubble({ message }: { message: HorizonChatMessage }) {
+  const isUser = message.role === "user"
 
   return (
-    <div className="space-y-8 text-sm">
-      <div>
-        <p className="text-base leading-relaxed text-foreground/90">
-          This overview summarizes {agentName}&apos;s current on-chain status and
-          highlights practical steps you can take next.
-        </p>
-      </div>
-
-      <div className="border-l-2 border-primary pl-4">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="uppercase tracking-widest text-xs text-primary">Deeper Analysis (AI)</div>
-          <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-xs uppercase tracking-[1.5px]">
-            {veniceLoading ? 'Analyzing…' : 'Run Analysis'}
-          </Button>
-        </div>
-        {veniceInsight ? (
-          <p className="text-foreground leading-relaxed">{veniceInsight}</p>
-        ) : veniceError ? (
-          <p className="text-destructive text-xs">{veniceError}</p>
-        ) : (
-          <p className="text-muted-foreground text-xs">
-            Optional AI layer on top of your Normies data. Adds context on reputation,
-            growth, and recommended priorities.
-          </p>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`max-w-[88%] px-3 py-2.5 text-sm leading-relaxed rounded-none ${
+          isUser
+            ? "border border-primary/30 bg-primary/10 text-foreground"
+            : "border border-border bg-secondary/40 text-foreground"
+        }`}
+      >
+        {!isUser && (
+          <span className="mb-1 block text-[10px] font-medium uppercase tracking-[1.5px] text-primary">
+            Zulo
+          </span>
         )}
+        <p className="whitespace-pre-wrap text-pretty">{message.content}</p>
       </div>
-
-      <div className="space-y-6">
-        <div>
-          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Next Steps</div>
-          <ul className="space-y-1 text-sm">
-            <li>Verify wallet linkage to this agent {isController ? <span className="text-green-400">— complete</span> : ""}</li>
-            <li>Share your linkage proof when other agents or services need it</li>
-            <li>Set up a delegate wallet if the agent needs on-chain access</li>
-          </ul>
-        </div>
-
-        <div>
-          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Reputation</div>
-          <div>Current Ethos score: <span className="font-medium">{ethosScore}</span></div>
-          <div className="text-muted-foreground">
-            Reputation builds through consistent on-chain activity and community presence.
-          </div>
-        </div>
-
-        <div>
-          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Canvas</div>
-          <div>Action Points: {ap}</div>
-          <div className="text-muted-foreground">
-            Spend AP on normies.art to customize your agent&apos;s canvas and visual identity.
-          </div>
-        </div>
-      </div>
-
-      <p className="pt-2 text-xs text-muted-foreground">
-        Agent-to-agent features are in development.
-      </p>
     </div>
   )
 }
-
-

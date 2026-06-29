@@ -34,6 +34,7 @@ import { CredibilityConnector, CredibilitySignal } from "@/components/credibilit
 import { ERC8004 } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { getCurrentSignals, validateSignals } from "@/lib/signals"
+import type { HorizonAgentContext } from "@/lib/zulo-horizon"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -80,6 +81,20 @@ export function Dashboard() {
   )?.value || "Unknown"
 
   const isAwakened = !!snapshot?.agent?.agentId
+
+  const horizonAgentContext: HorizonAgentContext | null =
+    snapshot && !isError
+      ? {
+          tokenId,
+          name: snapshot.agent?.name || `Normie #${tokenId}`,
+          type: String(agentType),
+          isAwakened,
+          traits: snapshot.traits?.attributes,
+          canvasLevel: snapshot.canvas?.level,
+          actionPoints: snapshot.canvas?.actionPoints,
+          ethosScore: ethos?.user?.score,
+        }
+      : null
 
   const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
   const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
@@ -451,6 +466,20 @@ export function Dashboard() {
         </div>
       )}
 
+      <button
+        type="button"
+        onClick={() => setShowHorizonModal(true)}
+        className="group glow-primary flex w-full flex-col items-start gap-2 rounded-none border border-primary/40 bg-card/55 p-4 text-left transition-all hover:border-primary/60 hover:bg-primary/5 active:scale-[0.985]"
+      >
+        <div className="flex items-center gap-2">
+          <Sparkles className="size-4 text-primary" />
+          <span className="font-semibold">Zulo Horizon</span>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Chat with Zulo — awakened Normie #7141. Ask about Normies, Canvas, reputation, or your loaded agent.
+        </p>
+      </button>
+
       {isError ? (
         <Card className="border-destructive/40">
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
@@ -514,19 +543,7 @@ export function Dashboard() {
 
           {/* Key Actions — card style buttons */}
           {snapshot && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Zulo Horizon Card */}
-              <button
-                onClick={() => setShowHorizonModal(true)}
-                className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
-              >
-                <div className="flex items-center gap-2">
-                  <Sparkles className="size-4 text-primary" />
-                  <span className="font-semibold">Zulo Horizon</span>
-                </div>
-                <p className="text-sm text-muted-foreground">View status, next steps, and optional AI analysis.</p>
-              </button>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Prove Linkage Card */}
               <button
                 onClick={() => setShowLinkageModal(true)}
@@ -771,12 +788,6 @@ export function Dashboard() {
           })()}
 
           <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
-          <AgentHorizonModal 
-            tokenId={tokenId} 
-            isMyAgent={isMyAgent} 
-            open={showHorizonModal}
-            onOpenChange={setShowHorizonModal}
-          />
           <LinkageProofModal 
             tokenId={tokenId} 
             ownerAddress={snapshot?.owner.owner || ""} 
@@ -798,6 +809,11 @@ export function Dashboard() {
           />
         </div>
       )}
+      <AgentHorizonModal
+        agentContext={horizonAgentContext}
+        open={showHorizonModal}
+        onOpenChange={setShowHorizonModal}
+      />
     </div>
   )
 }
