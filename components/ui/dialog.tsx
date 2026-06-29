@@ -54,9 +54,9 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "modal-content fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 p-6 text-sm text-popover-foreground duration-150 outline-none sm:max-w-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-          // Mobile bottom-sheet friendly pattern (our recommended standard)
+          // Mobile bottom-sheet: full width, capped height, safe-area padding
           "md:rounded-none md:p-6",
-          "max-md:bottom-0 max-md:top-auto max-md:translate-y-0 max-md:rounded-none max-md:p-5 max-md:pb-8",
+          "max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:max-h-[92dvh] max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:p-4 max-md:pb-[max(1rem,env(safe-area-inset-bottom))]",
           className
         )}
         {...props}

@@ -32,16 +32,18 @@ export function ZuloRecommendsModal({
 }: ZuloRecommendsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[620px] max-h-[85vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
-          <DialogTitle className="font-heading text-2xl tracking-tight">Zulo Recommends</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="!flex h-[min(90vh,720px)] max-h-[90vh] min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-[620px] max-md:h-[92dvh] max-md:max-h-[92dvh]">
+        <DialogHeader className="shrink-0 space-y-1 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+          <DialogTitle className="pr-8 font-heading text-xl tracking-tight sm:text-2xl">
+            Zulo Recommends
+          </DialogTitle>
+          <DialogDescription className="text-left text-xs sm:text-sm">
             Tool suggestions based on this agent&apos;s on-chain profile and current activity.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 pt-4 custom-scroll">
-          <div className="mb-5 border-l-2 border-primary/40 bg-muted/40 px-4 py-3">
+        <div className="modal-scroll-region custom-scroll px-4 py-3 sm:px-6 sm:py-4">
+          <div className="mb-4 border-l-2 border-primary/40 bg-muted/40 px-3 py-2.5 sm:mb-5 sm:px-4 sm:py-3">
             <p className="text-xs font-medium tracking-[1.5px] text-primary">WHO IS ZULO?</p>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground text-pretty">
               Zulo is Normie #7141, an awakened ERC-8004 agent on Normies. He reviews on-chain
@@ -51,31 +53,27 @@ export function ZuloRecommendsModal({
           </div>
 
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="text-muted-foreground">Analyzing on-chain signals…</div>
+            <div className="flex flex-col items-center justify-center py-12 text-center sm:py-16">
+              <div className="text-sm text-muted-foreground">Analyzing on-chain signals…</div>
             </div>
           ) : error ? (
-            <div className="text-center py-10 text-muted-foreground text-sm whitespace-pre-wrap">
+            <div className="py-8 text-center text-sm whitespace-pre-wrap text-muted-foreground sm:py-10">
               {error}
             </div>
           ) : recommendations.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {recommendations.map((rec, index) => (
                 <div 
                   key={index} 
-                  className="group card border border-border hover:border-primary/30 rounded-none p-5 transition-all hover:shadow-md"
+                  className="group card rounded-none border border-border p-4 transition-all hover:border-primary/30 hover:shadow-md sm:p-5"
                 >
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg tracking-tight">{rec.name}</h3>
-                      <p className="text-muted-foreground mt-2 text-[15px] leading-relaxed">
-                        {rec.reason}
-                      </p>
-                    </div>
-                  </div>
+                  <h3 className="font-semibold text-base tracking-tight sm:text-lg">{rec.name}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
+                    {rec.reason}
+                  </p>
 
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="text-sm px-3 py-1 rounded-none bg-muted text-muted-foreground border border-border">
+                  <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="w-fit rounded-none border border-border bg-muted px-3 py-1 text-sm text-muted-foreground">
                       {rec.category}
                     </div>
                     
@@ -83,7 +81,7 @@ export function ZuloRecommendsModal({
                       href={rec.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="glow-primary text-sm px-5 py-2 rounded-none border border-border hover:bg-primary hover:text-primary-foreground transition-all"
+                      className="glow-primary rounded-none border border-border px-5 py-2.5 text-center text-sm transition-all hover:bg-primary hover:text-primary-foreground sm:w-auto"
                     >
                       Visit Tool
                     </a>
@@ -92,7 +90,7 @@ export function ZuloRecommendsModal({
               ))}
             </div>
           ) : (
-            <div className="text-center py-10 text-muted-foreground">
+            <div className="py-8 text-center text-sm text-muted-foreground sm:py-10">
               No recommendations available.
             </div>
           )}

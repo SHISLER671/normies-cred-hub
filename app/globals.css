@@ -228,13 +228,27 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom scroll for older custom modals (fallback) */
+/* Custom scroll for modals and tall panels */
+.custom-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 .custom-scroll::-webkit-scrollbar {
   width: 6px;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
   background-color: var(--border);
   border-radius: 3px;
+}
+
+/* Flex child that should scroll inside a fixed-height modal */
+.modal-scroll-region {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* ---------- CARD FOUNDATIONS (used by ui/card + custom) ---------- */

@@ -384,10 +384,10 @@ export function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-10 max-w-4xl mx-auto pixel-texture">
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto pixel-texture sm:gap-10">
       {/* Search bar — manual Normie lookup */}
       {isConnected && (
-        <div className="rounded-none border border-border bg-card/70 p-5">
+        <div className="rounded-none border border-border bg-card/70 p-4 sm:p-5">
           <div className="flex items-center gap-2 max-w-sm mx-auto">
             <label htmlFor="token-id-input" className="sr-only">Normie token ID</label>
             <input

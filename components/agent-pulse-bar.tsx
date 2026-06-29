@@ -45,18 +45,18 @@ export function AgentPulseBar() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="modal-content sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="!flex max-h-[90vh] min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-lg max-md:max-h-[92dvh]">
+          <DialogHeader className="shrink-0 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+            <DialogTitle className="flex items-center gap-2 pr-8">
               <Activity className="size-5 text-primary" />
               Agent Pulse
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-left text-xs sm:text-sm">
               How awakened agents signal trust at a glance
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <div className="modal-scroll-region custom-scroll space-y-4 px-4 py-3 text-sm leading-relaxed text-muted-foreground sm:px-6 sm:py-4">
             <section>
               <h3 className="mb-1 font-heading text-sm text-foreground">What it represents</h3>
               <p>

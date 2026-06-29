@@ -68,33 +68,36 @@ export function LinkageProofModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md bg-popover border-border">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="!flex max-h-[90vh] min-h-0 flex-col gap-0 overflow-hidden bg-popover p-0 sm:max-w-md max-md:max-h-[92dvh]">
+        <DialogHeader className="shrink-0 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+          <DialogTitle className="flex items-center gap-2 pr-8">
             <Fingerprint className="size-5 text-primary" />
             Identity Linkage Proof
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-left text-xs sm:text-sm">
             Cryptographically prove you control a wallet and link it to this agent
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="rounded-none border border-primary/30 bg-card p-4">
-            <p className="font-medium mb-1">Safety first</p>
+        <div className="modal-scroll-region custom-scroll space-y-4 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="rounded-none border border-primary/30 bg-card p-3 sm:p-4">
+            <p className="mb-1 font-medium">Safety first</p>
             <p className="text-sm text-muted-foreground">
               This is a signature only — no transactions, transfers, or approvals are ever requested.
             </p>
           </div>
 
           <div className="space-y-3">
-            <div className="flex justify-between rounded-none border border-border bg-card p-3 text-sm">
+            <div className="flex flex-col gap-1 rounded-none border border-border bg-card p-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <span className="text-muted-foreground">Expected controller (owner or delegate)</span>
-              <span className="font-mono">{shortenAddress(ownerAddress)}{delegateAddress && !isZeroAddress(delegateAddress) ? ` / ${shortenAddress(delegateAddress)}` : ''}</span>
+              <span className="font-mono break-all sm:break-normal sm:text-right">
+                {shortenAddress(ownerAddress)}
+                {delegateAddress && !isZeroAddress(delegateAddress) ? ` / ${shortenAddress(delegateAddress)}` : ""}
+              </span>
             </div>
-            <div className="flex justify-between rounded-none border border-border bg-card p-3 text-sm">
+            <div className="flex flex-col gap-1 rounded-none border border-border bg-card p-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <span className="text-muted-foreground">Your connected wallet</span>
-              <span className="font-mono">
+              <span className="font-mono break-all sm:break-normal sm:text-right">
                 {isConnected && address ? shortenAddress(address) : "Not connected"}
               </span>
             </div>
@@ -105,7 +108,7 @@ export function LinkageProofModal({
           {status === "error" && <Result kind="error" tokenId={tokenId} />}
 
           {!isConnected ? (
-            <p className="text-center text-sm text-muted-foreground py-4">
+            <p className="py-4 text-center text-sm text-muted-foreground">
               Connect your wallet to generate a proof.
             </p>
           ) : status === "matched" || status === "mismatch" ? (

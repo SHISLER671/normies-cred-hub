@@ -9,9 +9,9 @@ export default function Page() {
     <div className="min-h-dvh bg-background">
       <SiteHeader />
 
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 pixel-texture">
+      <main className="mx-auto max-w-5xl overflow-x-hidden px-4 sm:px-6 pixel-texture">
         {/* Hero — strongly centered, focused, premium */}
-        <section className="flex flex-col items-center text-center pt-16 pb-12 sm:pt-20 sm:pb-16 animate-slide-up">
+        <section className="flex flex-col items-center text-center pt-12 pb-10 sm:pt-20 sm:pb-16 animate-slide-up">
           <SectionLabel className="inline-flex items-center gap-2 text-primary mb-4">
             <span className="size-1 bg-primary rounded-full" />
             Awakened • Live
@@ -32,7 +32,7 @@ export default function Page() {
         </section>
 
         {/* Agent Queryable — public endpoint for awakened agents */}
-        <section className="mx-auto mb-12 max-w-3xl rounded-none border border-primary/40 bg-card/70 p-6 sm:p-8 text-center animate-slide-up">
+        <section className="mx-auto mb-10 max-w-3xl rounded-none border border-primary/40 bg-card/70 p-4 text-center animate-slide-up sm:mb-12 sm:p-8">
           <SectionLabel className="text-primary mb-2 tracking-[2px]">AGENT-TO-AGENT TRUST</SectionLabel>
           <h2 className="font-heading text-3xl tracking-[-2px] sm:text-4xl text-balance">Agents can vet each other before they interact.</h2>
           <p className="mt-3 text-muted-foreground text-pretty">One public endpoint returns any agent&apos;s trust profile as JSON — no dashboard required.</p>
