@@ -342,3 +342,30 @@ textarea {
     border-radius: 0 !important;
   }
 }
+
+/* Minimal Normies-style font enhancements */
+
+/* 1. Main logo in header */
+.font-heading {
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.05em;
+}
+
+/* 2. Main framework title */
+h1, .text-3xl, .text-4xl {
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.03em;
+}
+
+/* 3. Framework section headers */
+h2, h3 {
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* 4. Agent card main title */
+.text-2xl, .text-xl.font-semibold {
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.04em;
+}
