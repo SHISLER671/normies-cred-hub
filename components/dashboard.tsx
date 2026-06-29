@@ -82,20 +82,6 @@ export function Dashboard() {
 
   const isAwakened = !!snapshot?.agent?.agentId
 
-  const horizonAgentContext: HorizonAgentContext | null =
-    snapshot && !isError
-      ? {
-          tokenId,
-          name: snapshot.agent?.name || `Normie #${tokenId}`,
-          type: String(agentType),
-          isAwakened,
-          traits: snapshot.traits?.attributes,
-          canvasLevel: snapshot.canvas?.level,
-          actionPoints: snapshot.canvas?.actionPoints,
-          ethosScore: ethos?.user?.score,
-        }
-      : null
-
   const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
   const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
   // Use validated signals when all pass; otherwise keep trusted builders to avoid UI regressions
@@ -123,6 +109,24 @@ export function Dashboard() {
   const delegate = snapshot?.canvas?.delegate
   const isZeroAddr = (a?: string | null) =>
     !a || a === "0x0000000000000000000000000000000000000000"
+
+  const horizonAgentContext: HorizonAgentContext | null =
+    snapshot && !isError
+      ? {
+          tokenId,
+          name: snapshot.agent?.name || `Normie #${tokenId}`,
+          type: String(agentType),
+          isAwakened,
+          agentId: snapshot.agent?.agentId,
+          traits: snapshot.traits?.attributes,
+          canvasLevel: snapshot.canvas?.level,
+          actionPoints: snapshot.canvas?.actionPoints,
+          canvasCustomized: snapshot.canvas?.customized,
+          canvasNetChange: snapshot.canvasDiff?.netChange,
+          hasDelegate: !!delegate && !isZeroAddr(delegate),
+          ethosScore: ethos?.user?.score,
+        }
+      : null
 
   const isOwnerMatch =
     !!isConnected &&

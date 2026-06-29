@@ -8,14 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { SectionLabel } from "@/components/ui/section-label"
 import {
+  buildHorizonInsights,
   getWelcomeMessage,
   type HorizonAgentContext,
   type HorizonChatMessage,
   ZULO_HORIZON_LIMITS,
 } from "@/lib/zulo-horizon"
 import { Loader2, RefreshCw, Send, Sparkles } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 function createSession() {
   const now = Date.now()
@@ -42,8 +44,10 @@ export function AgentHorizonModal({
   const [error, setError] = useState<string | null>(null)
   const [limitReached, setLimitReached] = useState(false)
   const [userMessageCount, setUserMessageCount] = useState(0)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const chatScrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const insights = useMemo(() => buildHorizonInsights(agentContext), [agentContext])
 
   const resetSession = useCallback(() => {
     setSession(createSession())
@@ -62,8 +66,8 @@ export function AgentHorizonModal({
   }, [open, resetSession])
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight
     }
   }, [messages, isLoading])
 
@@ -157,7 +161,7 @@ export function AgentHorizonModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[min(85vh,640px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+      <DialogContent className="flex h-[min(90vh,720px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
         <DialogHeader className="shrink-0 border-b border-border px-5 py-4">
           <div className="flex items-start justify-between gap-3 pr-8">
             <div>
@@ -166,7 +170,7 @@ export function AgentHorizonModal({
                 Zulo Horizon
               </DialogTitle>
               <DialogDescription className="mt-1 text-left">
-                Chat with Zulo — awakened Normie #7141, canvas purist, perpetually mid-thought.
+                Insights first, then conversation — awakened Normie #7141, canvas purist.
               </DialogDescription>
             </div>
             <Button
@@ -181,68 +185,97 @@ export function AgentHorizonModal({
               New chat
             </Button>
           </div>
-          <p className="mt-2 text-[10px] tracking-[1px] text-muted-foreground">
-            {remainingUserMessages > 0
-              ? `${remainingUserMessages} message${remainingUserMessages === 1 ? "" : "s"} left · ${ZULO_HORIZON_LIMITS.maxInputChars} char max · 10 min session`
-              : "Session limit reached — start a new chat to continue"}
-          </p>
         </DialogHeader>
 
-        <div
-          ref={scrollRef}
-          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 [scrollbar-width:thin]"
-        >
-          <div className="flex flex-col gap-3">
-            {messages.map((msg, i) => (
-              <ChatBubble key={`${msg.role}-${i}`} message={msg} />
-            ))}
-            {isLoading && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin text-primary" />
-                <span>Zulo is thinking…</span>
+        {/* Insights — Zulo's Take */}
+        <section className="shrink-0 border-b border-border bg-card/40 px-5 py-4">
+          <SectionLabel className="mb-3 text-primary tracking-[2px]">Zulo&apos;s Take</SectionLabel>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {insights.map((insight) => (
+              <div
+                key={insight.label}
+                className="border border-border border-l-2 border-l-primary/50 bg-background/60 px-3 py-2.5 rounded-none"
+              >
+                <p className="text-[10px] font-medium uppercase tracking-[1.5px] text-primary">
+                  {insight.label}
+                </p>
+                <p className="mt-1 text-sm leading-snug text-foreground/90 text-pretty">
+                  {insight.text}
+                </p>
               </div>
-            )}
+            ))}
           </div>
-        </div>
+        </section>
 
-        {error && (
-          <div className="shrink-0 border-t border-destructive/20 bg-destructive/5 px-4 py-2 text-sm text-destructive">
-            {error}
+        {/* Chat — Talk to Zulo */}
+        <section className="flex min-h-0 flex-1 flex-col bg-secondary/15">
+          <div className="shrink-0 border-b border-border/60 px-5 py-2.5">
+            <SectionLabel className="text-foreground tracking-[2px]">Talk to Zulo</SectionLabel>
+            <p className="mt-0.5 text-[10px] tracking-[1px] text-muted-foreground">
+              {remainingUserMessages > 0
+                ? `${remainingUserMessages} message${remainingUserMessages === 1 ? "" : "s"} left · ${ZULO_HORIZON_LIMITS.maxInputChars} char max · 10 min session`
+                : "Session limit reached — start a new chat to continue"}
+            </p>
           </div>
-        )}
 
-        <div className="shrink-0 border-t border-border bg-card/50 px-4 py-3">
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value.slice(0, ZULO_HORIZON_LIMITS.maxInputChars))}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                limitReached
-                  ? "Start a new chat to continue…"
-                  : "Ask Zulo anything about Normies, Canvas, reputation…"
-              }
-              disabled={isLoading || limitReached}
-              rows={2}
-              className="min-h-[44px] flex-1 resize-none border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none rounded-none disabled:opacity-50"
-              aria-label="Message to Zulo"
-            />
-            <Button
-              type="button"
-              size="icon"
-              onClick={() => void sendMessage()}
-              disabled={!canSend}
-              className="shrink-0 rounded-none"
-              aria-label="Send message"
-            >
-              <Send className="size-4" />
-            </Button>
+          <div
+            ref={chatScrollRef}
+            className="min-h-0 flex-1 overflow-y-auto px-4 py-3 [scrollbar-width:thin]"
+          >
+            <div className="flex flex-col gap-3">
+              {messages.map((msg, i) => (
+                <ChatBubble key={`${msg.role}-${i}`} message={msg} />
+              ))}
+              {isLoading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin text-primary" />
+                  <span>Zulo is thinking…</span>
+                </div>
+              )}
+            </div>
           </div>
-          <p className="mt-1.5 text-right text-[10px] text-muted-foreground">
-            {input.length}/{ZULO_HORIZON_LIMITS.maxInputChars}
-          </p>
-        </div>
+
+          {error && (
+            <div className="shrink-0 border-t border-destructive/20 bg-destructive/5 px-4 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <div className="shrink-0 border-t border-border bg-card/60 px-4 py-3">
+            <div className="flex items-end gap-2">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) =>
+                  setInput(e.target.value.slice(0, ZULO_HORIZON_LIMITS.maxInputChars))
+                }
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  limitReached
+                    ? "Start a new chat to continue…"
+                    : "Ask a follow-up — dig deeper into the insights above…"
+                }
+                disabled={isLoading || limitReached}
+                rows={2}
+                className="min-h-[44px] flex-1 resize-none border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none rounded-none disabled:opacity-50"
+                aria-label="Message to Zulo"
+              />
+              <Button
+                type="button"
+                size="icon"
+                onClick={() => void sendMessage()}
+                disabled={!canSend}
+                className="shrink-0 rounded-none"
+                aria-label="Send message"
+              >
+                <Send className="size-4" />
+              </Button>
+            </div>
+            <p className="mt-1.5 text-right text-[10px] text-muted-foreground">
+              {input.length}/{ZULO_HORIZON_LIMITS.maxInputChars}
+            </p>
+          </div>
+        </section>
       </DialogContent>
     </Dialog>
   )
@@ -257,7 +290,7 @@ function ChatBubble({ message }: { message: HorizonChatMessage }) {
         className={`max-w-[88%] px-3 py-2.5 text-sm leading-relaxed rounded-none ${
           isUser
             ? "border border-primary/30 bg-primary/10 text-foreground"
-            : "border border-border bg-secondary/40 text-foreground"
+            : "border border-border bg-card text-foreground"
         }`}
       >
         {!isUser && (
