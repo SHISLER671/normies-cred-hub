@@ -16,7 +16,8 @@ import {
   type HorizonChatMessage,
   ZULO_HORIZON_LIMITS,
 } from "@/lib/zulo-horizon"
-import { Loader2, RefreshCw, Send, Sparkles } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ChevronDown, ChevronUp, Loader2, RefreshCw, Send, Sparkles } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 function createSession() {
@@ -44,10 +45,15 @@ export function AgentHorizonModal({
   const [error, setError] = useState<string | null>(null)
   const [limitReached, setLimitReached] = useState(false)
   const [userMessageCount, setUserMessageCount] = useState(0)
+  const [insightsExpanded, setInsightsExpanded] = useState(true)
   const chatScrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const insights = useMemo(() => buildHorizonInsights(agentContext), [agentContext])
+
+  const collapseInsights = useCallback(() => {
+    setInsightsExpanded(false)
+  }, [])
 
   const resetSession = useCallback(() => {
     setSession(createSession())
@@ -57,13 +63,12 @@ export function AgentHorizonModal({
     setLimitReached(false)
     setUserMessageCount(0)
     setIsLoading(false)
+    setInsightsExpanded(true)
   }, [agentContext])
 
   useEffect(() => {
     if (open) {
       resetSession()
-      const timer = window.setTimeout(() => inputRef.current?.focus(), 150)
-      return () => window.clearTimeout(timer)
     }
   }, [open, resetSession])
 
@@ -96,6 +101,8 @@ export function AgentHorizonModal({
       setError(`Messages are limited to ${ZULO_HORIZON_LIMITS.maxInputChars} characters.`)
       return
     }
+
+    collapseInsights()
 
     const userMsg: HorizonChatMessage = { role: "user", content: trimmed }
     const nextHistory = [...messages, userMsg]
@@ -187,32 +194,66 @@ export function AgentHorizonModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Insights — capped height on small screens so chat input stays visible */}
-        <section className="shrink-0 border-b border-border bg-card/30 px-4 py-3 sm:px-5 max-md:max-h-[26vh] max-md:overflow-y-auto">
-          <SectionLabel className="mb-2 text-[10px] text-primary tracking-[2px] sm:text-xs">
-            Zulo&apos;s Take
-          </SectionLabel>
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-2.5">
-            {insights.map((insight) => (
-              <div
-                key={insight.label}
-                className="rounded-none border border-border border-l-2 border-l-primary/45 bg-background/50 px-2.5 py-2 sm:px-3 sm:py-2.5"
-              >
-                <p className="text-[9px] font-medium uppercase tracking-[1.25px] text-primary sm:text-[10px]">
-                  {insight.label}
-                </p>
-                <p className="mt-0.5 text-xs leading-snug text-foreground/90 text-pretty sm:mt-1 sm:text-[13px]">
-                  {insight.text}
-                </p>
+        {/* Insights — collapsible; expanded on open, auto-collapses when chatting */}
+        <div
+          className={cn(
+            "grid shrink-0 transition-[grid-template-rows] duration-300 ease-in-out",
+            insightsExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          )}
+          aria-hidden={!insightsExpanded}
+        >
+          <div className="overflow-hidden border-b border-border">
+            <section
+              id="zulo-horizon-insights"
+              className="bg-card/30 px-4 py-3 sm:px-5 max-md:max-h-[30vh] max-md:overflow-y-auto"
+            >
+              <SectionLabel className="mb-2 text-[10px] text-primary tracking-[2px] sm:text-xs">
+                Zulo&apos;s Take
+              </SectionLabel>
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-2.5">
+                {insights.map((insight) => (
+                  <div
+                    key={insight.label}
+                    className="rounded-none border border-border border-l-2 border-l-primary/45 bg-background/50 px-2.5 py-2 sm:px-3 sm:py-2.5"
+                  >
+                    <p className="text-[9px] font-medium uppercase tracking-[1.25px] text-primary sm:text-[10px]">
+                      {insight.label}
+                    </p>
+                    <p className="mt-0.5 text-xs leading-snug text-foreground/90 text-pretty sm:mt-1 sm:text-[13px]">
+                      {insight.text}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </section>
           </div>
-        </section>
+        </div>
 
         {/* Chat — primary interactive area; input pinned to bottom */}
-        <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-secondary/10">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-secondary/10 transition-[flex-grow] duration-300">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border/60 px-4 py-2 sm:px-5">
-            <SectionLabel className="text-foreground tracking-[2px]">Talk to Zulo</SectionLabel>
+            <div className="flex items-center gap-2">
+              <SectionLabel className="text-foreground tracking-[2px]">Talk to Zulo</SectionLabel>
+              <button
+                type="button"
+                onClick={() => setInsightsExpanded((v) => !v)}
+                className="inline-flex items-center gap-0.5 text-[10px] tracking-[0.5px] text-primary transition-colors hover:text-primary/80"
+                aria-expanded={insightsExpanded}
+                aria-controls="zulo-horizon-insights"
+              >
+                {insightsExpanded ? (
+                  <>
+                    <ChevronUp className="size-3" aria-hidden="true" />
+                    Hide insights
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="size-3" aria-hidden="true" />
+                    Show insights
+                  </>
+                )}
+              </button>
+            </div>
             <p className="text-right text-[10px] tracking-[0.5px] text-muted-foreground">
               {remainingUserMessages > 0 ? (
                 <>
@@ -258,6 +299,7 @@ export function AgentHorizonModal({
                 <textarea
                   ref={inputRef}
                   value={input}
+                  onFocus={collapseInsights}
                   onChange={(e) =>
                     setInput(e.target.value.slice(0, ZULO_HORIZON_LIMITS.maxInputChars))
                   }
