@@ -17,17 +17,8 @@ import { useAccount, useSignMessage } from "wagmi"
 
 type Status = "idle" | "signing" | "matched" | "mismatch" | "error"
 
-function buildMessage(tokenId: number, address: string) {
-  return [
-    "NormiesCredHub — Identity Linkage Proof",
-    "",
-    `I am proving control of this wallet to link it with Normie #${tokenId}.`,
-    `Wallet: ${address}`,
-    `Token: Normie #${tokenId}`,
-    `Issued: ${new Date().toISOString()}`,
-    "",
-    "This is a signature only. It authorizes NO transactions, transfers, or approvals.",
-  ].join("\n")
+function buildMessage(tokenId: number, nonce: string) {
+  return `Link Normie #${tokenId} to CredHub\nNonce: ${nonce}`
 }
 
 export function LinkageProofModal({
@@ -62,7 +53,8 @@ export function LinkageProofModal({
     if (!address) return
     setStatus("signing")
     try {
-      await signMessageAsync({ message: buildMessage(tokenId, address) })
+      const nonce = crypto.randomUUID().replace(/-/g, "").slice(0, 8)
+      await signMessageAsync({ message: buildMessage(tokenId, nonce) })
       const addr = address.toLowerCase()
       const matchesOwner = addr === ownerAddress.toLowerCase()
       const matchesDelegate = !!delegateAddress && delegateAddress !== '0x0000000000000000000000000000000000000000' && addr === delegateAddress.toLowerCase()
