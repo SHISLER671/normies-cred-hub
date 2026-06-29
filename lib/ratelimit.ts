@@ -69,13 +69,47 @@ export async function checkRateLimit(
   limit: number,
   windowSec: number,
 ): Promise<{ ok: true } | { ok: false; retryAfter: number }> {
-  const limiter = getRateLimiter(bucket, limit, windowSec)
-  if (!limiter) return { ok: true }
+  return checkRateLimitById(getClientId(req), bucket, limit, windowSec)
+}
 
-  const id = getClientId(req)
+/** Rate limit by an arbitrary identifier (e.g. IP + session). */
+export async function checkRateLimitById(
+  id: string,
+  bucket: string,
+  limit: number,
+  windowSec: number,
+): Promise<{ ok: true } | { ok: false; retryAfter: number }> {
+  const limiter = getRateLimiter(bucket, limit, windowSec)
+  if (!limiter) return checkMemoryRateLimit(id, bucket, limit, windowSec)
+
   const { success, reset } = await limiter.limit(id)
   if (success) return { ok: true }
 
   const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000))
   return { ok: false, retryAfter }
+}
+
+// In-process fallback when Upstash isn't configured (dev / edge cases).
+const memoryBuckets = new Map<string, number[]>()
+
+function checkMemoryRateLimit(
+  id: string,
+  bucket: string,
+  limit: number,
+  windowSec: number,
+): { ok: true } | { ok: false; retryAfter: number } {
+  const key = `${bucket}:${id}`
+  const now = Date.now()
+  const windowMs = windowSec * 1000
+  const timestamps = (memoryBuckets.get(key) ?? []).filter((t) => now - t < windowMs)
+
+  if (timestamps.length >= limit) {
+    const oldest = timestamps[0] ?? now
+    const retryAfter = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000))
+    return { ok: false, retryAfter }
+  }
+
+  timestamps.push(now)
+  memoryBuckets.set(key, timestamps)
+  return { ok: true }
 }
