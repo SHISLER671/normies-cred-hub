@@ -311,7 +311,12 @@ export function AgentHorizonModal({
                   }
                   disabled={isLoading || limitReached}
                   rows={2}
-                  className="min-h-[52px] max-h-[120px] flex-1 resize-none rounded-none border border-border bg-background px-3.5 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50"
+                  className={cn(
+                    "min-h-[52px] max-h-[120px] flex-1 resize-none rounded-none border bg-background px-3.5 py-2.5 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+                    !limitReached && !isLoading && "horizon-chat-glow",
+                    !limitReached && !isLoading && insightsExpanded && "horizon-chat-glow-pulse",
+                    (limitReached || isLoading) && "border-border",
+                  )}
                   aria-label="Message to Zulo"
                 />
                 <Button
