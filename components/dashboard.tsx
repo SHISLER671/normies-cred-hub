@@ -74,7 +74,7 @@ export function Dashboard() {
     (t: any) => t.trait_type === "Type"
   )?.value || "Unknown"
 
-  const isAgentType = agentType === "Agent"
+  const isAwakened = !!snapshot?.agent?.agentId
 
   const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
   const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
@@ -681,10 +681,21 @@ export function Dashboard() {
                       </div>
                       <div>
                         <div className="text-xs text-muted-foreground">GATE ACCESS</div>
-                        <div className="font-medium">{isAgentType ? "Advanced" : "Limited"}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {isAgentType ? "qualifies for advanced agent features" : "limited gate access"}
-                        </div>
+                        <div className="font-medium">{isAwakened ? "Full Access" : "Limited"}</div>
+                        {!isAwakened && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Awaken your Normie at{" "}
+                            <a
+                              href="https://normies.art/lab"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              normies.art/lab
+                            </a>{" "}
+                            to unlock full access and advanced features.
+                          </p>
+                        )}
                       </div>
                       {ownerAddress && (
                         <div className="border-t border-border pt-3">
