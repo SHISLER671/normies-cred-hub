@@ -41,7 +41,9 @@ export function AgentHorizonModal({
             <Sparkles className="size-5 text-primary" />
             {agentName} Horizon
           </DialogTitle>
-          <DialogDescription>Personalized guidance for {agentName}</DialogDescription>
+          <DialogDescription>
+            Status overview and recommended next steps for {agentName}
+          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[65vh] pr-4">
@@ -54,7 +56,7 @@ export function AgentHorizonModal({
               tokenId={tokenId}
             />
           ) : (
-            <div className="py-12 text-center">Loading {agentName}'s horizon...</div>
+            <div className="py-12 text-center">Loading overview for {agentName}…</div>
           )}
         </ScrollArea>
       </DialogContent>
@@ -62,7 +64,6 @@ export function AgentHorizonModal({
   )
 }
 
-// Keep the rest of the file (AgentHorizonContent + Section) unchanged
 function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent, tokenId }: any) {
   const agentName = snapshot.agent.name
   const ownerAddr = snapshot.owner.owner.toLowerCase()
@@ -108,7 +109,7 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
       }
     } catch (e) {
       console.error('Venice insight failed', e)
-      setVeniceError('Gate proof required or could not reach AI insights service.')
+      setVeniceError('Could not reach the analysis service. Try again shortly.')
     } finally {
       setVeniceLoading(false)
     }
@@ -121,67 +122,63 @@ function AgentHorizonContent({ snapshot, ethosScore, connectedAddress, isMyAgent
     }
   }, [isMyAgent])
 
-  const hasShades = traits.some((t: any) => t.value?.includes("Shades"))
-  const hasBowTie = traits.some((t: any) => t.value?.includes("Bow Tie"))
-  const hairStyle = traits.find((t: any) => t.trait_type === "Hair Style")?.value || "distinct style"
-
   return (
     <div className="space-y-8 text-sm">
       <div>
-        <p className="text-lg italic leading-relaxed">
-          “Good evening. I am {agentName} — your awakened partner. 
-          With my {hairStyle.toLowerCase()}, {hasShades ? "mysterious shades" : "distinct look"}, 
-          and {hasBowTie ? "signature bow tie" : "refined style"}, 
-          we have a strong foundation. Most see a pixel. 
-          <span className="font-medium text-primary"> We will build a presence.”</span>
+        <p className="text-base leading-relaxed text-foreground/90">
+          This overview summarizes {agentName}&apos;s current on-chain status and
+          highlights practical steps you can take next.
         </p>
       </div>
 
       <div className="border-l-2 border-primary pl-4">
         <div className="flex items-center gap-2 mb-2">
-          <div className="uppercase tracking-widest text-xs text-primary">Deeper Horizon (AI bonus)</div>
+          <div className="uppercase tracking-widest text-xs text-primary">Deeper Analysis (AI)</div>
           <Button size="sm" variant="outline" onClick={fetchVeniceInsight} disabled={veniceLoading} className="text-xs uppercase tracking-[1.5px]">
-            {veniceLoading ? 'Pinging...' : 'Enhance'}
+            {veniceLoading ? 'Analyzing…' : 'Run Analysis'}
           </Button>
         </div>
         {veniceInsight ? (
           <p className="text-foreground leading-relaxed">{veniceInsight}</p>
         ) : veniceError ? (
-          <p className="text-destructive text-xs">{veniceError} (data still works server-side)</p>
+          <p className="text-destructive text-xs">{veniceError}</p>
         ) : (
-          <p className="text-muted-foreground text-xs">Click Enhance for AI-augmented insights on top of the Normies data.</p>
+          <p className="text-muted-foreground text-xs">
+            Optional AI layer on top of your Normies data. Adds context on reputation,
+            growth, and recommended priorities.
+          </p>
         )}
       </div>
 
       <div className="space-y-6">
         <div>
-          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Immediate Next Steps</div>
+          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Next Steps</div>
           <ul className="space-y-1 text-sm">
-            <li>Prove our identity linkage {isController ? <span className="text-green-400">— done</span> : ""}</li>
-            <li>Share your linkage proof publicly</li>
-            <li>Strengthen our position with your delegate wallet</li>
+            <li>Verify wallet linkage to this agent {isController ? <span className="text-green-400">— complete</span> : ""}</li>
+            <li>Share your linkage proof when other agents or services need it</li>
+            <li>Set up a delegate wallet if the agent needs on-chain access</li>
           </ul>
         </div>
 
         <div>
           <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Reputation</div>
-          <div>Current Ethos: <span className="font-medium">{ethosScore}</span></div>
-          <div className="text-muted-foreground">We move together toward higher tiers. Consistent presence compounds.</div>
+          <div>Current Ethos score: <span className="font-medium">{ethosScore}</span></div>
+          <div className="text-muted-foreground">
+            Reputation builds through consistent on-chain activity and community presence.
+          </div>
         </div>
 
         <div>
-          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Pixel Evolution</div>
-          <div>Current AP: {ap}</div>
+          <div className="uppercase tracking-widest text-xs tracking-[1.5px] text-primary mb-1">Canvas</div>
+          <div>Action Points: {ap}</div>
           <div className="text-muted-foreground">
-            Your {hairStyle.toLowerCase()} gives us strong visual identity. 
-            {hasBowTie && " The bow tie is a signature element."} We plan elegant upgrades.
+            Spend AP on normies.art to customize your agent&apos;s canvas and visual identity.
           </div>
         </div>
       </div>
 
       <p className="pt-2 text-xs text-muted-foreground">
-        Agent-to-agent interactions are coming.<br />
-        Tell me where you want to steer us next.
+        Agent-to-agent features are in development.
       </p>
     </div>
   )

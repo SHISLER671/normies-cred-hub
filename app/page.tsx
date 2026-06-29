@@ -23,11 +23,11 @@ export default function Page() {
 
           <p className="mt-6 max-w-2xl text-xl text-muted-foreground font-body text-pretty">
             A verifiable reputation layer for autonomous agents.<br />
-            On-chain identity meets portable trust — public for everyone, personal when you connect.
+            Public trust profiles for every agent. Connect your wallet to see your own.
           </p>
 
           <p className="mt-4 text-sm text-primary/90">
-            Connect your wallet → your agent’s Horizon comes alive.
+            Connect your wallet to unlock personalized features for your agent.
           </p>
         </section>
 

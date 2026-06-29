@@ -132,7 +132,7 @@ export function OwnershipCard({
                   )}
                 </div>
                 <div className="text-foreground/90 pt-0.5">
-                  Your Normie NFT is chillin' in cold storage. You've delegated a hot wallet with ENS so the awakened agent can now act on-chain. All verifiable.
+                  Your Normie NFT is held in cold storage. A delegated hot wallet with ENS lets the agent act on-chain — all activity remains verifiable.
                 </div>
                 {isDelegateController && (
                   <div className="text-xs text-muted-foreground">(connected as the delegated hot signer)</div>

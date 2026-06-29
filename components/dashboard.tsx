@@ -500,13 +500,13 @@ export function Dashboard() {
                   <h3 className="font-heading text-[26px] tracking-tight mb-2">Zulo Recommends</h3>
                   
                   <p className="text-[15px] text-muted-foreground max-w-md mx-auto mb-3 leading-snug">
-                    Zulo analyzes your agent's on-chain data — its traits, canvas state, level, and activity — to surface the most relevant tools from the ecosystem.
+                    Zulo reviews your agent&apos;s on-chain data — traits, canvas state, and activity — and suggests relevant tools from the ecosystem.
                   </p>
 
                   <p className="text-[15px] text-muted-foreground mb-4 leading-snug">
                     {isConnected 
-                      ? "These recommendations are personalized to help this specific agent grow." 
-                      : "Connect your wallet to unlock Zulo's personalized recommendations for this agent."}
+                      ? "Recommendations are tailored to this agent's current profile." 
+                      : "Connect your wallet to get recommendations for this agent."}
                   </p>
 
                   <Button 
@@ -534,7 +534,7 @@ export function Dashboard() {
                   <Sparkles className="size-4 text-primary" />
                   <span className="font-semibold">Zulo Horizon</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Talk to your agent and get deeper insights.</p>
+                <p className="text-sm text-muted-foreground">View status, next steps, and optional AI analysis.</p>
               </button>
 
               {/* Prove Linkage Card */}
