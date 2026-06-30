@@ -11,7 +11,7 @@ import { fetchOnchainToolConfigs } from "@/lib/erc8257/registry"
 import { fetchAndVerifyManifest } from "@/lib/erc8257/manifests"
 import { resolveToolAccess } from "@/lib/erc8257/access-notes"
 
-const MANIFEST_CONCURRENCY = 8
+const MANIFEST_CONCURRENCY = 20
 
 async function mapPool<T, R>(
   items: T[],
@@ -51,6 +51,7 @@ async function discoverChainTools(chain: Erc8257Chain): Promise<RegistryTool[]> 
         cfg.accessPredicate,
         manifest.manifestAccessLabels,
         manifest.manifestDeclaresGating,
+        { skipOnchainDescribe: true },
       )
 
       const toolId = Number(cfg.toolId)

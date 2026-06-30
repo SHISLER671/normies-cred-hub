@@ -4,12 +4,18 @@ import { ERC8257_CHAIN_CONFIG } from "@/lib/erc8257/constants"
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
+export type ResolveToolAccessOptions = {
+  /** Skip per-tool describeToolAccess RPC during bulk discovery. */
+  skipOnchainDescribe?: boolean
+}
+
 export async function resolveToolAccess(
   chain: Erc8257Chain,
   toolId: bigint,
   accessPredicate: string,
   manifestAccessLabels: string[],
   manifestDeclaresGating: boolean,
+  options: ResolveToolAccessOptions = {},
 ): Promise<RegistryToolAccess> {
   const predicateLower = accessPredicate.toLowerCase()
   const openAccess = predicateLower === ZERO_ADDRESS
@@ -18,7 +24,7 @@ export async function resolveToolAccess(
   let logic: "AND" | "OR" = "AND"
   let requirementLabels: string[] = []
 
-  if (!openAccess) {
+  if (!openAccess && !options.skipOnchainDescribe) {
     try {
       const { chain: viemChain, rpcUrl } = ERC8257_CHAIN_CONFIG[chain]
       // tool-sdk bundles viem@2.31; project uses viem@2.52 — chain types differ at compile time.
@@ -35,6 +41,8 @@ export async function resolveToolAccess(
     } catch {
       requirementLabels = []
     }
+  } else if (!openAccess && manifestAccessLabels.length > 0) {
+    requirementLabels = manifestAccessLabels
   }
 
   const manifestAccessMismatch =

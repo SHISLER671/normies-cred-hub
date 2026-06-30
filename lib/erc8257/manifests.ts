@@ -44,7 +44,7 @@ export async function fetchAndVerifyManifest(
   if (!metadataURI?.startsWith("https://")) return fallback
 
   try {
-    const res = await fetchWithTimeout(metadataURI, {}, 8_000)
+    const res = await fetchWithTimeout(metadataURI, {}, 5_000)
     if (!res.ok) return fallback
 
     const manifest = (await res.json()) as ToolManifest

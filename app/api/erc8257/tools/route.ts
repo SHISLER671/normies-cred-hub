@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
+
+/** Full-catalog discovery can take 15–45s on cold cache (manifest fetches). */
+export const maxDuration = 60
 import { isAddress } from "viem"
 import { enrichToolsWithWalletAccess } from "@/lib/erc8257/access-check"
 import { getCachedRegistryTools } from "@/lib/erc8257/cache"
@@ -65,9 +68,10 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (err) {
-    console.error("[erc8257/tools] discovery failed:", err)
+    const message = err instanceof Error ? err.message : String(err)
+    console.error("[erc8257/tools] discovery failed:", message, err)
     return NextResponse.json(
-      { error: "Failed to discover ERC-8257 tools" },
+      { error: "Failed to discover ERC-8257 tools", detail: message },
       { status: 502 },
     )
   }

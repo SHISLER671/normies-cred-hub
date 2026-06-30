@@ -10,6 +10,31 @@ export type OnchainToolConfig = {
   accessPredicate: string
 }
 
+function isInactiveToolError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false
+  const msg = err.message
+  return msg.includes("ToolIsDeregistered") || msg.includes("ToolNotFound")
+}
+
+async function fetchSingleToolConfig(
+  client: ToolRegistryClient,
+  toolId: bigint,
+): Promise<OnchainToolConfig | null> {
+  try {
+    const cfg = await client.getToolConfig(toolId)
+    return {
+      toolId,
+      creator: cfg.creator,
+      metadataURI: cfg.metadataURI,
+      manifestHash: cfg.manifestHash,
+      accessPredicate: cfg.accessPredicate,
+    }
+  } catch (err) {
+    if (isInactiveToolError(err)) return null
+    throw err
+  }
+}
+
 export function createRegistryClient(chain: Erc8257Chain): ToolRegistryClient {
   const { chain: viemChain, rpcUrl } = ERC8257_CHAIN_CONFIG[chain]
   return new ToolRegistryClient({
@@ -33,18 +58,13 @@ export async function fetchOnchainToolConfigs(
   for (let start = 1; start <= total; start += batchSize) {
     const end = Math.min(start + batchSize - 1, total)
     const batch = await Promise.all(
-      Array.from({ length: end - start + 1 }, (_, i) => {
-        const toolId = BigInt(start + i)
-        return client.getToolConfig(toolId).then((cfg) => ({
-          toolId,
-          creator: cfg.creator,
-          metadataURI: cfg.metadataURI,
-          manifestHash: cfg.manifestHash,
-          accessPredicate: cfg.accessPredicate,
-        }))
-      }),
+      Array.from({ length: end - start + 1 }, (_, i) =>
+        fetchSingleToolConfig(client, BigInt(start + i)),
+      ),
     )
-    configs.push(...batch)
+    for (const cfg of batch) {
+      if (cfg) configs.push(cfg)
+    }
   }
 
   return configs
