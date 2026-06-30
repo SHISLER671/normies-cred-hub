@@ -20,12 +20,30 @@
   "outputs": {
     "type": "object",
     "properties": {
-      "token_id": { "type": "integer" },
-      "pulse_level": { "type": "integer" },
-      "max_level": { "type": "integer" },
-      "status": { "type": "string" },
-      "breakdown": { "type": "array" },
-      "next_signal": { "type": ["string", "null"] }
+      "token_id": {
+        "type": "integer",
+        "description": "The Normie token ID that was queried"
+      },
+      "pulse_level": {
+        "type": "integer",
+        "description": "Current trust/reputation level of the agent"
+      },
+      "max_level": {
+        "type": "integer",
+        "description": "Maximum possible pulse level"
+      },
+      "status": {
+        "type": "string",
+        "description": "Overall status of the agent"
+      },
+      "breakdown": {
+        "type": "array",
+        "description": "Detailed breakdown of signals used for the score"
+      },
+      "next_signal": {
+        "type": ["string", "null"],
+        "description": "Next signal that will be checked (if any)"
+      }
     }
   },
   "creatorAddress": "0xb8792e6516b88e73ed0723f8c1c8a92531a98767",
