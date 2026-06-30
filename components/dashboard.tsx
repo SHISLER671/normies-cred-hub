@@ -66,6 +66,7 @@ export function Dashboard() {
   const [agentPulse, setAgentPulse] = useState<{
     pulse_level: number
     status: string
+    breakdown: string[]
   } | null>(null)
 
   const { openConnectModal } = useConnectModal()
@@ -104,7 +105,11 @@ export function Dashboard() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!cancelled && data?.pulse_level != null) {
-          setAgentPulse({ pulse_level: data.pulse_level, status: data.status })
+          setAgentPulse({
+            pulse_level: data.pulse_level,
+            status: data.status,
+            breakdown: Array.isArray(data.breakdown) ? data.breakdown : [],
+          })
         }
       })
       .catch(() => {
@@ -141,6 +146,19 @@ export function Dashboard() {
 
   const delegate = snapshot?.canvas?.delegate
 
+  const isOwnerMatch =
+    isConnected && isNormieOwner(address, ownerAddress)
+  const isDelegateMatch =
+    isConnected && isCanvasDelegate(address, delegate)
+
+  // Owner or Canvas delegate — same feature access for both.
+  const isMyAgent = controlsNormie(address, ownerAddress, delegate)
+
+  const walletForAccess =
+    isMyAgent && isConnected && address
+      ? address
+      : ownerAddress ?? undefined
+
   const horizonAgentContext: HorizonAgentContext | null =
     snapshot && !isError
       ? {
@@ -158,16 +176,10 @@ export function Dashboard() {
           ethosScore: ethos?.user?.score,
           pulseLevel: agentPulse?.pulse_level,
           pulseStatus: agentPulse?.status,
+          pulseBreakdown: agentPulse?.breakdown,
+          holderAddress: walletForAccess,
         }
       : null
-
-  const isOwnerMatch =
-    isConnected && isNormieOwner(address, ownerAddress)
-  const isDelegateMatch =
-    isConnected && isCanvasDelegate(address, delegate)
-
-  // Owner or Canvas delegate — same feature access for both.
-  const isMyAgent = controlsNormie(address, ownerAddress, delegate)
 
   const { data: delegateEnsName } = useEnsName(
     !isZeroAddress(delegate) ? delegate : undefined
@@ -286,6 +298,8 @@ export function Dashboard() {
           agentName: agentData.name,
           traits: agentData.traits?.attributes || [],
           agentType: agentData.type,
+          wallet: walletForAccess,
+          ethosScore: ethos?.user?.score,
         }),
       })
 
@@ -766,6 +780,7 @@ export function Dashboard() {
                   icon: Wrench,
                   content: (
                     <Erc8257RegistryPanel
+                      walletAddress={walletForAccess}
                       onBrowseAll={() => {
                         setToolsModalTab("erc8257")
                         setShowToolsModal(true)
@@ -817,6 +832,7 @@ export function Dashboard() {
             isOpen={showToolsModal}
             onClose={() => setShowToolsModal(false)}
             initialTab={toolsModalTab}
+            walletAddress={walletForAccess}
           />
           <LinkageProofModal 
             tokenId={tokenId} 

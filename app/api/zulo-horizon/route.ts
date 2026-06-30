@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 import { checkRateLimitById, getClientId } from "@/lib/ratelimit"
+import { enrichToolsWithWalletAccess } from "@/lib/erc8257/access-check"
 import { getCachedRegistryTools } from "@/lib/erc8257/cache"
 import {
   buildAgentRecommendationHints,
@@ -288,8 +289,13 @@ export async function POST(req: NextRequest) {
   try {
     const toolCtx = horizonAgentToToolContext(agentContext)
     const { tools } = await getCachedRegistryTools()
+    const withAccess = await enrichToolsWithWalletAccess(
+      tools,
+      agentContext?.holderAddress,
+      { maxChecks: 40 },
+    )
     const erc8257List = getErc8257ToolsForPrompt(
-      selectToolsForHorizonPrompt(tools, toolCtx),
+      selectToolsForHorizonPrompt(withAccess, toolCtx),
     )
     const hints = toolCtx ? buildAgentRecommendationHints(toolCtx) : ""
     toolsBlock = `${buildHorizonToolsBlock(getToolsListForPrompt(), erc8257List)}${

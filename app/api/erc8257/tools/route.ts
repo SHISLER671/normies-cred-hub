@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { isAddress } from "viem"
+import { enrichToolsWithWalletAccess } from "@/lib/erc8257/access-check"
 import { getCachedRegistryTools } from "@/lib/erc8257/cache"
 import type { Erc8257Chain } from "@/lib/erc8257/types"
 import { ERC8257_SUPPORTED_CHAINS } from "@/lib/erc8257/constants"
@@ -28,6 +30,8 @@ export async function GET(req: NextRequest) {
   const chainFilter = parseChains(searchParams.get("chain"))
   const tags = searchParams.get("tags")?.split(",").map((t) => t.trim()).filter(Boolean)
   const limit = Math.min(Number(searchParams.get("limit") || "0") || 0, 250) || undefined
+  const walletParam = searchParams.get("wallet")?.trim()
+  const wallet = walletParam && isAddress(walletParam) ? walletParam : undefined
 
   try {
     const { tools, cached, fetchedAt } = await getCachedRegistryTools()
@@ -46,13 +50,18 @@ export async function GET(req: NextRequest) {
       filtered = filtered.slice(0, limit)
     }
 
+    const enriched = await enrichToolsWithWalletAccess(filtered, wallet, {
+      maxChecks: wallet ? 80 : 0,
+    })
+
     return NextResponse.json({
-      tools: filtered,
+      tools: enriched,
       meta: {
-        total: filtered.length,
+        total: enriched.length,
         cached,
         fetchedAt,
         chains: ERC8257_SUPPORTED_CHAINS,
+        walletChecked: wallet ?? null,
       },
     })
   } catch (err) {

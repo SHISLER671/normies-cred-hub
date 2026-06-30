@@ -19,10 +19,12 @@ export function ToolsModal({
   isOpen,
   onClose,
   initialTab = "normies",
+  walletAddress,
 }: {
   isOpen: boolean
   onClose: () => void
   initialTab?: Tab
+  walletAddress?: string
 }) {
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState<"name" | "category">("name")
@@ -46,7 +48,10 @@ export function ToolsModal({
     setRegistryLoading(true)
     setRegistryError(null)
 
-    fetch("/api/erc8257/tools")
+    const walletQuery = walletAddress
+      ? `?wallet=${encodeURIComponent(walletAddress)}`
+      : ""
+    fetch(`/api/erc8257/tools${walletQuery}`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
@@ -64,7 +69,7 @@ export function ToolsModal({
     return () => {
       cancelled = true
     }
-  }, [isOpen])
+  }, [isOpen, walletAddress])
 
   const filteredNormies = [...tools]
     .filter(

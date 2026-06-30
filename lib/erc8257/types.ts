@@ -8,6 +8,8 @@ export type RegistryToolAccess = {
   requirementLabels: string[]
   accessNote: string
   manifestAccessMismatch: boolean
+  /** null = not checked for a wallet; true/false = on-chain predicate result */
+  accessGranted?: boolean | null
 }
 
 export type RegistryTool = {

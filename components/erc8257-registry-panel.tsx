@@ -12,8 +12,10 @@ type ToolsResponse = {
 
 export function Erc8257RegistryPanel({
   onBrowseAll,
+  walletAddress,
 }: {
   onBrowseAll?: () => void
+  walletAddress?: string
 }) {
   const [tools, setTools] = useState<RegistryTool[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,7 +26,10 @@ export function Erc8257RegistryPanel({
     setLoading(true)
     setError(null)
 
-    fetch("/api/erc8257/tools?limit=80")
+    const walletQuery = walletAddress
+      ? `&wallet=${encodeURIComponent(walletAddress)}`
+      : ""
+    fetch(`/api/erc8257/tools?limit=80${walletQuery}`)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json() as Promise<ToolsResponse>
@@ -43,7 +48,7 @@ export function Erc8257RegistryPanel({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [walletAddress])
 
   if (loading) {
     return (

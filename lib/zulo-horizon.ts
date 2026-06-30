@@ -37,6 +37,8 @@ export interface HorizonAgentContext {
   ethosScore?: number
   pulseLevel?: number
   pulseStatus?: string
+  pulseBreakdown?: string[]
+  holderAddress?: string
 }
 
 export interface HorizonInsight {
@@ -154,6 +156,8 @@ ${agent.canvasLevel != null ? `- Canvas level: ${agent.canvasLevel}` : ""}
 ${agent.actionPoints != null ? `- Action Points: ${agent.actionPoints}` : ""}
 ${agent.ethosScore != null ? `- Owner Ethos score: ${agent.ethosScore}` : ""}
 ${agent.pulseLevel != null ? `- Agent Pulse: ${agent.pulseLevel}/5${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""}` : ""}
+${agent.pulseBreakdown?.length ? `- Pulse signals: ${agent.pulseBreakdown.join(", ")}` : ""}
+${agent.holderAddress ? `- Holder wallet (for tool access checks): ${agent.holderAddress}` : ""}
 ${agent.traits?.length ? `- Traits: ${agent.traits.map((t) => `${t.trait_type}: ${t.value}`).join(", ")}` : ""}
 
 Reference this agent naturally when relevant — reputation, canvas, awakening, ERC-8257 tools, next steps — but stay conversational, not like a report.

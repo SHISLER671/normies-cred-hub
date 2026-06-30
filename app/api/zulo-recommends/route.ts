@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAddress } from 'viem'
 import { getAgentPulse } from '@/lib/api/agent-pulse'
 import { getToolsListForPrompt, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
+import { enrichToolsWithWalletAccess } from '@/lib/erc8257/access-check'
 import { getCachedRegistryTools } from '@/lib/erc8257/cache'
 import {
   buildAgentRecommendationHints,
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const { tokenId } = body ?? {}
+    const { tokenId, wallet: walletBody, ethosScore: ethosScoreBody } = body ?? {}
 
     if (!tokenId) {
       return NextResponse.json({ error: 'tokenId is required' }, { status: 400 })
@@ -83,6 +85,22 @@ export async function POST(req: NextRequest) {
     const pulseResult = await getAgentPulse(Number(tokenId))
     const pulse = pulseResult.ok ? pulseResult.data : null
 
+    let ownerAddress: string | undefined
+    try {
+      const ownerRes = await fetchWithTimeout(`${NORMIES_API_BASE}/normie/${tokenId}/owner`, {}, 8_000)
+      if (ownerRes.ok) {
+        const ownerData = await ownerRes.json()
+        if (ownerData?.owner && isAddress(ownerData.owner)) {
+          ownerAddress = ownerData.owner
+        }
+      }
+    } catch {}
+
+    const holderAddress =
+      walletBody && isAddress(walletBody)
+        ? walletBody
+        : ownerAddress
+
     const toolCtx = buildZuloToolContext({
       tokenId: Number(tokenId),
       agentType: agentData.type,
@@ -90,6 +108,8 @@ export async function POST(req: NextRequest) {
       pulse,
       canvasLevel: agentData.canvas?.level,
       actionPoints: agentData.canvas?.actionPoints,
+      ethosScore: typeof ethosScoreBody === 'number' ? ethosScoreBody : undefined,
+      holderAddress,
     })
 
     const agentSummary = `
@@ -109,8 +129,11 @@ Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
     let erc8257ToolsList = '(ERC-8257 registry temporarily unavailable.)'
     try {
       const { tools } = await getCachedRegistryTools()
+      const withAccess = await enrichToolsWithWalletAccess(tools, holderAddress, {
+        maxChecks: 80,
+      })
       erc8257ToolsList = getErc8257ToolsForPrompt(
-        selectToolsForZuloPrompt(tools, toolCtx),
+        selectToolsForZuloPrompt(withAccess, toolCtx),
       )
     } catch (e) {
       console.error('[zulo-recommends] ERC-8257 discovery failed:', e)

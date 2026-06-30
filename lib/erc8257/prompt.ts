@@ -1,3 +1,4 @@
+import { formatWalletAccessLine } from "@/lib/erc8257/access-check"
 import {
   selectToolsForAgent,
   type ZuloToolContext,
@@ -36,7 +37,7 @@ export function getErc8257ToolsForPrompt(tools: RegistryTool[]): string {
       return (
         `- ${t.name} (ERC-8257 Tool #${t.toolId} on ${t.chain})${tags}: ` +
         `${t.description || "No description."}${endpoint}. ` +
-        `Access: ${t.access.accessNote}`
+        `Access: ${t.access.accessNote}. ${formatWalletAccessLine(t.access)}`
       )
     })
     .join("\n")
