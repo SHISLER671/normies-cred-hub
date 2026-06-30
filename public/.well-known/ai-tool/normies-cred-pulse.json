@@ -32,11 +32,15 @@
   "tags": ["normies", "reputation", "trust", "erc8004"],
   "version": "1.0.0",
   "access": {
-    "logic": "AND",
+    "logic": "OR",
     "requirements": [
       {
-        "kind": "nft",
-        "description": "Must hold a Normie NFT"
+        "kind": "0xbdf8c428",
+        "data": "0x0000000000000000000000009eb6e2025b64f340691e424b7fe7022ffde12438",
+        "label": "Must hold a Normie NFT",
+        "links": {
+          "opensea": "https://opensea.io/assets/ethereum/0x9eb6e2025b64f340691e424b7fe7022ffde12438"
+        }
       }
     ]
   }
