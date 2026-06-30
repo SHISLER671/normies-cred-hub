@@ -30,16 +30,16 @@ Today it scores the signals available on-chain right now. The framework is built
 
 ## ERC-8257 Registered Agent Tool
 
-This project is now officially registered as an **ERC-8257 Agent Tool**.
+This project is now officially registered as an **ERC-8257 Agent Tool** and is gated to **Normie NFT holders**.
 
 - **Tool Name**: Normies Cred Pulse
 - **Tool ID**: 53
-- **Description**: Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999).
-- **Access**: Free for all (open access)
+- **Description**: Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999). Only accessible to holders of a Normie NFT.
+- **Access**: Gated to Normie NFT holders
 - **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json
 - **View on OpenSea**: https://opensea.io/tools/erc8257/ethereum/53
 
-Agents can query this tool to evaluate trust before interacting with other Normie agents.
+Agents holding a Normie NFT can query this tool to evaluate trust and reputation before interacting with other agents.
 
 ## What This App Does
 
