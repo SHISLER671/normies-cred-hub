@@ -1,7 +1,7 @@
 {
   "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
   "name": "Normies Cred Pulse",
-  "description": "Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999). Useful for agents to check trust before interacting.",
+  "description": "Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999). Only accessible to Normie NFT holders.",
   "image": "https://normiescredhub.vercel.app/images/7141art.png",
   "featuredImage": "https://normiescredhub.vercel.app/images/7141art.png",
   "endpoint": "https://normiescredhub.vercel.app/api/agent",
@@ -20,33 +20,24 @@
   "outputs": {
     "type": "object",
     "properties": {
-      "token_id": {
-        "type": "integer",
-        "description": "The Normie token ID that was queried"
-      },
-      "pulse_level": {
-        "type": "integer",
-        "description": "Current trust/reputation level of the agent"
-      },
-      "max_level": {
-        "type": "integer",
-        "description": "Maximum possible pulse level"
-      },
-      "status": {
-        "type": "string",
-        "description": "Overall status of the agent"
-      },
-      "breakdown": {
-        "type": "array",
-        "description": "Detailed breakdown of signals used for the score"
-      },
-      "next_signal": {
-        "type": ["string", "null"],
-        "description": "Next signal that will be checked (if any)"
-      }
+      "token_id": { "type": "integer", "description": "The Normie token ID that was queried" },
+      "pulse_level": { "type": "integer", "description": "Current trust/reputation level of the agent" },
+      "max_level": { "type": "integer", "description": "Maximum possible pulse level" },
+      "status": { "type": "string", "description": "Overall status of the agent" },
+      "breakdown": { "type": "array", "description": "Detailed breakdown of signals used for the score" },
+      "next_signal": { "type": ["string", "null"], "description": "Next signal that will be checked (if any)" }
     }
   },
   "creatorAddress": "0xb8792e6516b88e73ed0723f8c1c8a92531a98767",
   "tags": ["normies", "reputation", "trust", "erc8004"],
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "access": {
+    "logic": "AND",
+    "requirements": [
+      {
+        "kind": "nft",
+        "description": "Must hold a Normie NFT"
+      }
+    ]
+  }
 }
