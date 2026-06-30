@@ -3,7 +3,7 @@
   "name": "Normies Cred Pulse",
   "description": "Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999). Only accessible to Normie NFT holders.",
   "image": "https://normiescredhub.vercel.app/images/7141art.png",
-  "featuredImage": "https://normiescredhub.vercel.app/images/7141art.png",
+  "featuredImage": "https://normiescredhub.vercel.app/images/NLOGO.png",
   "endpoint": "https://normiescredhub.vercel.app/api/agent",
   "inputs": {
     "type": "object",
