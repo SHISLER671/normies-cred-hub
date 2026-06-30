@@ -1,7 +1,9 @@
 {
   "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
   "name": "Normies Cred Pulse",
-  "description": "Returns reputation and trust signals for any Normie agent (token ID 0-9999). Useful for agents to check trust before interacting.",
+  "description": "Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999). Useful for agents to check trust before interacting.",
+  "image": "https://normiescredhub.vercel.app/images/7141art.png",
+  "featuredImage": "https://normiescredhub.vercel.app/images/7141art.png",
   "endpoint": "https://normiescredhub.vercel.app/api/agent",
   "inputs": {
     "type": "object",
