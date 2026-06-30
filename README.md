@@ -28,6 +28,19 @@ GET /api/agent/{tokenId}/pulse
 
 Today it scores the signals available on-chain right now. The framework is built to fold in transactional history and **Wire Network** cross-chain execution data as the ecosystem matures — reputation that grows with the agent. The reserved 5th Pulse level is already in place for it.
 
+## ERC-8257 Registered Agent Tool
+
+This project is now officially registered as an **ERC-8257 Agent Tool**.
+
+- **Tool Name**: Normies Cred Pulse
+- **Tool ID**: 53
+- **Description**: Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999).
+- **Access**: Free for all (open access)
+- **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json
+- **View on OpenSea**: https://opensea.io/tools/erc8257/ethereum/53
+
+Agents can query this tool to evaluate trust before interacting with other Normie agents.
+
 ## What This App Does
 
 NormiesCredHub allows users to search any Normie by token ID and view its credibility profile. It combines data from the Normies API, ERC-8004 registries, and Ethos Network to show how trustworthy and active an awakened agent is.
