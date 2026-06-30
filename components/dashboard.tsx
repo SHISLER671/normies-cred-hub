@@ -7,6 +7,7 @@ import { LinkageProofModal } from "@/components/linkage-proof-modal"
 import { OwnershipCard } from "@/components/ownership-card"
 import { AgentHorizonModal } from "@/components/zulo-suggests-modal"
 import { ToolsModal } from "@/components/tools-modal"
+import { Erc8257RegistryPanel } from "@/components/erc8257-registry-panel"
 import { ZuloRecommendsModal, type Recommendation } from "@/components/zulo-recommends-modal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -58,9 +59,14 @@ export function Dashboard() {
 
   const [endorseResult, setEndorseResult] = useState<{ message: string; signature?: string } | null>(null)
   const [showToolsModal, setShowToolsModal] = useState(false)
+  const [toolsModalTab, setToolsModalTab] = useState<"normies" | "erc8257">("normies")
   const [showZuloRecommendsModal, setShowZuloRecommendsModal] = useState(false)
   const [showHorizonModal, setShowHorizonModal] = useState(false)
   const [showLinkageModal, setShowLinkageModal] = useState(false)
+  const [agentPulse, setAgentPulse] = useState<{
+    pulse_level: number
+    status: string
+  } | null>(null)
 
   const { openConnectModal } = useConnectModal()
 
@@ -90,6 +96,24 @@ export function Dashboard() {
 
   const isAwakened = isAwakenedFromSnapshot(snapshot)
   const resolvedAgentId = getResolvedAgentId(snapshot?.agent, snapshot?.binding)
+
+  useEffect(() => {
+    if (!tokenId && tokenId !== 0) return
+    let cancelled = false
+    fetch(`/api/agent/${tokenId}/pulse`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.pulse_level != null) {
+          setAgentPulse({ pulse_level: data.pulse_level, status: data.status })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAgentPulse(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [tokenId])
 
   const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
   const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
@@ -132,6 +156,8 @@ export function Dashboard() {
           canvasNetChange: snapshot.canvasDiff?.netChange,
           hasDelegate: !!delegate && !isZeroAddress(delegate),
           ethosScore: ethos?.user?.score,
+          pulseLevel: agentPulse?.pulse_level,
+          pulseStatus: agentPulse?.status,
         }
       : null
 
@@ -558,7 +584,10 @@ export function Dashboard() {
 
               {/* Browse Tools Card */}
               <button
-                onClick={() => setShowToolsModal(true)}
+                onClick={() => {
+                  setToolsModalTab("normies")
+                  setShowToolsModal(true)
+                }}
                 className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">
@@ -736,15 +765,12 @@ export function Dashboard() {
                   signal: toolRegistrySignal,
                   icon: Wrench,
                   content: (
-                    <>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="size-4" />
-                        <span>Coming soon – ERC-8257 tooling</span>
-                      </div>
-                      <p className="text-sm leading-relaxed text-muted-foreground mt-2 text-pretty">
-                        Today the ecosystem tools are a curated list. ERC-8257 (draft) turns them into a permissionless on-chain registry — each tool content-addressed and verifiable, with access gated by predicate contracts like awakened-agent ownership. The framework is already schema-ready for it.
-                      </p>
-                    </>
+                    <Erc8257RegistryPanel
+                      onBrowseAll={() => {
+                        setToolsModalTab("erc8257")
+                        setShowToolsModal(true)
+                      }}
+                    />
                   ),
                 },
               ].map((section, index) => (
@@ -787,7 +813,11 @@ export function Dashboard() {
             );
           })()}
 
-          <ToolsModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
+          <ToolsModal
+            isOpen={showToolsModal}
+            onClose={() => setShowToolsModal(false)}
+            initialTab={toolsModalTab}
+          />
           <LinkageProofModal 
             tokenId={tokenId} 
             ownerAddress={snapshot?.owner.owner || ""} 

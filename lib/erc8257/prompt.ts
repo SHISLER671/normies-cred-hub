@@ -1,35 +1,26 @@
+import {
+  selectToolsForAgent,
+  type ZuloToolContext,
+} from "@/lib/erc8257/context"
 import type { RegistryTool } from "@/lib/erc8257/types"
 
-const ZULO_PROMPT_TOOL_LIMIT = 60
+export const ZULO_RECOMMENDS_TOOL_LIMIT = 60
+export const ZULO_HORIZON_TOOL_LIMIT = 25
 
-const PRIORITY_TAGS = new Set([
-  "normies",
-  "reputation",
-  "trust",
-  "erc8004",
-  "agent",
-  "security",
-  "ai",
-])
-
-function toolPriority(tool: RegistryTool): number {
-  let score = 0
-  for (const tag of tool.tags) {
-    if (PRIORITY_TAGS.has(tag.toLowerCase())) score += 10
-  }
-  const note = tool.access.accessNote.toLowerCase()
-  if (note.includes("normie")) score += 15
-  if (!tool.access.openAccess) score += 3
-  if (tool.manifestVerified) score += 2
-  score += tool.toolId / 1000
-  return score
+/** Trim the registry catalog to a prompt-safe, context-ranked subset for Zulo Recommends. */
+export function selectToolsForZuloPrompt(
+  tools: RegistryTool[],
+  ctx?: ZuloToolContext,
+): RegistryTool[] {
+  return selectToolsForAgent(tools, ctx, ZULO_RECOMMENDS_TOOL_LIMIT)
 }
 
-/** Trim the full registry catalog to a prompt-safe subset for Zulo. */
-export function selectToolsForZuloPrompt(tools: RegistryTool[]): RegistryTool[] {
-  return [...tools]
-    .sort((a, b) => toolPriority(b) - toolPriority(a))
-    .slice(0, ZULO_PROMPT_TOOL_LIMIT)
+/** Smaller subset for Horizon chat (token budget). */
+export function selectToolsForHorizonPrompt(
+  tools: RegistryTool[],
+  ctx?: ZuloToolContext,
+): RegistryTool[] {
+  return selectToolsForAgent(tools, ctx, ZULO_HORIZON_TOOL_LIMIT)
 }
 
 /** Format ERC-8257 registry tools for Zulo's recommendation prompt. */
@@ -49,4 +40,23 @@ export function getErc8257ToolsForPrompt(tools: RegistryTool[]): string {
       )
     })
     .join("\n")
+}
+
+/** Compact tools block injected into Zulo Horizon's system prompt. */
+export function buildHorizonToolsBlock(
+  normiesToolsList: string,
+  erc8257ToolsList: string,
+): string {
+  return `
+TOOL KNOWLEDGE (use when the user asks about tools, trust, or what to use next)
+- You may recommend from the Normies ecosystem list OR the ERC-8257 on-chain registry below.
+- Never invent tools. Always name the exact tool and note access requirements for gated tools.
+- Never pressure wallet actions, purchases, or signing.
+
+Normies ecosystem tools:
+${normiesToolsList}
+
+ERC-8257 agent tools (on-chain registry):
+${erc8257ToolsList}
+`.trim()
 }

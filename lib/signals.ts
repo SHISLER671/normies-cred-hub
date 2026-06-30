@@ -235,19 +235,19 @@ export function buildWirePlaceholderSignal(
   })
 }
 
-/** ERC-8257 tool-registry placeholder — no live registry yet. */
+/** ERC-8257 on-chain tool registry — live on Ethereum + Base. */
 export function buildToolRegistryPlaceholderSignal(
   agentId?: string | number
 ): CredibilitySignal {
   return normalizeSignal({
-    id: `tool-registry-placeholder-${agentId ?? "pending"}`,
+    id: `tool-registry-live-${agentId ?? "pending"}`,
     source: "erc8257",
     category: "tooling",
     title: "Verifiable Tooling (ERC-8257)",
     description:
-      "ERC-8257 turns the curated tool list into a permissionless on-chain registry — each tool content-addressed and verifiable, with access gated by predicate contracts (e.g. awakened-agent ownership). Today the list is curated; the framework is schema-ready for the registry.",
-    verifiable: false,
-    metadata: { status: "coming_soon", standard: "erc-8257", draft: true },
+      "Live on-chain agent tool registry — content-addressed manifests on Ethereum and Base, with predicate-gated access (NFT ownership, subscriptions, and more). Zulo can discover and recommend these tools.",
+    verifiable: true,
+    metadata: { status: "live", standard: "erc-8257" },
   })
 }
 
@@ -335,22 +335,46 @@ export function wireExecutionToSignal(
 }
 
 /**
- * Placeholder for ERC-8257 (draft) tool-registry signals.
- * Not yet wired to a live registry — returns an empty list until integration
- * lands. Future signals will reflect on-chain tool discoverability,
- * content-hash integrity, and predicate-gated access for the connected agent.
+ * Maps cached ERC-8257 registry entries into credibility signals for an agent.
  */
 export async function getToolRegistrySignals(
   agentId: string | number
 ): Promise<CredibilitySignal[]> {
-  void agentId
+  try {
+    const { getCachedRegistryTools } = await import("@/lib/erc8257/cache")
+    const { tools } = await getCachedRegistryTools()
 
-  // Future: read the ERC-8257 registry and map each registered tool, e.g.:
-  // - uri + contentHash → verifiable, content-addressed manifest
-  // - gatePredicate → whether this agent satisfies the access gate
-  // - registeredAt → freshness timestamp
+    const relevant = tools
+      .filter(
+        (t) =>
+          t.manifestVerified &&
+          (t.tags.some((tag) =>
+            ["normies", "reputation", "trust", "erc8004"].includes(tag.toLowerCase()),
+          ) ||
+            t.name.toLowerCase().includes("normie")),
+      )
+      .slice(0, 8)
 
-  return []
+    return relevant.map((tool) =>
+      toolRegistryToSignal(
+        normalizeToolRegistryEntry({
+          toolId: String(tool.toolId),
+          uri: tool.manifestUri,
+          contentHash: tool.manifestHash,
+          gatePredicate: tool.access.predicateAddress ?? undefined,
+          registered: true,
+          metadata: {
+            name: tool.name,
+            chain: tool.chain,
+            accessNote: tool.access.accessNote,
+            agentId,
+          },
+        }),
+      ),
+    )
+  } catch {
+    return []
+  }
 }
 
 /** Normalize a raw ERC-8257 registry entry into a structured signal shape. */

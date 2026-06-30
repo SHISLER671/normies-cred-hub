@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getAgentPulse } from '@/lib/api/agent-pulse'
 import { getToolsListForPrompt, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
 import { getCachedRegistryTools } from '@/lib/erc8257/cache'
+import {
+  buildAgentRecommendationHints,
+  buildPulseSummary,
+  buildZuloToolContext,
+} from '@/lib/erc8257/context'
 import {
   getErc8257ToolsForPrompt,
   selectToolsForZuloPrompt,
@@ -74,6 +80,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to load agent data from Normies API' }, { status: 502 })
     }
 
+    const pulseResult = await getAgentPulse(Number(tokenId))
+    const pulse = pulseResult.ok ? pulseResult.data : null
+
+    const toolCtx = buildZuloToolContext({
+      tokenId: Number(tokenId),
+      agentType: agentData.type,
+      isAwakened: true,
+      pulse,
+      canvasLevel: agentData.canvas?.level,
+      actionPoints: agentData.canvas?.actionPoints,
+    })
+
     const agentSummary = `
 Name: ${agentData.name || 'Unknown'}
 Type: ${agentData.type || 'Unknown'}
@@ -82,6 +100,8 @@ Personality: ${(agentData.personalityTraits || []).join(', ')}
 Communication: ${agentData.communicationStyle || 'N/A'}
 Canvas: level ${agentData.canvas?.level || 'N/A'}, AP ${agentData.canvas?.actionPoints || 'N/A'}
 Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
+${pulse ? buildPulseSummary(pulse) : 'Pulse: unavailable'}
+Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
 `.trim()
 
     const toolsList = getToolsListForPrompt()
@@ -89,7 +109,9 @@ Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
     let erc8257ToolsList = '(ERC-8257 registry temporarily unavailable.)'
     try {
       const { tools } = await getCachedRegistryTools()
-      erc8257ToolsList = getErc8257ToolsForPrompt(selectToolsForZuloPrompt(tools))
+      erc8257ToolsList = getErc8257ToolsForPrompt(
+        selectToolsForZuloPrompt(tools, toolCtx),
+      )
     } catch (e) {
       console.error('[zulo-recommends] ERC-8257 discovery failed:', e)
     }

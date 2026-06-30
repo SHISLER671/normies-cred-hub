@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 import { checkRateLimitById, getClientId } from "@/lib/ratelimit"
+import { getCachedRegistryTools } from "@/lib/erc8257/cache"
+import {
+  buildAgentRecommendationHints,
+  horizonAgentToToolContext,
+} from "@/lib/erc8257/context"
+import {
+  buildHorizonToolsBlock,
+  getErc8257ToolsForPrompt,
+  selectToolsForHorizonPrompt,
+} from "@/lib/erc8257/prompt"
+import { getToolsListForPrompt } from "@/lib/tools"
 import {
   buildZuloSystemPrompt,
   countUserMessages,
@@ -273,7 +284,22 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const systemPrompt = buildZuloSystemPrompt(agentContext)
+  let toolsBlock: string | undefined
+  try {
+    const toolCtx = horizonAgentToToolContext(agentContext)
+    const { tools } = await getCachedRegistryTools()
+    const erc8257List = getErc8257ToolsForPrompt(
+      selectToolsForHorizonPrompt(tools, toolCtx),
+    )
+    const hints = toolCtx ? buildAgentRecommendationHints(toolCtx) : ""
+    toolsBlock = `${buildHorizonToolsBlock(getToolsListForPrompt(), erc8257List)}${
+      hints ? `\n\nRecommendation hints for the loaded agent:\n${hints}` : ""
+    }`
+  } catch (e) {
+    console.warn("[zulo-horizon] ERC-8257 tools unavailable for prompt:", e)
+  }
+
+  const systemPrompt = buildZuloSystemPrompt(agentContext, toolsBlock)
   const llmMessages: Array<{ role: string; content: string }> = [
     { role: "system", content: systemPrompt },
     ...history.map((m) => ({ role: m.role, content: m.content })),

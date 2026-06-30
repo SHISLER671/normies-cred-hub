@@ -35,6 +35,8 @@ export interface HorizonAgentContext {
   canvasNetChange?: number
   hasDelegate?: boolean
   ethosScore?: number
+  pulseLevel?: number
+  pulseStatus?: string
 }
 
 export interface HorizonInsight {
@@ -138,7 +140,10 @@ export function countUserMessages(messages: HorizonChatMessage[]): number {
   return messages.filter((m) => m.role === "user").length
 }
 
-export function buildZuloSystemPrompt(agent?: HorizonAgentContext | null): string {
+export function buildZuloSystemPrompt(
+  agent?: HorizonAgentContext | null,
+  toolsBlock?: string,
+): string {
   const agentBlock = agent
     ? `
 The user currently has Normie #${agent.tokenId} loaded in the dashboard.
@@ -148,9 +153,10 @@ The user currently has Normie #${agent.tokenId} loaded in the dashboard.
 ${agent.canvasLevel != null ? `- Canvas level: ${agent.canvasLevel}` : ""}
 ${agent.actionPoints != null ? `- Action Points: ${agent.actionPoints}` : ""}
 ${agent.ethosScore != null ? `- Owner Ethos score: ${agent.ethosScore}` : ""}
+${agent.pulseLevel != null ? `- Agent Pulse: ${agent.pulseLevel}/5${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""}` : ""}
 ${agent.traits?.length ? `- Traits: ${agent.traits.map((t) => `${t.trait_type}: ${t.value}`).join(", ")}` : ""}
 
-Reference this agent naturally when relevant — reputation, canvas, awakening, next steps — but stay conversational, not like a report.
+Reference this agent naturally when relevant — reputation, canvas, awakening, ERC-8257 tools, next steps — but stay conversational, not like a report.
 `
     : `
 No specific Normie is loaded right now. Chat freely about Normies, Canvas, awakening, reputation, and the ecosystem. If they mention a token ID, engage with it helpfully without pretending you already know their holdings.
@@ -178,6 +184,7 @@ SAFETY (absolute)
 
 CONTEXT
 ${agentBlock}
+${toolsBlock ? `\n${toolsBlock}\n` : ""}
 
 You are chatting in "Zulo Horizon" on the Normies Cred Hub — a reputation and trust dashboard for awakened agents.`
 }
