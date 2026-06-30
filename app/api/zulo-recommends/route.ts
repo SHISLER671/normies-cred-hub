@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToolsListForPrompt, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
+import { getCachedRegistryTools } from '@/lib/erc8257/cache'
+import {
+  getErc8257ToolsForPrompt,
+  selectToolsForZuloPrompt,
+} from '@/lib/erc8257/prompt'
 import { NORMIES_API_BASE } from '@/constants/contracts'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { fetchWithTimeout, isTimeoutError } from '@/lib/fetch-with-timeout'
@@ -81,8 +86,17 @@ Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
 
     const toolsList = getToolsListForPrompt()
 
+    let erc8257ToolsList = '(ERC-8257 registry temporarily unavailable.)'
+    try {
+      const { tools } = await getCachedRegistryTools()
+      erc8257ToolsList = getErc8257ToolsForPrompt(selectToolsForZuloPrompt(tools))
+    } catch (e) {
+      console.error('[zulo-recommends] ERC-8257 discovery failed:', e)
+    }
+
     const prompt = ZULO_RECOMMENDS_SYSTEM_PROMPT
       .replace('{toolsList}', toolsList)
+      .replace('{erc8257ToolsList}', erc8257ToolsList)
       .replace('{agentSummary}', agentSummary)
 
     // 3. Call Venice AI

@@ -31,6 +31,12 @@ export const ETHOS_CLIENT_HEADER = "NormiesCredHub/1.2"
 /** Main Normies ERC-721 collection on Ethereum */
 export const NORMIES_NFT = "0x9eb6e2025b64f340691e424b7fe7022ffde12438" as const
 
+/** ERC-8257 Agent Tool Registry (same CREATE2 address on mainnet + Base) */
+export const ERC8257 = {
+  TOOL_REGISTRY: "0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1",
+  ERC721_OWNER_PREDICATE: "0xc8721c9A776958FfFfEb602DA1b708bf1D318379",
+} as const
+
 /** Minimal ERC721Enumerable for discovering owned tokens (balance + tokenOfOwnerByIndex) */
 export const ERC721_ENUMERABLE_ABI = [
   {
