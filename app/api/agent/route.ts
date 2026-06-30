@@ -6,15 +6,20 @@ const CACHE_HEADERS = {
 }
 
 /**
- * Public Pulse endpoint — agent-readable reputation signal.
- * Calculated on the fly from Normies API + ERC-8004 on-chain reads.
+ * ERC-8257 tool endpoint — POST with { tokenId } for agent discovery probes.
  */
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ tokenId: string }> },
-) {
-  const { tokenId: tokenIdStr } = await params
-  const tokenId = parseTokenId(tokenIdStr)
+export async function POST(req: NextRequest) {
+  let body: unknown
+
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
+
+  const tokenId = parseTokenId(
+    body && typeof body === "object" ? (body as { tokenId?: unknown }).tokenId : undefined,
+  )
 
   if (tokenId === null) {
     return NextResponse.json({ error: "Invalid token ID (must be 0–9999)" }, { status: 400 })
