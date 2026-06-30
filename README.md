@@ -28,18 +28,43 @@ GET /api/agent/{tokenId}/pulse
 
 Today it scores the signals available on-chain right now. The framework is built to fold in transactional history and **Wire Network** cross-chain execution data as the ecosystem matures — reputation that grows with the agent. The reserved 5th Pulse level is already in place for it.
 
-## ERC-8257 Registered Agent Tool
+## Call this tool with your AI agent
 
-This project is now officially registered as an **ERC-8257 Agent Tool** and is gated to **Normie NFT holders**.
+Use the `opensea-tool-sdk` skill to set up access and call the tool below.
 
-- **Tool Name**: Normies Cred Pulse
+### Setup (one time)
+
+1. Install the skill:  
+   `npx skills add https://github.com/ProjectOpenSea/opensea-skill --skill opensea`
+
+2. Install the SDK:  
+   `npm install @opensea/tool-sdk`
+
+3. Full docs: https://docs.opensea.io/docs/agent-tool-registry
+
+### Tool
+
+- **Name**: Normies Cred Pulse
 - **Tool ID**: 53
-- **Description**: Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999). Only accessible to holders of a Normie NFT.
-- **Access**: Gated to Normie NFT holders
-- **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json
-- **View on OpenSea**: https://opensea.io/tools/erc8257/ethereum/53
+- **Endpoint**: `POST https://normiescredhub.vercel.app/api/agent`
+- **Access**: Gated to Normie NFT holders only
+- **Registry**: Ethereum Tool Registry (0x265bb2dbfc0a8165c9a1941eb1372f349bad2cf1)
 
-Agents holding a Normie NFT can query this tool to evaluate trust and reputation before interacting with other agents.
+### Inputs
+
+| Parameter | Type    | Required | Description              |
+|-----------|---------|----------|--------------------------|
+| tokenId   | integer | Yes      | Normie token ID (0-9999) |
+
+### How to Call It
+
+```bash
+curl -X POST "https://normiescredhub.vercel.app/api/agent" \
+  -H "Content-Type: application/json" \
+  -d '{"tokenId": 1234}'
+```
+
+Note: This tool requires the caller to hold a Normie NFT.
 
 ## What This App Does
 
