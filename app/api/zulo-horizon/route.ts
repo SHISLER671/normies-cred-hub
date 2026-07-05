@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { fetchAgentPulse } from "@/lib/api/pulse-client"
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 import { checkRateLimitById, getClientId } from "@/lib/ratelimit"
-import { enrichToolsWithWalletAccess } from "@/lib/erc8257/access-check"
-import { getCachedRegistryTools } from "@/lib/erc8257/cache"
 import {
   buildAgentRecommendationHints,
   horizonAgentToToolContext,
 } from "@/lib/erc8257/context"
-import {
-  buildHorizonToolsBlock,
-  getErc8257ToolsForPrompt,
-  selectToolsForHorizonPrompt,
-} from "@/lib/erc8257/prompt"
-import { getToolsListForPrompt } from "@/lib/tools"
+import { buildNormiesToolsBlock, getToolsListForPrompt } from "@/lib/tools"
 import {
   buildZuloSystemPrompt,
   countUserMessages,
@@ -70,6 +64,35 @@ function sanitizeMessages(raw: unknown): HorizonChatMessage[] {
       content: m.content.trim().slice(0, ZULO_HORIZON_LIMITS.maxInputChars),
     }))
     .slice(-ZULO_HORIZON_LIMITS.maxTotalMessages)
+}
+
+async function enrichAgentContextWithPulse(
+  req: NextRequest,
+  agentContext: HorizonAgentContext | null,
+): Promise<HorizonAgentContext | null> {
+  if (!agentContext?.tokenId && agentContext?.tokenId !== 0) {
+    return agentContext
+  }
+
+  const pulseResult = await fetchAgentPulse(agentContext.tokenId, { req })
+  if (!pulseResult.ok) {
+    console.warn(
+      `[zulo-horizon] pulse unavailable for token ${agentContext.tokenId}: ${pulseResult.error}`,
+    )
+    return agentContext
+  }
+
+  const pulse = pulseResult.data
+  console.log(
+    `[zulo-horizon] pulse via HTTP — token ${agentContext.tokenId}, level ${pulse.pulse_level}/${pulse.max_level} (${pulse.status})`,
+  )
+
+  return {
+    ...agentContext,
+    pulseLevel: pulse.pulse_level,
+    pulseStatus: pulse.status,
+    pulseBreakdown: pulse.breakdown,
+  }
 }
 
 function buildSuccessResponse(
@@ -190,7 +213,7 @@ export async function POST(req: NextRequest) {
   const lastActivityAt = body.lastActivityAt ?? sessionStartedAt
   const history = sanitizeMessages(body.messages)
   const userMessage = body.message?.trim() ?? ""
-  const agentContext = body.agentContext ?? null
+  const agentContext = await enrichAgentContextWithPulse(req, body.agentContext ?? null)
 
   if (!sessionId || sessionId.length > 64) {
     return NextResponse.json(
@@ -285,25 +308,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  let toolsBlock: string | undefined
-  try {
-    const toolCtx = horizonAgentToToolContext(agentContext)
-    const { tools } = await getCachedRegistryTools()
-    const withAccess = await enrichToolsWithWalletAccess(
-      tools,
-      agentContext?.holderAddress,
-      { maxChecks: 40 },
-    )
-    const erc8257List = getErc8257ToolsForPrompt(
-      selectToolsForHorizonPrompt(withAccess, toolCtx),
-    )
-    const hints = toolCtx ? buildAgentRecommendationHints(toolCtx) : ""
-    toolsBlock = `${buildHorizonToolsBlock(getToolsListForPrompt(), erc8257List)}${
-      hints ? `\n\nRecommendation hints for the loaded agent:\n${hints}` : ""
-    }`
-  } catch (e) {
-    console.warn("[zulo-horizon] ERC-8257 tools unavailable for prompt:", e)
-  }
+  const toolCtx = horizonAgentToToolContext(agentContext)
+  const hints = toolCtx ? buildAgentRecommendationHints(toolCtx) : ""
+  const toolsBlock = buildNormiesToolsBlock(getToolsListForPrompt(), hints || undefined)
 
   const systemPrompt = buildZuloSystemPrompt(agentContext, toolsBlock)
   const llmMessages: Array<{ role: string; content: string }> = [

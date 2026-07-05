@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAddress } from 'viem'
-import { getAgentPulse } from '@/lib/api/agent-pulse'
+import { fetchAgentPulse } from '@/lib/api/pulse-client'
 import { getToolsListForPrompt, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
-import { enrichToolsWithWalletAccess } from '@/lib/erc8257/access-check'
-import { getCachedRegistryTools } from '@/lib/erc8257/cache'
 import {
   buildAgentRecommendationHints,
   buildPulseSummary,
   buildZuloToolContext,
 } from '@/lib/erc8257/context'
-import {
-  getErc8257ToolsForPrompt,
-  selectToolsForZuloPrompt,
-} from '@/lib/erc8257/prompt'
 import { NORMIES_API_BASE } from '@/constants/contracts'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { fetchWithTimeout, isTimeoutError } from '@/lib/fetch-with-timeout'
@@ -82,8 +76,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to load agent data from Normies API' }, { status: 502 })
     }
 
-    const pulseResult = await getAgentPulse(Number(tokenId))
+    const pulseResult = await fetchAgentPulse(Number(tokenId), { req })
     const pulse = pulseResult.ok ? pulseResult.data : null
+
+    if (pulse) {
+      console.log(
+        `[zulo-recommends] pulse via HTTP — token ${tokenId}, level ${pulse.pulse_level}/${pulse.max_level} (${pulse.status})`,
+      )
+    } else {
+      console.warn(
+        `[zulo-recommends] pulse unavailable for token ${tokenId}: ${pulseResult.ok ? "unknown" : pulseResult.error}`,
+      )
+    }
 
     let ownerAddress: string | undefined
     try {
@@ -120,28 +124,14 @@ Personality: ${(agentData.personalityTraits || []).join(', ')}
 Communication: ${agentData.communicationStyle || 'N/A'}
 Canvas: level ${agentData.canvas?.level || 'N/A'}, AP ${agentData.canvas?.actionPoints || 'N/A'}
 Traits: ${agentData.traits ? JSON.stringify(agentData.traits) : 'N/A'}
-${pulse ? buildPulseSummary(pulse) : 'Pulse: unavailable'}
+${pulse ? buildPulseSummary(pulse) : 'Pulse: unavailable (Normies Cred Pulse tool could not be reached)'}
 Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
 `.trim()
 
     const toolsList = getToolsListForPrompt()
 
-    let erc8257ToolsList = '(ERC-8257 registry temporarily unavailable.)'
-    try {
-      const { tools } = await getCachedRegistryTools()
-      const withAccess = await enrichToolsWithWalletAccess(tools, holderAddress, {
-        maxChecks: 80,
-      })
-      erc8257ToolsList = getErc8257ToolsForPrompt(
-        selectToolsForZuloPrompt(withAccess, toolCtx),
-      )
-    } catch (e) {
-      console.error('[zulo-recommends] ERC-8257 discovery failed:', e)
-    }
-
     const prompt = ZULO_RECOMMENDS_SYSTEM_PROMPT
       .replace('{toolsList}', toolsList)
-      .replace('{erc8257ToolsList}', erc8257ToolsList)
       .replace('{agentSummary}', agentSummary)
 
     // 3. Call Venice AI
