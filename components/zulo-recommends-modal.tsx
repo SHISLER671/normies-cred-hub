@@ -11,14 +11,20 @@ import {
 export interface Recommendation {
   name: string;
   reason: string;
+  pulseRationale?: string;
   category: string;
   url: string;
+  source?: 'normies' | 'agent-tools';
+  toolId?: number;
+  chain?: string;
+  accessNote?: string;
 }
 
 interface ZuloRecommendsModalProps {
   isOpen: boolean;
   onClose: () => void;
   recommendations: Recommendation[];
+  summary?: string;
   isLoading?: boolean;
   error?: string;
 }
@@ -26,7 +32,8 @@ interface ZuloRecommendsModalProps {
 export function ZuloRecommendsModal({ 
   isOpen, 
   onClose, 
-  recommendations, 
+  recommendations,
+  summary,
   isLoading = false,
   error
 }: ZuloRecommendsModalProps) {
@@ -38,7 +45,7 @@ export function ZuloRecommendsModal({
             Zulo Recommends
           </DialogTitle>
           <DialogDescription className="text-left text-xs sm:text-sm">
-            Tool suggestions based on this agent&apos;s on-chain profile and current activity.
+            Pulse-aware tool suggestions with explanations — based on this agent&apos;s on-chain profile.
           </DialogDescription>
         </DialogHeader>
 
@@ -46,15 +53,15 @@ export function ZuloRecommendsModal({
           <div className="mb-4 border-l-2 border-primary/40 bg-muted/40 px-3 py-2.5 sm:mb-5 sm:px-4 sm:py-3">
             <p className="text-xs font-medium tracking-[1.5px] text-primary">WHO IS ZULO?</p>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground text-pretty">
-              Zulo is Normie #7141, an awakened ERC-8004 agent on Normies. He reviews on-chain
-              signals — traits, canvas state, and activity — and suggests tools that fit your
-              agent&apos;s current needs. He will never request keys, transactions, or approvals.
+              Zulo is Normie #7141, an awakened ERC-8004 agent on Normies. He reads Pulse via Normies Cred
+              Pulse, reviews traits and canvas state, then explains why each tool fits. He will never
+              request keys, transactions, or approvals.
             </p>
           </div>
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 text-center sm:py-16">
-              <div className="text-sm text-muted-foreground">Analyzing on-chain signals…</div>
+              <div className="text-sm text-muted-foreground">Reading Pulse and ranking tools…</div>
             </div>
           ) : error ? (
             <div className="py-8 text-center text-sm whitespace-pre-wrap text-muted-foreground sm:py-10">
@@ -62,19 +69,46 @@ export function ZuloRecommendsModal({
             </div>
           ) : recommendations.length > 0 ? (
             <div className="space-y-3 sm:space-y-4">
+              {summary ? (
+                <p className="border-l-2 border-primary/30 bg-card/40 px-3 py-2.5 text-sm leading-relaxed text-foreground/90 text-pretty sm:px-4">
+                  {summary}
+                </p>
+              ) : null}
+
               {recommendations.map((rec, index) => (
                 <div 
                   key={index} 
                   className="group card rounded-none border border-border p-4 transition-all hover:border-primary/30 hover:shadow-md sm:p-5"
                 >
                   <h3 className="font-semibold text-base tracking-tight sm:text-lg">{rec.name}</h3>
+
+                  {rec.pulseRationale ? (
+                    <p className="mt-2 text-xs leading-relaxed text-primary/90 sm:text-sm">
+                      <span className="font-medium tracking-wide">Pulse: </span>
+                      {rec.pulseRationale}
+                    </p>
+                  ) : null}
+
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
                     {rec.reason}
                   </p>
 
+                  {rec.source === 'agent-tools' && rec.accessNote ? (
+                    <p className="mt-2 text-xs text-muted-foreground/90">
+                      Access: {rec.accessNote}
+                    </p>
+                  ) : null}
+
                   <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="w-fit rounded-none border border-border bg-muted px-3 py-1 text-sm text-muted-foreground">
-                      {rec.category}
+                    <div className="flex flex-wrap gap-2">
+                      <div className="w-fit rounded-none border border-border bg-muted px-3 py-1 text-sm text-muted-foreground">
+                        {rec.category}
+                      </div>
+                      {rec.source === 'agent-tools' && rec.toolId != null ? (
+                        <div className="w-fit rounded-none border border-border bg-muted px-3 py-1 text-xs text-muted-foreground">
+                          Tool #{rec.toolId}{rec.chain ? ` · ${rec.chain}` : ''}
+                        </div>
+                      ) : null}
                     </div>
                     
                     <a 
@@ -88,6 +122,10 @@ export function ZuloRecommendsModal({
                   </div>
                 </div>
               ))}
+
+              <p className="pt-1 text-[10px] leading-relaxed text-muted-foreground">
+                DYOR — tool access rules and endpoints can change. Zulo explains his reasoning; you decide what to use.
+              </p>
             </div>
           ) : (
             <div className="py-8 text-center text-sm text-muted-foreground sm:py-10">

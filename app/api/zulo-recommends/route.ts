@@ -3,18 +3,26 @@ import { isAddress } from 'viem'
 import { fetchAgentPulse } from '@/lib/api/pulse-client'
 import { getAgentToolsForPrompt } from '@/lib/erc8257/prompt'
 import { prepareZuloRegistryTools } from '@/lib/erc8257/zulo-select'
-import { getToolsListForPrompt, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
+import { getToolsListForPrompt, tools as normiesTools, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
 import {
   buildAgentRecommendationHints,
   buildPulseSummary,
   buildZuloToolContext,
 } from '@/lib/erc8257/context'
+import {
+  buildPulseContext,
+  buildRecommendationBrief,
+  buildShortlistForPrompt,
+  buildToolCatalog,
+  parseZuloRecommendations,
+  rankNormiesTools,
+  rankRegistryTools,
+} from '@/lib/zulo/recommendations'
 import { NORMIES_API_BASE } from '@/constants/contracts'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { fetchWithTimeout, isTimeoutError } from '@/lib/fetch-with-timeout'
 
 export async function POST(req: NextRequest) {
-  // Protect Venice credits: this route runs the 405B model, so keep it tight.
   const rl = await checkRateLimit(req, 'zulo-recommends', 5, 60)
   if (!rl.ok) {
     return NextResponse.json(
@@ -37,7 +45,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'tokenId is required' }, { status: 400 })
     }
 
-    // 1. Check if the agent is awakened (ERC-8004 binding)
     let isAwakened = false
     try {
       const bindingRes = await fetchWithTimeout(`${NORMIES_API_BASE}/agents/binding/${tokenId}`, {}, 8_000)
@@ -63,7 +70,6 @@ export async function POST(req: NextRequest) {
       }, { status: 403 })
     }
 
-    // 2. Fetch agent data
     let agentData: any = null
     try {
       const res = await fetchWithTimeout(`${NORMIES_API_BASE}/agents/info/${tokenId}`, {}, 8_000)
@@ -118,6 +124,30 @@ export async function POST(req: NextRequest) {
       holderAddress,
     })
 
+    let registryTools: Awaited<ReturnType<typeof prepareZuloRegistryTools>> = []
+    try {
+      registryTools = await prepareZuloRegistryTools({
+        ctx: toolCtx,
+        holderAddress,
+        limit: 60,
+        maxAccessChecks: holderAddress ? 80 : 0,
+      })
+      console.log(`[zulo-recommends] agent tools loaded — ${registryTools.length} for prompt`)
+    } catch (e) {
+      console.error('[zulo-recommends] ERC-8257 discovery failed:', e)
+    }
+
+    const rankedNormies = rankNormiesTools(toolCtx)
+    const rankedRegistry = rankRegistryTools(registryTools, toolCtx)
+    const catalog = buildToolCatalog(normiesTools, registryTools)
+
+    const recommendationBrief = buildRecommendationBrief(
+      toolCtx,
+      pulse,
+      rankedNormies,
+      rankedRegistry,
+    )
+
     const agentSummary = `
 Name: ${agentData.name || 'Unknown'}
 Type: ${agentData.type || 'Unknown'}
@@ -130,28 +160,18 @@ ${pulse ? buildPulseSummary(pulse) : 'Pulse: unavailable (Normies Cred Pulse too
 Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
 `.trim()
 
-    const toolsList = getToolsListForPrompt()
-
-    let agentToolsList = '(ERC-8257 registry temporarily unavailable.)'
-    try {
-      const registryTools = await prepareZuloRegistryTools({
-        ctx: toolCtx,
-        holderAddress,
-        limit: 60,
-        maxAccessChecks: holderAddress ? 80 : 0,
-      })
-      agentToolsList = getAgentToolsForPrompt(registryTools)
-      console.log(`[zulo-recommends] agent tools loaded — ${registryTools.length} for prompt`)
-    } catch (e) {
-      console.error('[zulo-recommends] ERC-8257 discovery failed:', e)
-    }
-
     const prompt = ZULO_RECOMMENDS_SYSTEM_PROMPT
-      .replace('{toolsList}', toolsList)
-      .replace('{agentToolsList}', agentToolsList)
+      .replace('{recommendationBrief}', recommendationBrief)
+      .replace('{shortlist}', buildShortlistForPrompt(rankedNormies, rankedRegistry))
+      .replace('{toolsList}', getToolsListForPrompt())
+      .replace(
+        '{agentToolsList}',
+        registryTools.length
+          ? getAgentToolsForPrompt(registryTools)
+          : '(ERC-8257 registry temporarily unavailable.)',
+      )
       .replace('{agentSummary}', agentSummary)
 
-    // 3. Call Venice AI
     const veniceKey = (
       process.env.VENICE_INFERENCE_KEY ||
       process.env.VENICE_INFERENCE_KEY_ ||
@@ -172,8 +192,8 @@ Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
       body: JSON.stringify({
         model: 'hermes-3-llama-3.1-405b',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 800,
-        temperature: 0.4,
+        max_tokens: 1000,
+        temperature: 0.35,
       }),
     }, 25_000)
 
@@ -184,9 +204,25 @@ Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
     }
 
     const data = await res.json()
-    const recommendations = data.choices?.[0]?.message?.content || 'Zulo is currently unavailable.'
+    const rawContent = data.choices?.[0]?.message?.content || ''
+    const parsed = parseZuloRecommendations(rawContent, catalog)
 
-    return NextResponse.json({ recommendations })
+    if (parsed.recommendations.length === 0) {
+      console.warn('[zulo-recommends] no structured recommendations parsed from model output')
+      return NextResponse.json({
+        error: 'Zulo could not produce recommendations for this agent. Please try again.',
+      }, { status: 502 })
+    }
+
+    console.log(
+      `[zulo-recommends] ${parsed.recommendations.length} recommendations — pulse-aware picks parsed`,
+    )
+
+    return NextResponse.json({
+      summary: parsed.summary,
+      pulseContext: buildPulseContext(pulse),
+      recommendations: parsed.recommendations,
+    })
 
   } catch (err: any) {
     if (isTimeoutError(err)) {

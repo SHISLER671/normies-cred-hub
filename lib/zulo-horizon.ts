@@ -54,6 +54,17 @@ export interface HorizonAgentToolPreview {
   accessGranted?: boolean | null
 }
 
+const HORIZON_PULSE_SIGNALS = [
+  "ERC-8004 registered",
+  "Has active agent card",
+  "Canvas activity detected",
+  "Clean ownership & delegation",
+] as const
+
+function deriveHorizonPulseGaps(breakdown: string[]): string[] {
+  return HORIZON_PULSE_SIGNALS.filter((signal) => !breakdown.includes(signal))
+}
+
 function ethosVibe(score?: number): string {
   if (score == null) return "No Ethos profile linked yet — reputation is still a blank canvas waiting for story."
   if (score >= 2000) return `Ethos score ${score} — exemplary territory. The community sees real signal here.`
@@ -210,11 +221,12 @@ ${agent.canvasLevel != null ? `- Canvas level: ${agent.canvasLevel}` : ""}
 ${agent.actionPoints != null ? `- Action Points: ${agent.actionPoints}` : ""}
 ${agent.ethosScore != null ? `- Owner Ethos score: ${agent.ethosScore}` : ""}
 ${agent.pulseLevel != null ? `- Agent Pulse: ${agent.pulseLevel}/5${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""}` : ""}
-${agent.pulseBreakdown?.length ? `- Pulse signals: ${agent.pulseBreakdown.join(", ")}` : ""}
+${agent.pulseBreakdown?.length ? `- Pulse signals present: ${agent.pulseBreakdown.join(", ")}` : ""}
+${agent.pulseBreakdown ? `- Pulse gaps (missing signals): ${deriveHorizonPulseGaps(agent.pulseBreakdown).join(", ") || "none"}` : ""}
 ${agent.holderAddress ? `- Holder wallet (for tool access checks): ${agent.holderAddress}` : ""}
 ${agent.traits?.length ? `- Traits: ${agent.traits.map((t) => `${t.trait_type}: ${t.value}`).join(", ")}` : ""}
 
-Reference this agent naturally when relevant — reputation, canvas, awakening, ERC-8257 tools, next steps — but stay conversational, not like a report.
+When suggesting tools, lead with Pulse — cite level, status, or gaps — and explain why each tool fits. Stay conversational, not like a report.
 `
     : `
 No specific Normie is loaded right now. Chat freely about Normies, Canvas, awakening, reputation, and the ecosystem. If they mention a token ID, engage with it helpfully without pretending you already know their holdings.

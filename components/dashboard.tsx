@@ -36,7 +36,7 @@ import {
   isNormieOwner,
   isZeroAddress,
 } from "@/lib/normie-control"
-import { tools } from "@/lib/tools"
+
 import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CredibilityConnector, CredibilitySignal } from "@/components/credibility-signal"
@@ -73,6 +73,7 @@ export function Dashboard() {
 
   // Zulo Recommends state (lifted for the polished presentational modal)
   const [zuloRecommendations, setZuloRecommendations] = useState<Recommendation[]>([])
+  const [zuloSummary, setZuloSummary] = useState<string | undefined>()
   const [zuloLoading, setZuloLoading] = useState(false)
   const [zuloError, setZuloError] = useState<string | null>(null)
 
@@ -272,6 +273,7 @@ export function Dashboard() {
 
     // Open modal immediately in loading state, then fetch
     setZuloRecommendations([])
+    setZuloSummary(undefined)
     setZuloError(null)
     setZuloLoading(true)
     setShowZuloRecommendsModal(true)
@@ -310,108 +312,17 @@ export function Dashboard() {
         return
       }
 
-      if (data.recommendations) {
-        const parsed = parseRecommendations(data.recommendations)
-        setZuloRecommendations(parsed)
+      if (Array.isArray(data.recommendations) && data.recommendations.length > 0) {
+        setZuloRecommendations(data.recommendations)
+        setZuloSummary(typeof data.summary === 'string' ? data.summary : undefined)
+      } else {
+        setZuloError('Zulo returned no recommendations for this agent.')
       }
     } catch (e) {
       setZuloError('Could not fetch recommendations.')
     } finally {
       setZuloLoading(false)
     }
-  }
-
-  // Parser: converts the AI text response into structured cards (matches tool urls/categories)
-  function parseRecommendations(text: string): Recommendation[] {
-    const recs: Recommendation[] = []
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
-    let current: Partial<Recommendation> | null = null
-
-    for (const line of lines) {
-      if (line.startsWith('**') && line.endsWith('**')) {
-        if (current?.name) {
-          const nameLower = current.name.toLowerCase().trim()
-          let match = tools.find(t => t.name.toLowerCase() === nameLower)
-          if (!match) {
-            // Stricter fuzzy: require tool name or recommended name to contain the other, or high word overlap (at least 2)
-            const recWords = nameLower.split(/\s+/).filter(w => w.length > 2)
-            const candidates = tools
-              .map(t => {
-                const tLower = t.name.toLowerCase()
-                const overlap = recWords.filter(w => tLower.includes(w)).length
-                const mutualIncludes = tLower.includes(nameLower) || nameLower.includes(tLower) ? 5 : 0
-                const score = overlap + mutualIncludes
-                return { t, score }
-              })
-              .filter(s => s.score >= 2)
-              .sort((a, b) => b.score - a.score)
-            match = candidates[0]?.t
-          }
-          if (match) {
-            recs.push({
-              name: match.name,  // Use the canonical name from the list
-              reason: current.reason || '',
-              category: match.category || 'Tool',
-              url: match.url || '#',
-            })
-          }
-        }
-        current = { name: line.replace(/\*\*/g, '').trim(), reason: '' }
-      } else if (current) {
-        current.reason = (current.reason || '') + ' ' + line
-      }
-    }
-
-    if (current?.name) {
-      const nameLower = current.name.toLowerCase().trim()
-      let match = tools.find(t => t.name.toLowerCase() === nameLower)
-      if (!match) {
-        const recWords = nameLower.split(/\s+/).filter(w => w.length > 2)
-        const candidates = tools
-          .map(t => {
-            const tLower = t.name.toLowerCase()
-            const overlap = recWords.filter(w => tLower.includes(w)).length
-            const mutualIncludes = tLower.includes(nameLower) || nameLower.includes(tLower) ? 5 : 0
-            const score = overlap + mutualIncludes
-            return { t, score }
-          })
-          .filter(s => s.score >= 2)
-          .sort((a, b) => b.score - a.score)
-        match = candidates[0]?.t
-      }
-      if (match) {
-        recs.push({
-          name: match.name,  // Use the canonical name from the list
-          reason: current.reason || '',
-          category: match.category || 'Tool',
-          url: match.url || '#',
-        })
-      }
-    }
-
-    // Deduplicate by name, keep first occurrence
-    const uniqueRecs: Recommendation[] = []
-    const seen = new Set<string>()
-    for (const rec of recs) {
-      const key = rec.name.toLowerCase()
-      if (!seen.has(key)) {
-        seen.add(key)
-        uniqueRecs.push(rec)
-      }
-    }
-
-    if (uniqueRecs.length === 0 && text.length > 10) {
-      // Fallback: recommend a default tool with the raw text as reason
-      const fallback = tools[0]
-      uniqueRecs.push({
-        name: fallback.name,
-        reason: text.substring(0, 300),
-        category: fallback.category,
-        url: fallback.url,
-      })
-    }
-
-    return uniqueRecs
   }
 
   function Metric({ label, value }: { label: string; value: string }) {
@@ -847,9 +758,11 @@ export function Dashboard() {
               setShowZuloRecommendsModal(false)
               // reset for next open with potentially different token
               setZuloRecommendations([])
+              setZuloSummary(undefined)
               setZuloError(null)
             }} 
             recommendations={zuloRecommendations}
+            summary={zuloSummary}
             isLoading={zuloLoading}
             error={zuloError || undefined}
           />
