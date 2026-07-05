@@ -9,6 +9,8 @@ import { AgentHorizonModal } from "@/components/zulo-suggests-modal"
 import { ToolsModal } from "@/components/tools-modal"
 import { Erc8257RegistryPanel } from "@/components/erc8257-registry-panel"
 import { ZuloRecommendsModal, type Recommendation } from "@/components/zulo-recommends-modal"
+import type { ZuloPulseContext } from "@/lib/zulo/recommendations"
+import type { ZuloTransparency } from "@/lib/zulo/transparency"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SectionLabel } from "@/components/ui/section-label"
@@ -74,6 +76,8 @@ export function Dashboard() {
   // Zulo Recommends state (lifted for the polished presentational modal)
   const [zuloRecommendations, setZuloRecommendations] = useState<Recommendation[]>([])
   const [zuloSummary, setZuloSummary] = useState<string | undefined>()
+  const [zuloPulseContext, setZuloPulseContext] = useState<ZuloPulseContext | undefined>()
+  const [zuloTransparency, setZuloTransparency] = useState<ZuloTransparency | undefined>()
   const [zuloLoading, setZuloLoading] = useState(false)
   const [zuloError, setZuloError] = useState<string | null>(null)
 
@@ -274,14 +278,16 @@ export function Dashboard() {
     // Open modal immediately in loading state, then fetch
     setZuloRecommendations([])
     setZuloSummary(undefined)
+    setZuloPulseContext(undefined)
+    setZuloTransparency(undefined)
     setZuloError(null)
     setZuloLoading(true)
     setShowZuloRecommendsModal(true)
 
-    performZuloFetch()
+    performZuloFetch(false)
   }
 
-  async function performZuloFetch() {
+  async function performZuloFetch(refresh = false) {
     try {
       const awakened = await isAgentAwakened(tokenId)
       if (!awakened) {
@@ -302,6 +308,7 @@ export function Dashboard() {
           agentType: agentData.type,
           wallet: walletForAccess,
           ethosScore: ethos?.user?.score,
+          refresh,
         }),
       })
 
@@ -315,6 +322,8 @@ export function Dashboard() {
       if (Array.isArray(data.recommendations) && data.recommendations.length > 0) {
         setZuloRecommendations(data.recommendations)
         setZuloSummary(typeof data.summary === 'string' ? data.summary : undefined)
+        setZuloPulseContext(data.pulseContext ?? undefined)
+        setZuloTransparency(data.transparency ?? undefined)
       } else {
         setZuloError('Zulo returned no recommendations for this agent.')
       }
@@ -759,12 +768,25 @@ export function Dashboard() {
               // reset for next open with potentially different token
               setZuloRecommendations([])
               setZuloSummary(undefined)
+              setZuloPulseContext(undefined)
+              setZuloTransparency(undefined)
               setZuloError(null)
             }} 
             recommendations={zuloRecommendations}
             summary={zuloSummary}
+            pulseContext={zuloPulseContext}
+            transparency={zuloTransparency}
             isLoading={zuloLoading}
             error={zuloError || undefined}
+            onRefresh={
+              zuloTransparency?.cached
+                ? () => {
+                    setZuloLoading(true)
+                    setZuloError(null)
+                    void performZuloFetch(true)
+                  }
+                : undefined
+            }
           />
         </div>
       )}

@@ -10,6 +10,11 @@ import {
   buildZuloToolContext,
 } from '@/lib/erc8257/context'
 import {
+  buildZuloRecommendsCacheKey,
+  getCachedZuloRecommends,
+  setCachedZuloRecommends,
+} from '@/lib/zulo/cache'
+import {
   buildPulseContext,
   buildRecommendationBrief,
   buildShortlistForPrompt,
@@ -18,12 +23,27 @@ import {
   rankNormiesTools,
   rankRegistryTools,
 } from '@/lib/zulo/recommendations'
+import {
+  buildZuloTransparency,
+  type ZuloRecommendsApiResponse,
+} from '@/lib/zulo/transparency'
 import { NORMIES_API_BASE } from '@/constants/contracts'
-import { checkRateLimit } from '@/lib/ratelimit'
+import { checkRateLimit, checkRateLimitById, getClientId } from '@/lib/ratelimit'
 import { fetchWithTimeout, isTimeoutError } from '@/lib/fetch-with-timeout'
 
+function jsonResponse(payload: ZuloRecommendsApiResponse | { error: string }, status = 200) {
+  const headers =
+    status === 200 && "transparency" in payload && payload.transparency.cached
+      ? { "X-Zulo-Cache": "HIT" }
+      : status === 200
+        ? { "X-Zulo-Cache": "MISS" }
+        : undefined
+
+  return NextResponse.json(payload, { status, headers })
+}
+
 export async function POST(req: NextRequest) {
-  const rl = await checkRateLimit(req, 'zulo-recommends', 5, 60)
+  const rl = await checkRateLimit(req, 'zulo-recommends', 20, 60)
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'Too many requests. Please slow down.' },
@@ -39,7 +59,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const { tokenId, wallet: walletBody, ethosScore: ethosScoreBody } = body ?? {}
+    const { tokenId, wallet: walletBody, ethosScore: ethosScoreBody, refresh } = body ?? {}
+    const forceRefresh = refresh === true
 
     if (!tokenId) {
       return NextResponse.json({ error: 'tokenId is required' }, { status: 400 })
@@ -70,6 +91,59 @@ export async function POST(req: NextRequest) {
       }, { status: 403 })
     }
 
+    let ownerAddress: string | undefined
+    try {
+      const ownerRes = await fetchWithTimeout(`${NORMIES_API_BASE}/normie/${tokenId}/owner`, {}, 8_000)
+      if (ownerRes.ok) {
+        const ownerData = await ownerRes.json()
+        if (ownerData?.owner && isAddress(ownerData.owner)) {
+          ownerAddress = ownerData.owner
+        }
+      }
+    } catch {}
+
+    const holderAddress =
+      walletBody && isAddress(walletBody)
+        ? walletBody
+        : ownerAddress
+
+    const ethosScore = typeof ethosScoreBody === 'number' ? ethosScoreBody : undefined
+    const cacheKey = buildZuloRecommendsCacheKey(Number(tokenId), holderAddress, ethosScore)
+
+    if (!forceRefresh) {
+      const cached = await getCachedZuloRecommends(cacheKey)
+      if (cached) {
+        console.log(`[zulo-recommends] cache hit — token ${tokenId}`)
+        return jsonResponse(cached)
+      }
+    }
+
+    const aiRl = await checkRateLimitById(
+      `${getClientId(req)}:zulo-ai`,
+      'zulo-recommends-ai',
+      5,
+      60,
+    )
+    if (!aiRl.ok) {
+      return NextResponse.json(
+        { error: 'Zulo is generating too many fresh recommendations. Cached results refresh every 20 minutes — try again shortly.' },
+        { status: 429, headers: { 'Retry-After': String(aiRl.retryAfter) } },
+      )
+    }
+
+    const tokenRl = await checkRateLimitById(
+      `token:${tokenId}`,
+      'zulo-recommends-token',
+      3,
+      600,
+    )
+    if (!tokenRl.ok) {
+      return NextResponse.json(
+        { error: 'This agent has reached its fresh recommendation limit. Try again in a few minutes.' },
+        { status: 429, headers: { 'Retry-After': String(tokenRl.retryAfter) } },
+      )
+    }
+
     let agentData: any = null
     try {
       const res = await fetchWithTimeout(`${NORMIES_API_BASE}/agents/info/${tokenId}`, {}, 8_000)
@@ -97,22 +171,6 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    let ownerAddress: string | undefined
-    try {
-      const ownerRes = await fetchWithTimeout(`${NORMIES_API_BASE}/normie/${tokenId}/owner`, {}, 8_000)
-      if (ownerRes.ok) {
-        const ownerData = await ownerRes.json()
-        if (ownerData?.owner && isAddress(ownerData.owner)) {
-          ownerAddress = ownerData.owner
-        }
-      }
-    } catch {}
-
-    const holderAddress =
-      walletBody && isAddress(walletBody)
-        ? walletBody
-        : ownerAddress
-
     const toolCtx = buildZuloToolContext({
       tokenId: Number(tokenId),
       agentType: agentData.type,
@@ -120,7 +178,7 @@ export async function POST(req: NextRequest) {
       pulse,
       canvasLevel: agentData.canvas?.level,
       actionPoints: agentData.canvas?.actionPoints,
-      ethosScore: typeof ethosScoreBody === 'number' ? ethosScoreBody : undefined,
+      ethosScore,
       holderAddress,
     })
 
@@ -140,6 +198,7 @@ export async function POST(req: NextRequest) {
     const rankedNormies = rankNormiesTools(toolCtx)
     const rankedRegistry = rankRegistryTools(registryTools, toolCtx)
     const catalog = buildToolCatalog(normiesTools, registryTools)
+    const pulseContext = buildPulseContext(pulse)
 
     const recommendationBrief = buildRecommendationBrief(
       toolCtx,
@@ -192,7 +251,7 @@ Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
       body: JSON.stringify({
         model: 'hermes-3-llama-3.1-405b',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000,
+        max_tokens: 1100,
         temperature: 0.35,
       }),
     }, 25_000)
@@ -214,15 +273,30 @@ Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
       }, { status: 502 })
     }
 
+    const generatedAt = new Date().toISOString()
+    const response: ZuloRecommendsApiResponse = {
+      summary: parsed.summary,
+      pulseContext,
+      recommendations: parsed.recommendations,
+      transparency: buildZuloTransparency({
+        tokenId: Number(tokenId),
+        pulseAvailable: !!pulse,
+        pulseContext,
+        registryToolsConsidered: registryTools.length,
+        normiesShortlist: rankedNormies.slice(0, 8).map((t) => t.name),
+        agentToolsShortlist: rankedRegistry.slice(0, 8).map((t) => t.name),
+        cached: false,
+        generatedAt,
+      }),
+    }
+
+    await setCachedZuloRecommends(cacheKey, response)
+
     console.log(
-      `[zulo-recommends] ${parsed.recommendations.length} recommendations — pulse-aware picks parsed`,
+      `[zulo-recommends] ${parsed.recommendations.length} recommendations — fresh generation cached`,
     )
 
-    return NextResponse.json({
-      summary: parsed.summary,
-      pulseContext: buildPulseContext(pulse),
-      recommendations: parsed.recommendations,
-    })
+    return jsonResponse(response)
 
   } catch (err: any) {
     if (isTimeoutError(err)) {

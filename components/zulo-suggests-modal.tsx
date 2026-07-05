@@ -17,6 +17,7 @@ import {
   type HorizonChatMessage,
   ZULO_HORIZON_LIMITS,
 } from "@/lib/zulo-horizon"
+import { ZULO_HORIZON_DYOR } from "@/lib/zulo/constants"
 import { cn } from "@/lib/utils"
 import { ChevronDown, ChevronUp, Loader2, RefreshCw, Send, Sparkles } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -372,6 +373,9 @@ export function AgentHorizonModal({
                   {input.length}/{ZULO_HORIZON_LIMITS.maxInputChars}
                 </span>
               </div>
+              <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground/80">
+                {ZULO_HORIZON_DYOR}
+              </p>
             </div>
           </div>
         </section>

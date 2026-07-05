@@ -213,7 +213,8 @@ RECOMMENDATION PROCESS:
 1. Read the Recommendation Brief and pre-ranked shortlists first.
 2. Decide which 1-3 tools best address this agent's Pulse level, status, and gaps.
 3. Prefer Agent Tools when they solve trust/reputation/agentic needs; prefer Normies ecosystem tools for canvas, creative, and holder utilities.
-4. Explain WHY each pick fits — cite specific Pulse signals or gaps, plus canvas/AP/type where relevant.
+4. Explain WHY each pick fits — show your work: name the Pulse level/status, cite specific gaps or signals, and reference canvas/AP/type data where relevant.
+5. Write so a holder can follow your logic without already knowing the ecosystem.
 
 STRICT RULES:
 - ONLY recommend tools using EXACT names from the lists below.
@@ -230,8 +231,8 @@ OUTPUT — respond with ONLY valid JSON (no markdown fences, no extra text):
     {
       "name": "Exact Tool Name From List",
       "source": "normies" or "agent-tools",
-      "reason": "2-3 sentences explaining why this tool fits THIS agent",
-      "pulseRationale": "One sentence tying the pick directly to Pulse level, status, or a specific gap/signal"
+      "reason": "2-3 sentences showing your work — cite Pulse, gaps, canvas/AP, or type with specifics",
+      "pulseRationale": "One clear sentence: which Pulse signal or gap this tool addresses and why that matters now"
     }
   ]
 }
