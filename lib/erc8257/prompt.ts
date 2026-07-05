@@ -1,19 +1,18 @@
 import { formatWalletAccessLine } from "@/lib/erc8257/access-check"
-import {
-  selectToolsForAgent,
-  type ZuloToolContext,
-} from "@/lib/erc8257/context"
+import type { ZuloToolContext } from "@/lib/erc8257/context"
 import type { RegistryTool } from "@/lib/erc8257/types"
-
-export const ZULO_RECOMMENDS_TOOL_LIMIT = 60
-export const ZULO_HORIZON_TOOL_LIMIT = 25
+import {
+  selectRegistryToolsForZulo,
+  ZULO_HORIZON_REGISTRY_LIMIT,
+  ZULO_RECOMMENDS_REGISTRY_LIMIT,
+} from "@/lib/erc8257/zulo-select"
 
 /** Trim the registry catalog to a prompt-safe, context-ranked subset for Zulo Recommends. */
 export function selectToolsForZuloPrompt(
   tools: RegistryTool[],
   ctx?: ZuloToolContext,
 ): RegistryTool[] {
-  return selectToolsForAgent(tools, ctx, ZULO_RECOMMENDS_TOOL_LIMIT)
+  return selectRegistryToolsForZulo(tools, ctx, ZULO_RECOMMENDS_REGISTRY_LIMIT)
 }
 
 /** Smaller subset for Horizon chat (token budget). */
@@ -21,13 +20,13 @@ export function selectToolsForHorizonPrompt(
   tools: RegistryTool[],
   ctx?: ZuloToolContext,
 ): RegistryTool[] {
-  return selectToolsForAgent(tools, ctx, ZULO_HORIZON_TOOL_LIMIT)
+  return selectRegistryToolsForZulo(tools, ctx, ZULO_HORIZON_REGISTRY_LIMIT)
 }
 
 /** Format ERC-8257 registry tools for Zulo's recommendation prompt. */
-export function getErc8257ToolsForPrompt(tools: RegistryTool[]): string {
+export function getAgentToolsForPrompt(tools: RegistryTool[]): string {
   if (tools.length === 0) {
-    return "(No ERC-8257 tools loaded — registry discovery unavailable.)"
+    return "(No agent tools loaded — ERC-8257 registry discovery unavailable.)"
   }
 
   return tools
@@ -43,21 +42,30 @@ export function getErc8257ToolsForPrompt(tools: RegistryTool[]): string {
     .join("\n")
 }
 
+/** @deprecated Use getAgentToolsForPrompt */
+export const getErc8257ToolsForPrompt = getAgentToolsForPrompt
+
 /** Compact tools block injected into Zulo Horizon's system prompt. */
 export function buildHorizonToolsBlock(
   normiesToolsList: string,
-  erc8257ToolsList: string,
+  agentToolsList: string,
+  hints?: string,
 ): string {
+  const hintsBlock = hints
+    ? `\n\nRecommendation hints for the loaded agent:\n${hints}`
+    : ""
+
   return `
 TOOL KNOWLEDGE (use when the user asks about tools, trust, or what to use next)
-- You may recommend from the Normies ecosystem list OR the ERC-8257 on-chain registry below.
+- You may recommend from the Normies ecosystem list OR the Agent Tools registry below.
 - Never invent tools. Always name the exact tool and note access requirements for gated tools.
 - Never pressure wallet actions, purchases, or signing.
+- DYOR: on-chain tools can change; mention access gates honestly.
 
-Normies ecosystem tools:
+### Normies Ecosystem Tools
 ${normiesToolsList}
 
-ERC-8257 agent tools (on-chain registry):
-${erc8257ToolsList}
+### Agent Tools (ERC-8257 on-chain registry)
+${agentToolsList}${hintsBlock}
 `.trim()
 }

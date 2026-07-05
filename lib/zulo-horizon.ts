@@ -46,6 +46,14 @@ export interface HorizonInsight {
   text: string
 }
 
+export interface HorizonAgentToolPreview {
+  name: string
+  toolId: number
+  chain: string
+  accessNote: string
+  accessGranted?: boolean | null
+}
+
 function ethosVibe(score?: number): string {
   if (score == null) return "No Ethos profile linked yet — reputation is still a blank canvas waiting for story."
   if (score >= 2000) return `Ethos score ${score} — exemplary territory. The community sees real signal here.`
@@ -54,7 +62,45 @@ function ethosVibe(score?: number): string {
   return `Ethos score ${score} — early innings. Every awakened agent builds credibility one interaction at a time.`
 }
 
-export function buildHorizonInsights(agent?: HorizonAgentContext | null): HorizonInsight[] {
+function pulseInsight(agent: HorizonAgentContext): HorizonInsight | null {
+  if (agent.pulseLevel == null) return null
+
+  const signals =
+    agent.pulseBreakdown?.length
+      ? agent.pulseBreakdown.join(", ")
+      : "no signals yet"
+
+  return {
+    label: "Pulse",
+    text: `Pulse ${agent.pulseLevel}/5${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""} — ${signals}. I read this from Normies Cred Pulse before we chat.`,
+  }
+}
+
+export function buildAgentToolsInsight(
+  previews: HorizonAgentToolPreview[],
+): HorizonInsight | null {
+  if (!previews.length) return null
+
+  const lines = previews.map((tool) => {
+    const access =
+      tool.accessGranted === true
+        ? "holder can use"
+        : tool.accessGranted === false
+          ? "gated for this wallet"
+          : "check access gates"
+    return `${tool.name} (#${tool.toolId} on ${tool.chain}, ${access})`
+  })
+
+  return {
+    label: "Agent Tools",
+    text: `From the ERC-8257 registry — ${lines.join("; ")}. Browse the Agent Tools tab for the full catalog. DYOR on access rules.`,
+  }
+}
+
+export function buildHorizonInsights(
+  agent?: HorizonAgentContext | null,
+  agentTools?: HorizonAgentToolPreview[],
+): HorizonInsight[] {
   if (!agent) {
     return [
       {
@@ -66,8 +112,8 @@ export function buildHorizonInsights(agent?: HorizonAgentContext | null): Horizo
         text: "I'm biased, but Canvas matters. Action Points, customization, burns — they're not vanity, they're verifiable identity etched on-chain.",
       },
       {
-        label: "Where to start",
-        text: "Load a Normie above or connect your wallet to see your collection. I'll read the signals with you — reputation, ownership, awakening status.",
+        label: "Agent Tools",
+        text: "The ERC-8257 registry lists on-chain agent endpoints — reputation probes, trust signals, gated utilities. Load a Normie and I'll surface what's relevant.",
       },
       {
         label: "My honest take",
@@ -106,12 +152,20 @@ export function buildHorizonInsights(agent?: HorizonAgentContext | null): Horizo
 
   insights.push({ label: "Canvas", text: canvasText })
 
-  insights.push({
-    label: "Reputation",
-    text: ethosVibe(agent.ethosScore),
-  })
+  const pulse = pulseInsight(agent)
+  if (pulse) {
+    insights.push(pulse)
+  } else {
+    insights.push({
+      label: "Reputation",
+      text: ethosVibe(agent.ethosScore),
+    })
+  }
 
-  if (agent.hasDelegate) {
+  const agentToolsInsight = buildAgentToolsInsight(agentTools ?? [])
+  if (agentToolsInsight) {
+    insights.push(agentToolsInsight)
+  } else if (agent.hasDelegate) {
     insights.push({
       label: "Ownership",
       text: "A delegate wallet is set — cold storage holding the NFT, hot wallet acting on-chain. Clean, verifiable, very Normie.",

@@ -13,6 +13,7 @@ import {
   buildHorizonInsights,
   getWelcomeMessage,
   type HorizonAgentContext,
+  type HorizonAgentToolPreview,
   type HorizonChatMessage,
   ZULO_HORIZON_LIMITS,
 } from "@/lib/zulo-horizon"
@@ -46,10 +47,44 @@ export function AgentHorizonModal({
   const [limitReached, setLimitReached] = useState(false)
   const [userMessageCount, setUserMessageCount] = useState(0)
   const [insightsExpanded, setInsightsExpanded] = useState(true)
+  const [agentToolsPreview, setAgentToolsPreview] = useState<HorizonAgentToolPreview[]>([])
   const chatScrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const insights = useMemo(() => buildHorizonInsights(agentContext), [agentContext])
+  const insights = useMemo(
+    () => buildHorizonInsights(agentContext, agentToolsPreview),
+    [agentContext, agentToolsPreview],
+  )
+
+  useEffect(() => {
+    if (!open || !agentContext) {
+      setAgentToolsPreview([])
+      return
+    }
+
+    let cancelled = false
+    const params = new URLSearchParams({
+      tokenId: String(agentContext.tokenId),
+      awakened: agentContext.isAwakened ? "1" : "0",
+    })
+    if (agentContext.type) params.set("agentType", agentContext.type)
+    if (agentContext.holderAddress) {
+      params.set("wallet", agentContext.holderAddress)
+    }
+
+    fetch(`/api/zulo/agent-tools?${params.toString()}`)
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((data: { tools?: HorizonAgentToolPreview[] } | null) => {
+        if (!cancelled) setAgentToolsPreview(data?.tools ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setAgentToolsPreview([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, agentContext])
 
   const collapseInsights = useCallback(() => {
     setInsightsExpanded(false)

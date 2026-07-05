@@ -7,7 +7,12 @@ import {
   buildAgentRecommendationHints,
   horizonAgentToToolContext,
 } from "@/lib/erc8257/context"
-import { buildNormiesToolsBlock, getToolsListForPrompt } from "@/lib/tools"
+import {
+  buildHorizonToolsBlock,
+  getAgentToolsForPrompt,
+} from "@/lib/erc8257/prompt"
+import { prepareZuloRegistryTools } from "@/lib/erc8257/zulo-select"
+import { getToolsListForPrompt } from "@/lib/tools"
 import {
   buildZuloSystemPrompt,
   countUserMessages,
@@ -310,7 +315,29 @@ export async function POST(req: NextRequest) {
 
   const toolCtx = horizonAgentToToolContext(agentContext)
   const hints = toolCtx ? buildAgentRecommendationHints(toolCtx) : ""
-  const toolsBlock = buildNormiesToolsBlock(getToolsListForPrompt(), hints || undefined)
+
+  let toolsBlock: string | undefined
+  try {
+    const registryTools = await prepareZuloRegistryTools({
+      ctx: toolCtx,
+      holderAddress: agentContext?.holderAddress,
+      limit: 25,
+      maxAccessChecks: agentContext?.holderAddress ? 40 : 0,
+    })
+    toolsBlock = buildHorizonToolsBlock(
+      getToolsListForPrompt(),
+      getAgentToolsForPrompt(registryTools),
+      hints || undefined,
+    )
+    console.log(`[zulo-horizon] agent tools loaded — ${registryTools.length} for prompt`)
+  } catch (e) {
+    console.warn("[zulo-horizon] ERC-8257 tools unavailable for prompt:", e)
+    toolsBlock = buildHorizonToolsBlock(
+      getToolsListForPrompt(),
+      "(Agent Tools registry temporarily unavailable.)",
+      hints || undefined,
+    )
+  }
 
   const systemPrompt = buildZuloSystemPrompt(agentContext, toolsBlock)
   const llmMessages: Array<{ role: string; content: string }> = [

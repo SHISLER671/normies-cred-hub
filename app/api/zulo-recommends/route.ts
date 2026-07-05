@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAddress } from 'viem'
 import { fetchAgentPulse } from '@/lib/api/pulse-client'
+import { getAgentToolsForPrompt } from '@/lib/erc8257/prompt'
+import { prepareZuloRegistryTools } from '@/lib/erc8257/zulo-select'
 import { getToolsListForPrompt, ZULO_RECOMMENDS_SYSTEM_PROMPT } from '@/lib/tools'
 import {
   buildAgentRecommendationHints,
@@ -130,8 +132,23 @@ Recommendation hints: ${buildAgentRecommendationHints(toolCtx)}
 
     const toolsList = getToolsListForPrompt()
 
+    let agentToolsList = '(ERC-8257 registry temporarily unavailable.)'
+    try {
+      const registryTools = await prepareZuloRegistryTools({
+        ctx: toolCtx,
+        holderAddress,
+        limit: 60,
+        maxAccessChecks: holderAddress ? 80 : 0,
+      })
+      agentToolsList = getAgentToolsForPrompt(registryTools)
+      console.log(`[zulo-recommends] agent tools loaded — ${registryTools.length} for prompt`)
+    } catch (e) {
+      console.error('[zulo-recommends] ERC-8257 discovery failed:', e)
+    }
+
     const prompt = ZULO_RECOMMENDS_SYSTEM_PROMPT
       .replace('{toolsList}', toolsList)
+      .replace('{agentToolsList}', agentToolsList)
       .replace('{agentSummary}', agentSummary)
 
     // 3. Call Venice AI
