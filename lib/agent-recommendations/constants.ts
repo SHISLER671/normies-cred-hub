@@ -1,5 +1,5 @@
 // lib/agent-recommendations/constants.ts
-// Zulo identity baselines + UI copy for the standalone recommendations plugin.
+// Zulo identity baselines + ecosystem links for the recommendations plugin.
 
 /** Featured proof-of-concept agent: Normie #7141 → Zulo → ERC-8004 agentId 32626. */
 export const ZULO_IDENTITY = {
@@ -17,3 +17,32 @@ export const ZULO_RECOMMENDATIONS_DYOR =
 
 export const MAX_SESSION_HISTORY = 5
 export const MAX_USER_QUERY_CHARS = 1000
+
+/** Official + community surfaces Zulo may cite. */
+export const ECOSYSTEM_LINKS = {
+  main: "https://www.normies.art/",
+  lab: "https://www.normies.art/lab",
+  canvas: "https://www.normies.art/lab/canvas",
+  canvasEdit: (tokenId: number) =>
+    `https://www.normies.art/lab/canvas/edit/${tokenId}`,
+  agentic: "https://www.normies.art/lab/agentic",
+  docsNormies: "https://www.normies.art/docs/normies",
+  docsAgentic: "https://www.normies.art/docs/agentic",
+  docsTechnical: "https://www.normies.art/docs/technical",
+  api: "https://api.normies.art/",
+  rarity: "https://rarity.normies.art/",
+  rarityApi: "https://rarity.normies.art/api",
+  multisend: "https://multisend.normies.art/",
+  normifier: "https://normifier.vercel.app/",
+  opensea: "https://opensea.io/collection/normies",
+} as const
+
+export const DEFAULT_RESOURCE_LINKS = [
+  ECOSYSTEM_LINKS.lab,
+  ECOSYSTEM_LINKS.canvas,
+  ECOSYSTEM_LINKS.rarity,
+  ECOSYSTEM_LINKS.multisend,
+  ECOSYSTEM_LINKS.normifier,
+  ECOSYSTEM_LINKS.docsNormies,
+  ECOSYSTEM_LINKS.docsAgentic,
+] as const

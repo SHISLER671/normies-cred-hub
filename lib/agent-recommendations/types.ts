@@ -28,6 +28,18 @@ export interface ZuloRecommendationContext {
       customized: boolean
       delegate?: string
     }
+    rarity?: {
+      rank?: number | null
+      score?: number | null
+      fairValue?: number | string | null
+      awake?: boolean
+      openseaUrl?: string
+      traitHighlights?: Array<{
+        trait_type: string
+        value: string
+        frequency?: number
+      }>
+    }
     agent: {
       id: number
       name: string
@@ -58,6 +70,12 @@ export interface ZuloRecommendationContext {
   platformContext?: {
     currentTime: string
     recentMarketTrends?: string
+    /** Contextual earning / utility hints derived from live data */
+    earningOpportunities?: string[]
+    rarityRank?: number | null
+    rarityScore?: number | null
+    fairValue?: number | string | null
+    resources?: string[]
   }
 }
 
@@ -75,4 +93,6 @@ export interface ZuloResponse {
   reasoning: string
   nextSteps: string[]
   confidence?: number
+  /** Optional tool / doc URLs or labels cited in the answer */
+  sources?: string[]
 }

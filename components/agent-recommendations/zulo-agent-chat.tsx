@@ -33,7 +33,11 @@ function formatZuloReplyForHistory(response: ZuloResponse): string {
   const rec = Array.isArray(response.recommendation)
     ? response.recommendation.join(" · ")
     : response.recommendation
-  return `${response.understanding}\n${rec}\n${response.reasoning}`
+  const sources =
+    response.sources && response.sources.length
+      ? `\nSources: ${response.sources.join(" · ")}`
+      : ""
+  return `${response.understanding}\n${rec}\n${response.reasoning}${sources}`
 }
 
 export function ZuloAgentChat({ className }: { className?: string }) {
@@ -127,6 +131,7 @@ export function ZuloAgentChat({ className }: { className?: string }) {
         reasoning: data.reasoning || "Based on current context.",
         nextSteps: Array.isArray(data.nextSteps) ? data.nextSteps : [],
         confidence: data.confidence,
+        sources: Array.isArray(data.sources) ? data.sources : [],
       }
 
       setTurns((prev) =>

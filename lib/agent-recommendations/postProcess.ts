@@ -2,6 +2,14 @@
 
 import type { ZuloResponse } from "./types"
 
+function sanitizeSources(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    .map((item) => item.trim().slice(0, 500))
+    .slice(0, 12)
+}
+
 export function postProcessZuloOutput(rawOutput: string): ZuloResponse {
   try {
     let clean = rawOutput.trim()
@@ -46,6 +54,7 @@ export function postProcessZuloOutput(rawOutput: string): ZuloResponse {
         typeof parsed.confidence === "number" && Number.isFinite(parsed.confidence)
           ? Math.max(0, Math.min(100, parsed.confidence))
           : 70,
+      sources: sanitizeSources(parsed.sources),
     }
   } catch (e) {
     console.warn("[agent-recommendations] Post-processing failed:", e)
@@ -55,6 +64,7 @@ export function postProcessZuloOutput(rawOutput: string): ZuloResponse {
       reasoning: "Raw response (parsing issue).",
       nextSteps: ["Please try rephrasing your question for better results."],
       confidence: 50,
+      sources: [],
     }
   }
 }

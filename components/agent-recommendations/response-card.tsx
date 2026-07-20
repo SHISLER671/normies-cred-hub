@@ -77,6 +77,33 @@ export function ResponseCard({
         </section>
       ) : null}
 
+      {response.sources && response.sources.length > 0 ? (
+        <section className="space-y-1.5 border-t border-border pt-4">
+          <FieldLabel>Sources</FieldLabel>
+          <ul className="space-y-1.5 text-xs leading-relaxed text-muted-foreground">
+            {response.sources.map((source, i) => {
+              const isUrl = /^https?:\/\//i.test(source)
+              return (
+                <li key={`${i}-${source.slice(0, 32)}`} className="break-all font-mono">
+                  {isUrl ? (
+                    <a
+                      href={source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-foreground underline-offset-2 hover:underline"
+                    >
+                      {source}
+                    </a>
+                  ) : (
+                    source
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
+
       <footer className="space-y-2 border-t border-border pt-4">
         {confidence !== null ? (
           <div className="flex items-center justify-between gap-3">
