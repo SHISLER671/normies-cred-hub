@@ -1,24 +1,47 @@
-/* Shared Zulo chrome — scoped so CredHub light/dark is unaffected. */
+/* app/zulo/styles.css — Normies monochrome system, SCOPED to .zulo-chrome only */
 
 .zulo-chrome {
-  color-scheme: dark;
-  --zulo-bg: #0a0a0a;
-  --zulo-bg-secondary: #111111;
-  --zulo-bg-tertiary: #1a1a1a;
-  --zulo-border: #1f1f1f;
-  --zulo-border-hover: #333333;
-  --zulo-text: #f5f5f5;
-  --zulo-text-secondary: #a3a3a3;
-  --zulo-text-muted: #666666;
-  --zulo-accent: #22c55e;
+  /* Tokens */
+  --bg-primary: #e5e5e5;
+  --bg-secondary: #d4d4d4;
+  --bg-tertiary: #c4c4c4;
+  --bg-dark: #1a1a1a;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-muted: #737373;
+  --text-inverse: #e5e5e5;
+  --border: #1a1a1a;
+  --border-light: #a3a3a3;
+  --accent: #1a1a1a;
 
-  background-color: var(--zulo-bg);
-  color: var(--zulo-text);
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 40px;
+  --space-xl: 80px;
+  --space-2xl: 120px;
+
+  --font-mono: "Courier New", Courier, "SF Mono", Monaco, ui-monospace, monospace;
+  --pulse-speed: 2s;
+
+  color-scheme: light;
+  font-family: var(--font-mono);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.zulo-chrome *,
+.zulo-chrome *::before,
+.zulo-chrome *::after {
+  box-sizing: border-box;
 }
 
 .zulo-chrome ::selection {
-  background: #333333;
-  color: #f5f5f5;
+  background: var(--text-primary);
+  color: var(--bg-primary);
 }
 
 .zulo-chrome ::-webkit-scrollbar {
@@ -27,14 +50,856 @@
 }
 
 .zulo-chrome ::-webkit-scrollbar-track {
-  background: var(--zulo-bg);
+  background: var(--bg-secondary);
 }
 
 .zulo-chrome ::-webkit-scrollbar-thumb {
-  background: var(--zulo-border-hover);
-  border-radius: 4px;
+  background: var(--text-muted);
+  border-radius: 0;
 }
 
 .zulo-chrome ::-webkit-scrollbar-thumb:hover {
-  background: var(--zulo-text-muted);
+  background: var(--text-primary);
+}
+
+/* Typography */
+.zulo-chrome h1,
+.zulo-chrome h2,
+.zulo-chrome h3,
+.zulo-chrome h4 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.zulo-chrome h1 {
+  font-size: clamp(48px, 10vw, 120px);
+  letter-spacing: 0.02em;
+}
+
+.zulo-chrome h2 {
+  font-size: clamp(24px, 4vw, 32px);
+  margin-bottom: var(--space-lg);
+}
+
+.zulo-chrome h3 {
+  font-size: 20px;
+  margin-bottom: var(--space-md);
+}
+
+.zulo-chrome p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.zulo-chrome a {
+  color: inherit;
+}
+
+.zulo-chrome .mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.zulo-chrome .caption {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+/* Layout */
+.zulo-chrome .container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+.zulo-chrome .section {
+  padding: var(--space-2xl) 0;
+}
+
+.zulo-chrome .section-bordered {
+  border-top: 1px solid var(--border);
+}
+
+.zulo-chrome .grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+.zulo-chrome .grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
+}
+
+.zulo-chrome .ask-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-md) var(--space-md) var(--space-xl);
+}
+
+@media (min-width: 1024px) {
+  .zulo-chrome .ask-layout {
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+  }
+}
+
+@media (max-width: 768px) {
+  .zulo-chrome .grid-3,
+  .zulo-chrome .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .zulo-chrome .container {
+    padding: 0 var(--space-md);
+  }
+
+  .zulo-chrome .section {
+    padding: var(--space-xl) 0;
+  }
+}
+
+/* Header */
+.zulo-chrome .header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.zulo-chrome .header.header-fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+}
+
+.zulo-chrome .header-logo {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.zulo-chrome .header-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.zulo-chrome .header-nav a {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.zulo-chrome .header-nav a:hover,
+.zulo-chrome .header-nav a.is-active {
+  color: var(--text-primary);
+}
+
+.zulo-chrome .header-spacer {
+  height: 72px;
+}
+
+/* Hero */
+.zulo-chrome .hero {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.zulo-chrome .hero-title {
+  margin-bottom: var(--space-lg);
+}
+
+.zulo-chrome .hero-subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-bottom: var(--space-md);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+
+.zulo-chrome .hero-meta {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-xl);
+}
+
+.zulo-chrome .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+/* Buttons */
+.zulo-chrome .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border-radius: 0;
+}
+
+.zulo-chrome .button:hover:not(:disabled) {
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zulo-chrome .button-primary {
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  border-color: var(--bg-dark);
+}
+
+.zulo-chrome .button-primary:hover:not(:disabled) {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+}
+
+.zulo-chrome .button-block {
+  width: 100%;
+}
+
+.zulo-chrome .button-sm {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 12px;
+}
+
+/* Cards */
+.zulo-chrome .card {
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: var(--space-lg);
+  border-radius: 0;
+}
+
+.zulo-chrome .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border);
+}
+
+.zulo-chrome .card-title {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.zulo-chrome .card-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.zulo-chrome .card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 14px;
+}
+
+.zulo-chrome .card-row:last-child {
+  border-bottom: none;
+}
+
+.zulo-chrome .card-row-label {
+  color: var(--text-muted);
+}
+
+.zulo-chrome .card-row-value {
+  color: var(--text-primary);
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Badges */
+.zulo-chrome .badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  background: var(--bg-primary);
+}
+
+/* Stats */
+.zulo-chrome .stat {
+  text-align: center;
+}
+
+.zulo-chrome .stat-number {
+  font-size: clamp(40px, 8vw, 64px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+  color: var(--text-primary);
+}
+
+.zulo-chrome .stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .zulo-chrome .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Quote */
+.zulo-chrome .quote {
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.zulo-chrome .quote-line {
+  font-size: clamp(18px, 3vw, 24px);
+  font-style: italic;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.zulo-chrome .quote-author {
+  display: block;
+  margin-top: var(--space-lg);
+  font-size: 14px;
+  font-style: normal;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Footer */
+.zulo-chrome .site-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-lg);
+}
+
+.zulo-chrome .site-footer-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .site-footer a {
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .site-footer a:hover {
+  color: var(--text-primary);
+}
+
+.zulo-chrome .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+/* Avatar */
+.zulo-chrome .zulo-avatar {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  margin: 0 auto var(--space-lg);
+}
+
+.zulo-chrome .zulo-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--space-md);
+}
+
+/* Identity strip */
+.zulo-chrome .identity-strip {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: var(--space-sm) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.zulo-chrome .identity-mark {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.zulo-chrome .identity-mark .live-dot {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 10px;
+  height: 10px;
+  background: var(--text-primary);
+  border: 2px solid var(--bg-secondary);
+}
+
+/* Bars */
+.zulo-chrome .meter {
+  height: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+.zulo-chrome .meter-fill {
+  height: 100%;
+  background: var(--text-primary);
+  transition: width 0.3s ease;
+}
+
+/* Chat */
+.zulo-chrome .chat-shell {
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  min-height: min(70vh, 700px);
+  height: 700px;
+  max-height: 75vh;
+}
+
+.zulo-chrome .chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.zulo-chrome .chat-message {
+  display: flex;
+  gap: var(--space-sm);
+  max-width: 92%;
+}
+
+.zulo-chrome .chat-message-user {
+  flex-direction: row-reverse;
+  align-self: flex-end;
+}
+
+.zulo-chrome .chat-message-zulo {
+  align-self: flex-start;
+}
+
+.zulo-chrome .chat-avatar {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.zulo-chrome .chat-bubble {
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.zulo-chrome .chat-message-user .chat-bubble {
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  border-color: var(--bg-dark);
+}
+
+.zulo-chrome .chat-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+/* Structured response */
+.zulo-chrome .response-block {
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  padding: var(--space-md);
+  margin-top: 0;
+  text-align: left;
+}
+
+.zulo-chrome .response-section {
+  margin-bottom: var(--space-md);
+}
+
+.zulo-chrome .response-section:last-child {
+  margin-bottom: 0;
+}
+
+.zulo-chrome .response-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.zulo-chrome .response-section p,
+.zulo-chrome .response-section li {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.zulo-chrome .response-section .emphasis {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.zulo-chrome .step-row {
+  display: flex;
+  gap: var(--space-xs);
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.zulo-chrome .step-arrow {
+  flex-shrink: 0;
+}
+
+/* Quick prompts + input */
+.zulo-chrome .chat-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-md);
+}
+
+.zulo-chrome .quick-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.zulo-chrome .quick-prompt {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  border-radius: 0;
+}
+
+.zulo-chrome .quick-prompt:hover:not(:disabled) {
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.zulo-chrome .quick-prompt:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zulo-chrome .chat-input {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.zulo-chrome .chat-input-field {
+  flex: 1;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  border-radius: 0;
+}
+
+.zulo-chrome .chat-input-field:focus {
+  outline: none;
+  border-color: var(--text-primary);
+}
+
+.zulo-chrome .chat-input-field::placeholder {
+  color: var(--text-muted);
+}
+
+.zulo-chrome .chat-input-field:disabled {
+  opacity: 0.6;
+}
+
+/* Feature numbers */
+.zulo-chrome .feature-num {
+  font-size: 40px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-sm);
+}
+
+/* Pulse animations */
+.zulo-chrome .pulse-indicator {
+  position: relative;
+  display: inline-block;
+}
+
+.zulo-chrome .pulse-indicator::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 1px solid var(--text-primary);
+  opacity: 0;
+  animation: zulo-pulse-glow var(--pulse-speed) ease-in-out infinite;
+}
+
+@keyframes zulo-pulse-glow {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+.zulo-chrome .status-live {
+  position: relative;
+  padding-left: 18px;
+  color: var(--text-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.zulo-chrome .status-live::before {
+  content: "■";
+  position: absolute;
+  left: 0;
+  color: var(--text-primary);
+  animation: zulo-heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes zulo-heartbeat {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+}
+
+.zulo-chrome .data-pulse {
+  animation: zulo-data-fresh 0.5s ease-out;
+}
+
+@keyframes zulo-data-fresh {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.zulo-chrome .pulse-card {
+  position: relative;
+}
+
+.zulo-chrome .pulse-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border: 1px solid var(--text-primary);
+  opacity: 0;
+  pointer-events: none;
+  animation: zulo-border-pulse 3s ease-in-out infinite;
+}
+
+@keyframes zulo-border-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.12;
+  }
+}
+
+/* Opportunities */
+.zulo-chrome .opp-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .zulo-chrome .opp-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .zulo-chrome .opp-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.zulo-chrome .opp-card {
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: var(--space-md);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: background 0.2s;
+  width: 100%;
+  border-radius: 0;
+}
+
+.zulo-chrome .opp-card:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+}
+
+.zulo-chrome .opp-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zulo-chrome .stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.zulo-chrome .muted {
+  color: var(--text-muted);
+}
+
+.zulo-chrome .text-center {
+  text-align: center;
+}
+
+.zulo-chrome .sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
+}
+
+.zulo-chrome .dyor {
+  margin-top: var(--space-xl);
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
 }

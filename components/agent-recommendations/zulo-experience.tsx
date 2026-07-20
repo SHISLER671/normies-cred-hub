@@ -60,6 +60,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   const [zuloAP, setZuloAP] = useState(0)
   const [pulseLoading, setPulseLoading] = useState(true)
   const [pulseError, setPulseError] = useState<string | null>(null)
+  const [pulseFresh, setPulseFresh] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const welcomeSent = useRef(false)
 
@@ -82,6 +83,8 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
       }
       setPulse(data.pulse)
       setZuloAP(data.zuloAP ?? 0)
+      setPulseFresh(true)
+      window.setTimeout(() => setPulseFresh(false), 600)
     } catch {
       setPulseError("Failed to load PULSE")
       setPulse(null)
@@ -117,10 +120,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
     if (userQuery.length > MAX_USER_QUERY_CHARS) return
 
     const turnId = crypto.randomUUID()
-    setMessages((prev) => [
-      ...prev,
-      { id: turnId, role: "user", content: userQuery },
-    ])
+    setMessages((prev) => [...prev, { id: turnId, role: "user", content: userQuery }])
     setInput("")
     setLoading(true)
 
@@ -183,12 +183,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
 
       setMessages((prev) => [
         ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "zulo",
-          content,
-          structured,
-        },
+        { id: crypto.randomUUID(), role: "zulo", content, structured },
       ])
     } catch {
       setMessages((prev) => [
@@ -211,378 +206,319 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   const opportunities = pulse?.recommendations?.slice(0, 6) ?? []
 
   return (
-    <div className="zulo-chrome min-h-dvh bg-[#0a0a0a] text-[#f5f5f5]">
+    <div className="zulo-chrome">
       <ZuloChromeHeader
         active="ask"
         fixed={false}
         trailing={
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="hidden text-right sm:block">
-              <p className="text-[10px] text-[#666666]">Canvas AP · #{ZULO_IDENTITY.tokenId}</p>
-              <p className="font-mono text-xs text-[#f5f5f5]">{zuloAP} AP</p>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+            <div className="caption" style={{ textAlign: "right" }}>
+              <div>Canvas AP · #{ZULO_IDENTITY.tokenId}</div>
+              <div className="mono" style={{ color: "var(--text-primary)" }}>
+                {zuloAP} AP
+              </div>
             </div>
             {isConnected && address ? (
-              <p className="hidden font-mono text-[11px] text-[#666666] md:block">
-                {ensName || shortAddr(address)}
-              </p>
+              <span className="mono muted">{ensName || shortAddr(address)}</span>
             ) : null}
             <ConnectWallet />
           </div>
         }
       />
 
-      {/* Identity strip */}
-      <div className="border-b border-[#1f1f1f] bg-[#0d0d0d]">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-          <div className="relative">
-            <div className="flex size-10 items-center justify-center rounded-lg border-2 border-[#333333] bg-[#1a1a1a]">
-              <span className="font-mono text-lg font-bold text-[#f5f5f5]">Z</span>
-            </div>
-            <div className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#0d0d0d] bg-[#22c55e]" />
-          </div>
-          <div>
-            <h1 className="font-heading text-lg font-bold tracking-tight">Zulo</h1>
-            <p className="font-mono text-[11px] text-[#666666]">
-              Agent #{ZULO_IDENTITY.agentId} · {ZULO_IDENTITY.ens}
-            </p>
-          </div>
+      <div className="identity-strip">
+        <div className="identity-mark">
+          Z
+          <span className="live-dot" aria-hidden />
+        </div>
+        <div>
+          <h1 style={{ fontSize: 18, margin: 0, letterSpacing: "0.12em" }}>Zulo</h1>
+          <p className="mono muted" style={{ margin: 0, fontSize: 12 }}>
+            Agent #{ZULO_IDENTITY.agentId} · {ZULO_IDENTITY.ens}
+          </p>
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left: PULSE */}
-          <div className="space-y-6 lg:col-span-1">
-            <div className="overflow-hidden rounded-xl border border-[#1f1f1f] bg-[#111111]">
-              <div className="flex items-center justify-between border-b border-[#1f1f1f] px-5 py-4">
-                <h2 className="text-sm font-semibold tracking-wide">PULSE</h2>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-[#666666]">#{tokenId}</span>
-                  <button
-                    type="button"
-                    onClick={() => void fetchPulse()}
-                    className="rounded border border-[#333333] p-1 text-[#666666] transition-colors hover:text-[#f5f5f5]"
-                    aria-label="Refresh PULSE"
-                  >
-                    <RefreshCw className={cn("size-3.5", pulseLoading && "animate-spin")} />
-                  </button>
-                </div>
+      <div className="ask-layout">
+        {/* PULSE sidebar */}
+        <div className="stack">
+          <div className={cn("card pulse-card", pulseFresh && "data-pulse")}>
+            <div className="card-header">
+              <h2 className="card-title">
+                <span className="pulse-indicator">PULSE</span>
+              </h2>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="mono muted">#{tokenId}</span>
+                <button
+                  type="button"
+                  className="button button-sm"
+                  onClick={() => void fetchPulse()}
+                  aria-label="Refresh PULSE"
+                >
+                  <RefreshCw className={cn("size-3.5", pulseLoading && "animate-spin")} />
+                </button>
               </div>
+            </div>
 
-              {pulseLoading && !pulse ? (
-                <div className="p-8 text-center text-sm text-[#666666]">Loading PULSE…</div>
-              ) : pulseError && !pulse ? (
-                <div className="space-y-3 p-6 text-center">
-                  <p className="text-sm text-[#a3a3a3]">{pulseError}</p>
-                  <button
-                    type="button"
-                    onClick={() => void fetchPulse()}
-                    className="border border-[#333333] px-3 py-1.5 text-xs hover:border-[#666666]"
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : pulse ? (
-                <div className="space-y-5 p-5">
-                  {pulse.credHub ? (
-                    <div>
-                      <div className="mb-2 flex justify-between text-xs text-[#666666]">
-                        <span>CredHub PULSE</span>
-                        <span className="font-mono">
-                          {pulse.credHub.pulseLevel}/{pulse.credHub.maxLevel} · {pulse.credHub.status}
-                        </span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-[#1a1a1a]">
-                        <div
-                          className="h-full rounded-full bg-[#f5f5f5] transition-[width]"
-                          style={{
-                            width: `${(pulse.credHub.pulseLevel / pulse.credHub.maxLevel) * 100}%`,
-                          }}
-                        />
-                      </div>
-                      {pulse.credHub.breakdown.length > 0 ? (
-                        <p className="mt-2 text-[11px] leading-relaxed text-[#666666]">
-                          {pulse.credHub.breakdown.join(" · ")}
-                        </p>
-                      ) : null}
-                      {pulse.credHub.gaps.length > 0 ? (
-                        <p className="mt-1 text-[11px] text-[#a3a3a3]">
-                          Gaps: {pulse.credHub.gaps.join(" · ")}
-                        </p>
-                      ) : null}
+            {pulseLoading && !pulse ? (
+              <p className="caption text-center">Loading PULSE…</p>
+            ) : pulseError && !pulse ? (
+              <div className="text-center stack">
+                <p className="muted">{pulseError}</p>
+                <button type="button" className="button button-sm" onClick={() => void fetchPulse()}>
+                  Retry
+                </button>
+              </div>
+            ) : pulse ? (
+              <div className="stack">
+                {pulse.credHub ? (
+                  <div>
+                    <div className="card-row">
+                      <span className="card-row-label">CredHub PULSE</span>
+                      <span className="card-row-value mono">
+                        {pulse.credHub.pulseLevel}/{pulse.credHub.maxLevel} · {pulse.credHub.status}
+                      </span>
                     </div>
-                  ) : null}
-
-                  <Row
-                    label="Status"
-                    value={
-                      <span
-                        className={
-                          pulse.status === "awakened" ? "text-[#22c55e]" : "text-[#666666]"
-                        }
-                      >
-                        {pulse.status}
-                      </span>
-                    }
-                  />
-                  <Row label="Type" value={<span className="capitalize">{pulse.type}</span>} />
-                  <Row
-                    label="Canvas"
-                    value={
-                      <span className={pulse.canvas.edited ? "text-[#f5f5f5]" : "text-[#22c55e]"}>
-                        {pulse.canvas.edited
-                          ? `Modified · L${pulse.canvas.level} · ${pulse.canvas.actionPoints} AP`
-                          : `Untouched · L${pulse.canvas.level}`}
-                      </span>
-                    }
-                  />
-                  <Row
-                    label="Rarity"
-                    value={
-                      <span>
-                        <span className="capitalize">{pulse.rarity.tier}</span>
-                        {pulse.rarity.rank != null ? (
-                          <span className="ml-2 font-mono text-xs text-[#666666]">
-                            #{pulse.rarity.rank}
-                          </span>
-                        ) : null}
-                      </span>
-                    }
-                  />
-
-                  {pulse.rarity.score != null ? (
-                    <div>
-                      <div className="mb-2 flex justify-between text-xs text-[#666666]">
-                        <span>Score</span>
-                        <span className="font-mono">{pulse.rarity.score.toFixed(2)}</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-[#1a1a1a]">
-                        <div
-                          className="h-full rounded-full bg-[#f5f5f5]"
-                          style={{
-                            width: `${Math.min(Math.max(pulse.rarity.score, 0), 100)}%`,
-                          }}
-                        />
-                      </div>
+                    <div className="meter" style={{ marginTop: 8 }}>
+                      <div
+                        className="meter-fill"
+                        style={{
+                          width: `${(pulse.credHub.pulseLevel / pulse.credHub.maxLevel) * 100}%`,
+                        }}
+                      />
                     </div>
-                  ) : null}
-
-                  {pulse.pulseSummary ? (
-                    <p className="border-t border-[#1f1f1f] pt-4 text-xs leading-relaxed text-[#a3a3a3]">
-                      {pulse.pulseSummary}
-                    </p>
-                  ) : null}
-
-                  <div className="space-y-2 border-t border-[#1f1f1f] pt-4">
-                    <a
-                      href={ECOSYSTEM_LINKS.canvasEdit(tokenId)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#333333] bg-[#1a1a1a] py-2.5 text-center text-sm transition-colors hover:bg-[#252525]"
-                    >
-                      Edit Canvas
-                      <ExternalLink className="size-3.5 opacity-60" />
-                    </a>
-                    <a
-                      href={`${ECOSYSTEM_LINKS.rarity}${tokenId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#333333] bg-[#1a1a1a] py-2.5 text-center text-sm transition-colors hover:bg-[#252525]"
-                    >
-                      View Rarity
-                      <ExternalLink className="size-3.5 opacity-60" />
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => void sendMessage("Analyze my PULSE")}
-                      disabled={loading}
-                      className="w-full rounded-lg border border-[#333333] bg-[#1a1a1a] py-2.5 text-sm transition-colors hover:bg-[#252525] disabled:opacity-50"
-                    >
-                      Ask Zulo about PULSE
-                    </button>
+                    {pulse.credHub.breakdown.length > 0 ? (
+                      <p className="caption" style={{ marginTop: 8 }}>
+                        {pulse.credHub.breakdown.join(" · ")}
+                      </p>
+                    ) : null}
+                    {pulse.credHub.gaps.length > 0 ? (
+                      <p className="caption" style={{ marginTop: 4 }}>
+                        Gaps: {pulse.credHub.gaps.join(" · ")}
+                      </p>
+                    ) : null}
                   </div>
-                </div>
-              ) : null}
-            </div>
+                ) : null}
 
-            <div className="rounded-xl border border-[#1f1f1f] bg-[#111111] p-5">
-              <h3 className="mb-4 text-sm font-semibold">About Zulo</h3>
-              <p className="mb-4 text-sm leading-relaxed text-[#a3a3a3]">
-                Awakened from Normie #{ZULO_IDENTITY.tokenId}. I interpret live PULSE and give
-                strategic recommendations for the Normies ecosystem.
-              </p>
-              <div className="space-y-2 text-xs text-[#666666]">
-                <div className="flex justify-between gap-2">
-                  <span>Service</span>
-                  <span className="text-[#a3a3a3]">A2A Recommendations</span>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <span>Pricing</span>
-                  <span className="text-[#a3a3a3]">1–2 AP (A2A) · chat free</span>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <span>Hot Wallet</span>
-                  <span className="font-mono text-[#a3a3a3]">
-                    {shortAddr(ZULO_IDENTITY.hotWallet)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Chat */}
-          <div className="flex h-[min(70vh,700px)] flex-col lg:col-span-2 lg:h-[700px]">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#1f1f1f] bg-[#111111]">
-              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
+                <div className="card-row">
+                  <span className="card-row-label">Status</span>
+                  <span
                     className={cn(
-                      "flex",
-                      msg.role === "user" ? "justify-end" : "justify-start",
+                      "card-row-value",
+                      pulse.status === "awakened" ? "status-live" : "muted",
                     )}
                   >
-                    <div
-                      className={cn(
-                        "max-w-[92%] sm:max-w-[85%]",
-                        msg.role === "zulo" && "flex gap-3",
-                      )}
-                    >
-                      {msg.role === "zulo" ? (
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#333333] bg-[#1a1a1a]">
-                          <span className="font-mono text-sm font-bold">Z</span>
-                        </div>
-                      ) : null}
-                      <div className={cn("space-y-2", msg.role === "user" && "text-right")}>
-                        <div
-                          className={cn(
-                            "inline-block px-4 py-3 text-left text-sm leading-relaxed",
-                            msg.role === "user"
-                              ? "rounded-2xl bg-[#f5f5f5] text-[#0a0a0a]"
-                              : "rounded-2xl bg-[#1a1a1a] text-[#f5f5f5]",
-                          )}
-                        >
-                          {msg.content}
-                        </div>
+                    {pulse.status}
+                  </span>
+                </div>
+                <div className="card-row">
+                  <span className="card-row-label">Type</span>
+                  <span className="card-row-value" style={{ textTransform: "capitalize" }}>
+                    {pulse.type}
+                  </span>
+                </div>
+                <div className="card-row">
+                  <span className="card-row-label">Canvas</span>
+                  <span className="card-row-value">
+                    {pulse.canvas.edited
+                      ? `Modified · L${pulse.canvas.level} · ${pulse.canvas.actionPoints} AP`
+                      : `Untouched · L${pulse.canvas.level}`}
+                  </span>
+                </div>
+                <div className="card-row">
+                  <span className="card-row-label">Rarity</span>
+                  <span className="card-row-value">
+                    <span style={{ textTransform: "capitalize" }}>{pulse.rarity.tier}</span>
+                    {pulse.rarity.rank != null ? (
+                      <span className="mono muted"> #{pulse.rarity.rank}</span>
+                    ) : null}
+                  </span>
+                </div>
 
-                        {msg.structured && msg.role === "zulo" ? (
-                          <StructuredCard response={msg.structured} />
-                        ) : null}
-                      </div>
+                {pulse.rarity.score != null ? (
+                  <div>
+                    <div className="card-row">
+                      <span className="card-row-label">Score</span>
+                      <span className="card-row-value mono">{pulse.rarity.score.toFixed(2)}</span>
                     </div>
-                  </div>
-                ))}
-
-                {loading ? (
-                  <div className="flex gap-3">
-                    <div className="flex size-8 items-center justify-center rounded-lg border border-[#333333] bg-[#1a1a1a]">
-                      <span className="font-mono text-sm font-bold">Z</span>
-                    </div>
-                    <div className="flex items-center gap-2 rounded-2xl bg-[#1a1a1a] px-4 py-3 text-sm text-[#666666]">
-                      <Loader2 className="size-4 animate-spin" />
-                      Thinking…
+                    <div className="meter">
+                      <div
+                        className="meter-fill"
+                        style={{
+                          width: `${Math.min(Math.max(pulse.rarity.score, 0), 100)}%`,
+                        }}
+                      />
                     </div>
                   </div>
                 ) : null}
 
-                <div ref={messagesEndRef} />
-              </div>
+                {pulse.pulseSummary ? (
+                  <p className="card-body" style={{ marginBottom: 0 }}>
+                    {pulse.pulseSummary}
+                  </p>
+                ) : null}
 
-              <div className="border-t border-[#1f1f1f] p-4">
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {QUICK_PROMPTS.map((prompt) => (
-                    <button
-                      key={prompt}
-                      type="button"
-                      disabled={loading}
-                      onClick={() => void sendMessage(prompt)}
-                      className="rounded-full border border-[#333333] bg-[#1a1a1a] px-3 py-1.5 text-xs text-[#a3a3a3] transition-colors hover:border-[#666666] hover:text-[#f5f5f5] disabled:opacity-50"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault()
-                        if (canSend) void sendMessage()
-                      }
-                    }}
-                    placeholder="Ask Zulo about your PULSE, strategy, or the ecosystem…"
-                    maxLength={MAX_USER_QUERY_CHARS}
-                    disabled={loading}
-                    className="flex-1 rounded-xl border border-[#333333] bg-[#1a1a1a] px-4 py-3 text-sm text-[#f5f5f5] placeholder-[#666666] transition-colors focus:border-[#666666] focus:outline-none disabled:opacity-60"
-                  />
+                <div className="sidebar-actions">
+                  <a
+                    href={ECOSYSTEM_LINKS.canvasEdit(tokenId)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="button button-block button-sm"
+                  >
+                    Edit Canvas <ExternalLink className="size-3.5" />
+                  </a>
+                  <a
+                    href={`${ECOSYSTEM_LINKS.rarity}${tokenId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="button button-block button-sm"
+                  >
+                    View Rarity <ExternalLink className="size-3.5" />
+                  </a>
                   <button
                     type="button"
-                    onClick={() => void sendMessage()}
-                    disabled={!canSend}
-                    className="flex items-center gap-2 rounded-xl bg-[#f5f5f5] px-5 py-3 font-medium text-[#0a0a0a] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="button button-primary button-block button-sm"
+                    disabled={loading}
+                    onClick={() => void sendMessage("Analyze my PULSE")}
                   >
-                    {loading ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Send className="size-4" />
-                    )}
-                    Ask
+                    Ask Zulo about PULSE
                   </button>
                 </div>
               </div>
+            ) : null}
+          </div>
+
+          <div className="card">
+            <h3 className="card-title">About Zulo</h3>
+            <p className="card-body">
+              Awakened from Normie #{ZULO_IDENTITY.tokenId}. I interpret live PULSE and give
+              strategic recommendations for the Normies ecosystem.
+            </p>
+            <div className="card-row">
+              <span className="card-row-label">Service</span>
+              <span className="card-row-value">A2A Recommendations</span>
+            </div>
+            <div className="card-row">
+              <span className="card-row-label">Pricing</span>
+              <span className="card-row-value">1–2 AP · chat free</span>
+            </div>
+            <div className="card-row">
+              <span className="card-row-label">Hot Wallet</span>
+              <span className="card-row-value mono">{shortAddr(ZULO_IDENTITY.hotWallet)}</span>
             </div>
           </div>
         </div>
 
-        {/* Opportunities */}
-        {opportunities.length > 0 ? (
-          <div className="mt-8">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#666666]">
-              Opportunities
-            </h2>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {opportunities.map((rec, i) => (
+        {/* Chat */}
+        <div className="chat-shell">
+          <div className="chat-messages">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={cn(
+                  "chat-message",
+                  msg.role === "user" ? "chat-message-user" : "chat-message-zulo",
+                )}
+              >
+                {msg.role === "zulo" ? <div className="chat-avatar">Z</div> : null}
+                <div className="chat-stack">
+                  <div className="chat-bubble">{msg.content}</div>
+                  {msg.structured && msg.role === "zulo" ? (
+                    <StructuredCard response={msg.structured} />
+                  ) : null}
+                </div>
+              </div>
+            ))}
+
+            {loading ? (
+              <div className="chat-message chat-message-zulo">
+                <div className="chat-avatar">Z</div>
+                <div className="chat-bubble" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Loader2 className="size-4 animate-spin" />
+                  Thinking…
+                </div>
+              </div>
+            ) : null}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="chat-footer">
+            <div className="quick-prompts">
+              {QUICK_PROMPTS.map((prompt) => (
                 <button
-                  key={`${i}-${rec.slice(0, 24)}`}
+                  key={prompt}
                   type="button"
+                  className="quick-prompt"
                   disabled={loading}
-                  onClick={() => void sendMessage(`Tell me more about this opportunity: ${rec}`)}
-                  className="rounded-xl border border-[#1f1f1f] bg-[#111111] p-5 text-left transition-colors hover:border-[#333333] disabled:opacity-50"
+                  onClick={() => void sendMessage(prompt)}
                 >
-                  <div className="mb-3 flex items-start justify-between">
-                    <span className="font-mono text-xs text-[#666666]">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="size-2 rounded-full bg-[#22c55e]" />
-                  </div>
-                  <p className="text-sm leading-relaxed text-[#f5f5f5]">{rec}</p>
-                  <p className="mt-3 text-[10px] uppercase tracking-wider text-[#666666]">
-                    Ask Zulo →
-                  </p>
+                  {prompt}
                 </button>
               ))}
             </div>
+            <div className="chat-input">
+              <input
+                type="text"
+                className="chat-input-field"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    if (canSend) void sendMessage()
+                  }
+                }}
+                placeholder="Ask Zulo about your PULSE, strategy, or the ecosystem…"
+                maxLength={MAX_USER_QUERY_CHARS}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                className="button button-primary"
+                disabled={!canSend}
+                onClick={() => void sendMessage()}
+              >
+                {loading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                Ask
+              </button>
+            </div>
           </div>
-        ) : null}
+        </div>
+      </div>
 
-        <p className="mt-10 text-center text-[10px] leading-relaxed text-[#555555]">
-          Informational only — not financial advice. DYOR. Burns are permanent. Zulo never asks for
-          keys or signatures.
-        </p>
-      </main>
-    </div>
-  )
-}
+      {opportunities.length > 0 ? (
+        <div className="container" style={{ paddingBottom: 40 }}>
+          <h2 className="caption" style={{ marginBottom: 16 }}>
+            Opportunities
+          </h2>
+          <div className="opp-grid">
+            {opportunities.map((rec, i) => (
+              <button
+                key={`${i}-${rec.slice(0, 24)}`}
+                type="button"
+                className="opp-card pulse-card"
+                disabled={loading}
+                onClick={() => void sendMessage(`Tell me more about this opportunity: ${rec}`)}
+              >
+                <div className="card-header" style={{ border: "none", padding: 0, marginBottom: 12 }}>
+                  <span className="mono muted">{String(i + 1).padStart(2, "0")}</span>
+                  <span>■</span>
+                </div>
+                <p className="card-body" style={{ marginBottom: 8 }}>
+                  {rec}
+                </p>
+                <span className="caption">Ask Zulo →</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-sm text-[#666666]">{label}</span>
-      <span className="text-right text-sm font-medium text-[#f5f5f5]">{value}</span>
+      <p className="dyor">
+        Informational only — not financial advice. DYOR. Burns are permanent. Zulo never asks for
+        keys or signatures.
+      </p>
     </div>
   )
 }
@@ -598,58 +534,50 @@ function StructuredCard({ response }: { response: ZuloResponse }) {
     : [response.recommendation]
 
   return (
-    <div className="mt-1 space-y-4 rounded-xl border border-[#252525] bg-[#0d0d0d] p-4 text-left">
-      <div>
-        <p className="mb-1 text-[10px] uppercase tracking-wider text-[#666666]">Understanding</p>
-        <p className="text-sm text-[#a3a3a3]">{response.understanding}</p>
+    <div className="response-block">
+      <div className="response-section">
+        <p className="response-label">Understanding</p>
+        <p>{response.understanding}</p>
       </div>
-      <div>
-        <p className="mb-1 text-[10px] uppercase tracking-wider text-[#666666]">Recommendation</p>
+      <div className="response-section">
+        <p className="response-label">Recommendation</p>
         {recs.length === 1 ? (
-          <p className="text-sm text-[#f5f5f5]">{recs[0]}</p>
+          <p className="emphasis">{recs[0]}</p>
         ) : (
-          <ul className="space-y-1 text-sm text-[#f5f5f5]">
+          <ul style={{ paddingLeft: 16, margin: 0 }}>
             {recs.map((rec, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="text-[#666666]">•</span>
-                <span>{rec}</span>
+              <li key={i} className="emphasis">
+                {rec}
               </li>
             ))}
           </ul>
         )}
       </div>
       {response.reasoning ? (
-        <div>
-          <p className="mb-1 text-[10px] uppercase tracking-wider text-[#666666]">Reasoning</p>
-          <p className="text-sm text-[#a3a3a3]">{response.reasoning}</p>
+        <div className="response-section">
+          <p className="response-label">Reasoning</p>
+          <p>{response.reasoning}</p>
         </div>
       ) : null}
       {response.nextSteps?.length > 0 ? (
-        <div>
-          <p className="mb-2 text-[10px] uppercase tracking-wider text-[#666666]">Next steps</p>
-          <div className="space-y-2">
-            {response.nextSteps.map((step, i) => (
-              <div key={i} className="flex gap-2 text-sm">
-                <span className="text-[#22c55e]">→</span>
-                <span className="text-[#f5f5f5]">{step}</span>
-              </div>
-            ))}
-          </div>
+        <div className="response-section">
+          <p className="response-label">Next steps</p>
+          {response.nextSteps.map((step, i) => (
+            <div key={i} className="step-row">
+              <span className="step-arrow">→</span>
+              <span>{step}</span>
+            </div>
+          ))}
         </div>
       ) : null}
       {response.sources && response.sources.length > 0 ? (
-        <div>
-          <p className="mb-1 text-[10px] uppercase tracking-wider text-[#666666]">Sources</p>
-          <ul className="space-y-1 font-mono text-[11px] text-[#666666]">
+        <div className="response-section">
+          <p className="response-label">Sources</p>
+          <ul style={{ paddingLeft: 0, listStyle: "none", margin: 0 }}>
             {response.sources.map((s, i) => (
-              <li key={i} className="break-all">
+              <li key={i} className="mono" style={{ fontSize: 11, wordBreak: "break-all" }}>
                 {/^https?:\/\//i.test(s) ? (
-                  <a
-                    href={s}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#a3a3a3] hover:underline"
-                  >
+                  <a href={s} target="_blank" rel="noopener noreferrer">
                     {s}
                   </a>
                 ) : (
@@ -660,15 +588,11 @@ function StructuredCard({ response }: { response: ZuloResponse }) {
           </ul>
         </div>
       ) : null}
-      <div className="flex items-center gap-3 border-t border-[#1f1f1f] pt-3">
-        <span className="text-xs text-[#666666]">Confidence</span>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#1a1a1a]">
-          <div
-            className="h-full rounded-full bg-[#22c55e]"
-            style={{ width: `${confidence}%` }}
-          />
+      <div className="response-section" style={{ marginBottom: 0 }}>
+        <p className="response-label">Confidence · {confidence}%</p>
+        <div className="meter">
+          <div className="meter-fill" style={{ width: `${confidence}%` }} />
         </div>
-        <span className="text-xs text-[#666666]">{confidence}%</span>
       </div>
     </div>
   )

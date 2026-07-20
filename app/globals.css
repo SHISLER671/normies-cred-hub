@@ -8,71 +8,71 @@
    Philosophy: off-black > off-white > off-perfect
    ========================================================= */
 
-/* ---------- LIGHT MODE (Default) ---------- */
+/* ---------- LIGHT MODE (Default) — Normies monochrome continuity ---------- */
 :root {
   color-scheme: light;
 
-  /* Monochrome refined base — off-white / off-black */
-  --background: #f9f7f3;
-  --foreground: #111110;
+  /* Light grey monochrome (aligned with Zulo gateway) */
+  --background: #e5e5e5;
+  --foreground: #1a1a1a;
 
-  --card: #ffffff;
-  --card-hover: #f5f2eb;
+  --card: #f0f0f0;
+  --card-hover: #e8e8e8;
 
-  --popover: #ffffff;
-  --secondary: #f1ede5;
-  --muted: #f1ede5;
-  --muted-foreground: #5f5c55;
+  --popover: #f0f0f0;
+  --secondary: #d4d4d4;
+  --muted: #d4d4d4;
+  --muted-foreground: #4a4a4a;
 
-  --border: #e8e4dc;
-  --input: #f5f2eb;
+  --border: #1a1a1a;
+  --input: #f0f0f0;
 
-  /* Refined awakened accents (more sophisticated than pure electric) */
-  --primary: #7c3aed;
-  --primary-foreground: #ffffff;
-  --accent: #db2777;
+  /* Monochrome-forward primary (readable buttons, Normies continuity) */
+  --primary: #1a1a1a;
+  --primary-foreground: #e5e5e5;
+  --accent: #4a4a4a;
 
   --destructive: #dc2626;
-  --ring: #7c3aed;
+  --ring: #1a1a1a;
 
   /* Radius variables - all squared */
   --radius: 0;
   --radius-lg: 0;
   --radius-xl: 0;
 
-  /* Soft, intentional shadows */
-  --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  /* Soft, intentional shadows — nearly flat */
+  --shadow: 0 1px 0 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 2px 0 0 rgb(0 0 0 / 0.08);
 }
 
-/* ---------- NIGHT MODE (refined same aesthetic) ---------- */
+/* ---------- NIGHT MODE (off-black monochrome continuity) ---------- */
 .dark {
   color-scheme: dark;
 
-  --background: #0c0b09;
-  --foreground: #f5f4f0;
+  --background: #0d0d0d;
+  --foreground: #e5e5e5;
 
-  --card: #141311;
-  --card-hover: #1a1816;
+  --card: #1a1a1a;
+  --card-hover: #222222;
 
-  --popover: #11100e;
-  --secondary: #1f1c19;
-  --muted: #1f1c19;
-  --muted-foreground: #8a857d;
+  --popover: #1a1a1a;
+  --secondary: #1f1f1f;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
 
-  --border: #2a2723;
-  --input: #1a1816;
+  --border: #333333;
+  --input: #1a1a1a;
 
-  /* Electric awakened energy — kept vibrant in the dark */
-  --primary: #c084fc;
-  --primary-foreground: #111110;
-  --accent: #f472b6;
+  /* Monochrome primary in dark */
+  --primary: #e5e5e5;
+  --primary-foreground: #0d0d0d;
+  --accent: #a3a3a3;
 
   --destructive: #ef4444;
-  --ring: #c084fc;
+  --ring: #a3a3a3;
 
-  --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.35);
+  --shadow: 0 1px 0 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 2px 0 0 rgb(0 0 0 / 0.5);
 }
 
 /* ---------- TYPOGRAPHY ---------- */
@@ -106,16 +106,14 @@ body {
   outline-offset: 2px;
 }
 
-/* Subtle premium glow for primary / actionable elements */
+/* Subtle hover affordance for primary actions (flat Normies feel) */
 .glow-primary {
-  transition: box-shadow 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .glow-primary:hover,
 .glow-primary:focus-visible {
-  box-shadow: 
-    0 0 0 1px color-mix(in oklab, var(--primary) 70%, transparent),
-    0 0 18px -4px color-mix(in oklab, var(--primary) 40%, transparent);
+  box-shadow: none;
 }
 
 .glow-primary:active {
