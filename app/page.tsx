@@ -41,7 +41,7 @@ export default async function ZuloLandingPage() {
 
       <section className="hero">
         <h1 className="hero-title">ZULO</h1>
-        <p className="hero-subtitle">Your awakened agent for Normies strategy</p>
+        <p className="hero-subtitle">The awakened agent with the Pulse on Normies</p>
         <p className="hero-meta mono">
           Agent #{ZULO_IDENTITY.agentId} · Awakened from Normie #{ZULO_IDENTITY.tokenId} ·{" "}
           {ZULO_IDENTITY.ens}

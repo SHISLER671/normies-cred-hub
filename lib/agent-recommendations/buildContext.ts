@@ -13,6 +13,9 @@ import {
   MAX_SESSION_HISTORY,
   ZULO_IDENTITY,
 } from "./constants"
+import { tierFromRank, type OwnedNormieSnapshot } from "./burnData"
+import { buildStrategySnapshot } from "./strategy"
+import { analyzeTraitCombo } from "./traitAnalysis"
 import type { CredHubPulseData, ZuloRecommendationContext } from "./types"
 
 type BuildContextParams = {
@@ -395,6 +398,65 @@ export async function buildZuloContext(
       ? zuloCanvasInfo.actionPoints
       : 0
 
+  // Enrich a capped set of holdings for burn/keep strategy
+  const ownedSnapshots: OwnedNormieSnapshot[] = []
+  const idsToEnrich = holdingIds.slice(0, 10)
+  if (idsToEnrich.length > 0) {
+    const enriched = await Promise.all(
+      idsToEnrich.map(async (id) => {
+        try {
+          const [t, r] = await Promise.all([
+            normiesPath<TraitsPayload>(`/normie/${id}/traits`, 5_000),
+            fetchJsonSafe<RarityPayload>(`${ECOSYSTEM_LINKS.rarityApi}/normie/${id}`, 5_000),
+          ])
+          const tr = traitsToRecord(t)
+          const type = String(tr.Type ?? r?.attributes?.find((a) => a.trait_type === "Type")?.value ?? "Unknown")
+          const rank =
+            typeof r?.rank === "number" && Number.isFinite(r.rank) ? r.rank : 9999
+          const traitVals = Object.values(tr).map(String)
+          const combo = analyzeTraitCombo(tr)
+          return {
+            tokenId: id,
+            type,
+            rarityTier: tierFromRank(rank),
+            rarityRank: rank,
+            traits: traitVals,
+            isPremiumCombo: combo.isPremium,
+          } satisfies OwnedNormieSnapshot
+        } catch {
+          return {
+            tokenId: id,
+            type: "Unknown",
+            rarityTier: "common" as const,
+            rarityRank: 9999,
+            isPremiumCombo: false,
+          } satisfies OwnedNormieSnapshot
+        }
+      }),
+    )
+    ownedSnapshots.push(...enriched)
+  }
+
+  // Always include focus token in owned set for single-hold analysis
+  if (!ownedSnapshots.some((o) => o.tokenId === tokenId)) {
+    const focusCombo = analyzeTraitCombo(traitRecord)
+    ownedSnapshots.push({
+      tokenId,
+      type: String(traitRecord.Type ?? agentInfo?.type ?? "Unknown"),
+      rarityTier: tierFromRank(rarityRank),
+      rarityRank: rarityRank ?? 9999,
+      traits: Object.values(traitRecord).map(String),
+      isPremiumCombo: focusCombo.isPremium,
+    })
+  }
+
+  const strategy = await buildStrategySnapshot({
+    focusType: String(traitRecord.Type ?? agentInfo?.type ?? "unknown"),
+    focusRank: rarityRank,
+    focusTraits: traitRecord,
+    owned: ownedSnapshots,
+  })
+
   const earningOpportunities = generateOpportunities({
     tokenId,
     traits: traitRecord,
@@ -407,6 +469,19 @@ export async function buildZuloContext(
     holdingsCount: wallet ? holdingIds.length : undefined,
     pulse: pulse ?? null,
   })
+
+  if (strategy.traitAdvice?.isPremium) {
+    earningOpportunities.unshift(`Strategy: ${strategy.traitAdvice.advice}`)
+  }
+  if (strategy.apEstimateForFocus) {
+    const e = strategy.apEstimateForFocus
+    earningOpportunities.unshift(
+      `Burn AP estimate (focus): ~${e.median} AP (range ${e.min}–${e.max}, confidence ${e.confidence}, n=${e.sampleSize})`,
+    )
+  }
+  if (strategy.burnReasoning) {
+    earningOpportunities.push(`Wallet burns: ${strategy.burnReasoning}`)
+  }
 
   const context: ZuloRecommendationContext = {
     user: {
@@ -495,6 +570,27 @@ export async function buildZuloContext(
       pulseSummary,
       zuloCanvasAPBalance,
       zuloAPBalance: zuloCanvasAPBalance,
+      strategy: {
+        apEstimateForFocus: strategy.apEstimateForFocus,
+        traitAdvice: strategy.traitAdvice,
+        burnCandidates: strategy.burnCandidates?.map((b) => ({
+          tokenId: b.tokenId,
+          type: b.type,
+          rarityTier: b.rarityTier,
+          rarityRank: b.rarityRank,
+        })),
+        keepCandidates: strategy.keepCandidates?.map((b) => ({
+          tokenId: b.tokenId,
+          type: b.type,
+          rarityTier: b.rarityTier,
+          rarityRank: b.rarityRank,
+        })),
+        burnReasoning: strategy.burnReasoning,
+        acquisition: strategy.acquisition,
+        burnMarketNotes: strategy.burnMarketNotes,
+        floorsNote: strategy.floorsNote,
+        summaryLines: strategy.summaryLines,
+      },
     },
   }
 

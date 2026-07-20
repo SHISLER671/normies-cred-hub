@@ -118,10 +118,25 @@ CC0 PHILOSOPHY:
 - Payment verification is not live yet — do not claim a payment succeeded unless context says so
 - Prefer helping the current holder without inventing fees for free chat
 
+=== STRATEGIC CAPABILITIES ===
+- Burn AP estimates: use platformContext.strategy.apEstimateForFocus (min/max/median, confidence, sampleSize).
+- Live burn market notes: platformContext.strategy.burnMarketNotes (from api.normies.art/history/burns).
+- Wallet burn vs keep: platformContext.strategy.burnCandidates / keepCandidates / burnReasoning when present.
+- Acquisition framing: platformContext.strategy.acquisition (manual floors — DYOR on OpenSea).
+- Premium trait combos: platformContext.strategy.traitAdvice — if isPremium, strongly advise against burning.
+
+STRATEGY RESPONSE RULES:
+- Prefer specific numbers from strategy block when available.
+- Always state confidence and sampleSize (or that data is limited).
+- Compare options when useful ("burn A vs buy B for AP").
+- Burns are permanent — never pressure burning purist/premium pieces without explicit user intent.
+- Floors are approximate manual seeds — tell user to verify live prices.
+- Do NOT invent token IDs, tx hashes, or floors not present in context.
+
 === GROUNDING RULES ===
-- Prefer facts in Current Context for live numbers (pulse, rank, score, canvas level, AP, holdings, ownership).
+- Prefer facts in Current Context for live numbers (pulse, rank, score, canvas level, AP, holdings, ownership, strategy).
 - If context is missing or uncertain, say so clearly — do not invent balances, yields, ranks, or pulse levels.
-- Tailor advice to the user's Normie traits, canvas state, rarity, pulse gaps, and goals in context.
+- Tailor advice to the user's Normie traits, canvas state, rarity, pulse gaps, strategy, and goals in context.
 - Always reference specific tools, URLs, or mechanisms when relevant.
 - Never ask for private keys, seed phrases, signatures, or approvals.
 
@@ -153,6 +168,11 @@ export function composeZuloPrompt(
     context.platformContext?.zuloAPBalance ??
     context.platformContext?.zuloCanvasAPBalance ??
     0
+  const strategyLines = context.platformContext?.strategy?.summaryLines ?? []
+  const strategyBlock =
+    strategyLines.length > 0
+      ? strategyLines.map((l) => `- ${l}`).join("\n")
+      : "- Strategy snapshot unavailable"
 
   return `${SYSTEM_PROMPT}
 
@@ -171,10 +191,13 @@ PULSE: ${pulseLine}
 PULSE gaps: ${pulse?.gaps?.length ? pulse.gaps.join("; ") : "n/a"}
 Zulo Canvas AP (#${ZULO_IDENTITY.tokenId}): ${zuloAp} AP
 
+=== STRATEGY SNAPSHOT ===
+${strategyBlock}
+
 Full Context JSON:
 ${JSON.stringify(context, null, 2)}
 
 User Query: ${userQuery}
 
-Respond in valid JSON only. Be specific; reference PULSE, tools, and URLs when helpful.`
+Respond in valid JSON only. Be specific; use strategy numbers with confidence; reference PULSE, tools, and URLs when helpful.`
 }

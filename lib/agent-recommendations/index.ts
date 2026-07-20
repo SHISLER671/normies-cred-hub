@@ -7,6 +7,7 @@ import { postProcessZuloOutput } from "./postProcess"
 import type {
   CredHubPulseData,
   RecommendParams,
+  StrategyContext,
   ZuloManifest,
   ZuloPulseApiResponse,
   ZuloPulseView,
@@ -38,7 +39,13 @@ export type {
   ZuloService,
   ZuloPulseView,
   ZuloPulseApiResponse,
+  StrategyContext,
 }
+
+export { estimateAPYield, findBurnCandidates, fetchLiveBurns } from "./burnData"
+export { analyzeAcquisitionStrategy, CURRENT_FLOORS, FLOORS_NOTE } from "./marketData"
+export { analyzeTraitCombo, PREMIUM_COMBOS } from "./traitAnalysis"
+export { buildStrategySnapshot } from "./strategy"
 
 export {
   ZULO_IDENTITY,

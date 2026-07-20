@@ -1,0 +1,90 @@
+// lib/agent-recommendations/strategy.ts
+// Builds strategy snapshot for Zulo context (burns, floors, traits, wallet).
+
+import {
+  estimateAPYield,
+  findBurnCandidates,
+  getBurnMarketNotes,
+  normalizeType,
+  tierFromRank,
+  type APYieldEstimate,
+  type OwnedNormieSnapshot,
+} from "./burnData"
+import {
+  analyzeAcquisitionStrategy,
+  FLOORS_NOTE,
+  type AcquisitionAnalysis,
+} from "./marketData"
+import { analyzeTraitCombo, type TraitComboAdvice } from "./traitAnalysis"
+
+export interface StrategySnapshot {
+  apEstimateForFocus?: APYieldEstimate
+  traitAdvice?: TraitComboAdvice
+  burnCandidates?: OwnedNormieSnapshot[]
+  keepCandidates?: OwnedNormieSnapshot[]
+  burnReasoning?: string
+  acquisition?: AcquisitionAnalysis
+  burnMarketNotes?: string
+  floorsNote?: string
+  summaryLines: string[]
+}
+
+export async function buildStrategySnapshot(input: {
+  focusType?: string
+  focusRank?: number | null
+  focusTraits: Record<string, string | number | boolean | null | undefined>
+  owned?: OwnedNormieSnapshot[]
+}): Promise<StrategySnapshot> {
+  const type = normalizeType(input.focusType)
+  const tier = tierFromRank(input.focusRank ?? null)
+  const traitAdvice = analyzeTraitCombo(input.focusTraits)
+
+  const [apEstimateForFocus, acquisition, burnMarketNotes] = await Promise.all([
+    estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
+    analyzeAcquisitionStrategy(20, 0.05),
+    getBurnMarketNotes(),
+  ])
+
+  let burnCandidates: OwnedNormieSnapshot[] | undefined
+  let keepCandidates: OwnedNormieSnapshot[] | undefined
+  let burnReasoning: string | undefined
+
+  if (input.owned && input.owned.length > 0) {
+    const ownedTagged = input.owned.map((o) => ({
+      ...o,
+      isPremiumCombo: o.isPremiumCombo ?? false,
+    }))
+    const result = findBurnCandidates(ownedTagged)
+    burnCandidates = result.burnCandidates
+    keepCandidates = result.keepCandidates
+    burnReasoning = result.reasoning
+  }
+
+  const summaryLines: string[] = [
+    `Focus estimate (${type}/${tier}): ~${apEstimateForFocus.median} AP (range ${apEstimateForFocus.min}–${apEstimateForFocus.max}, confidence ${apEstimateForFocus.confidence}, n=${apEstimateForFocus.sampleSize}).`,
+    apEstimateForFocus.notes,
+    traitAdvice.advice,
+    burnMarketNotes,
+    acquisition.recommendation,
+    FLOORS_NOTE,
+  ]
+
+  if (burnReasoning) summaryLines.push(burnReasoning)
+  if (burnCandidates?.length) {
+    summaryLines.push(
+      `Burn candidates (token IDs): ${burnCandidates.map((b) => `#${b.tokenId}`).join(", ")}`,
+    )
+  }
+
+  return {
+    apEstimateForFocus,
+    traitAdvice,
+    burnCandidates,
+    keepCandidates,
+    burnReasoning,
+    acquisition,
+    burnMarketNotes,
+    floorsNote: FLOORS_NOTE,
+    summaryLines,
+  }
+}

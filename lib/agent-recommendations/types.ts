@@ -86,7 +86,53 @@ export interface ZuloRecommendationContext {
     zuloCanvasAPBalance?: number
     /** Alias of zuloCanvasAPBalance for marketplace-facing copy */
     zuloAPBalance?: number
+    /** Strategic burn / acquisition / trait analysis snapshot */
+    strategy?: StrategyContext
   }
+}
+
+export interface StrategyContext {
+  apEstimateForFocus?: {
+    min: number
+    max: number
+    median: number
+    confidence: "low" | "medium" | "high"
+    sampleSize: number
+    notes: string
+  }
+  traitAdvice?: {
+    isPremium: boolean
+    premiumFactor: number
+    matchedTraits: string[]
+    advice: string
+  }
+  burnCandidates?: Array<{
+    tokenId: number
+    type: string
+    rarityTier: string
+    rarityRank: number
+  }>
+  keepCandidates?: Array<{
+    tokenId: number
+    type: string
+    rarityTier: string
+    rarityRank: number
+  }>
+  burnReasoning?: string
+  acquisition?: {
+    recommendation: string
+    options: Array<{
+      type: string
+      cost: number
+      expectedAP: number
+      efficiency: number
+      confidence: "low" | "medium" | "high"
+    }>
+    floorsNote: string
+  }
+  burnMarketNotes?: string
+  floorsNote?: string
+  summaryLines?: string[]
 }
 
 /**
