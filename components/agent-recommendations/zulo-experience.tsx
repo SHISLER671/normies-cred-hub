@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useAccount } from "wagmi"
-import { ExternalLink, Loader2, RefreshCw, Send } from "lucide-react"
+import { ExternalLink, Loader2, Send } from "lucide-react"
 
 import { ConnectWallet } from "@/components/connect-wallet"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
@@ -59,34 +59,30 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   const [pulse, setPulse] = useState<ZuloPulseView | null>(null)
   const [zuloAP, setZuloAP] = useState(0)
   const [pulseLoading, setPulseLoading] = useState(true)
-  const [pulseError, setPulseError] = useState<string | null>(null)
-  const [pulseFresh, setPulseFresh] = useState(false)
+  const [showPulse, setShowPulse] = useState(false)
+  const [expandedOpportunity, setExpandedOpportunity] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
   const welcomeSent = useRef(false)
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
     })
   }, [])
 
   const fetchPulse = useCallback(async () => {
     setPulseLoading(true)
-    setPulseError(null)
     try {
       const res = await fetch(`/api/zulo/pulse/${tokenId}`, { cache: "no-store" })
       const data = (await res.json()) as ZuloPulseApiResponse
       if (!res.ok || !data.pulse) {
-        setPulseError(data.error || "Failed to load PULSE")
         setPulse(null)
         return
       }
       setPulse(data.pulse)
       setZuloAP(data.zuloAP ?? 0)
-      setPulseFresh(true)
-      window.setTimeout(() => setPulseFresh(false), 600)
     } catch {
-      setPulseError("Failed to load PULSE")
       setPulse(null)
     } finally {
       setPulseLoading(false)
@@ -105,22 +101,48 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
         id: "welcome",
         role: "zulo",
         content:
-          "Welcome. I am Zulo, awakened from Normie #7141. I read live PULSE — Canvas, rarity, CredHub signals — and help you maximize your position. What shall we explore?",
+          "I am listening. What would you like to know about your PULSE, your strategy, or the ecosystem?",
       },
     ])
   }, [])
 
   useEffect(() => {
-    scrollToBottom()
+    if (messages.length > 1 || loading) scrollToBottom()
   }, [messages, loading, scrollToBottom])
+
+  // Close PULSE dropdown on Escape / outside click
+  useEffect(() => {
+    if (!showPulse) return
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setShowPulse(false)
+    }
+
+    function onPointer(e: MouseEvent | TouchEvent) {
+      const el = topRef.current
+      if (!el) return
+      if (e.target instanceof Node && !el.contains(e.target)) {
+        setShowPulse(false)
+      }
+    }
+
+    document.addEventListener("keydown", onKey)
+    document.addEventListener("mousedown", onPointer)
+    document.addEventListener("touchstart", onPointer)
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.removeEventListener("mousedown", onPointer)
+      document.removeEventListener("touchstart", onPointer)
+    }
+  }, [showPulse])
 
   async function sendMessage(raw?: string) {
     const userQuery = (raw ?? input).trim()
     if (!userQuery || loading) return
     if (userQuery.length > MAX_USER_QUERY_CHARS) return
 
-    const turnId = crypto.randomUUID()
-    setMessages((prev) => [...prev, { id: turnId, role: "user", content: userQuery }])
+    setShowPulse(false)
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: userQuery }])
     setInput("")
     setLoading(true)
 
@@ -203,214 +225,150 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   const canSend =
     !loading && input.trim().length > 0 && input.length <= MAX_USER_QUERY_CHARS
 
-  const opportunities = pulse?.recommendations?.slice(0, 6) ?? []
+  const opportunities = pulse?.recommendations?.slice(0, 8) ?? []
+  const pulseTierLabel = pulseLoading
+    ? "…"
+    : pulse?.rarity.tier || pulse?.status || "—"
 
   return (
-    <div className="zulo-chrome">
-      <ZuloChromeHeader
-        active="ask"
-        fixed={false}
-        trailing={
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-            <div className="caption" style={{ textAlign: "right" }}>
-              <div>Canvas AP · #{ZULO_IDENTITY.tokenId}</div>
-              <div className="mono" style={{ color: "var(--text-primary)" }}>
-                {zuloAP} AP
-              </div>
+    <div className="zulo-chrome ask-shell">
+      <div className="ask-top" ref={topRef}>
+        <ZuloChromeHeader
+          active="ask"
+          fixed={false}
+          trailing={
+            <div className="header-trailing">
+              <button
+                type="button"
+                className={cn("pulse-toggle", showPulse && "is-open")}
+                onClick={() => setShowPulse((v) => !v)}
+                aria-expanded={showPulse}
+                aria-controls="pulse-dropdown"
+              >
+                <span className="pulse-indicator">PULSE</span>
+                <span className="pulse-tier mono muted">{pulseTierLabel}</span>
+                <span className={cn("pulse-toggle-chevron", showPulse && "is-open")}>▼</span>
+              </button>
+              {isConnected && address ? (
+                <span className="mono muted" style={{ fontSize: 11 }}>
+                  {ensName || shortAddr(address)}
+                </span>
+              ) : null}
+              <ConnectWallet />
             </div>
-            {isConnected && address ? (
-              <span className="mono muted">{ensName || shortAddr(address)}</span>
-            ) : null}
-            <ConnectWallet />
-          </div>
-        }
-      />
+          }
+        />
 
-      <div className="identity-strip">
-        <div className="identity-mark">
-          Z
-          <span className="live-dot" aria-hidden />
-        </div>
-        <div>
-          <h1 style={{ fontSize: 18, margin: 0, letterSpacing: "0.12em" }}>Zulo</h1>
-          <p className="mono muted" style={{ margin: 0, fontSize: 12 }}>
-            Agent #{ZULO_IDENTITY.agentId} · {ZULO_IDENTITY.ens}
-          </p>
-        </div>
+        {showPulse ? (
+          <div id="pulse-dropdown" className="pulse-dropdown animate-slide-down" role="region" aria-label="PULSE data">
+            <div className="pulse-dropdown-inner">
+              {pulse ? (
+                <>
+                  <div className="pulse-grid">
+                    <PulseField label="Token" value={`#${pulse.tokenId}`} />
+                    <PulseField
+                      label="Status"
+                      value={
+                        <span className={pulse.status === "awakened" ? "status-live" : undefined}>
+                          {pulse.status}
+                        </span>
+                      }
+                    />
+                    <PulseField
+                      label="Canvas"
+                      value={
+                        pulse.canvas.edited
+                          ? `Modified · L${pulse.canvas.level}`
+                          : `Untouched · L${pulse.canvas.level}`
+                      }
+                    />
+                    <PulseField label="AP" value={String(pulse.canvas.actionPoints)} />
+                    <PulseField
+                      label="Rarity"
+                      value={<span style={{ textTransform: "capitalize" }}>{pulse.rarity.tier}</span>}
+                    />
+                    <PulseField
+                      label="Rank"
+                      value={pulse.rarity.rank != null ? `#${pulse.rarity.rank}` : "—"}
+                    />
+                    <PulseField
+                      label="Score"
+                      value={
+                        pulse.rarity.score != null ? pulse.rarity.score.toFixed(1) : "—"
+                      }
+                    />
+                    <PulseField
+                      label="Type"
+                      value={<span style={{ textTransform: "capitalize" }}>{pulse.type}</span>}
+                    />
+                  </div>
+
+                  {pulse.credHub ? (
+                    <div style={{ marginTop: 16 }}>
+                      <p className="caption">CredHub PULSE</p>
+                      <p className="mono" style={{ marginTop: 4 }}>
+                        {pulse.credHub.pulseLevel}/{pulse.credHub.maxLevel} · {pulse.credHub.status}
+                      </p>
+                      {pulse.credHub.gaps.length > 0 ? (
+                        <p className="caption" style={{ marginTop: 6 }}>
+                          Gaps: {pulse.credHub.gaps.join(" · ")}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {pulse.pulseSummary ? (
+                    <p className="card-body" style={{ marginTop: 12, marginBottom: 0 }}>
+                      {pulse.pulseSummary}
+                    </p>
+                  ) : null}
+
+                  <p className="caption" style={{ marginTop: 12 }}>
+                    Zulo Canvas AP · #{ZULO_IDENTITY.tokenId}: {zuloAP}
+                  </p>
+
+                  <div className="pulse-dropdown-actions">
+                    <a
+                      href={ECOSYSTEM_LINKS.canvasEdit(pulse.tokenId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="button button-sm"
+                      onClick={() => setShowPulse(false)}
+                    >
+                      Edit Canvas <ExternalLink className="size-3.5" />
+                    </a>
+                    <a
+                      href={`${ECOSYSTEM_LINKS.rarity}${pulse.tokenId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="button button-sm"
+                      onClick={() => setShowPulse(false)}
+                    >
+                      View Rarity <ExternalLink className="size-3.5" />
+                    </a>
+                    <button
+                      type="button"
+                      className="button button-primary button-sm"
+                      disabled={loading}
+                      onClick={() => void sendMessage("Analyze my PULSE")}
+                    >
+                      Analyze my PULSE
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="caption text-center">
+                  {pulseLoading ? "Loading PULSE…" : "PULSE unavailable. Try again later."}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
 
-      <div className="ask-layout">
-        {/* PULSE sidebar */}
-        <div className="stack">
-          <div className={cn("card pulse-card", pulseFresh && "data-pulse")}>
-            <div className="card-header">
-              <h2 className="card-title">
-                <span className="pulse-indicator">PULSE</span>
-              </h2>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span className="mono muted">#{tokenId}</span>
-                <button
-                  type="button"
-                  className="button button-sm"
-                  onClick={() => void fetchPulse()}
-                  aria-label="Refresh PULSE"
-                >
-                  <RefreshCw className={cn("size-3.5", pulseLoading && "animate-spin")} />
-                </button>
-              </div>
-            </div>
-
-            {pulseLoading && !pulse ? (
-              <p className="caption text-center">Loading PULSE…</p>
-            ) : pulseError && !pulse ? (
-              <div className="text-center stack">
-                <p className="muted">{pulseError}</p>
-                <button type="button" className="button button-sm" onClick={() => void fetchPulse()}>
-                  Retry
-                </button>
-              </div>
-            ) : pulse ? (
-              <div className="stack">
-                {pulse.credHub ? (
-                  <div>
-                    <div className="card-row">
-                      <span className="card-row-label">CredHub PULSE</span>
-                      <span className="card-row-value mono">
-                        {pulse.credHub.pulseLevel}/{pulse.credHub.maxLevel} · {pulse.credHub.status}
-                      </span>
-                    </div>
-                    <div className="meter" style={{ marginTop: 8 }}>
-                      <div
-                        className="meter-fill"
-                        style={{
-                          width: `${(pulse.credHub.pulseLevel / pulse.credHub.maxLevel) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    {pulse.credHub.breakdown.length > 0 ? (
-                      <p className="caption" style={{ marginTop: 8 }}>
-                        {pulse.credHub.breakdown.join(" · ")}
-                      </p>
-                    ) : null}
-                    {pulse.credHub.gaps.length > 0 ? (
-                      <p className="caption" style={{ marginTop: 4 }}>
-                        Gaps: {pulse.credHub.gaps.join(" · ")}
-                      </p>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                <div className="card-row">
-                  <span className="card-row-label">Status</span>
-                  <span
-                    className={cn(
-                      "card-row-value",
-                      pulse.status === "awakened" ? "status-live" : "muted",
-                    )}
-                  >
-                    {pulse.status}
-                  </span>
-                </div>
-                <div className="card-row">
-                  <span className="card-row-label">Type</span>
-                  <span className="card-row-value" style={{ textTransform: "capitalize" }}>
-                    {pulse.type}
-                  </span>
-                </div>
-                <div className="card-row">
-                  <span className="card-row-label">Canvas</span>
-                  <span className="card-row-value">
-                    {pulse.canvas.edited
-                      ? `Modified · L${pulse.canvas.level} · ${pulse.canvas.actionPoints} AP`
-                      : `Untouched · L${pulse.canvas.level}`}
-                  </span>
-                </div>
-                <div className="card-row">
-                  <span className="card-row-label">Rarity</span>
-                  <span className="card-row-value">
-                    <span style={{ textTransform: "capitalize" }}>{pulse.rarity.tier}</span>
-                    {pulse.rarity.rank != null ? (
-                      <span className="mono muted"> #{pulse.rarity.rank}</span>
-                    ) : null}
-                  </span>
-                </div>
-
-                {pulse.rarity.score != null ? (
-                  <div>
-                    <div className="card-row">
-                      <span className="card-row-label">Score</span>
-                      <span className="card-row-value mono">{pulse.rarity.score.toFixed(2)}</span>
-                    </div>
-                    <div className="meter">
-                      <div
-                        className="meter-fill"
-                        style={{
-                          width: `${Math.min(Math.max(pulse.rarity.score, 0), 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ) : null}
-
-                {pulse.pulseSummary ? (
-                  <p className="card-body" style={{ marginBottom: 0 }}>
-                    {pulse.pulseSummary}
-                  </p>
-                ) : null}
-
-                <div className="sidebar-actions">
-                  <a
-                    href={ECOSYSTEM_LINKS.canvasEdit(tokenId)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="button button-block button-sm"
-                  >
-                    Edit Canvas <ExternalLink className="size-3.5" />
-                  </a>
-                  <a
-                    href={`${ECOSYSTEM_LINKS.rarity}${tokenId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="button button-block button-sm"
-                  >
-                    View Rarity <ExternalLink className="size-3.5" />
-                  </a>
-                  <button
-                    type="button"
-                    className="button button-primary button-block button-sm"
-                    disabled={loading}
-                    onClick={() => void sendMessage("Analyze my PULSE")}
-                  >
-                    Ask Zulo about PULSE
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="card">
-            <h3 className="card-title">About Zulo</h3>
-            <p className="card-body">
-              Awakened from Normie #{ZULO_IDENTITY.tokenId}. I interpret live PULSE and give
-              strategic recommendations for the Normies ecosystem.
-            </p>
-            <div className="card-row">
-              <span className="card-row-label">Service</span>
-              <span className="card-row-value">A2A Recommendations</span>
-            </div>
-            <div className="card-row">
-              <span className="card-row-label">Pricing</span>
-              <span className="card-row-value">1–2 AP · chat free</span>
-            </div>
-            <div className="card-row">
-              <span className="card-row-label">Hot Wallet</span>
-              <span className="card-row-value mono">{shortAddr(ZULO_IDENTITY.hotWallet)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Chat */}
-        <div className="chat-shell">
+      {/* Centered chat stage */}
+      <main className="ask-main">
+        <div className="ask-chat">
           <div className="chat-messages">
             {messages.map((msg) => (
               <div
@@ -469,7 +427,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                     if (canSend) void sendMessage()
                   }
                 }}
-                placeholder="Ask Zulo about your PULSE, strategy, or the ecosystem…"
+                placeholder="Ask Zulo…"
                 maxLength={MAX_USER_QUERY_CHARS}
                 disabled={loading}
               />
@@ -485,40 +443,77 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
+      {/* Compact opportunities rail */}
       {opportunities.length > 0 ? (
-        <div className="container" style={{ paddingBottom: 40 }}>
-          <h2 className="caption" style={{ marginBottom: 16 }}>
-            Opportunities
-          </h2>
-          <div className="opp-grid">
-            {opportunities.map((rec, i) => (
-              <button
-                key={`${i}-${rec.slice(0, 24)}`}
-                type="button"
-                className="opp-card pulse-card"
-                disabled={loading}
-                onClick={() => void sendMessage(`Tell me more about this opportunity: ${rec}`)}
-              >
-                <div className="card-header" style={{ border: "none", padding: 0, marginBottom: 12 }}>
-                  <span className="mono muted">{String(i + 1).padStart(2, "0")}</span>
-                  <span>■</span>
-                </div>
-                <p className="card-body" style={{ marginBottom: 8 }}>
-                  {rec}
-                </p>
-                <span className="caption">Ask Zulo →</span>
-              </button>
-            ))}
+        <section className="opp-rail-section" aria-label="Opportunities">
+          <div className="opp-rail-inner">
+            <p className="caption" style={{ marginBottom: 8 }}>
+              Opportunities
+            </p>
+            <div className="opp-rail">
+              {opportunities.map((rec, i) => {
+                const open = expandedOpportunity === i
+                return (
+                  <div
+                    key={`${i}-${rec.slice(0, 20)}`}
+                    className={cn("opp-chip", open && "is-expanded")}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setExpandedOpportunity(open ? null : i)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        setExpandedOpportunity(open ? null : i)
+                      }
+                    }}
+                  >
+                    <div className="opp-chip-head">
+                      <span className="mono muted">{String(i + 1).padStart(2, "0")}</span>
+                      <span className={cn("pulse-toggle-chevron", open && "is-open")}>▼</span>
+                    </div>
+                    <p className={cn("opp-chip-body", !open && "clamped")}>{rec}</p>
+                    {open ? (
+                      <div
+                        className="opp-chip-expand"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <p className="caption">Ask Zulo about this opportunity</p>
+                        <button
+                          type="button"
+                          className="button button-primary button-sm"
+                          disabled={loading}
+                          onClick={() => {
+                            setExpandedOpportunity(null)
+                            void sendMessage(`Tell me more about this opportunity: ${rec}`)
+                          }}
+                        >
+                          Ask Zulo →
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        </section>
       ) : null}
 
       <p className="dyor">
-        Informational only — not financial advice. DYOR. Burns are permanent. Zulo never asks for
-        keys or signatures.
+        Informational only — DYOR. Burns are permanent. Zulo never asks for keys.
       </p>
+    </div>
+  )
+}
+
+function PulseField({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="pulse-field">
+      <p className="caption">{label}</p>
+      <div className="mono">{value}</div>
     </div>
   )
 }
