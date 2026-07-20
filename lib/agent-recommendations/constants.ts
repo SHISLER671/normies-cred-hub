@@ -18,6 +18,24 @@ export const ZULO_RECOMMENDATIONS_DYOR =
 export const MAX_SESSION_HISTORY = 5
 export const MAX_USER_QUERY_CHARS = 1000
 
+/** Normies Cred Pulse — ERC-8257 Tool #53 on this app. */
+export const CRED_HUB_PULSE = {
+  toolId: 53,
+  pathTemplate: "/api/agent/{tokenId}/pulse",
+  openSeaToolsUrl: "https://opensea.io/tools/erc8257/ethereum/53",
+} as const
+
+/**
+ * A2A service prices in Canvas Action Points (low-fee launch table).
+ * holder-chat remains free for the web UI.
+ */
+export const ZULO_SERVICE_PRICES: Record<string, number> = {
+  "pulse-analysis": 1,
+  strategy: 2,
+  urgent: 2,
+  "holder-chat": 0,
+}
+
 /** Official + community surfaces Zulo may cite. */
 export const ECOSYSTEM_LINKS = {
   main: "https://www.normies.art/",
@@ -35,6 +53,7 @@ export const ECOSYSTEM_LINKS = {
   multisend: "https://multisend.normies.art/",
   normifier: "https://normifier.vercel.app/",
   opensea: "https://opensea.io/collection/normies",
+  credHubPulseTool: "https://opensea.io/tools/erc8257/ethereum/53",
 } as const
 
 export const DEFAULT_RESOURCE_LINKS = [
@@ -45,4 +64,5 @@ export const DEFAULT_RESOURCE_LINKS = [
   ECOSYSTEM_LINKS.normifier,
   ECOSYSTEM_LINKS.docsNormies,
   ECOSYSTEM_LINKS.docsAgentic,
+  ECOSYSTEM_LINKS.credHubPulseTool,
 ] as const

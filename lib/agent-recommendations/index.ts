@@ -4,7 +4,14 @@
 import { buildZuloContext } from "./buildContext"
 import { generateZuloResponse } from "./generate"
 import { postProcessZuloOutput } from "./postProcess"
-import type { RecommendParams, ZuloRecommendationContext, ZuloResponse } from "./types"
+import type {
+  CredHubPulseData,
+  RecommendParams,
+  ZuloManifest,
+  ZuloRecommendationContext,
+  ZuloResponse,
+  ZuloService,
+} from "./types"
 
 export async function getZuloRecommendation(
   params: RecommendParams,
@@ -20,7 +27,15 @@ export async function getZuloRecommendation(
   return postProcessZuloOutput(rawOutput)
 }
 
-export type { ZuloResponse, RecommendParams, ZuloRecommendationContext }
+export type {
+  ZuloResponse,
+  RecommendParams,
+  ZuloRecommendationContext,
+  CredHubPulseData,
+  ZuloManifest,
+  ZuloService,
+}
+
 export {
   ZULO_IDENTITY,
   ZULO_RECOMMENDATIONS_DYOR,
@@ -28,4 +43,14 @@ export {
   MAX_USER_QUERY_CHARS,
   ECOSYSTEM_LINKS,
   DEFAULT_RESOURCE_LINKS,
+  CRED_HUB_PULSE,
+  ZULO_SERVICE_PRICES,
 } from "./constants"
+
+export { getManifest } from "./manifest"
+export {
+  verifyAPPayment,
+  isHolder,
+  getServicePrice,
+  type PaymentVerification,
+} from "./verifyPayment"

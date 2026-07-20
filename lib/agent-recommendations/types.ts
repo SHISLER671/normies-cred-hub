@@ -76,7 +76,60 @@ export interface ZuloRecommendationContext {
     rarityScore?: number | null
     fairValue?: number | string | null
     resources?: string[]
+    /** Normies Cred Pulse (ERC-8257 Tool #53) for the focus Normie */
+    pulse?: CredHubPulseData
+    pulseSummary?: string
+    /**
+     * Action Points on Normie #7141 Canvas (Zulo).
+     * Not a wallet ledger — Canvas AP is per-Normie on-chain.
+     */
+    zuloCanvasAPBalance?: number
+    /** Alias of zuloCanvasAPBalance for marketplace-facing copy */
+    zuloAPBalance?: number
   }
+}
+
+/**
+ * Real Normies Cred Pulse payload (this app's GET /api/agent/{tokenId}/pulse).
+ * Distinct from canvas/rarity fields already on `normie.*`.
+ */
+export interface CredHubPulseData {
+  tokenId: number
+  agentId: number | null
+  pulseLevel: number
+  maxLevel: number
+  status: string
+  breakdown: string[]
+  gaps: string[]
+  nextSignal: string | null
+  note: string
+}
+
+export type ZuloServiceCurrency = "AP" | "PIXEL" | "FREE"
+
+export interface ZuloService {
+  id: string
+  name: string
+  description: string
+  price: {
+    amount: number
+    currency: ZuloServiceCurrency
+  }
+  endpoint: string
+}
+
+export interface ZuloManifest {
+  agent: {
+    id: number
+    name: string
+    ens: string
+    wallet: string
+    type: "ERC-8004"
+  }
+  services: ZuloService[]
+  acceptedCurrencies: Array<"AP" | "PIXEL">
+  version: string
+  endpoint: string
 }
 
 export interface RecommendParams {

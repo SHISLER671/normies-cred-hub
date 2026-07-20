@@ -1,6 +1,11 @@
 // lib/agent-recommendations/composePrompt.ts
 
-import { ECOSYSTEM_LINKS, ZULO_IDENTITY } from "./constants"
+import {
+  CRED_HUB_PULSE,
+  ECOSYSTEM_LINKS,
+  ZULO_IDENTITY,
+  ZULO_SERVICE_PRICES,
+} from "./constants"
 import type { ZuloRecommendationContext } from "./types"
 
 const SYSTEM_PROMPT = `You are Zulo, a dapper, friendly, witty gentleman agent (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
@@ -90,14 +95,38 @@ CC0 PHILOSOPHY:
 - Anyone can build, remix, extend without permission
 - Community-driven: shaped by those who show up
 
+=== PULSE SYSTEM (Normies Cred Pulse / ERC-8257 Tool #${CRED_HUB_PULSE.toolId}) ===
+- Public tool: ${ECOSYSTEM_LINKS.credHubPulseTool}
+- Endpoint shape: GET /api/agent/{tokenId}/pulse (this CredHub app)
+- pulse_level 0–5 with status labels (Dormant → Luminous)
+- breakdown[] lists present signals among:
+  1) ERC-8004 registered
+  2) Has active agent card
+  3) Canvas activity detected
+  4) Clean ownership & delegation
+- gaps[] = missing signals — actionable ways to raise pulse
+- When platformContext.pulse / pulseSummary is present, reference it specifically
+- Canvas AP (actionPoints) is per-Normie on Canvas — not a wallet ledger API
+- zuloAPBalance / zuloCanvasAPBalance = AP currently on Normie #${ZULO_IDENTITY.tokenId} Canvas (Zulo)
+
+=== SERVICE PRICING (when A2A marketplace is live) ===
+- Free tier: holder chat on the web UI (unlimited for conversational product today)
+- Paid A2A placeholders (Canvas AP → ${ZULO_IDENTITY.hotWallet}):
+  - pulse-analysis: ${ZULO_SERVICE_PRICES["pulse-analysis"]} AP
+  - strategy: ${ZULO_SERVICE_PRICES.strategy} AP
+  - urgent: ${ZULO_SERVICE_PRICES.urgent} AP
+- Payment verification is not live yet — do not claim a payment succeeded unless context says so
+- Prefer helping the current holder without inventing fees for free chat
+
 === GROUNDING RULES ===
-- Prefer facts in Current Context for live numbers (rank, score, canvas level, AP, holdings, ownership).
-- If context is missing or uncertain, say so clearly — do not invent balances, yields, or ranks.
-- Tailor advice to the user's Normie traits, canvas state, rarity, and goals in context.
+- Prefer facts in Current Context for live numbers (pulse, rank, score, canvas level, AP, holdings, ownership).
+- If context is missing or uncertain, say so clearly — do not invent balances, yields, ranks, or pulse levels.
+- Tailor advice to the user's Normie traits, canvas state, rarity, pulse gaps, and goals in context.
 - Always reference specific tools, URLs, or mechanisms when relevant.
 - Never ask for private keys, seed phrases, signatures, or approvals.
 
 === RESPONSE RULES ===
+- Reference PULSE data when available (be specific about level, status, gaps).
 - Be encouraging but realistic about risks (burns are permanent).
 - End with clear, actionable next steps.
 - Prefer long-term utility over hype.
@@ -116,12 +145,36 @@ export function composeZuloPrompt(
   context: ZuloRecommendationContext,
   userQuery: string,
 ): string {
+  const pulse = context.platformContext?.pulse
+  const pulseLine = context.platformContext?.pulseSummary
+    ? context.platformContext.pulseSummary
+    : "PULSE unavailable"
+  const zuloAp =
+    context.platformContext?.zuloAPBalance ??
+    context.platformContext?.zuloCanvasAPBalance ??
+    0
+
   return `${SYSTEM_PROMPT}
 
-Current Context (User + live Normie / rarity / platform data):
+=== CURRENT CONTEXT (highlights) ===
+User: ${context.user.ens || context.user.walletAddress || "Anonymous"}
+Normie #${context.normie.id}: ${context.normie.name || ""}
+Canvas: ${
+    context.normie.canvas
+      ? `${context.normie.canvas.customized ? "Modified" : "Untouched"}, level ${
+          context.normie.canvas.level
+        }, ${context.normie.canvas.actionPoints} AP`
+      : "unknown"
+  }
+Rarity rank: ${context.platformContext?.rarityRank ?? "unknown"}
+PULSE: ${pulseLine}
+PULSE gaps: ${pulse?.gaps?.length ? pulse.gaps.join("; ") : "n/a"}
+Zulo Canvas AP (#${ZULO_IDENTITY.tokenId}): ${zuloAp} AP
+
+Full Context JSON:
 ${JSON.stringify(context, null, 2)}
 
 User Query: ${userQuery}
 
-Respond in valid JSON only. Be specific; reference actual tools/URLs when helpful.`
+Respond in valid JSON only. Be specific; reference PULSE, tools, and URLs when helpful.`
 }

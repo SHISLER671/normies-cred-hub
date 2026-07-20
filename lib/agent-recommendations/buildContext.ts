@@ -1,7 +1,9 @@
 // lib/agent-recommendations/buildContext.ts
-// Builds recommendation context with Normies + rarity API enrichment.
+// Builds recommendation context with Normies + rarity + CredHub PULSE enrichment.
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
+import { getAgentPulse } from "@/lib/api/agent-pulse"
+import { buildPulseSummary, derivePulseGaps } from "@/lib/erc8257/context"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { isAddress } from "viem"
 
@@ -11,7 +13,7 @@ import {
   MAX_SESSION_HISTORY,
   ZULO_IDENTITY,
 } from "./constants"
-import type { ZuloRecommendationContext } from "./types"
+import type { CredHubPulseData, ZuloRecommendationContext } from "./types"
 
 type BuildContextParams = {
   normieId?: number
@@ -108,6 +110,7 @@ type OpportunityInput = {
   rarityRank?: number | null
   rarityScore?: number | null
   holdingsCount?: number
+  pulse?: CredHubPulseData | null
 }
 
 async function fetchJsonSafe<T>(url: string, timeoutMs = 8_000): Promise<T | null> {
@@ -160,6 +163,27 @@ function mapSessionHistory(
 function generateOpportunities(input: OpportunityInput): string[] {
   const opportunities: string[] = []
   const typeValue = String(input.traits.Type ?? input.agentType ?? "")
+  const pulse = input.pulse
+
+  if (pulse) {
+    opportunities.push(
+      `PULSE: ${pulse.pulseLevel}/${pulse.maxLevel} (${pulse.status}) — signals: ${
+        pulse.breakdown.length ? pulse.breakdown.join(", ") : "none yet"
+      }. Tool: ${ECOSYSTEM_LINKS.credHubPulseTool}`,
+    )
+    if (pulse.pulseLevel <= 2) {
+      opportunities.push(
+        "PULSE strategy: low level — prioritize identity (ERC-8004), active agent card, and clean ownership before heavy Canvas risk.",
+      )
+    } else if (pulse.pulseLevel >= 4) {
+      opportunities.push(
+        "PULSE strategy: strong signal set — fair game for agent utility, ecosystem tools, and reputation growth.",
+      )
+    }
+    for (const gap of pulse.gaps.slice(0, 3)) {
+      opportunities.push(`PULSE gap: ${gap} — address this signal to raise pulse level.`)
+    }
+  }
 
   if (!input.customized) {
     opportunities.push(
@@ -259,6 +283,8 @@ export async function buildZuloContext(
   const wallet =
     params.userWallet && isAddress(params.userWallet) ? params.userWallet : ""
 
+  const needZuloCanvasAp = tokenId !== ZULO_IDENTITY.tokenId
+
   const [
     agentInfo,
     traits,
@@ -268,6 +294,8 @@ export async function buildZuloContext(
     holders,
     historyStats,
     rarityData,
+    pulseResult,
+    zuloCanvasInfo,
   ] = await Promise.all([
     normiesPath<AgentInfoPayload>(`/agents/info/${tokenId}`),
     normiesPath<TraitsPayload>(`/normie/${tokenId}/traits`),
@@ -280,7 +308,29 @@ export async function buildZuloContext(
       `${ECOSYSTEM_LINKS.rarityApi}/normie/${tokenId}`,
       8_000,
     ),
+    getAgentPulse(tokenId).catch(() => null),
+    needZuloCanvasAp
+      ? normiesPath<CanvasInfoPayload>(`/normie/${ZULO_IDENTITY.tokenId}/canvas/info`)
+      : Promise.resolve(null),
   ])
+
+  let pulse: CredHubPulseData | undefined
+  let pulseSummary = "PULSE unavailable"
+  if (pulseResult && "ok" in pulseResult && pulseResult.ok) {
+    const gaps = derivePulseGaps(pulseResult.data.breakdown)
+    pulse = {
+      tokenId: pulseResult.data.token_id,
+      agentId: pulseResult.data.agent_id,
+      pulseLevel: pulseResult.data.pulse_level,
+      maxLevel: pulseResult.data.max_level,
+      status: pulseResult.data.status,
+      breakdown: pulseResult.data.breakdown,
+      gaps,
+      nextSignal: pulseResult.data.next_signal,
+      note: pulseResult.data.note,
+    }
+    pulseSummary = buildPulseSummary(pulseResult.data)
+  }
 
   const traitRecord = {
     ...traitsToRecord(traits),
@@ -339,6 +389,12 @@ export async function buildZuloContext(
   const customized = !!canvasCustomized
   const actionPoints = canvasAp ?? 0
 
+  const zuloCanvasAPBalance = isZuloDefault
+    ? actionPoints
+    : typeof zuloCanvasInfo?.actionPoints === "number"
+      ? zuloCanvasInfo.actionPoints
+      : 0
+
   const earningOpportunities = generateOpportunities({
     tokenId,
     traits: traitRecord,
@@ -349,6 +405,7 @@ export async function buildZuloContext(
     rarityRank,
     rarityScore,
     holdingsCount: wallet ? holdingIds.length : undefined,
+    pulse: pulse ?? null,
   })
 
   const context: ZuloRecommendationContext = {
@@ -434,6 +491,10 @@ export async function buildZuloContext(
         ECOSYSTEM_LINKS.canvasEdit(tokenId),
         rarityData?.openseaUrl,
       ].filter((u): u is string => typeof u === "string" && u.length > 0),
+      pulse,
+      pulseSummary,
+      zuloCanvasAPBalance,
+      zuloAPBalance: zuloCanvasAPBalance,
     },
   }
 
