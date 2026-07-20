@@ -27,6 +27,16 @@ export interface ZuloRecommendationContext {
       actionPoints: number
       customized: boolean
       delegate?: string
+      /** Count of "on" pixels (0–1600) when pixels endpoint is available */
+      pixelCount?: number
+      /** Theoretical burn AP range from pixel tier formula */
+      burnApEstimate?: {
+        minAp: number
+        maxAp: number
+        tierLabel: string
+        minPct: number
+        maxPct: number
+      }
     }
     rarity?: {
       rank?: number | null

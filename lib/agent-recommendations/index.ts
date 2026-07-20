@@ -46,6 +46,13 @@ export { estimateAPYield, findBurnCandidates, fetchLiveBurns } from "./burnData"
 export { analyzeAcquisitionStrategy, CURRENT_FLOORS, FLOORS_NOTE } from "./marketData"
 export { analyzeTraitCombo, PREMIUM_COMBOS } from "./traitAnalysis"
 export { buildStrategySnapshot } from "./strategy"
+export {
+  NORMIES_KNOWLEDGE,
+  buildNormiesWisdomPrompt,
+  apTierForPixelCount,
+  estimateBurnApFromPixels,
+  levelFromActionPoints,
+} from "./normiesKnowledge"
 
 export {
   ZULO_IDENTITY,

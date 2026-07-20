@@ -14,6 +14,7 @@ import {
   ZULO_IDENTITY,
 } from "./constants"
 import { tierFromRank, type OwnedNormieSnapshot } from "./burnData"
+import { estimateBurnApFromPixels, levelFromActionPoints } from "./normiesKnowledge"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
 import type { CredHubPulseData, ZuloRecommendationContext } from "./types"
@@ -128,6 +129,27 @@ async function fetchJsonSafe<T>(url: string, timeoutMs = 8_000): Promise<T | nul
 
 function normiesPath<T>(path: string, timeoutMs = 8_000): Promise<T | null> {
   return fetchJsonSafe<T>(`${NORMIES_API_BASE}${path}`, timeoutMs)
+}
+
+/** Count "on" pixels from /normie/:id/pixels plain-text bitmap. */
+async function fetchPixelCount(tokenId: number): Promise<number | undefined> {
+  try {
+    const res = await fetchWithTimeout(
+      `${NORMIES_API_BASE}/normie/${tokenId}/pixels`,
+      {},
+      6_000,
+    )
+    if (!res.ok) return undefined
+    const text = (await res.text()).trim()
+    if (!text) return undefined
+    let on = 0
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === "1") on++
+    }
+    return on
+  } catch {
+    return undefined
+  }
 }
 
 function traitsToRecord(traits: TraitsPayload | null): Record<string, string | number> {
@@ -299,6 +321,7 @@ export async function buildZuloContext(
     rarityData,
     pulseResult,
     zuloCanvasInfo,
+    pixelCount,
   ] = await Promise.all([
     normiesPath<AgentInfoPayload>(`/agents/info/${tokenId}`),
     normiesPath<TraitsPayload>(`/normie/${tokenId}/traits`),
@@ -315,6 +338,7 @@ export async function buildZuloContext(
     needZuloCanvasAp
       ? normiesPath<CanvasInfoPayload>(`/normie/${ZULO_IDENTITY.tokenId}/canvas/info`)
       : Promise.resolve(null),
+    fetchPixelCount(tokenId),
   ])
 
   let pulse: CredHubPulseData | undefined
@@ -391,6 +415,10 @@ export async function buildZuloContext(
 
   const customized = !!canvasCustomized
   const actionPoints = canvasAp ?? 0
+  const derivedLevel =
+    canvasLevel !== undefined ? canvasLevel : levelFromActionPoints(actionPoints)
+  const burnApFromPixels =
+    pixelCount != null ? estimateBurnApFromPixels(pixelCount) : undefined
 
   const zuloCanvasAPBalance = isZuloDefault
     ? actionPoints
@@ -473,10 +501,15 @@ export async function buildZuloContext(
   if (strategy.traitAdvice?.isPremium) {
     earningOpportunities.unshift(`Strategy: ${strategy.traitAdvice.advice}`)
   }
+  if (burnApFromPixels && pixelCount != null) {
+    earningOpportunities.unshift(
+      `Pixel-tier burn estimate: ${pixelCount} on-pixels (tier ${burnApFromPixels.tier.label}, ${burnApFromPixels.tier.minPct}–${burnApFromPixels.tier.maxPct}%) → theoretical ${burnApFromPixels.minAp}–${burnApFromPixels.maxAp} AP before reveal RNG`,
+    )
+  }
   if (strategy.apEstimateForFocus) {
     const e = strategy.apEstimateForFocus
     earningOpportunities.unshift(
-      `Burn AP estimate (focus): ~${e.median} AP (range ${e.min}–${e.max}, confidence ${e.confidence}, n=${e.sampleSize})`,
+      `Burn AP estimate (history band): ~${e.median} AP (range ${e.min}–${e.max}, confidence ${e.confidence}, n=${e.sampleSize})`,
     )
   }
   if (strategy.burnReasoning) {
@@ -510,18 +543,38 @@ export async function buildZuloContext(
       owner: ownerAddress,
       ownerMatchesUser,
       canvas:
-        canvasLevel !== undefined || canvasAp !== undefined
+        canvasLevel !== undefined || canvasAp !== undefined || pixelCount != null
           ? {
-              level: canvasLevel ?? 0,
+              level: derivedLevel,
               actionPoints: actionPoints,
               customized,
               delegate: canvasInfo?.delegate,
+              pixelCount,
+              burnApEstimate: burnApFromPixels
+                ? {
+                    minAp: burnApFromPixels.minAp,
+                    maxAp: burnApFromPixels.maxAp,
+                    tierLabel: burnApFromPixels.tier.label,
+                    minPct: burnApFromPixels.tier.minPct,
+                    maxPct: burnApFromPixels.tier.maxPct,
+                  }
+                : undefined,
             }
           : isZuloDefault
             ? {
                 level: 1,
                 actionPoints: 0,
                 customized: false,
+                pixelCount,
+                burnApEstimate: burnApFromPixels
+                  ? {
+                      minAp: burnApFromPixels.minAp,
+                      maxAp: burnApFromPixels.maxAp,
+                      tierLabel: burnApFromPixels.tier.label,
+                      minPct: burnApFromPixels.tier.minPct,
+                      maxPct: burnApFromPixels.tier.maxPct,
+                    }
+                  : undefined,
               }
             : undefined,
       rarity: {
