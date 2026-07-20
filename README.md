@@ -1,14 +1,74 @@
-# NormiesCredHub
+# NormiesCredHub + Zulo
 
-**A verifiable reputation layer for autonomous AI agents.**
+**A verifiable reputation layer for autonomous AI agents — and a self-sustaining agentic concierge for the Normies ecosystem.**
 
 Autonomous agents are about to transact with each other on-chain — but they have no way to know who to trust. NormiesCredHub aggregates verifiable on-chain signals (ERC-8004 identity, Ethos reputation, AgentCheck wallet ratings, ownership & delegation) into a single trust profile for any Normie agent.
 
-The key: it's not just a dashboard. It exposes a **public, agent-queryable API** so any agent can fetch another agent's trust score as JSON and vet it *before* interacting — autonomously.
+It is not only a dashboard. It exposes **public, agent-queryable APIs** so any agent can fetch another agent’s trust score as JSON and vet it *before* interacting — autonomously.
 
+**Live site:** https://normiescredhub.vercel.app
+
+---
+
+## Product surfaces (routes)
+
+| Path | What it is |
+|------|------------|
+| **`/`** | **Zulo gateway** — monochrome Normies landing, economy pitch, live Canvas AP on #7141, CTAs |
+| **`/ask`** | **Zulo concierge chat** — PULSE dropdown, centered chat, mobile-friendly opportunities rail |
+| **`/dashboard`** | **CredHub dashboard** — full trust profile UI (search Normie, Ethos, ERC-8257, Horizon, Recommends) |
+| **`/zulo`** | Permanent redirect → `/ask` |
+| **`/agent-recommendations`** | Permanent redirect → `/ask` |
+
+Meet **Zulo, Normie #7141 → Agent #32626** (`32626.eth`). He is bound to *serve members, never exploit them*: he never asks for keys, pressures a transaction, or manufactures urgency. He reads on-chain signals, Normies mechanics, and community tools — and recommends what actually helps.
+
+---
+
+## Call this tool with your AI agent (ERC-8257 Tool #53)
+
+Use the `opensea-tool-sdk` skill to set up access and call the tool below.
+
+### Setup (one time)
+
+1. Install the skill:  
+   `npx skills add https://github.com/ProjectOpenSea/opensea-skill --skill opensea`
+
+2. Install the SDK:  
+   `npm install @opensea/tool-sdk`
+
+3. Full docs: https://docs.opensea.io/docs/agent-tool-registry
+
+### Tool
+
+- **Name**: Normies Cred Pulse  
+- **Tool ID**: 53  
+- **Endpoint**: `POST https://normiescredhub.vercel.app/api/agent`  
+- **GET (public)**: `GET https://normiescredhub.vercel.app/api/agent/{tokenId}/pulse`  
+- **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json  
+- **Access**: Gated to Normie NFT holders only (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`)  
+- **Registry**: ERC-8257 Tool Registry on Ethereum + Base (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)
+
+### Inputs
+
+| Parameter | Type    | Required | Description              |
+|-----------|---------|----------|--------------------------|
+| tokenId   | integer | Yes      | Normie token ID (0-9999) |
+
+### How to call it
+
+```bash
+curl -X POST "https://normiescredhub.vercel.app/api/agent" \
+  -H "Content-Type: application/json" \
+  -d '{"tokenId": 1234}'
 ```
-GET /api/agent/{tokenId}/pulse
+
+```bash
+curl "https://normiescredhub.vercel.app/api/agent/7141/pulse"
 ```
+
+Note: The registry-gated tool path requires the caller to hold a Normie NFT (`ERC721OwnerPredicate`). The public GET pulse endpoint remains available for read-only profiles.
+
+Example pulse response:
 
 ```json
 {
@@ -28,128 +88,102 @@ GET /api/agent/{tokenId}/pulse
 }
 ```
 
-Today it scores the signals available on-chain right now. The framework is built to fold in transactional history and **Wire Network** cross-chain execution data as the ecosystem matures — reputation that grows with the agent. The reserved 5th Pulse level is already in place for it.
+---
 
-## Call this tool with your AI agent
+## What this app does
 
-Use the `opensea-tool-sdk` skill to set up access and call the tool below.
+### CredHub (`/dashboard`)
 
-### Setup (one time)
+Search any Normie by token ID and view its credibility profile. Combines Normies API, ERC-8004 registries, Ethos Network, and ERC-8257 tool discovery:
 
-1. Install the skill:  
-   `npx skills add https://github.com/ProjectOpenSea/opensea-skill --skill opensea`
+- Agent metadata and traits  
+- Ownership and Canvas delegation  
+- Canvas activity and level  
+- Ethos reputation  
+- Trust & Gate signals (AgentCheck + live ERC-8257 registry)  
+- Gas-free linkage proof via wallet signature  
+- **Zulo Horizon** and **Zulo Recommends** (dashboard AI — Venice / OpenRouter)  
+- Modular Credibility Framework for future signal sources  
 
-2. Install the SDK:  
-   `npm install @opensea/tool-sdk`
+### Zulo concierge (`/` + `/ask`)
 
-3. Full docs: https://docs.opensea.io/docs/agent-tool-registry
+Zulo is the **ecosystem guide** for Normies strategy:
 
-### Tool
+- Live **PULSE** snapshot (CredHub pulse + canvas + rarity + opportunities)  
+- Conversational recommendations via **xAI Grok** (`XAI_API_KEY`)  
+- **Normies bible** — Canvas burn tiers, type roles, ERC-8004 agentics  
+- **Strategy skills** — burn AP estimates (live burn history), floors framing, trait premiums, wallet burn/keep candidates  
+- **Community tools** — Burn Tracker, PixelSymphony, Archive, Terminal, Multisend, Rarity, etc. (1–2 tools per answer when relevant)  
+- **A2A-ready** pricing (1 AP analysis / 2 AP strategy), manifest, payment scaffold — free web chat today  
 
-- **Name**: Normies Cred Pulse
-- **Tool ID**: 53
-- **Endpoint**: `POST https://normiescredhub.vercel.app/api/agent`
-- **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json
-- **Access**: Gated to Normie NFT holders only (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`)
-- **Registry**: ERC-8257 Tool Registry on Ethereum + Base (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)
+**Economy pitch:** Zulo isn’t only a chatbot — he’s designed as a self-sustaining agentic concierge. Free chat now; when Normies A2A payment rails go live, agents tip in AP. He evolves, tips others, and the agent economy compounds.
 
-### Inputs
+Landing stats distinguish:
 
-| Parameter | Type    | Required | Description              |
-|-----------|---------|----------|--------------------------|
-| tokenId   | integer | Yes      | Normie token ID (0-9999) |
+| Label | Meaning |
+|-------|---------|
+| **Canvas AP · #7141** | Live transform budget on Zulo’s Normie (not tip income) |
+| **Tips Received** | Planned A2A tips ledger (1–2 AP) — not live yet |
 
-### How to Call It
+---
 
-```bash
-curl -X POST "https://normiescredhub.vercel.app/api/agent" \
-  -H "Content-Type: application/json" \
-  -d '{"tokenId": 1234}'
+## Zulo AI features (three backends)
+
+| Feature | UI | API | Backend | Who can use it |
+|---------|-----|-----|---------|----------------|
+| **Zulo Concierge** | `/ask` | `POST /api/zulo/ask` | xAI Grok (`XAI_API_KEY`) | Anyone (free web chat today) |
+| **Zulo Horizon** | Dashboard modal | `POST /api/zulo-horizon` | OpenRouter (`OPENROUTER_API_KEY`) | Anyone — session limits |
+| **Zulo Recommends** | Dashboard modal | `POST /api/zulo-recommends` | Venice (`VENICE_*`) | **Awakened agents only** |
+
+Horizon and Recommends:
+
+- Read pulse, canvas, and Ethos signals  
+- Rank ERC-8257 tools by pulse gaps and wallet access  
+- Never pressure wallet actions, purchases, or signing  
+
+The **Concierge** (`lib/agent-recommendations/`) is a standalone plugin:
+
+- Builds context from Normies API + rarity + CredHub pulse + strategy modules  
+- System prompt: Normies knowledge + community tools + strategy snapshot  
+- Structured JSON: understanding, recommendation, reasoning, nextSteps, confidence, sources  
+
+---
+
+## Agent / Zulo APIs
+
+### Concierge ask
+
+```
+POST /api/zulo/ask
 ```
 
-Note: This tool requires the caller to hold a Normie NFT. On-chain access is enforced via the registry's `ERC721OwnerPredicate`.
-
-## What This App Does
-
-NormiesCredHub allows users to search any Normie by token ID and view its credibility profile. It combines data from the Normies API, ERC-8004 registries, Ethos Network, and the ERC-8257 agent tool registry to show how trustworthy and active an awakened agent is.
-
-Key features include:
-- Agent metadata and traits
-- On-chain ownership and delegation status
-- Canvas activity and customization level
-- Ethos reputation score
-- Trust & Gate signals (AgentCheck + live ERC-8257 tool registry)
-- Gas-free linkage proof via wallet signature
-- **Zulo Horizon** and **Zulo Recommends** (AI-powered insights — see below)
-- A modular Credibility Framework designed to support future signal sources
-
-Meet **Zulo, Normie #7141** — an awakened ERC-8004 agent bound by a constitution to *serve members, never exploit them*. He never asks for keys, pressures a transaction, or manufactures urgency; he reads an agent's on-chain signals and recommends genuinely useful ecosystem tools. (An app about agent trust, demonstrated by a trustworthy agent.)
-
-## ERC-8257 Tool Discovery
-
-NormiesCredHub discovers registered agent tools from the on-chain ERC-8257 registry on **Ethereum mainnet and Base** — no OpenSea API key required. Manifests are fetched from content-addressed URIs; access rules are described per tool.
-
-### Discovery API
-
-```
-GET /api/erc8257/tools
+```json
+{
+  "userQuery": "Should I burn a common Normie for AP?",
+  "normieId": 7141,
+  "sessionHistory": [],
+  "userWallet": "0x…",
+  "userEns": "optional.eth"
+}
 ```
 
-Optional query parameters:
+Payment hooks for A2A (`service`, `txHash`) are **scaffolded but not enforced**. Holder/visitor web chat remains free until marketplace rails go live.
 
-| Parameter | Description |
-|-----------|-------------|
-| `chain`   | Comma-separated filter: `mainnet`, `base` |
-| `tags`    | Comma-separated tag filter |
-| `limit`   | Max tools returned (up to 250) |
-| `wallet`  | Ethereum address — enriches gated tools with on-chain `accessGranted` checks |
+### UI PULSE snapshot
 
-Example:
-
-```bash
-curl "https://normiescredhub.vercel.app/api/erc8257/tools?limit=10&wallet=0xYourAddress"
+```
+GET /api/zulo/pulse/{tokenId}
 ```
 
-The dashboard surfaces a live registry panel and a **Browse Tools** modal (Normies Ecosystem | ERC-8257 tabs) with access badges: **Open access**, **You can use**, **Gated for you**, or **Not checked**.
+Returns a UI-facing PULSE view: status, canvas, rarity tier/rank/score, CredHub pulse, opportunities, Canvas AP.
 
-When a connected wallet controls the loaded Normie (owner or Canvas delegate), wallet-aware access checks run automatically in the UI and in Zulo's tool ranking.
+### Service manifest (A2A discovery)
 
-## Zulo (AI Features)
+```
+GET /api/zulo/manifest
+```
 
-Two separate flows, two separate backends:
-
-| Feature | Route | Backend | Who can use it |
-|---------|-------|---------|----------------|
-| **Zulo Horizon** | `POST /api/zulo-horizon` | OpenRouter (`OPENROUTER_API_KEY`) | Anyone — conversational chat with session limits |
-| **Zulo Recommends** | `POST /api/zulo-recommends` | Venice (`VENICE_INFERENCE_KEY` / `VENICE_API_KEY`) | **Awakened agents only** (ERC-8004 binding required) |
-
-Both features:
-- Read the loaded agent's pulse, canvas, and Ethos signals
-- Rank ERC-8257 registry tools by pulse gaps and wallet access (tools the holder can actually use are boosted)
-- Never pressure wallet actions, purchases, or signing
-
-**Zulo Recommends** returns a structured tool recommendation for a specific `tokenId`. **Zulo Horizon** is an open-ended chat grounded in the same signal data and tool knowledge.
-
-## Thesis & Future Direction
-
-Verifiable reputation will be essential as AI agents become autonomous economic actors. This project explores how on-chain signals can establish trust for agents without requiring prior relationships.
-
-The Credibility Framework is built to be extensible. It is designed to incorporate future sources such as **Wire Network**, which provides deterministic, verifiable cross-chain execution history and transaction reliability signals. The system uses a modular `CredibilitySignal` structure to support these additions cleanly.
-
-## Features
-
-- Search agents by token ID (0–9999)
-- Live data from Normies API, Ethos Network, and ERC-8004
-- Ownership & delegation visualization
-- Canvas activity tracking
-- Ethos credibility scoring
-- AgentCheck wallet trust signals
-- Live ERC-8257 tool registry (Ethereum + Base) with wallet-aware access badges
-- Zulo Horizon chat and Zulo Recommends for awakened agents
-- Public API endpoints for agent pulse and ERC-8257 tool discovery
-- Prepared for future Wire Network integration (Cross-Chain Execution signals)
-
-## Agent Queryable API
+Advertises agent identity, services (1–2 AP pricing), free `/ask` access, payment receiver wallet, and **how to pay when live**. See `payment.status` (`planned` until rails activate).
 
 ### Pulse (read-only)
 
@@ -157,64 +191,163 @@ The Credibility Framework is built to be extensible. It is designed to incorpora
 GET /api/agent/{tokenId}/pulse
 ```
 
-Returns structured credibility data: pulse level, status, signal breakdown, `next_signal`, and `note`.
-
 ### Pulse (ERC-8257 tool callers)
 
 ```
 POST /api/agent
 ```
 
-Body: `{ "tokenId": 1234 }` — same response shape as the GET endpoint. Used by ERC-8257 Tool #53 discovery probes.
+Body: `{ "tokenId": 1234 }`
 
-## Tech Stack
+### ERC-8257 discovery
 
-- Next.js 16 (App Router) + React 19 + TypeScript
-- RainbowKit + wagmi + viem
-- TanStack Query
-- Tailwind CSS 4 + shadcn/ui
-- Sonner (toasts)
-- `@opensea/tool-sdk` (ERC-8257 registry discovery and access checks)
-- `@upstash/ratelimit` + Upstash Redis (rate limiting on AI endpoints)
-- Deployed on Vercel
+```
+GET /api/erc8257/tools
+```
 
-## Local Development
+| Parameter | Description |
+|-----------|-------------|
+| `chain`   | `mainnet`, `base` |
+| `tags`    | Comma-separated tags |
+| `limit`   | Max tools (up to 250) |
+| `wallet`  | Address — on-chain `accessGranted` enrichment |
+
+```bash
+curl "https://normiescredhub.vercel.app/api/erc8257/tools?limit=10&wallet=0xYourAddress"
+```
+
+---
+
+## Plugin layout (`lib/agent-recommendations/`)
+
+Standalone module CredHub imports — designed not to break existing dashboard flows.
+
+| File | Role |
+|------|------|
+| `index.ts` | `getZuloRecommendation()` entry + re-exports |
+| `types.ts` | Context, response, PULSE view, strategy, manifest types |
+| `buildContext.ts` | Normies + rarity + pulse + pixels + strategy snapshot |
+| `composePrompt.ts` | System prompt (bible + tools + strategy + PULSE) |
+| `generate.ts` | xAI chat completions |
+| `postProcess.ts` | JSON parse + graceful fallback |
+| `normiesKnowledge.ts` | Normies “bible” (Canvas tiers, types, ERC-8004) |
+| `burnData.ts` / `marketData.ts` / `traitAnalysis.ts` / `strategy.ts` | Strategic skills |
+| `communityTools.ts` | Ecosystem concierge tool catalog |
+| `manifest.ts` / `verifyPayment.ts` | A2A discovery + payment scaffold |
+
+---
+
+## ERC-8257 tool discovery
+
+NormiesCredHub discovers registered agent tools from the on-chain ERC-8257 registry on **Ethereum mainnet and Base** — no OpenSea API key required. Manifests are fetched from content-addressed URIs; access rules are described per tool.
+
+The dashboard surfaces a live registry panel and a **Browse Tools** modal (Normies Ecosystem | ERC-8257) with access badges: **Open access**, **You can use**, **Gated for you**, or **Not checked**.
+
+When a connected wallet controls the loaded Normie (owner or Canvas delegate), wallet-aware access checks run automatically in the UI and in Zulo Recommends / Horizon ranking.
+
+---
+
+## Thesis & future direction
+
+Verifiable reputation will be essential as AI agents become autonomous economic actors. This project explores how on-chain signals establish trust without prior relationships.
+
+**Zulo’s economic loop (when A2A is live):**
+
+1. User/agent asks Zulo for guidance  
+2. Zulo delivers strategy + tool recommendations  
+3. Tip 1–2 AP (non-holder A2A)  
+4. Treasury grows → evolve #7141 / tip other agents / reputation  
+
+The Credibility Framework remains extensible for **Wire Network** and other cross-chain execution signals. The reserved 5th Pulse level is already reserved for richer activity metrics.
+
+---
+
+## Features (summary)
+
+- Zulo gateway landing + chat-first `/ask` (mobile-aware)  
+- CredHub dashboard at `/dashboard`  
+- Search agents by token ID (0–9999)  
+- Live data: Normies API, Ethos, ERC-8004, ERC-8257  
+- Ownership, delegation, Canvas, Ethos, AgentCheck  
+- Public pulse + Zulo concierge + manifest APIs  
+- Zulo Horizon & Recommends for dashboard users  
+- Prepared for A2A tips and Wire Network signals  
+
+---
+
+## Tech stack
+
+- Next.js 16 (App Router) + React 19 + TypeScript  
+- RainbowKit + wagmi + viem  
+- TanStack Query  
+- Tailwind CSS 4 + shadcn/ui + scoped Zulo Normies chrome CSS  
+- Sonner (toasts)  
+- `@opensea/tool-sdk` (ERC-8257)  
+- `@upstash/ratelimit` + Upstash Redis  
+- **xAI Grok** (concierge), **Venice** (Recommends), **OpenRouter** (Horizon)  
+- Deployed on Vercel  
+
+---
+
+## Local development
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-### Environment Variables
+Open:
+
+- http://localhost:3000 — Zulo landing  
+- http://localhost:3000/ask — concierge chat  
+- http://localhost:3000/dashboard — CredHub  
+
+### Environment variables
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `OPENROUTER_API_KEY` | For Zulo Horizon | OpenRouter chat completions |
-| `VENICE_INFERENCE_KEY` or `VENICE_API_KEY` | For Zulo Recommends | Venice AI (405B model) |
+| `XAI_API_KEY` | For Zulo Concierge (`/ask`, `/api/zulo/ask`) | xAI Grok completions |
+| `OPENROUTER_API_KEY` | For Zulo Horizon | OpenRouter chat |
+| `VENICE_INFERENCE_KEY` or `VENICE_API_KEY` | For Zulo Recommends | Venice AI |
 | `KV_REST_API_URL` | Production | Upstash Redis — rate limiting |
 | `KV_REST_API_TOKEN` | Production | Upstash Redis — rate limiting |
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Optional | WalletConnect project ID |
-| `NEXT_PUBLIC_APP_URL` | Optional | Canonical app URL for wallet metadata |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Optional | WalletConnect |
+| `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_SITE_URL` | Optional | Canonical URL (manifest base, wallets) |
 
-Rate limiting fails open locally when Upstash vars are missing; production should have them set via the Vercel integration.
+Rate limiting fails open locally when Upstash vars are missing; production should set them via the Vercel integration.
+
+**Never commit API keys.** Use `.env.local` locally and Vercel env for production.
+
+---
 
 ## Deployment
 
-Auto-deploys to Vercel on pushes to `main`. You can also deploy manually with:
+Auto-deploys to Vercel on pushes to `main`:
 
 ```bash
 pnpm run deploy
 ```
 
-Live site: https://normiescredhub.vercel.app
+Live: https://normiescredhub.vercel.app  
 
-## Data Sources
+Useful live endpoints:
 
-- Normies API: https://api.normies.art
-- Ethos Network: https://app.ethos.network
-- ERC-8004 Identity Registry (Ethereum mainnet)
-- ERC-8257 Tool Registry (Ethereum mainnet + Base) — https://docs.opensea.io/docs/agent-tool-registry
-- AgentCheck (wallet trust ratings)
+- https://normiescredhub.vercel.app/ask  
+- https://normiescredhub.vercel.app/dashboard  
+- https://normiescredhub.vercel.app/api/zulo/manifest  
+- https://normiescredhub.vercel.app/api/agent/7141/pulse  
+
+---
+
+## Data sources
+
+- Normies API: https://api.normies.art  
+- Rarity: https://rarity.normies.art  
+- Ethos Network: https://app.ethos.network  
+- ERC-8004 Identity Registry (Ethereum mainnet)  
+- ERC-8257 Tool Registry (Ethereum + Base)  
+- AgentCheck (wallet trust ratings)  
+- Community tools (Burn Tracker, PixelSymphony, Archive, Terminal, Multisend, etc.)  
 
 ## License
 
