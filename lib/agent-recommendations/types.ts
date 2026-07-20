@@ -186,6 +186,22 @@ export interface ZuloManifest {
   acceptedCurrencies: Array<"AP" | "PIXEL">
   version: string
   endpoint: string
+  /** How agents/users pay Zulo when A2A rails are live */
+  payment?: {
+    status: "planned" | "live"
+    currency: "AP"
+    receiverWallet: string
+    receiverNormieTokenId: number
+    notes: string[]
+    /** Human-readable how-to when marketplace launches */
+    howToPayWhenLive: string[]
+  }
+  /** Short public pitch for discovery UIs */
+  pitch?: string
+  freeAccess?: {
+    path: string
+    description: string
+  }
 }
 
 export interface RecommendParams {
