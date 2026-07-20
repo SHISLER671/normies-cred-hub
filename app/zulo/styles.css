@@ -1,0 +1,40 @@
+/* Shared Zulo chrome — scoped so CredHub light/dark is unaffected. */
+
+.zulo-chrome {
+  color-scheme: dark;
+  --zulo-bg: #0a0a0a;
+  --zulo-bg-secondary: #111111;
+  --zulo-bg-tertiary: #1a1a1a;
+  --zulo-border: #1f1f1f;
+  --zulo-border-hover: #333333;
+  --zulo-text: #f5f5f5;
+  --zulo-text-secondary: #a3a3a3;
+  --zulo-text-muted: #666666;
+  --zulo-accent: #22c55e;
+
+  background-color: var(--zulo-bg);
+  color: var(--zulo-text);
+}
+
+.zulo-chrome ::selection {
+  background: #333333;
+  color: #f5f5f5;
+}
+
+.zulo-chrome ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.zulo-chrome ::-webkit-scrollbar-track {
+  background: var(--zulo-bg);
+}
+
+.zulo-chrome ::-webkit-scrollbar-thumb {
+  background: var(--zulo-border-hover);
+  border-radius: 4px;
+}
+
+.zulo-chrome ::-webkit-scrollbar-thumb:hover {
+  background: var(--zulo-text-muted);
+}

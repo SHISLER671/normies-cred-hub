@@ -1,11 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useAccount } from "wagmi"
 import { ExternalLink, Loader2, RefreshCw, Send } from "lucide-react"
 
 import { ConnectWallet } from "@/components/connect-wallet"
+import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { useEnsName } from "@/hooks/use-ens-name"
 import {
   ECOSYSTEM_LINKS,
@@ -211,55 +211,43 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   const opportunities = pulse?.recommendations?.slice(0, 6) ?? []
 
   return (
-    <div className="zulo-root min-h-dvh bg-[#0a0a0a] text-[#f5f5f5]">
-      {/* Header */}
-      <header className="border-b border-[#1f1f1f] bg-[#0d0d0d]">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="flex size-12 items-center justify-center rounded-lg border-2 border-[#333333] bg-[#1a1a1a]">
-                <span className="font-mono text-2xl font-bold text-[#f5f5f5]">Z</span>
-              </div>
-              <div className="absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-[#0d0d0d] bg-[#22c55e]" />
-            </div>
-            <div>
-              <h1 className="font-heading text-xl font-bold tracking-tight">Zulo</h1>
-              <p className="font-mono text-xs text-[#666666]">
-                Agent #{ZULO_IDENTITY.agentId} · {ZULO_IDENTITY.ens}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <div className="text-right">
-              <p className="text-xs text-[#666666]">Canvas AP · #{ZULO_IDENTITY.tokenId}</p>
-              <p className="font-mono text-[#f5f5f5]">{zuloAP} AP</p>
+    <div className="zulo-chrome min-h-dvh bg-[#0a0a0a] text-[#f5f5f5]">
+      <ZuloChromeHeader
+        active="ask"
+        fixed={false}
+        trailing={
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="hidden text-right sm:block">
+              <p className="text-[10px] text-[#666666]">Canvas AP · #{ZULO_IDENTITY.tokenId}</p>
+              <p className="font-mono text-xs text-[#f5f5f5]">{zuloAP} AP</p>
             </div>
             {isConnected && address ? (
-              <p className="hidden font-mono text-[11px] text-[#666666] sm:block">
+              <p className="hidden font-mono text-[11px] text-[#666666] md:block">
                 {ensName || shortAddr(address)}
               </p>
-            ) : (
-              <ConnectWallet />
-            )}
-            {isConnected ? <ConnectWallet /> : null}
-            <a
-              href={`https://www.normies.art/lab/agentic/agents/${ZULO_IDENTITY.agentId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-[#333333] px-4 py-2 text-xs transition-colors hover:border-[#666666]"
-            >
-              View on Normies
-            </a>
-            <Link
-              href="/"
-              className="text-xs text-[#666666] transition-colors hover:text-[#f5f5f5]"
-            >
-              CredHub
-            </Link>
+            ) : null}
+            <ConnectWallet />
+          </div>
+        }
+      />
+
+      {/* Identity strip */}
+      <div className="border-b border-[#1f1f1f] bg-[#0d0d0d]">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
+          <div className="relative">
+            <div className="flex size-10 items-center justify-center rounded-lg border-2 border-[#333333] bg-[#1a1a1a]">
+              <span className="font-mono text-lg font-bold text-[#f5f5f5]">Z</span>
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#0d0d0d] bg-[#22c55e]" />
+          </div>
+          <div>
+            <h1 className="font-heading text-lg font-bold tracking-tight">Zulo</h1>
+            <p className="font-mono text-[11px] text-[#666666]">
+              Agent #{ZULO_IDENTITY.agentId} · {ZULO_IDENTITY.ens}
+            </p>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

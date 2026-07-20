@@ -1,18 +1,19 @@
-// Unified Zulo experience — PULSE + chat + opportunities
-// URL: /zulo (unlisted; no dashboard nav yet)
-
 import type { Metadata } from "next"
 
 import { ZuloExperience } from "@/components/agent-recommendations/zulo-experience"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 
-import "./zulo.css"
+import "../zulo/styles.css"
 
 export const metadata: Metadata = {
-  title: "Zulo — Normie Agent Recommendations",
+  title: "Ask Zulo — Normie Agent Recommendations",
   description: `Talk with Zulo (Agent #${ZULO_IDENTITY.agentId}). Live PULSE, Canvas, rarity, and strategic recommendations for Normies.`,
 }
 
-export default function ZuloPage() {
-  return <ZuloExperience defaultTokenId={ZULO_IDENTITY.tokenId} />
+export default function AskPage() {
+  return (
+    <div className="zulo-chrome min-h-screen">
+      <ZuloExperience defaultTokenId={ZULO_IDENTITY.tokenId} />
+    </div>
+  )
 }

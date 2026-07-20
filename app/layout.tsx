@@ -22,11 +22,11 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'NormiesCredHub — Awakened Normie Reputation Dashboard',
-  description: 'View, verify, and build trust in your awakened ERC-8004 Normie agents. On-chain identity meets portable reputation.',
+  title: 'Zulo — Normies Agent Gateway',
+  description: 'Zulo (Agent #32626) — PULSE analysis, strategic recommendations, and CredHub trust tools for awakened Normies.',
   openGraph: {
-    title: 'NormiesCredHub',
-    description: 'Your agent\'s on-chain reputation. Simple. Real. Awakened.',
+    title: 'Zulo — Normies Agent Gateway',
+    description: 'Your awakened agent for Normies strategy. Simple. Real. Awakened.',
     images: [{ url: '/og.png' }],
   },
   icons: {
