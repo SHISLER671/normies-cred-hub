@@ -149,3 +149,41 @@ export interface ZuloResponse {
   /** Optional tool / doc URLs or labels cited in the answer */
   sources?: string[]
 }
+
+/**
+ * UI-facing PULSE snapshot for the unified Zulo experience.
+ * Composed from CredHub pulse + canvas + rarity + opportunities (not mock).
+ */
+export interface ZuloPulseView {
+  tokenId: number
+  type: string
+  status: "awakened" | "dormant"
+  canvas: {
+    edited: boolean
+    actionPoints: number
+    level: number
+    pixelCount?: number
+  }
+  rarity: {
+    rank: number | null
+    score: number | null
+    tier: string
+  }
+  agent: {
+    id: number
+    name: string
+    reputation?: number
+    services?: string[]
+  }
+  /** CredHub Tool #53 pulse level / signals when available */
+  credHub?: CredHubPulseData
+  pulseSummary?: string
+  recommendations: string[]
+  lastUpdated: string
+}
+
+export interface ZuloPulseApiResponse {
+  pulse: ZuloPulseView | null
+  zuloAP: number
+  error?: string
+}

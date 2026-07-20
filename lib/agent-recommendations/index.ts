@@ -8,6 +8,8 @@ import type {
   CredHubPulseData,
   RecommendParams,
   ZuloManifest,
+  ZuloPulseApiResponse,
+  ZuloPulseView,
   ZuloRecommendationContext,
   ZuloResponse,
   ZuloService,
@@ -34,6 +36,8 @@ export type {
   CredHubPulseData,
   ZuloManifest,
   ZuloService,
+  ZuloPulseView,
+  ZuloPulseApiResponse,
 }
 
 export {
