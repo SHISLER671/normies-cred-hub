@@ -1073,9 +1073,9 @@
   gap: var(--space-md);
 }
 
-/* Message bubbles: 90% → 80% → 70% */
+/* Message bubbles: 95% mobile → 80% tablet → 70% desktop */
 .zulo-chrome .ask-chat .chat-message {
-  max-width: 90%;
+  max-width: 95%;
 }
 
 @media (min-width: 768px) {
@@ -1088,6 +1088,104 @@
   .zulo-chrome .ask-chat .chat-message {
     max-width: 70%;
   }
+}
+
+/* Mobile breathing room for /ask shell */
+.zulo-chrome .ask-shell.is-mobile {
+  font-size: 14px;
+}
+
+.zulo-chrome .ask-shell.is-mobile .ask-main {
+  padding-top: 8px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.zulo-chrome .ask-shell.is-mobile .ask-chat .chat-messages {
+  padding: 10px;
+  gap: 10px;
+}
+
+.zulo-chrome .ask-shell.is-mobile .chat-bubble {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.zulo-chrome .ask-shell.is-mobile .response-block {
+  padding: 10px;
+}
+
+.zulo-chrome .ask-shell.is-mobile .response-block-compact .response-section {
+  margin-bottom: 8px;
+}
+
+.zulo-chrome .quick-prompts-scroll {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+
+.zulo-chrome .quick-prompts-scroll .quick-prompt {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 8px 12px;
+  font-size: 12px;
+  min-height: 40px;
+}
+
+.zulo-chrome .scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.zulo-chrome .scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.zulo-chrome .pb-safe {
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+}
+
+.zulo-chrome .pulse-toggle-compact {
+  padding: 6px 10px;
+  min-height: 40px;
+  font-size: 11px;
+}
+
+.zulo-chrome .opp-collapse-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.zulo-chrome .opp-rail-section.is-collapsed {
+  padding-top: 0;
+  padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+}
+
+.zulo-chrome .ask-shell.keyboard-open .dyor,
+.zulo-chrome .ask-shell.keyboard-open .opp-rail-section {
+  display: none;
+}
+
+.zulo-chrome .ask-shell.is-mobile .dyor {
+  margin: 4px auto;
+  font-size: 10px;
+  padding: 0 8px;
 }
 
 .zulo-chrome .ask-chat .chat-footer {

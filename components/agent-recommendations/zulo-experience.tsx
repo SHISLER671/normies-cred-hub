@@ -61,6 +61,9 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   const [pulseLoading, setPulseLoading] = useState(true)
   const [showPulse, setShowPulse] = useState(false)
   const [expandedOpportunity, setExpandedOpportunity] = useState<number | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
+  const [opportunitiesCollapsed, setOpportunitiesCollapsed] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
   const welcomeSent = useRef(false)
@@ -69,6 +72,28 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
     requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
     })
+  }, [])
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    const apply = () => {
+      setIsMobile(mq.matches)
+      if (!mq.matches) setOpportunitiesCollapsed(false)
+    }
+    apply()
+    mq.addEventListener("change", apply)
+    return () => mq.removeEventListener("change", apply)
+  }, [])
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const handle = () => {
+      setKeyboardOpen(vv.height < window.innerHeight * 0.75)
+    }
+    handle()
+    vv.addEventListener("resize", handle)
+    return () => vv.removeEventListener("resize", handle)
   }, [])
 
   const fetchPulse = useCallback(async () => {
@@ -230,8 +255,21 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
     ? "…"
     : pulse?.rarity.tier || pulse?.status || "—"
 
+  const shortPrompt = (prompt: string) =>
+    isMobile
+      ? prompt
+          .replace(" my ", " ")
+          .replace("Should I ", "")
+          .replace("What's ", "")
+          .replace("How do I ", "")
+      : prompt
+
+  const visibleOpportunities = isMobile ? opportunities.slice(0, 3) : opportunities
+  const showOppsSection = opportunities.length > 0 && !(isMobile && keyboardOpen)
+  const showQuickPrompts = !keyboardOpen
+
   return (
-    <div className="zulo-chrome ask-shell">
+    <div className={cn("zulo-chrome ask-shell", isMobile && "is-mobile", keyboardOpen && "keyboard-open")}>
       <div className="ask-top" ref={topRef}>
         <ZuloChromeHeader
           active="ask"
@@ -240,16 +278,18 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
             <div className="header-trailing">
               <button
                 type="button"
-                className={cn("pulse-toggle", showPulse && "is-open")}
+                className={cn("pulse-toggle", showPulse && "is-open", isMobile && "pulse-toggle-compact")}
                 onClick={() => setShowPulse((v) => !v)}
                 aria-expanded={showPulse}
                 aria-controls="pulse-dropdown"
               >
                 <span className="pulse-indicator">PULSE</span>
-                <span className="pulse-tier mono muted">{pulseTierLabel}</span>
+                {!isMobile ? (
+                  <span className="pulse-tier mono muted">{pulseTierLabel}</span>
+                ) : null}
                 <span className={cn("pulse-toggle-chevron", showPulse && "is-open")}>▼</span>
               </button>
-              {isConnected && address ? (
+              {!isMobile && isConnected && address ? (
                 <span className="mono muted" style={{ fontSize: 11 }}>
                   {ensName || shortAddr(address)}
                 </span>
@@ -378,11 +418,13 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                   msg.role === "user" ? "chat-message-user" : "chat-message-zulo",
                 )}
               >
-                {msg.role === "zulo" ? <div className="chat-avatar">Z</div> : null}
+                {msg.role === "zulo" && !isMobile ? (
+                  <div className="chat-avatar">Z</div>
+                ) : null}
                 <div className="chat-stack">
                   <div className="chat-bubble">{msg.content}</div>
                   {msg.structured && msg.role === "zulo" ? (
-                    <StructuredCard response={msg.structured} />
+                    <StructuredCard response={msg.structured} compact={isMobile} />
                   ) : null}
                 </div>
               </div>
@@ -390,7 +432,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
 
             {loading ? (
               <div className="chat-message chat-message-zulo">
-                <div className="chat-avatar">Z</div>
+                {!isMobile ? <div className="chat-avatar">Z</div> : null}
                 <div className="chat-bubble" style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Loader2 className="size-4 animate-spin" />
                   Thinking…
@@ -401,20 +443,22 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="chat-footer">
-            <div className="quick-prompts">
-              {QUICK_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  className="quick-prompt"
-                  disabled={loading}
-                  onClick={() => void sendMessage(prompt)}
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
+          <div className={cn("chat-footer", keyboardOpen && "pb-safe")}>
+            {showQuickPrompts ? (
+              <div className={cn("quick-prompts", isMobile && "scrollbar-hide quick-prompts-scroll")}>
+                {QUICK_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    className="quick-prompt"
+                    disabled={loading}
+                    onClick={() => void sendMessage(prompt)}
+                  >
+                    {shortPrompt(prompt)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div className="chat-input">
               <input
                 type="text"
@@ -427,7 +471,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                     if (canSend) void sendMessage()
                   }
                 }}
-                placeholder="Ask Zulo…"
+                placeholder={isMobile ? "Ask…" : "Ask Zulo…"}
                 maxLength={MAX_USER_QUERY_CHARS}
                 disabled={loading}
               />
@@ -436,75 +480,109 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                 className="button button-primary"
                 disabled={!canSend}
                 onClick={() => void sendMessage()}
+                aria-label="Send"
               >
-                {loading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                Ask
+                {loading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : isMobile ? (
+                  "→"
+                ) : (
+                  <>
+                    <Send className="size-4" />
+                    Ask
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Compact opportunities rail */}
-      {opportunities.length > 0 ? (
-        <section className="opp-rail-section" aria-label="Opportunities">
+      {showOppsSection ? (
+        <section
+          className={cn(
+            "opp-rail-section",
+            isMobile && opportunitiesCollapsed && "is-collapsed",
+          )}
+          aria-label="Opportunities"
+        >
           <div className="opp-rail-inner">
-            <p className="caption" style={{ marginBottom: 8 }}>
-              Opportunities
-            </p>
-            <div className="opp-rail">
-              {opportunities.map((rec, i) => {
-                const open = expandedOpportunity === i
-                return (
-                  <div
-                    key={`${i}-${rec.slice(0, 20)}`}
-                    className={cn("opp-chip", open && "is-expanded")}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setExpandedOpportunity(open ? null : i)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault()
-                        setExpandedOpportunity(open ? null : i)
-                      }
-                    }}
-                  >
-                    <div className="opp-chip-head">
-                      <span className="mono muted">{String(i + 1).padStart(2, "0")}</span>
-                      <span className={cn("pulse-toggle-chevron", open && "is-open")}>▼</span>
-                    </div>
-                    <p className={cn("opp-chip-body", !open && "clamped")}>{rec}</p>
-                    {open ? (
-                      <div
-                        className="opp-chip-expand"
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                      >
-                        <p className="caption">Ask Zulo about this opportunity</p>
-                        <button
-                          type="button"
-                          className="button button-primary button-sm"
-                          disabled={loading}
-                          onClick={() => {
-                            setExpandedOpportunity(null)
-                            void sendMessage(`Tell me more about this opportunity: ${rec}`)
-                          }}
-                        >
-                          Ask Zulo →
-                        </button>
+            {isMobile ? (
+              <button
+                type="button"
+                className="opp-collapse-toggle"
+                onClick={() => setOpportunitiesCollapsed((v) => !v)}
+                aria-expanded={!opportunitiesCollapsed}
+              >
+                <span>
+                  Opportunities ({opportunities.length})
+                </span>
+                <span>{opportunitiesCollapsed ? "▼" : "▲"}</span>
+              </button>
+            ) : (
+              <p className="caption" style={{ marginBottom: 8 }}>
+                Opportunities
+              </p>
+            )}
+
+            {(!isMobile || !opportunitiesCollapsed) && (
+              <div className={cn("opp-rail", isMobile && "scrollbar-hide")}>
+                {visibleOpportunities.map((rec, i) => {
+                  const open = expandedOpportunity === i
+                  return (
+                    <div
+                      key={`${i}-${rec.slice(0, 20)}`}
+                      className={cn("opp-chip", open && "is-expanded")}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setExpandedOpportunity(open ? null : i)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          setExpandedOpportunity(open ? null : i)
+                        }
+                      }}
+                    >
+                      <div className="opp-chip-head">
+                        <span className="mono muted">{String(i + 1).padStart(2, "0")}</span>
+                        <span className={cn("pulse-toggle-chevron", open && "is-open")}>▼</span>
                       </div>
-                    ) : null}
-                  </div>
-                )
-              })}
-            </div>
+                      <p className={cn("opp-chip-body", !open && "clamped")}>{rec}</p>
+                      {open ? (
+                        <div
+                          className="opp-chip-expand"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          <p className="caption">Ask Zulo about this opportunity</p>
+                          <button
+                            type="button"
+                            className="button button-primary button-sm"
+                            disabled={loading}
+                            onClick={() => {
+                              setExpandedOpportunity(null)
+                              if (isMobile) setOpportunitiesCollapsed(true)
+                              void sendMessage(`Tell me more about this opportunity: ${rec}`)
+                            }}
+                          >
+                            Ask Zulo →
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </section>
       ) : null}
 
-      <p className="dyor">
-        Informational only — DYOR. Burns are permanent. Zulo never asks for keys.
-      </p>
+      {!keyboardOpen ? (
+        <p className="dyor">
+          Informational only — DYOR. Burns are permanent. Zulo never asks for keys.
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -518,7 +596,13 @@ function PulseField({ label, value }: { label: string; value: React.ReactNode })
   )
 }
 
-function StructuredCard({ response }: { response: ZuloResponse }) {
+function StructuredCard({
+  response,
+  compact = false,
+}: {
+  response: ZuloResponse
+  compact?: boolean
+}) {
   const confidence =
     typeof response.confidence === "number" && Number.isFinite(response.confidence)
       ? Math.max(0, Math.min(100, Math.round(response.confidence)))
@@ -529,11 +613,13 @@ function StructuredCard({ response }: { response: ZuloResponse }) {
     : [response.recommendation]
 
   return (
-    <div className="response-block">
-      <div className="response-section">
-        <p className="response-label">Understanding</p>
-        <p>{response.understanding}</p>
-      </div>
+    <div className={cn("response-block", compact && "response-block-compact")}>
+      {!compact ? (
+        <div className="response-section">
+          <p className="response-label">Understanding</p>
+          <p>{response.understanding}</p>
+        </div>
+      ) : null}
       <div className="response-section">
         <p className="response-label">Recommendation</p>
         {recs.length === 1 ? (
@@ -548,7 +634,7 @@ function StructuredCard({ response }: { response: ZuloResponse }) {
           </ul>
         )}
       </div>
-      {response.reasoning ? (
+      {!compact && response.reasoning ? (
         <div className="response-section">
           <p className="response-label">Reasoning</p>
           <p>{response.reasoning}</p>
