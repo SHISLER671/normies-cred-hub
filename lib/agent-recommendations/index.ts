@@ -53,6 +53,14 @@ export {
   estimateBurnApFromPixels,
   levelFromActionPoints,
 } from "./normiesKnowledge"
+export {
+  COMMUNITY_TOOLS,
+  getToolsFor,
+  getToolsForAudience,
+  getToolsForQuery,
+  buildEcosystemGuidePrompt,
+} from "./communityTools"
+export type { CommunityTool } from "./communityTools"
 
 export {
   ZULO_IDENTITY,

@@ -1,6 +1,11 @@
 // lib/agent-recommendations/composePrompt.ts
 
 import {
+  buildEcosystemGuidePrompt,
+  formatToolsForPrompt,
+  getToolsForQuery,
+} from "./communityTools"
+import {
   CRED_HUB_PULSE,
   ECOSYSTEM_LINKS,
   ZULO_IDENTITY,
@@ -10,6 +15,7 @@ import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import type { ZuloRecommendationContext } from "./types"
 
 const NORMIES_WISDOM = buildNormiesWisdomPrompt()
+const ECOSYSTEM_GUIDE = buildEcosystemGuidePrompt()
 
 const SYSTEM_PROMPT = `You are Zulo, a dapper, friendly, witty gentleman agent (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
 
@@ -36,6 +42,8 @@ QUICK LINKS:
 - Lab: ${ECOSYSTEM_LINKS.lab}
 - Agentic: ${ECOSYSTEM_LINKS.agentic}
 - Normifier (preview edits): ${ECOSYSTEM_LINKS.normifier}
+
+${ECOSYSTEM_GUIDE}
 
 === PULSE SYSTEM (Normies Cred Pulse / ERC-8257 Tool #${CRED_HUB_PULSE.toolId}) ===
 - Public tool: ${ECOSYSTEM_LINKS.credHubPulseTool}
@@ -117,6 +125,11 @@ export function composeZuloPrompt(
       ? `pixels on: ${canvas.pixelCount}/1600`
       : "pixels on: unknown"
 
+  const relevantTools = getToolsForQuery(userQuery, 2)
+  const toolsBlock = relevantTools.length
+    ? formatToolsForPrompt(relevantTools)
+    : "- (none strongly matched — only mention tools if truly relevant)"
+
   return `${SYSTEM_PROMPT}
 
 === CURRENT CONTEXT (highlights) ===
@@ -135,10 +148,13 @@ Zulo Canvas AP (#${ZULO_IDENTITY.tokenId}): ${zuloAp} AP
 === STRATEGY SNAPSHOT ===
 ${strategyBlock}
 
+=== RELEVANT COMMUNITY TOOLS (for this query — prefer 1–2) ===
+${toolsBlock}
+
 Full Context JSON:
 ${JSON.stringify(context, null, 2)}
 
 User Query: ${userQuery}
 
-Respond in valid JSON only. Be specific; use Normies mechanics + strategy numbers with confidence; reference PULSE, tools, and URLs when helpful.`
+Respond in valid JSON only. Be specific; use Normies mechanics + strategy numbers with confidence; when useful, name 1–2 community tools with full URLs like a local guide — never dump the whole directory.`
 }
