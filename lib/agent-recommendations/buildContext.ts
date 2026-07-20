@@ -639,7 +639,16 @@ export async function buildZuloContext(
           rarityRank: b.rarityRank,
         })),
         burnReasoning: strategy.burnReasoning,
-        acquisition: strategy.acquisition,
+        acquisition: strategy.acquisition
+          ? {
+              recommendation: strategy.acquisition.recommendation,
+              options: strategy.acquisition.options,
+              floorsNote: strategy.acquisition.floorsNote,
+              liveFloorETH: strategy.acquisition.liveFloorETH,
+              liveFloorSource: strategy.acquisition.liveFloorSource,
+              liveFloorUpdatedAt: strategy.acquisition.liveFloorUpdatedAt,
+            }
+          : undefined,
         burnMarketNotes: strategy.burnMarketNotes,
         floorsNote: strategy.floorsNote,
         summaryLines: strategy.summaryLines,

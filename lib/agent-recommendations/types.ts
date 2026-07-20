@@ -133,12 +133,15 @@ export interface StrategyContext {
     recommendation: string
     options: Array<{
       type: string
-      cost: number
+      cost: number | null
       expectedAP: number
-      efficiency: number
+      efficiency: number | null
       confidence: "low" | "medium" | "high"
     }>
     floorsNote: string
+    liveFloorETH?: number | null
+    liveFloorSource?: string
+    liveFloorUpdatedAt?: string
   }
   burnMarketNotes?: string
   floorsNote?: string
