@@ -309,14 +309,74 @@ Open:
 | `XAI_API_KEY` | For Zulo Concierge (`/ask`, `/api/zulo/ask`) | xAI Grok completions |
 | `OPENROUTER_API_KEY` | For Zulo Horizon | OpenRouter chat |
 | `VENICE_INFERENCE_KEY` or `VENICE_API_KEY` | For Zulo Recommends | Venice AI |
-| `KV_REST_API_URL` | Production | Upstash Redis — rate limiting |
-| `KV_REST_API_TOKEN` | Production | Upstash Redis — rate limiting |
+| `KV_REST_API_URL` | Production | Upstash Redis — rate limiting, replay, audit, circuit |
+| `KV_REST_API_TOKEN` | Production | Upstash Redis |
+| `AUDIT_LOG_HMAC_SECRET` | Production | Security audit log HMAC |
+| `CIRCUIT_BREAKER_UNPAUSE_KEYS` | Production | Multisig-style unpause operator keys |
+| `ZULO_PAYMENT_RAIL_STATUS` | Optional | `planned` (default) / `scaffold` / `live` |
+| `ETH_RPC_URL` | When payments live | Ethereum RPC for confirmations |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Optional | WalletConnect |
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_SITE_URL` | Optional | Canonical URL (manifest base, wallets) |
 
 Rate limiting fails open locally when Upstash vars are missing; production should set them via the Vercel integration.
 
 **Never commit API keys.** Use `.env.local` locally and Vercel env for production.
+
+---
+
+## Security architecture
+
+Zulo assumes breach: **every transaction is adversarial.**
+
+### Defense in depth (7 layers)
+
+1. Crypto format validation (txHash, signatures)  
+2. 7-step payment verification (`lib/payments/verify.ts`)  
+3. Dual-key rate limits — IP + wallet (`lib/middleware/rateLimit.ts`)  
+4. Strict Zod schemas (`lib/validation/schemas.ts`)  
+5. Security headers (HSTS, nosniff, DENY frames, CSP)  
+6. Append-only HMAC-chained audit log (`lib/security/audit.ts`)  
+7. Payment circuit breaker with multisig-style unpause (`lib/security/circuitBreaker.ts`)  
+
+Knowledge base: `lib/agent-recommendations/knowledge/payment-security.md`
+
+### Public security endpoints
+
+| Path | Purpose |
+|------|---------|
+| `GET /api/zulo/security` | Public posture, bug bounty, disclosure process |
+| `POST /api/zulo/security/report` | Vulnerability intake (rate-limited) |
+| `GET /api/zulo/health` | Readiness + security status |
+| `POST /api/zulo/payments/verify` | 7-step payment verification |
+
+### Bug bounty & responsible disclosure
+
+- **Status:** Informal / best-effort rewards at operator discretion  
+- **Report:** `POST /api/zulo/security/report` or email **security@normiescredhub.example** (placeholder — replace with project mailbox)  
+- **Scope:** This app’s APIs and payment verification surface  
+- **Out of scope:** Social engineering holders, third-party markets, physical attacks  
+- Do not publish SEV 1 issues until operators confirm mitigation  
+
+### Security tests
+
+```bash
+pnpm test:security
+```
+
+Covers validation edge cases, replay claim, circuit breaker trip, audit HMAC.
+
+### Operator env (security)
+
+| Variable | Purpose |
+|----------|---------|
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Rate limit, replay store, audit, circuit |
+| `AUDIT_LOG_HMAC_SECRET` | HMAC key for audit signatures |
+| `CIRCUIT_BREAKER_UNPAUSE_KEYS` | Comma-separated operator secrets (3-of-5 style) |
+| `ZULO_PAYMENT_RAIL_STATUS` | `planned` \| `scaffold` \| `live` |
+| `ETH_RPC_URL` | Mainnet RPC for live payment confirmations |
+| `ZULO_FORCE_LOCKDOWN` | Set `1` to trip payment circuit |
+
+Dependencies are **version-pinned** in `package.json` (no `^` / `~`). Keep `pnpm-lock.yaml` committed. Optional SBOM: `pnpm sbom`.
 
 ---
 

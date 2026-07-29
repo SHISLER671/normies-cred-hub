@@ -1,11 +1,15 @@
-// lib/agent-recommendations/verifyPayment.ts
-// Payment verification scaffold for future A2A marketplace (not live yet).
+// Payment verification facade — delegates to hardened lib/payments/verify.
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { isAddress } from "viem"
 
 import { ZULO_IDENTITY, ZULO_SERVICE_PRICES } from "./constants"
+import {
+  verifyPayment7Step,
+  type PaymentVerifyResult,
+} from "@/lib/payments/verify"
+import { isPaymentsPaused } from "@/lib/security/circuitBreaker"
 
 export type PaymentRailStatus = "planned" | "scaffold" | "live"
 
@@ -16,15 +20,11 @@ export interface PaymentVerification {
   service: string
   txHash: string
   verified: boolean
-  /** Why verification failed or is pending */
   reason?: string
   railStatus: PaymentRailStatus
+  steps?: PaymentVerifyResult["steps"]
 }
 
-/**
- * Current payment rail status for A2A.
- * Flip to "live" only when Normies publishes verifiable AP transfer proofs.
- */
 export function getPaymentRailStatus(): PaymentRailStatus {
   const env = process.env.ZULO_PAYMENT_RAIL_STATUS?.trim().toLowerCase()
   if (env === "live") return "live"
@@ -33,70 +33,47 @@ export function getPaymentRailStatus(): PaymentRailStatus {
 }
 
 /**
- * Verify AP payment to Zulo's wallet.
- * Scaffold: always returns verified=false until rails exist.
- * When live, replace body with on-chain / marketplace receipt checks.
+ * Verify AP payment via 7-step pipeline (format, circuit, confirmations, …).
  */
 export async function verifyAPPayment(
   txHash: string,
   expectedAmount: number,
   service: string,
+  caller?: string,
 ): Promise<PaymentVerification> {
-  const railStatus = getPaymentRailStatus()
-  const cleanHash = typeof txHash === "string" ? txHash.trim() : ""
-
-  if (!cleanHash) {
+  if (await isPaymentsPaused()) {
     return {
       from: "",
       to: ZULO_IDENTITY.hotWallet,
       amount: 0,
       service,
-      txHash: "",
+      txHash,
       verified: false,
-      reason: "txHash required for paid A2A services",
-      railStatus,
+      reason: "payments paused (circuit breaker)",
+      railStatus: getPaymentRailStatus(),
     }
   }
 
-  if (railStatus !== "live") {
-    console.log("[agent-recommendations] Payment verification scaffold (not live)", {
-      txHash: cleanHash.slice(0, 18),
-      expectedAmount,
-      service,
-      to: ZULO_IDENTITY.hotWallet,
-      railStatus,
-    })
-
-    return {
-      from: "",
-      to: ZULO_IDENTITY.hotWallet,
-      amount: 0,
-      service,
-      txHash: cleanHash,
-      verified: false,
-      reason:
-        "AP payment rails are not live — verification is scaffolded. Use free /ask or set ZULO_PAYMENT_RAIL_STATUS=live when Normies A2A proofs exist.",
-      railStatus,
-    }
-  }
-
-  // LIVE path placeholder — implement against published A2A receipt schema
-  return {
-    from: "",
-    to: ZULO_IDENTITY.hotWallet,
-    amount: 0,
+  const result = await verifyPayment7Step({
+    txHash,
+    expectedAmountAp: expectedAmount,
     service,
-    txHash: cleanHash,
-    verified: false,
-    reason: "Live verification handler not implemented for this receipt type",
-    railStatus: "live",
+    caller,
+  })
+
+  return {
+    from: result.from || "",
+    to: result.to || ZULO_IDENTITY.hotWallet,
+    amount: result.amountAp ?? 0,
+    service,
+    txHash: result.txHash,
+    verified: result.verified,
+    reason: result.reason,
+    railStatus: result.railStatus,
+    steps: result.steps,
   }
 }
 
-/**
- * Gate paid services: free for holders of #7141 today; others need verified payment when live.
- * Safe to call anytime — never throws.
- */
 export async function requirePaymentIfNeeded(input: {
   service: string
   userWallet?: string
@@ -113,11 +90,27 @@ export async function requirePaymentIfNeeded(input: {
 
   const rail = getPaymentRailStatus()
   if (rail !== "live") {
-    // Soft-open: do not block free web while rails planned
     return { ok: true, free: true }
   }
 
-  const payment = await verifyAPPayment(input.txHash || "", price, input.service)
+  if (await isPaymentsPaused()) {
+    return {
+      ok: false,
+      status: 402,
+      body: {
+        error: "Payments paused",
+        code: "circuit_open",
+        reason: "circuit breaker open",
+      },
+    }
+  }
+
+  const payment = await verifyAPPayment(
+    input.txHash || "",
+    price,
+    input.service,
+    input.userWallet,
+  )
   if (!payment.verified) {
     return {
       ok: false,
@@ -130,6 +123,7 @@ export async function requirePaymentIfNeeded(input: {
         receiverWallet: ZULO_IDENTITY.hotWallet,
         reason: payment.reason,
         railStatus: payment.railStatus,
+        steps: payment.steps,
       },
     }
   }
@@ -137,9 +131,6 @@ export async function requirePaymentIfNeeded(input: {
   return { ok: true, free: false }
 }
 
-/**
- * Best-effort: true if wallet currently owns Normie #7141 (Zulo's body).
- */
 export async function isHolder(walletAddress: string): Promise<boolean> {
   if (!walletAddress || !isAddress(walletAddress)) return false
 
@@ -158,7 +149,6 @@ export async function isHolder(walletAddress: string): Promise<boolean> {
   }
 }
 
-/** Required AP amount for a service id (0 if free/unknown). */
 export function getServicePrice(serviceId: string): number {
   return ZULO_SERVICE_PRICES[serviceId] ?? 0
 }

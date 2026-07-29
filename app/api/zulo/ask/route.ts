@@ -1,5 +1,4 @@
 // POST /api/zulo/ask — A2A-oriented entry (payment hooks scaffolded, free today).
-// UI continues to use /api/agent-recommendations; this route is marketplace-ready.
 
 import { NextRequest, NextResponse } from "next/server"
 import { isAddress } from "viem"
@@ -12,9 +11,9 @@ import {
 } from "@/lib/agent-recommendations"
 import { MAX_USER_QUERY_CHARS } from "@/lib/agent-recommendations/constants"
 import { zuloErrorToResponse } from "@/lib/agent-recommendations/generate"
-// Payment helpers ready for marketplace go-live:
-// import { getServicePrice, isHolder, verifyAPPayment } from "@/lib/agent-recommendations/verifyPayment"
-import { checkRateLimit } from "@/lib/ratelimit"
+import { requirePaymentIfNeeded } from "@/lib/agent-recommendations/verifyPayment"
+import { enforceDualRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/middleware/rateLimit"
+import { appendSecurityEvent } from "@/lib/security/audit"
 
 export const maxDuration = 60
 export const dynamic = "force-dynamic"
@@ -41,20 +40,22 @@ function sanitizeHistory(raw: unknown): SessionTurn[] {
 }
 
 export async function POST(req: NextRequest) {
-  const rl = await checkRateLimit(req, "zulo-ask", 15, 60)
-  if (!rl.ok) {
-    return NextResponse.json(
-      { error: "Too many requests. Please slow down." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    )
-  }
-
   try {
     let body: unknown
     try {
       body = await req.json()
     } catch {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
+    const rl = await enforceDualRateLimit(req, "default", {
+      body,
+      bucketPrefix: "zulo-ask",
+    })
+    if (!rl.ok) {
+      // Message already set; ensure signature phrase
+      if (rl.response) return rl.response
+      return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 })
     }
 
     const payload = (body ?? {}) as Record<string, unknown>
@@ -98,24 +99,21 @@ export async function POST(req: NextRequest) {
         : undefined
 
     const sessionHistory = sanitizeHistory(payload.sessionHistory)
+    const service =
+      typeof payload.service === "string" && payload.service.trim()
+        ? payload.service.trim()
+        : "holder-chat"
+    const txHash =
+      typeof payload.txHash === "string" ? payload.txHash.trim() : undefined
 
-    // Optional future fields (unused until payment rails live):
-    // const service = typeof payload.service === "string" ? payload.service : "holder-chat"
-    // const txHash = typeof payload.txHash === "string" ? payload.txHash : ""
-    //
-    // const price = getServicePrice(service)
-    // if (price > 0) {
-    //   const holder = userWallet ? await isHolder(userWallet) : false
-    //   if (!holder) {
-    //     const payment = await verifyAPPayment(txHash, price, service)
-    //     if (!payment.verified) {
-    //       return NextResponse.json(
-    //         { error: "Payment required", price, currency: "AP" },
-    //         { status: 402 },
-    //       )
-    //     }
-    //   }
-    // }
+    const pay = await requirePaymentIfNeeded({
+      service,
+      userWallet,
+      txHash,
+    })
+    if (!pay.ok) {
+      return NextResponse.json(pay.body, { status: pay.status })
+    }
 
     const result: ZuloResponse = await getZuloRecommendation({
       userQuery,
@@ -129,6 +127,10 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const mapped = zuloErrorToResponse(err)
     console.error("[zulo/ask]", mapped.body.code ?? "error", mapped.body.error)
+    await appendSecurityEvent({
+      type: "ANOMALY",
+      detail: `ask_error code=${mapped.body.code} ${mapped.body.error}`,
+    }).catch(() => {})
     return NextResponse.json(mapped.body, { status: mapped.status })
   }
 }

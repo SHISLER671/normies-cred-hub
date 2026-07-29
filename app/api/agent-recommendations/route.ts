@@ -13,7 +13,7 @@ import {
 } from "@/lib/agent-recommendations"
 import { MAX_USER_QUERY_CHARS } from "@/lib/agent-recommendations/constants"
 import { zuloErrorToResponse } from "@/lib/agent-recommendations/generate"
-import { checkRateLimit } from "@/lib/ratelimit"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 
 export const maxDuration = 60
 export const dynamic = "force-dynamic"
@@ -40,14 +40,6 @@ function sanitizeHistory(raw: unknown): SessionTurn[] {
 }
 
 export async function POST(req: NextRequest) {
-  const rl = await checkRateLimit(req, "agent-recommendations", 15, 60)
-  if (!rl.ok) {
-    return NextResponse.json(
-      { error: "Too many requests. Please slow down." },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    )
-  }
-
   try {
     let body: unknown
     try {
@@ -55,6 +47,12 @@ export async function POST(req: NextRequest) {
     } catch {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
     }
+
+    const rl = await enforceDualRateLimit(req, "default", {
+      body,
+      bucketPrefix: "agent-recommendations",
+    })
+    if (!rl.ok) return rl.response
 
     const payload = (body ?? {}) as Record<string, unknown>
     const userQuery =

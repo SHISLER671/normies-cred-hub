@@ -1,13 +1,14 @@
-// GET /api/zulo/health — readiness for A2A + strategy skills (no secrets).
+// GET /api/zulo/health — readiness + security status (no secrets).
 
 import { NextResponse } from "next/server"
 
+import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getLiveCollectionFloor } from "@/lib/agent-recommendations/marketData"
 import { getPaymentRailStatus } from "@/lib/agent-recommendations/verifyPayment"
 import { getAllZuloSkills } from "@/lib/agent-recommendations/skillsCatalog"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
-import { NORMIES_API_BASE } from "@/constants/contracts"
+import { getCircuitState } from "@/lib/security/circuitBreaker"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 15
@@ -69,6 +70,20 @@ export async function GET() {
     detail: getPaymentRailStatus(),
   }
 
+  checks.upstash = {
+    ok: Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN),
+    detail:
+      process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+        ? "KV configured (rate limit + audit + replay)"
+        : "KV missing — in-memory fallbacks active",
+  }
+
+  const circuit = await getCircuitState()
+  checks.circuitBreaker = {
+    ok: circuit.state === "closed",
+    detail: `state=${circuit.state}${circuit.reason ? ` reason=${circuit.reason}` : ""}`,
+  }
+
   const skills = getAllZuloSkills().map((s) => ({
     id: s.id,
     name: s.name,
@@ -76,7 +91,11 @@ export async function GET() {
   }))
 
   const criticalOk = checks.normiesApi.ok && checks.xaiConfigured.ok
-  const status = criticalOk ? "ok" : "degraded"
+  const status = criticalOk
+    ? circuit.paymentsPaused
+      ? "degraded"
+      : "ok"
+    : "degraded"
 
   return NextResponse.json(
     {
@@ -88,6 +107,15 @@ export async function GET() {
         ens: ZULO_IDENTITY.ens,
         role: "strategic-architect",
       },
+      security: {
+        posture: "I assume breach. Every transaction is adversarial.",
+        paymentsPaused: circuit.paymentsPaused,
+        circuit: circuit.state,
+        paymentRail: getPaymentRailStatus(),
+        dualRateLimit: true,
+        auditLog: true,
+        headers: ["HSTS", "X-Content-Type-Options", "X-Frame-Options", "CSP"],
+      },
       checks,
       skills,
       endpoints: {
@@ -95,6 +123,10 @@ export async function GET() {
         manifest: "/api/zulo/manifest",
         canvasWatch: "/api/zulo/canvas-watch",
         pulse: "/api/zulo/pulse/{tokenId}",
+        health: "/api/zulo/health",
+        security: "/api/zulo/security",
+        securityReport: "/api/zulo/security/report",
+        paymentVerify: "/api/zulo/payments/verify",
       },
       asOf: new Date().toISOString(),
     },
