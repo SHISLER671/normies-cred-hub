@@ -164,6 +164,43 @@ export interface ZuloRecommendationContext {
       principles: string[]
       source: string
     }
+    /**
+     * Payment & platform security — injected on all strategy-bearing contexts
+     * (from knowledge/payment-security.md).
+     */
+    paymentSecurity?: {
+      title: string
+      posture: string
+      layers: string[]
+      sevPlaybook: string[]
+      principles: string[]
+      source: string
+    }
+    /**
+     * Protocol stack (x402 / ERC-8004 / ERC-8257) — injected on all
+     * strategy-bearing contexts (from knowledge/protocols-deep-dive.md).
+     */
+    protocolsDeepDive?: {
+      title: string
+      stack: string[]
+      x402: string[]
+      erc8004: string[]
+      erc8257: string[]
+      zulo: string[]
+      source: string
+    }
+    /**
+     * ERC-6551 / TBA optional account plane
+     * (from knowledge/erc-6551.md + lib/erc6551).
+     */
+    erc6551?: {
+      title: string
+      status: string
+      pillars: string[]
+      zulo: string[]
+      security: string[]
+      source: string
+    }
     /** Canvas Evolution Advisor — preview / expansion / watch */
     canvasEvolution?: {
       mode: string
@@ -622,7 +659,11 @@ export interface ZuloManifest {
     status: "planned" | "live"
     currency: "AP"
     receiverWallet: string
+    /** hot-wallet | erc6551-tba — EVM destination adapter */
+    receiverMode?: "hot-wallet" | "erc6551-tba"
     receiverNormieTokenId: number
+    /** Ordered tip assets: canvas-ap → x402-usdc → eth-mainnet → eth-base */
+    tipAssetPriority?: string[]
     verification?: {
       module: string
       enforced: boolean

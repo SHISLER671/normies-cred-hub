@@ -7,6 +7,7 @@ import { mainnet } from "viem/chains"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { appendSecurityEvent } from "@/lib/security/audit"
 import { isPaymentsPaused } from "@/lib/security/circuitBreaker"
+import { getReceiverAddress } from "@/lib/treasury"
 import { txHashSchema } from "@/lib/validation/schemas"
 import { Redis } from "@upstash/redis"
 
@@ -132,9 +133,14 @@ export async function verifyPayment7Step(input: {
 }): Promise<PaymentVerifyResult> {
   const steps: PaymentVerifyResult["steps"] = []
   const rail = railStatus()
-  const recipient = (
-    input.expectedRecipient || ZULO_IDENTITY.hotWallet
-  ).toLowerCase()
+  // EVM tip sink: payment receiver adapter (hot wallet default; TBA when flipped)
+  const resolvedReceiver = input.expectedRecipient
+    ? input.expectedRecipient
+    : await getReceiverAddress({
+        tokenId: ZULO_IDENTITY.tokenId,
+        chainId: ZULO_IDENTITY.chainId,
+      })
+  const recipient = resolvedReceiver.toLowerCase()
 
   const push = (step: PaymentVerifyStep, ok: boolean, detail: string) => {
     steps.push({ step, ok, detail })
@@ -218,11 +224,15 @@ export async function verifyPayment7Step(input: {
     // Recipient — transfer logs would be protocol-specific; check tx.to or configured sink
     const tx = await client.getTransaction({ hash: txHash })
     const to = (tx.to || receipt.to || "").toLowerCase()
-    const recipientOk = to === recipient || to === ZULO_IDENTITY.hotWallet.toLowerCase()
+    // Accept configured receiver; during migration also accept hot wallet fallback
+    const hot = ZULO_IDENTITY.hotWallet.toLowerCase()
+    const recipientOk = to === recipient || to === hot
     push(
       "recipient",
       recipientOk,
-      recipientOk ? `to=${to}` : `to=${to} expected=${recipient}`,
+      recipientOk
+        ? `to=${to}`
+        : `to=${to} expected=${recipient} (hotWallet fallback=${hot})`,
     )
     if (!recipientOk) {
       return fail(input, steps, rail, "recipient mismatch")

@@ -4,12 +4,14 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { isAddress } from "viem"
 
-import { ZULO_IDENTITY, ZULO_SERVICE_PRICES } from "./constants"
 import {
   verifyPayment7Step,
   type PaymentVerifyResult,
 } from "@/lib/payments/verify"
 import { isPaymentsPaused } from "@/lib/security/circuitBreaker"
+import { getReceiverAddress } from "@/lib/treasury"
+
+import { ZULO_IDENTITY, ZULO_SERVICE_PRICES } from "./constants"
 
 export type PaymentRailStatus = "planned" | "scaffold" | "live"
 
@@ -41,10 +43,15 @@ export async function verifyAPPayment(
   service: string,
   caller?: string,
 ): Promise<PaymentVerification> {
+  const receiver = await getReceiverAddress({
+    tokenId: ZULO_IDENTITY.tokenId,
+    chainId: ZULO_IDENTITY.chainId,
+  })
+
   if (await isPaymentsPaused()) {
     return {
       from: "",
-      to: ZULO_IDENTITY.hotWallet,
+      to: receiver,
       amount: 0,
       service,
       txHash,
@@ -59,11 +66,12 @@ export async function verifyAPPayment(
     expectedAmountAp: expectedAmount,
     service,
     caller,
+    expectedRecipient: receiver,
   })
 
   return {
     from: result.from || "",
-    to: result.to || ZULO_IDENTITY.hotWallet,
+    to: result.to || receiver,
     amount: result.amountAp ?? 0,
     service,
     txHash: result.txHash,
@@ -112,6 +120,10 @@ export async function requirePaymentIfNeeded(input: {
     input.userWallet,
   )
   if (!payment.verified) {
+    const receiverWallet = await getReceiverAddress({
+      tokenId: ZULO_IDENTITY.tokenId,
+      chainId: ZULO_IDENTITY.chainId,
+    })
     return {
       ok: false,
       status: 402,
@@ -120,7 +132,7 @@ export async function requirePaymentIfNeeded(input: {
         price,
         currency: "AP",
         service: input.service,
-        receiverWallet: ZULO_IDENTITY.hotWallet,
+        receiverWallet,
         reason: payment.reason,
         railStatus: payment.railStatus,
         steps: payment.steps,

@@ -144,9 +144,22 @@ export {
 export {
   loadZuloPersona,
   loadPixelEconomyKnowledge,
+  loadPaymentSecurityKnowledge,
+  loadProtocolsDeepDiveKnowledge,
+  loadProtocolsCondensedKnowledge,
+  loadErc6551Knowledge,
   buildPersonaPromptBlock,
   buildPixelEconomyPromptBlock,
+  buildPaymentSecurityPromptBlock,
+  buildProtocolsPromptBlock,
+  buildProtocolsDeepDivePromptBlock,
+  buildErc6551PromptBlock,
+  queryNeedsFullProtocolsKnowledge,
+  queryNeedsErc6551Knowledge,
   getPixelEconomyContextSummary,
+  getPaymentSecurityContextSummary,
+  getProtocolsDeepDiveContextSummary,
+  getErc6551ContextSummary,
 } from "./loadKnowledge"
 
 export {

@@ -10,6 +10,9 @@
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
     "test:security": "tsx --test lib/security/security.test.ts",
+    "test:erc6551": "tsx --test lib/erc6551/erc6551.test.ts",
+    "test:treasury": "tsx --test lib/treasury/treasury.test.ts",
+    "test:unit": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts",
     "sbom": "echo \"Run: pnpm dlx @cyclonedx/cyclonedx-npm -o sbom.json\""
   },
   "dependencies": {

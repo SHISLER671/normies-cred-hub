@@ -37,6 +37,17 @@ export const ERC8257 = {
   ERC721_OWNER_PREDICATE: "0xc8721c9A776958FfFfEb602DA1b708bf1D318379",
 } as const
 
+/**
+ * ERC-6551 Token Bound Accounts (optional account plane — not Zulo identity).
+ * Full abstraction: lib/erc6551. Env: ZULO_TBA_PROVIDER_STATUS.
+ */
+export const ERC6551 = {
+  REGISTRY: "0x000000006551c19487814612e58FE06813775758",
+  /** Tokenbound Account Proxy (V3) — default implementation for createAccount */
+  TOKENBOUND_ACCOUNT_PROXY: "0x55266d75D1a14E4572138116aF39863Ed6596E7F",
+  TOKENBOUND_ACCOUNT_IMPLEMENTATION: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC",
+} as const
+
 /** Minimal ERC721Enumerable for discovering owned tokens (balance + tokenOfOwnerByIndex) */
 export const ERC721_ENUMERABLE_ABI = [
   {

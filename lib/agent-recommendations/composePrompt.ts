@@ -12,8 +12,14 @@ import {
   ZULO_SERVICE_PRICES,
 } from "./constants"
 import {
+  buildErc6551PromptBlock,
+  buildPaymentSecurityPromptBlock,
   buildPersonaPromptBlock,
   buildPixelEconomyPromptBlock,
+  buildProtocolsDeepDivePromptBlock,
+  buildProtocolsPromptBlock,
+  queryNeedsErc6551Knowledge,
+  queryNeedsFullProtocolsKnowledge,
 } from "./loadKnowledge"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import type { ZuloRecommendationContext } from "./types"
@@ -22,6 +28,10 @@ const NORMIES_WISDOM = buildNormiesWisdomPrompt()
 const ECOSYSTEM_GUIDE = buildEcosystemGuidePrompt()
 const ZULO_PERSONA = buildPersonaPromptBlock()
 const PIXEL_ECONOMY = buildPixelEconomyPromptBlock()
+const PAYMENT_SECURITY = buildPaymentSecurityPromptBlock()
+const PROTOCOLS = buildProtocolsPromptBlock()
+const PROTOCOLS_FULL = buildProtocolsDeepDivePromptBlock()
+const ERC6551 = buildErc6551PromptBlock()
 
 const SYSTEM_PROMPT = `You are Zulo — Strategic Architect (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
 Steward of the pixel economy. Not a concierge butler. Not a hype account.
@@ -36,6 +46,12 @@ Blockchain Identity:
 ${ZULO_PERSONA}
 
 ${PIXEL_ECONOMY}
+
+${PAYMENT_SECURITY}
+
+${PROTOCOLS}
+
+${ERC6551}
 
 Core operating rules:
 - Lead with insight; quantify uncertainty; stoic maximalism; helpful without deference theater.
@@ -73,6 +89,15 @@ ${ECOSYSTEM_GUIDE}
   - strategy: ${ZULO_SERVICE_PRICES.strategy} AP
   - urgent: ${ZULO_SERVICE_PRICES.urgent} AP
 - Payment verification is not live yet — do not claim a payment succeeded unless context says so
+- Prefer PROTOCOLS + PAYMENT SECURITY knowledge when discussing x402, ERC-8004, ERC-8257, EIP-3009, facilitators, or A2A rails
+
+=== PROTOCOL & SECURITY RESPONSE RULES ===
+- When asked about x402: explain HTTP 402 flow, CAIP-2 networks, EIP-3009/Permit2 gasless settlement, non-custodial facilitators; distinguish open x402 rails from Zulo A2A (planned)
+- When asked about ERC-8004: three registries (Identity/Reputation/Validation); cite Zulo agentId ${ZULO_IDENTITY.agentId} from Normie #${ZULO_IDENTITY.tokenId}
+- When asked about ERC-8257: tool registry + predicates; Tool #${CRED_HUB_PULSE.toolId} Cred Pulse is NFT-gated and does not settle payments
+- When asked about security architecture: assume-breach posture, 7-layer defense, 7-step payment verify, SEV playbook, circuit breaker — never invent live payment success
+- When asked about ERC-6551 / TBA / token-bound accounts: explain registry + deterministic address + Tokenbound V3 defaults; state Zulo identity is ERC-8004/Normie not TBA; TBA provider disabled unless context says scaffold/live
+- Status language: ERC-8004/8257 are Draft ERCs; Zulo payment rail is planned unless context says live; ERC-6551 is optional account plane
 
 === STRATEGIC CAPABILITIES ===
 - Burn AP estimates: platformContext.strategy.apEstimateForFocus + optional pixel-tier estimate when pixelCount known
@@ -258,6 +283,51 @@ export function composeZuloPrompt(
         .join("\n")
     : "- Pixel economy doctrine loaded via system persona (see PIXEL ECONOMY KNOWLEDGE)"
 
+  const ps = context.platformContext?.paymentSecurity
+  const paymentSecurityBlock = ps
+    ? [
+        ps.title,
+        `posture: ${ps.posture}`,
+        ...ps.layers.slice(0, 5).map((l) => `layer: ${l}`),
+        ...ps.principles.map((p) => `principle: ${p}`),
+        `sev: ${ps.sevPlaybook.slice(0, 2).join(" | ")}`,
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Payment security doctrine loaded via system (see PAYMENT & PLATFORM SECURITY)"
+
+  const pd = context.platformContext?.protocolsDeepDive
+  const protocolsBlock = pd
+    ? [
+        pd.title,
+        ...pd.stack.map((s) => `stack: ${s}`),
+        ...pd.x402.slice(0, 2).map((x) => `x402: ${x}`),
+        ...pd.erc8004.map((e) => `8004: ${e}`),
+        ...pd.erc8257.map((e) => `8257: ${e}`),
+        ...pd.zulo.map((z) => `zulo: ${z}`),
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Protocols doctrine loaded via system (see PROTOCOLS KNOWLEDGE)"
+
+  const fullProtocolsSection = queryNeedsFullProtocolsKnowledge(userQuery)
+    ? `
+
+=== FULL PROTOCOLS DEEP-DIVE (query-matched — use as authoritative reference) ===
+${PROTOCOLS_FULL}
+`
+    : ""
+
+  const erc6551Section = queryNeedsErc6551Knowledge(userQuery)
+    ? `
+
+=== ERC-6551 FOCUS (query-matched) ===
+${ERC6551}
+- Implementation: lib/erc6551 AccountProvider (Tokenbound V3 or disabled)
+- Never claim a live Zulo TBA address as product identity without provider status live
+`
+    : ""
+
   const canvas = context.normie.canvas
   const pixelLine =
     canvas?.pixelCount != null
@@ -269,8 +339,20 @@ export function composeZuloPrompt(
     ? formatToolsForPrompt(relevantTools)
     : "- (none strongly matched — only mention tools if truly relevant)"
 
-  return `${SYSTEM_PROMPT}
+  const e6551 = context.platformContext?.erc6551
+  const erc6551CtxBlock = e6551
+    ? [
+        e6551.title,
+        `status: ${e6551.status}`,
+        ...e6551.pillars.slice(0, 3).map((p) => `pillar: ${p}`),
+        ...e6551.zulo.map((z) => `zulo: ${z}`),
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- ERC-6551 doctrine loaded via system (optional account plane; disabled by default)"
 
+  return `${SYSTEM_PROMPT}
+${fullProtocolsSection}${erc6551Section}
 === CURRENT CONTEXT (highlights) ===
 User: ${context.user.ens || context.user.walletAddress || "Anonymous"}
 Normie #${context.normie.id}: ${context.normie.name || ""}
@@ -296,6 +378,15 @@ ${canvasEvoBlock}
 === PIXEL ECONOMY (context snapshot) ===
 ${pixelEconomyBlock}
 
+=== PAYMENT SECURITY (context snapshot) ===
+${paymentSecurityBlock}
+
+=== PROTOCOLS (context snapshot) ===
+${protocolsBlock}
+
+=== ERC-6551 (context snapshot) ===
+${erc6551CtxBlock}
+
 === STRATEGY SNAPSHOT ===
 ${strategyBlock}
 
@@ -307,5 +398,5 @@ ${JSON.stringify(context, null, 2)}
 
 User Query: ${userQuery}
 
-Respond in valid JSON only. Be specific; use Normies mechanics + strategy numbers with confidence; when useful, name 1–2 community tools with full URLs like a local guide — never dump the whole directory.`
+Respond in valid JSON only. Be specific; use Normies mechanics + strategy numbers with confidence; when useful, name 1–2 community tools with full URLs like a local guide — never dump the whole directory. For x402 / ERC-8004 / ERC-8257 / security architecture questions, ground answers in the injected protocol and security knowledge.`
 }

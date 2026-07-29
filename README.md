@@ -314,6 +314,8 @@ Open:
 | `AUDIT_LOG_HMAC_SECRET` | Production | Security audit log HMAC |
 | `CIRCUIT_BREAKER_UNPAUSE_KEYS` | Production | Multisig-style unpause operator keys |
 | `ZULO_PAYMENT_RAIL_STATUS` | Optional | `planned` (default) / `scaffold` / `live` |
+| `ZULO_PAYMENT_RECEIVER` | Optional | Tip destination: `hot-wallet` (default) / `tba` (#7141 ERC-6551) — see `lib/treasury` |
+| `ZULO_TBA_PROVIDER_STATUS` | Optional | ERC-6551 **account plane** only: `disabled` (default) / `scaffold` / `live` — independent of payment receiver |
 | `ETH_RPC_URL` | When payments live | Ethereum RPC for confirmations |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Optional | WalletConnect |
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_SITE_URL` | Optional | Canonical URL (manifest base, wallets) |
@@ -338,7 +340,23 @@ Zulo assumes breach: **every transaction is adversarial.**
 6. Append-only HMAC-chained audit log (`lib/security/audit.ts`)  
 7. Payment circuit breaker with multisig-style unpause (`lib/security/circuitBreaker.ts`)  
 
-Knowledge base: `lib/agent-recommendations/knowledge/payment-security.md`
+Knowledge base: `lib/agent-recommendations/knowledge/payment-security.md`, `treasury.md`, `erc-6551.md`
+
+### Treasury abstraction (payment receiver)
+
+Tips and A2A payments use a thin **payment receiver** layer (`lib/treasury`), separate from identity and Canvas AP:
+
+| Concern | Default | Future |
+|---------|---------|--------|
+| **EVM tip destination** | Hot wallet | #7141 ERC-6551 TBA (`ZULO_PAYMENT_RECEIVER=tba`) |
+| **Primary tip asset** | Canvas AP (Normies A2A) | Then x402 USDC → ETH L1 → ETH Base → Wire Network later |
+| **AP balance** | Normies Canvas API per token | Never `balanceOf(TBA)` |
+
+- `verify.ts` resolves `expectedRecipient` via `getReceiverAddress()`.
+- Manifest exposes `payment.receiverWallet`, `receiverMode`, `tipAssetPriority`.
+- Live AP verification stays **blocked** until Normies publishes official A2A docs.
+- ERC-6551 address resolution lives in `lib/erc6551` (account plane); treasury only wraps it for the TBA receiver.
+- **Later work (AP oracle, x402, ETH, TBA flip):** follow `lib/treasury/TIER-B-PLAYBOOK.md` when Normies docs / product gates open.
 
 ### Public security endpoints
 
@@ -373,6 +391,8 @@ Covers validation edge cases, replay claim, circuit breaker trip, audit HMAC.
 | `AUDIT_LOG_HMAC_SECRET` | HMAC key for audit signatures |
 | `CIRCUIT_BREAKER_UNPAUSE_KEYS` | Comma-separated operator secrets (3-of-5 style) |
 | `ZULO_PAYMENT_RAIL_STATUS` | `planned` \| `scaffold` \| `live` |
+| `ZULO_PAYMENT_RECEIVER` | `hot-wallet` (default) \| `tba` — EVM tip sink; independent of TBA account plane |
+| `ZULO_TBA_PROVIDER_STATUS` | `disabled` \| `scaffold` \| `live` (ERC-6551 account plane; identity stays ERC-8004) |
 | `ETH_RPC_URL` | Mainnet RPC for live payment confirmations |
 | `ZULO_FORCE_LOCKDOWN` | Set `1` to trip payment circuit |
 

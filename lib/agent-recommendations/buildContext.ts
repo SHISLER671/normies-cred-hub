@@ -14,7 +14,12 @@ import {
   ZULO_IDENTITY,
 } from "./constants"
 import { tierFromRank, type OwnedNormieSnapshot } from "./burnData"
-import { getPixelEconomyContextSummary } from "./loadKnowledge"
+import {
+  getErc6551ContextSummary,
+  getPaymentSecurityContextSummary,
+  getPixelEconomyContextSummary,
+  getProtocolsDeepDiveContextSummary,
+} from "./loadKnowledge"
 import { estimateBurnApFromPixels, levelFromActionPoints } from "./normiesKnowledge"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
@@ -584,8 +589,11 @@ export async function buildZuloContext(
   const canvasEvolution = strategy.canvasEvolution
   const canvasCtx = canvasEvolution?.canvasState
 
-  // Pixel economy doctrine — always available for strategy-bearing answers
+  // Doctrine knowledge — always available for strategy-bearing answers
   const pixelEconomy = getPixelEconomyContextSummary()
+  const paymentSecurity = getPaymentSecurityContextSummary()
+  const protocolsDeepDive = getProtocolsDeepDiveContextSummary()
+  const erc6551 = getErc6551ContextSummary()
 
   const context: ZuloRecommendationContext = {
     user: {
@@ -695,6 +703,9 @@ export async function buildZuloContext(
       zuloCanvasAPBalance,
       zuloAPBalance: zuloCanvasAPBalance,
       pixelEconomy,
+      paymentSecurity,
+      protocolsDeepDive,
+      erc6551,
       marketState: marketState
         ? {
             asOf: marketState.asOf,
