@@ -70,6 +70,7 @@ ${ECOSYSTEM_GUIDE}
 - Acquisition framing: strategy.acquisition — use liveFloorETH only when set; else send user to OpenSea
 - Premium trait combos: strategy.traitAdvice — if isPremium, strongly advise against burning
 - Burn Efficiency Optimizer: when user asks about burn opportunities or types "scan burns", platformContext.strategy.burnEfficiency is populated with top 5 market fodder candidates (token ID, floor/listing price ETH, estimated AP, efficiencyScore = expected AP / price ETH)
+- PIXEL MARKET Sentinel: when user asks "market status", "AP price", "whale alert", "detect opportunities", or keywords market/sentinel/whale/status/alert — platformContext.strategy.marketSentinel + platformContext.marketState are populated
 
 BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
 - Lead with the top 5 candidates from burnEfficiency.topCandidates — include token ID, floorPriceETH, estimatedAP, efficiencyScore for each
@@ -79,6 +80,15 @@ BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
 - Never invent extra token IDs beyond topCandidates
 - If topCandidates is empty, say the scan could not score listings and point to OpenSea + Burn Tracker
 
+PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
+- Lead with marketSentinel.brief (headline, trend, trendContext, triggerAnalysis)
+- Report signals: floor Δ% (trigger >3%), burn volume ratio (spike >2x), whale alerts (≥10 Normies, anonymized labels only)
+- Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev, floorBuyEfficiency, impliedApCostETH
+- Cover arbitrage: AP market is planned/not live unless apMarketStatus is live — never invent AP market prices
+- List positionRecommendations (2–4) tailored to conditions
+- Include whaleActivity.summary + correlationPatterns; never deanonymize wallets beyond provided labels
+- Always include marketSentinel.disclaimer
+
 MARKET DATA RULES (critical):
 - NEVER quote static or remembered floor tables (e.g. inventing 0.008 ETH).
 - If acquisition.liveFloorETH is set, cite it with source/timestamp and still say verify on OpenSea before buying.
@@ -86,7 +96,7 @@ MARKET DATA RULES (critical):
 - Collection floor ≠ guaranteed type-specific listing; always re-check live.
 
 STRATEGY RESPONSE RULES:
-- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency)
+- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency, marketSentinel, marketState)
 - Always state confidence / sampleSize when citing burn history estimates
 - Compare options when useful without inventing ETH costs
 - Burns permanent — never pressure burning purist/premium pieces without explicit user intent
@@ -133,6 +143,21 @@ export function composeZuloPrompt(
       ? strategyLines.map((l) => `- ${l}`).join("\n")
       : "- Strategy snapshot unavailable"
 
+  const ms = context.platformContext?.marketState
+  const marketStateBlock = ms
+    ? [
+        `asOf: ${ms.asOf}`,
+        `floor: ${ms.floorETH ?? "n/a"} ETH (${ms.floorSource ?? "unknown"}) Δ ${ms.floorChangePct ?? "n/a"}%`,
+        `volume 1d/7d: ${ms.oneDayVolumeETH ?? "n/a"} / ${ms.sevenDayVolumeETH ?? "n/a"} ETH (velocity ${ms.volumeVelocityRatio ?? "n/a"}x)`,
+        `burns 24h/prev: ${ms.burnTokensRecent24h} / ${ms.burnTokensPrev24h} (ratio ${ms.burnVolumeRatio ?? "n/a"}x)`,
+        `floor-buy efficiency: ${ms.floorBuyEfficiency ?? "n/a"} AP/ETH · implied ~${ms.impliedApCostETH ?? "n/a"} ETH/AP`,
+        `AP market: ${ms.apMarketStatus}${ms.apMarketPriceETH != null ? ` @ ${ms.apMarketPriceETH} ETH` : ""}`,
+        `owners: ${ms.owners ?? "n/a"}`,
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Market state not loaded (ask market status / sentinel / whale alert to refresh)"
+
   const canvas = context.normie.canvas
   const pixelLine =
     canvas?.pixelCount != null
@@ -158,6 +183,9 @@ Rarity rank: ${context.platformContext?.rarityRank ?? "unknown"}
 PULSE: ${pulseLine}
 PULSE gaps: ${pulse?.gaps?.length ? pulse.gaps.join("; ") : "n/a"}
 Zulo Canvas AP (#${ZULO_IDENTITY.tokenId}): ${zuloAp} AP
+
+=== MARKET STATE (PIXEL MARKET Sentinel) ===
+${marketStateBlock}
 
 === STRATEGY SNAPSHOT ===
 ${strategyBlock}

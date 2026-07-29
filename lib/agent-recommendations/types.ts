@@ -98,6 +98,27 @@ export interface ZuloRecommendationContext {
     zuloAPBalance?: number
     /** Strategic burn / acquisition / trait analysis snapshot */
     strategy?: StrategyContext
+    /** PIXEL MARKET Sentinel live market state (when skill runs) */
+    marketState?: {
+      asOf: string
+      floorETH: number | null
+      floorSource?: string
+      floorChangePct: number | null
+      oneDayVolumeETH: number | null
+      sevenDayVolumeETH: number | null
+      sales1d: number | null
+      sales7d: number | null
+      volumeVelocityRatio: number | null
+      burnTokensRecent24h: number
+      burnTokensPrev24h: number
+      burnVolumeRatio: number | null
+      historicalApMedian: number | null
+      impliedApCostETH: number | null
+      floorBuyEfficiency: number | null
+      apMarketStatus: "planned" | "live"
+      apMarketPriceETH: number | null
+      owners: number | null
+    }
   }
 }
 
@@ -165,6 +186,68 @@ export interface StrategyContext {
     collectionFloorSource?: string
     burnSampleSize: number
     historicalApMedian: number | null
+    disclaimer: string
+    summary: string
+    sources?: string[]
+  }
+  /** PIXEL MARKET Sentinel — floor / burn / whale intelligence brief */
+  marketSentinel?: {
+    scanned: boolean
+    brief: {
+      headline: string
+      trend: string
+      trendContext: string
+      triggerAnalysis: string[]
+    }
+    signals: {
+      floorChangePct: number | null
+      floorTriggered: boolean
+      burnVolumeRatio: number | null
+      burnSpikeTriggered: boolean
+      whaleCount: number
+      whaleTriggered: boolean
+      triggers: string[]
+    }
+    marketState: {
+      asOf: string
+      floorETH: number | null
+      floorSource?: string
+      floorChangePct: number | null
+      oneDayVolumeETH: number | null
+      sevenDayVolumeETH: number | null
+      sales1d: number | null
+      sales7d: number | null
+      volumeVelocityRatio: number | null
+      burnTokensRecent24h: number
+      burnTokensPrev24h: number
+      burnVolumeRatio: number | null
+      historicalApMedian: number | null
+      impliedApCostETH: number | null
+      floorBuyEfficiency: number | null
+      apMarketStatus: "planned" | "live"
+      apMarketPriceETH: number | null
+      owners: number | null
+    }
+    arbitrage: {
+      available: boolean
+      floorBuyEfficiency: number | null
+      impliedApCostETH: number | null
+      apMarketPriceETH: number | null
+      apMarketStatus: "planned" | "live"
+      spreadNote: string
+      opportunity: string
+    }
+    positionRecommendations: string[]
+    whaleActivity: {
+      summary: string
+      whales: Array<{
+        label: string
+        tokensMoved: number
+        activity: string
+        windowNote: string
+      }>
+      correlationPatterns: string[]
+    }
     disclaimer: string
     summary: string
     sources?: string[]

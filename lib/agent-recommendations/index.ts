@@ -61,6 +61,20 @@ export type {
   BurnEfficiencyCandidate,
   BurnEfficiencyResult,
 } from "./burnEfficiency"
+export {
+  runMarketSentinel,
+  isMarketSentinelQuery,
+  MARKET_SENTINEL_DISCLAIMER,
+  FLOOR_CHANGE_THRESHOLD_PCT,
+  BURN_SPIKE_RATIO,
+  WHALE_TOKEN_THRESHOLD,
+} from "./marketSentinel"
+export type {
+  MarketSentinelResult,
+  MarketStateSnapshot,
+  MarketIntelligenceBrief,
+  WhaleAlert,
+} from "./marketSentinel"
 export { analyzeTraitCombo, PREMIUM_COMBOS } from "./traitAnalysis"
 export { buildStrategySnapshot } from "./strategy"
 export {

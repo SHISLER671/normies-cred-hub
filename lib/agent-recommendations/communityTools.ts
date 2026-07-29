@@ -29,6 +29,10 @@ export const COMMUNITY_TOOLS: CommunityTool[] = [
       "scan burns",
       "burn efficiency",
       "burn opportunities",
+      "market status",
+      "whale",
+      "sentinel",
+      "burn spike",
     ],
   },
   {

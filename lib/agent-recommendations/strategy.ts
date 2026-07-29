@@ -20,6 +20,11 @@ import {
   FLOORS_NOTE,
   type AcquisitionAnalysis,
 } from "./marketData"
+import {
+  isMarketSentinelQuery,
+  runMarketSentinel,
+  type MarketSentinelResult,
+} from "./marketSentinel"
 import { analyzeTraitCombo, type TraitComboAdvice } from "./traitAnalysis"
 
 export interface StrategySnapshot {
@@ -32,6 +37,7 @@ export interface StrategySnapshot {
   burnMarketNotes?: string
   floorsNote?: string
   burnEfficiency?: BurnEfficiencyResult
+  marketSentinel?: MarketSentinelResult
   summaryLines: string[]
 }
 
@@ -40,10 +46,12 @@ export async function buildStrategySnapshot(input: {
   focusRank?: number | null
   focusTraits: Record<string, string | number | boolean | null | undefined>
   owned?: OwnedNormieSnapshot[]
-  /** When set, may trigger Burn Efficiency Optimizer (scan burns / opportunities). */
+  /** When set, may trigger Burn Efficiency Optimizer / Market Sentinel. */
   userQuery?: string
   /** Force efficiency scan even without matching query keywords. */
   forceBurnEfficiency?: boolean
+  /** Force PIXEL MARKET Sentinel even without matching query keywords. */
+  forceMarketSentinel?: boolean
 }): Promise<StrategySnapshot> {
   const type = normalizeType(input.focusType)
   const tier = tierFromRank(input.focusRank ?? null)
@@ -53,17 +61,27 @@ export async function buildStrategySnapshot(input: {
     input.forceBurnEfficiency === true ||
     (!!input.userQuery && isBurnEfficiencyQuery(input.userQuery))
 
-  const [apEstimateForFocus, acquisition, burnMarketNotes, burnEfficiency] =
-    await Promise.all([
-      estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
-      analyzeAcquisitionStrategy(20, 0.05),
-      getBurnMarketNotes(),
-      runEfficiency
-        ? scanBurnEfficiency({
-            ownedTokenIds: input.owned?.map((o) => o.tokenId),
-          })
-        : Promise.resolve(undefined),
-    ])
+  const runSentinel =
+    input.forceMarketSentinel === true ||
+    (!!input.userQuery && isMarketSentinelQuery(input.userQuery))
+
+  const [
+    apEstimateForFocus,
+    acquisition,
+    burnMarketNotes,
+    burnEfficiency,
+    marketSentinel,
+  ] = await Promise.all([
+    estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
+    analyzeAcquisitionStrategy(20, 0.05),
+    getBurnMarketNotes(),
+    runEfficiency
+      ? scanBurnEfficiency({
+          ownedTokenIds: input.owned?.map((o) => o.tokenId),
+        })
+      : Promise.resolve(undefined),
+    runSentinel ? runMarketSentinel() : Promise.resolve(undefined),
+  ])
 
   let burnCandidates: OwnedNormieSnapshot[] | undefined
   let keepCandidates: OwnedNormieSnapshot[] | undefined
@@ -108,6 +126,12 @@ export async function buildStrategySnapshot(input: {
       )
     }
   }
+  if (marketSentinel?.scanned) {
+    summaryLines.push(marketSentinel.summary)
+    summaryLines.push(
+      `Market state: floor=${marketSentinel.marketState.floorETH ?? "n/a"} ETH, Δfloor=${marketSentinel.marketState.floorChangePct ?? "n/a"}%, burnRatio=${marketSentinel.marketState.burnVolumeRatio ?? "n/a"}x, whales=${marketSentinel.signals.whaleCount}, AP market=${marketSentinel.marketState.apMarketStatus}`,
+    )
+  }
 
   return {
     apEstimateForFocus,
@@ -119,6 +143,7 @@ export async function buildStrategySnapshot(input: {
     burnMarketNotes,
     floorsNote: FLOORS_NOTE,
     burnEfficiency,
+    marketSentinel,
     summaryLines,
   }
 }

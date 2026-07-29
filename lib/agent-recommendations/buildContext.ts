@@ -530,6 +530,17 @@ export async function buildZuloContext(
       `Burn Efficiency Optimizer top candidates: ${top}. ${strategy.burnEfficiency.disclaimer}`,
     )
   }
+  if (strategy.marketSentinel?.scanned) {
+    const ms = strategy.marketSentinel
+    earningOpportunities.unshift(
+      `PIXEL MARKET Sentinel: ${ms.brief.headline}. Trend ${ms.brief.trend}. ${ms.whaleActivity.summary}`,
+    )
+    for (const rec of ms.positionRecommendations.slice(0, 2)) {
+      earningOpportunities.push(`Market position: ${rec}`)
+    }
+  }
+
+  const marketState = strategy.marketSentinel?.marketState
 
   const context: ZuloRecommendationContext = {
     user: {
@@ -638,6 +649,28 @@ export async function buildZuloContext(
       pulseSummary,
       zuloCanvasAPBalance,
       zuloAPBalance: zuloCanvasAPBalance,
+      marketState: marketState
+        ? {
+            asOf: marketState.asOf,
+            floorETH: marketState.floorETH,
+            floorSource: marketState.floorSource,
+            floorChangePct: marketState.floorChangePct,
+            oneDayVolumeETH: marketState.oneDayVolumeETH,
+            sevenDayVolumeETH: marketState.sevenDayVolumeETH,
+            sales1d: marketState.sales1d,
+            sales7d: marketState.sales7d,
+            volumeVelocityRatio: marketState.volumeVelocityRatio,
+            burnTokensRecent24h: marketState.burnTokensRecent24h,
+            burnTokensPrev24h: marketState.burnTokensPrev24h,
+            burnVolumeRatio: marketState.burnVolumeRatio,
+            historicalApMedian: marketState.historicalApMedian,
+            impliedApCostETH: marketState.impliedApCostETH,
+            floorBuyEfficiency: marketState.floorBuyEfficiency,
+            apMarketStatus: marketState.apMarketStatus,
+            apMarketPriceETH: marketState.apMarketPriceETH,
+            owners: marketState.owners,
+          }
+        : undefined,
       strategy: {
         apEstimateForFocus: strategy.apEstimateForFocus,
         traitAdvice: strategy.traitAdvice,
@@ -689,6 +722,20 @@ export async function buildZuloContext(
               disclaimer: strategy.burnEfficiency.disclaimer,
               summary: strategy.burnEfficiency.summary,
               sources: strategy.burnEfficiency.sources,
+            }
+          : undefined,
+        marketSentinel: strategy.marketSentinel
+          ? {
+              scanned: strategy.marketSentinel.scanned,
+              brief: strategy.marketSentinel.brief,
+              signals: strategy.marketSentinel.signals,
+              marketState: strategy.marketSentinel.marketState,
+              arbitrage: strategy.marketSentinel.arbitrage,
+              positionRecommendations: strategy.marketSentinel.positionRecommendations,
+              whaleActivity: strategy.marketSentinel.whaleActivity,
+              disclaimer: strategy.marketSentinel.disclaimer,
+              summary: strategy.marketSentinel.summary,
+              sources: strategy.marketSentinel.sources,
             }
           : undefined,
       },
