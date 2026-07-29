@@ -119,6 +119,40 @@ export interface ZuloRecommendationContext {
       apMarketPriceETH: number | null
       owners: number | null
     }
+    /** Gacha & Raffle Intelligence compact context (when skill runs) */
+    gachaRaffle?: {
+      dataStatus: "live" | "partial" | "unavailable"
+      poolCount: number
+      raffleCount: number
+      positiveEvCount: number
+      highValueRaffleCount: number
+      positiveEv: Array<{
+        kind: "gacha" | "raffle"
+        id: string
+        name: string
+        evRatio: number
+        edgePct: number
+      }>
+      apAllocation: {
+        budgetAp: number
+        lines: Array<{
+          opportunityId: string
+          opportunityName: string
+          kind: "gacha" | "raffle"
+          suggestedAp: number
+          sharePct: number
+          evRatio: number
+          reason: string
+        }>
+        unallocatedAp: number
+        note: string
+      }
+      pitySummary: string[]
+      qualificationSummary: string[]
+      floorETH: number | null
+      disclaimer: string
+      summary: string
+    }
   }
 }
 
@@ -248,6 +282,104 @@ export interface StrategyContext {
       }>
       correlationPatterns: string[]
     }
+    disclaimer: string
+    summary: string
+    sources?: string[]
+  }
+  /** Gacha & Raffle Intelligence — EV pools, raffles, AP allocation */
+  gachaRaffle?: {
+    scanned: boolean
+    dataStatus: "live" | "partial" | "unavailable"
+    gachaPools: Array<{
+      id: string
+      name: string
+      status: string
+      costAp: number | null
+      costEth: number | null
+      expectedValueAp: number | null
+      expectedValueEth: number | null
+      evRatio: number | null
+      edgePct: number | null
+      isPositiveEv: boolean
+      isHighValue: boolean
+      pity: {
+        counter: number | null
+        softPityAt: number | null
+        hardPityAt: number | null
+        pullsToSoft: number | null
+        pullsToHard: number | null
+        note: string
+      } | null
+      qualification: {
+        minAp: number | null
+        minNormieCount: number | null
+        requiresHolder: boolean | null
+        requiresAwakened: boolean | null
+        note: string
+        qualified: boolean | null
+      } | null
+      notes: string
+    }>
+    raffles: Array<{
+      id: string
+      name: string
+      status: string
+      entryCostAp: number | null
+      entryCostEth: number | null
+      prizeValueAp: number | null
+      prizeValueEth: number | null
+      totalEntries: number | null
+      winProbability: number | null
+      expectedValueAp: number | null
+      expectedValueEth: number | null
+      evRatio: number | null
+      edgePct: number | null
+      isPositiveEv: boolean
+      isHighValue: boolean
+      qualification: {
+        minAp: number | null
+        minNormieCount: number | null
+        requiresHolder: boolean | null
+        requiresAwakened: boolean | null
+        note: string
+        qualified: boolean | null
+      } | null
+      endsAt: string | null
+      notes: string
+    }>
+    positiveEv: Array<{
+      kind: "gacha" | "raffle"
+      id: string
+      name: string
+      evRatio: number
+      edgePct: number
+    }>
+    highValueRaffles: Array<{
+      id: string
+      name: string
+      evRatio: number | null
+      edgePct: number | null
+      entryCostAp: number | null
+      prizeValueEth: number | null
+      totalEntries: number | null
+    }>
+    apAllocation: {
+      budgetAp: number
+      lines: Array<{
+        opportunityId: string
+        opportunityName: string
+        kind: "gacha" | "raffle"
+        suggestedAp: number
+        sharePct: number
+        evRatio: number
+        reason: string
+      }>
+      unallocatedAp: number
+      note: string
+    }
+    pitySummary: string[]
+    qualificationSummary: string[]
+    floorETH: number | null
     disclaimer: string
     summary: string
     sources?: string[]

@@ -75,6 +75,20 @@ export type {
   MarketIntelligenceBrief,
   WhaleAlert,
 } from "./marketSentinel"
+export {
+  analyzeGachaRaffle,
+  isGachaRaffleQuery,
+  recommendApAllocation,
+  GACHA_RAFFLE_DISCLAIMER,
+  POSITIVE_EV_THRESHOLD,
+  HIGH_VALUE_EDGE_PCT,
+} from "./gachaRaffle"
+export type {
+  GachaRaffleResult,
+  GachaPoolAnalysis,
+  RaffleAnalysis,
+  ApAllocationLine,
+} from "./gachaRaffle"
 export { analyzeTraitCombo, PREMIUM_COMBOS } from "./traitAnalysis"
 export { buildStrategySnapshot } from "./strategy"
 export {

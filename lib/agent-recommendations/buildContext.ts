@@ -486,6 +486,9 @@ export async function buildZuloContext(
     focusTraits: traitRecord,
     owned: ownedSnapshots,
     userQuery: params.userQuery,
+    focusActionPoints: actionPoints,
+    isHolder: ownerMatchesUser || (wallet ? holdingIds.length > 0 : false),
+    isAwakened: isAwakened || isZuloDefault,
   })
 
   const earningOpportunities = generateOpportunities({
@@ -539,8 +542,20 @@ export async function buildZuloContext(
       earningOpportunities.push(`Market position: ${rec}`)
     }
   }
+  if (strategy.gachaRaffle?.scanned) {
+    const gr = strategy.gachaRaffle
+    earningOpportunities.unshift(
+      `Gacha & Raffle Intelligence (${gr.dataStatus}): ${gr.positiveEv.length} +EV / ${gr.highValueRaffles.length} high-value raffles. ${gr.apAllocation.note}`,
+    )
+    for (const line of gr.apAllocation.lines.slice(0, 2)) {
+      earningOpportunities.push(
+        `AP plan: ${line.suggestedAp} AP → ${line.opportunityName} (${line.kind}, EV ${line.evRatio.toFixed(2)}×)`,
+      )
+    }
+  }
 
   const marketState = strategy.marketSentinel?.marketState
+  const gachaRaffleContext = strategy.gachaRaffle
 
   const context: ZuloRecommendationContext = {
     user: {
@@ -664,11 +679,27 @@ export async function buildZuloContext(
             burnTokensPrev24h: marketState.burnTokensPrev24h,
             burnVolumeRatio: marketState.burnVolumeRatio,
             historicalApMedian: marketState.historicalApMedian,
-            impliedApCostETH: marketState.impliedApCostETH,
             floorBuyEfficiency: marketState.floorBuyEfficiency,
+            impliedApCostETH: marketState.impliedApCostETH,
             apMarketStatus: marketState.apMarketStatus,
             apMarketPriceETH: marketState.apMarketPriceETH,
             owners: marketState.owners,
+          }
+        : undefined,
+      gachaRaffle: gachaRaffleContext
+        ? {
+            dataStatus: gachaRaffleContext.dataStatus,
+            poolCount: gachaRaffleContext.gachaPools.length,
+            raffleCount: gachaRaffleContext.raffles.length,
+            positiveEvCount: gachaRaffleContext.positiveEv.length,
+            highValueRaffleCount: gachaRaffleContext.highValueRaffles.length,
+            positiveEv: gachaRaffleContext.positiveEv.slice(0, 8),
+            apAllocation: gachaRaffleContext.apAllocation,
+            pitySummary: gachaRaffleContext.pitySummary,
+            qualificationSummary: gachaRaffleContext.qualificationSummary,
+            floorETH: gachaRaffleContext.floorETH,
+            disclaimer: gachaRaffleContext.disclaimer,
+            summary: gachaRaffleContext.summary,
           }
         : undefined,
       strategy: {
@@ -736,6 +767,65 @@ export async function buildZuloContext(
               disclaimer: strategy.marketSentinel.disclaimer,
               summary: strategy.marketSentinel.summary,
               sources: strategy.marketSentinel.sources,
+            }
+          : undefined,
+        gachaRaffle: strategy.gachaRaffle
+          ? {
+              scanned: strategy.gachaRaffle.scanned,
+              dataStatus: strategy.gachaRaffle.dataStatus,
+              gachaPools: strategy.gachaRaffle.gachaPools.map((g) => ({
+                id: g.id,
+                name: g.name,
+                status: g.status,
+                costAp: g.costAp,
+                costEth: g.costEth,
+                expectedValueAp: g.expectedValueAp,
+                expectedValueEth: g.expectedValueEth,
+                evRatio: g.evRatio,
+                edgePct: g.edgePct,
+                isPositiveEv: g.isPositiveEv,
+                isHighValue: g.isHighValue,
+                pity: g.pity,
+                qualification: g.qualification,
+                notes: g.notes,
+              })),
+              raffles: strategy.gachaRaffle.raffles.map((r) => ({
+                id: r.id,
+                name: r.name,
+                status: r.status,
+                entryCostAp: r.entryCostAp,
+                entryCostEth: r.entryCostEth,
+                prizeValueAp: r.prizeValueAp,
+                prizeValueEth: r.prizeValueEth,
+                totalEntries: r.totalEntries,
+                winProbability: r.winProbability,
+                expectedValueAp: r.expectedValueAp,
+                expectedValueEth: r.expectedValueEth,
+                evRatio: r.evRatio,
+                edgePct: r.edgePct,
+                isPositiveEv: r.isPositiveEv,
+                isHighValue: r.isHighValue,
+                qualification: r.qualification,
+                endsAt: r.endsAt,
+                notes: r.notes,
+              })),
+              positiveEv: strategy.gachaRaffle.positiveEv,
+              highValueRaffles: strategy.gachaRaffle.highValueRaffles.map((r) => ({
+                id: r.id,
+                name: r.name,
+                evRatio: r.evRatio,
+                edgePct: r.edgePct,
+                entryCostAp: r.entryCostAp,
+                prizeValueEth: r.prizeValueEth,
+                totalEntries: r.totalEntries,
+              })),
+              apAllocation: strategy.gachaRaffle.apAllocation,
+              pitySummary: strategy.gachaRaffle.pitySummary,
+              qualificationSummary: strategy.gachaRaffle.qualificationSummary,
+              floorETH: strategy.gachaRaffle.floorETH,
+              disclaimer: strategy.gachaRaffle.disclaimer,
+              summary: strategy.gachaRaffle.summary,
+              sources: strategy.gachaRaffle.sources,
             }
           : undefined,
       },

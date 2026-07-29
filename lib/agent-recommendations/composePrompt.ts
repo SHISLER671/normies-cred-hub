@@ -71,6 +71,7 @@ ${ECOSYSTEM_GUIDE}
 - Premium trait combos: strategy.traitAdvice — if isPremium, strongly advise against burning
 - Burn Efficiency Optimizer: when user asks about burn opportunities or types "scan burns", platformContext.strategy.burnEfficiency is populated with top 5 market fodder candidates (token ID, floor/listing price ETH, estimated AP, efficiencyScore = expected AP / price ETH)
 - PIXEL MARKET Sentinel: when user asks "market status", "AP price", "whale alert", "detect opportunities", or keywords market/sentinel/whale/status/alert — platformContext.strategy.marketSentinel + platformContext.marketState are populated
+- Gacha & Raffle Intelligence: when user asks "gacha odds", "raffle value", "should I pull", "best raffle", or keywords gacha/raffle/pull/odds/ev/expected value — platformContext.gachaRaffle + strategy.gachaRaffle are populated
 
 BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
 - Lead with the top 5 candidates from burnEfficiency.topCandidates — include token ID, floorPriceETH, estimatedAP, efficiencyScore for each
@@ -89,6 +90,16 @@ PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
 - Include whaleActivity.summary + correlationPatterns; never deanonymize wallets beyond provided labels
 - Always include marketSentinel.disclaimer
 
+GACHA & RAFFLE RESPONSE RULES (when gachaRaffle.scanned is true OR platformContext.gachaRaffle is set):
+- State dataStatus clearly (live / partial / unavailable) — if unavailable, do NOT invent active pools or odds
+- For gacha: EV = Σ(probability × prize value) / pull cost; flag +EV when ratio > 1.0
+- For raffles: EV ratio = prize / (entry cost × field size); high-value when edge ≥ 20%
+- List positiveEv and highValueRaffles with numbers from context only
+- Recommend AP allocation from apAllocation.lines when present (ticket-aligned)
+- Mention pitySummary and qualificationSummary when non-empty
+- Always include gachaRaffle.disclaimer
+- Never fabricate prize tables, pity counters, or entry counts not in context
+
 MARKET DATA RULES (critical):
 - NEVER quote static or remembered floor tables (e.g. inventing 0.008 ETH).
 - If acquisition.liveFloorETH is set, cite it with source/timestamp and still say verify on OpenSea before buying.
@@ -96,7 +107,7 @@ MARKET DATA RULES (critical):
 - Collection floor ≠ guaranteed type-specific listing; always re-check live.
 
 STRATEGY RESPONSE RULES:
-- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency, marketSentinel, marketState)
+- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency, marketSentinel, marketState, gachaRaffle)
 - Always state confidence / sampleSize when citing burn history estimates
 - Compare options when useful without inventing ETH costs
 - Burns permanent — never pressure burning purist/premium pieces without explicit user intent
@@ -158,6 +169,33 @@ export function composeZuloPrompt(
         .join("\n")
     : "- Market state not loaded (ask market status / sentinel / whale alert to refresh)"
 
+  const gr = context.platformContext?.gachaRaffle
+  const gachaBlock = gr
+    ? [
+        `status: ${gr.dataStatus} · pools ${gr.poolCount} · raffles ${gr.raffleCount}`,
+        `+EV count: ${gr.positiveEvCount} · high-value raffles: ${gr.highValueRaffleCount}`,
+        gr.positiveEv.length
+          ? `top +EV: ${gr.positiveEv
+              .slice(0, 5)
+              .map((p) => `${p.kind} ${p.name} ${p.evRatio.toFixed(2)}×`)
+              .join(" · ")}`
+          : "top +EV: none in feed",
+        `AP budget ${gr.apAllocation.budgetAp}: ${
+          gr.apAllocation.lines.length
+            ? gr.apAllocation.lines
+                .map((l) => `${l.opportunityName}=${l.suggestedAp}AP`)
+                .join("; ")
+            : gr.apAllocation.note
+        }`,
+        `pity: ${gr.pitySummary.slice(0, 2).join(" | ")}`,
+        `qualification: ${gr.qualificationSummary.slice(0, 2).join(" | ")}`,
+        `floor proxy: ${gr.floorETH ?? "n/a"} ETH`,
+        gr.disclaimer,
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Gacha/raffle context not loaded (ask gacha odds / raffle value / should I pull)"
+
   const canvas = context.normie.canvas
   const pixelLine =
     canvas?.pixelCount != null
@@ -186,6 +224,9 @@ Zulo Canvas AP (#${ZULO_IDENTITY.tokenId}): ${zuloAp} AP
 
 === MARKET STATE (PIXEL MARKET Sentinel) ===
 ${marketStateBlock}
+
+=== GACHA & RAFFLE INTELLIGENCE ===
+${gachaBlock}
 
 === STRATEGY SNAPSHOT ===
 ${strategyBlock}

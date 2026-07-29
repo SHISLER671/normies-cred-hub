@@ -21,6 +21,11 @@ import {
   type AcquisitionAnalysis,
 } from "./marketData"
 import {
+  analyzeGachaRaffle,
+  isGachaRaffleQuery,
+  type GachaRaffleResult,
+} from "./gachaRaffle"
+import {
   isMarketSentinelQuery,
   runMarketSentinel,
   type MarketSentinelResult,
@@ -38,6 +43,7 @@ export interface StrategySnapshot {
   floorsNote?: string
   burnEfficiency?: BurnEfficiencyResult
   marketSentinel?: MarketSentinelResult
+  gachaRaffle?: GachaRaffleResult
   summaryLines: string[]
 }
 
@@ -46,12 +52,18 @@ export async function buildStrategySnapshot(input: {
   focusRank?: number | null
   focusTraits: Record<string, string | number | boolean | null | undefined>
   owned?: OwnedNormieSnapshot[]
-  /** When set, may trigger Burn Efficiency Optimizer / Market Sentinel. */
+  /** When set, may trigger skill scans from free-text. */
   userQuery?: string
   /** Force efficiency scan even without matching query keywords. */
   forceBurnEfficiency?: boolean
   /** Force PIXEL MARKET Sentinel even without matching query keywords. */
   forceMarketSentinel?: boolean
+  /** Force Gacha & Raffle Intelligence even without matching query keywords. */
+  forceGachaRaffle?: boolean
+  /** Canvas AP on focus Normie — used for gacha/raffle AP allocation. */
+  focusActionPoints?: number
+  isHolder?: boolean
+  isAwakened?: boolean
 }): Promise<StrategySnapshot> {
   const type = normalizeType(input.focusType)
   const tier = tierFromRank(input.focusRank ?? null)
@@ -65,12 +77,17 @@ export async function buildStrategySnapshot(input: {
     input.forceMarketSentinel === true ||
     (!!input.userQuery && isMarketSentinelQuery(input.userQuery))
 
+  const runGacha =
+    input.forceGachaRaffle === true ||
+    (!!input.userQuery && isGachaRaffleQuery(input.userQuery))
+
   const [
     apEstimateForFocus,
     acquisition,
     burnMarketNotes,
     burnEfficiency,
     marketSentinel,
+    gachaRaffle,
   ] = await Promise.all([
     estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
     analyzeAcquisitionStrategy(20, 0.05),
@@ -81,6 +98,15 @@ export async function buildStrategySnapshot(input: {
         })
       : Promise.resolve(undefined),
     runSentinel ? runMarketSentinel() : Promise.resolve(undefined),
+    runGacha
+      ? analyzeGachaRaffle({
+          budgetAp: input.focusActionPoints,
+          userAp: input.focusActionPoints,
+          normieCount: input.owned?.length,
+          isHolder: input.isHolder,
+          isAwakened: input.isAwakened,
+        })
+      : Promise.resolve(undefined),
   ])
 
   let burnCandidates: OwnedNormieSnapshot[] | undefined
@@ -132,6 +158,24 @@ export async function buildStrategySnapshot(input: {
       `Market state: floor=${marketSentinel.marketState.floorETH ?? "n/a"} ETH, Δfloor=${marketSentinel.marketState.floorChangePct ?? "n/a"}%, burnRatio=${marketSentinel.marketState.burnVolumeRatio ?? "n/a"}x, whales=${marketSentinel.signals.whaleCount}, AP market=${marketSentinel.marketState.apMarketStatus}`,
     )
   }
+  if (gachaRaffle?.scanned) {
+    summaryLines.push(gachaRaffle.summary)
+    if (gachaRaffle.positiveEv.length) {
+      summaryLines.push(
+        `+EV opportunities: ${gachaRaffle.positiveEv
+          .slice(0, 5)
+          .map((p) => `${p.kind}:${p.name} ${p.evRatio.toFixed(2)}×`)
+          .join(" · ")}`,
+      )
+    }
+    if (gachaRaffle.apAllocation.lines.length) {
+      summaryLines.push(
+        `AP allocation plan: ${gachaRaffle.apAllocation.lines
+          .map((l) => `${l.opportunityName}=${l.suggestedAp}AP`)
+          .join("; ")}`,
+      )
+    }
+  }
 
   return {
     apEstimateForFocus,
@@ -144,6 +188,7 @@ export async function buildStrategySnapshot(input: {
     floorsNote: FLOORS_NOTE,
     burnEfficiency,
     marketSentinel,
+    gachaRaffle,
     summaryLines,
   }
 }

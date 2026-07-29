@@ -33,6 +33,10 @@ export const COMMUNITY_TOOLS: CommunityTool[] = [
       "whale",
       "sentinel",
       "burn spike",
+      "gacha",
+      "raffle",
+      "odds",
+      "expected value",
     ],
   },
   {
