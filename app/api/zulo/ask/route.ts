@@ -11,9 +11,13 @@ import {
   type ZuloResponse,
 } from "@/lib/agent-recommendations"
 import { MAX_USER_QUERY_CHARS } from "@/lib/agent-recommendations/constants"
+import { zuloErrorToResponse } from "@/lib/agent-recommendations/generate"
 // Payment helpers ready for marketplace go-live:
 // import { getServicePrice, isHolder, verifyAPPayment } from "@/lib/agent-recommendations/verifyPayment"
 import { checkRateLimit } from "@/lib/ratelimit"
+
+export const maxDuration = 60
+export const dynamic = "force-dynamic"
 
 type SessionTurn = { userMessage: string; zuloResponse: string }
 
@@ -123,26 +127,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-
-    if (message.includes("XAI_API_KEY")) {
-      return NextResponse.json(
-        { error: "XAI_API_KEY is not configured on the server" },
-        { status: 500 },
-      )
-    }
-
-    if (message.includes("xAI API error")) {
-      return NextResponse.json(
-        { error: "Zulo could not reach the recommendation model. Please try again." },
-        { status: 502 },
-      )
-    }
-
-    console.error("[zulo/ask] Uncaught error:", message)
-    return NextResponse.json(
-      { error: "Internal error generating recommendations" },
-      { status: 500 },
-    )
+    const mapped = zuloErrorToResponse(err)
+    console.error("[zulo/ask]", mapped.body.code ?? "error", mapped.body.error)
+    return NextResponse.json(mapped.body, { status: mapped.status })
   }
 }

@@ -601,7 +601,19 @@ export interface ZuloManifest {
     wallet: string
     type: "ERC-8004"
   }
+  /** Product role — strategic-architect (not concierge butler) */
+  role?: string
   services: ZuloService[]
+  /** Discoverable strategy skills with sample prompts */
+  skills?: Array<{
+    id: string
+    name: string
+    status: "live" | "partial" | "planned"
+    description: string
+    samplePrompt: string
+    endpoint: string
+  }>
+  strategySkills?: string[]
   acceptedCurrencies: Array<"AP" | "PIXEL">
   version: string
   endpoint: string
@@ -611,10 +623,23 @@ export interface ZuloManifest {
     currency: "AP"
     receiverWallet: string
     receiverNormieTokenId: number
+    verification?: {
+      module: string
+      enforced: boolean
+      methods: string[]
+    }
     notes: string[]
     /** Human-readable how-to when marketplace launches */
     howToPayWhenLive: string[]
   }
+  integrations?: {
+    normiesApi?: string
+    opensea?: { collection: string; stats: string }
+    pixelMarket?: { status: "planned" | "live"; note: string }
+    ethos?: string
+  }
+  /** Health / readiness probe */
+  health?: string
   /** Short public pitch for discovery UIs */
   pitch?: string
   freeAccess?: {

@@ -149,9 +149,18 @@ export {
   getPixelEconomyContextSummary,
 } from "./loadKnowledge"
 
+export {
+  ZULO_STRATEGY_SKILLS,
+  ZULO_CORE_SKILLS,
+  getAllZuloSkills,
+} from "./skillsCatalog"
+export type { ZuloSkillDef, ZuloSkillId } from "./skillsCatalog"
+
 export { getManifest } from "./manifest"
 export {
   verifyAPPayment,
+  requirePaymentIfNeeded,
+  getPaymentRailStatus,
   isHolder,
   getServicePrice,
   type PaymentVerification,

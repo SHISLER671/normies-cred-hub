@@ -26,11 +26,15 @@ type ChatMessage = {
   error?: string
 }
 
+/** Core + strategy skill chips (on-demand scans). */
 const QUICK_PROMPTS = [
-  "Analyze my PULSE",
-  "How do I earn more AP?",
-  "Should I edit my Canvas?",
-  "What's my rarity strategy?",
+  { label: "Analyze PULSE", prompt: "Analyze my PULSE" },
+  { label: "Scan burns", prompt: "scan burns" },
+  { label: "Market status", prompt: "market status" },
+  { label: "Preview canvas", prompt: "preview canvas add 12 pixels" },
+  { label: "Gacha odds", prompt: "gacha odds" },
+  { label: "80×80 readiness", prompt: "80x80 expansion readiness" },
+  { label: "Earn AP", prompt: "How do I earn more AP strategically?" },
 ] as const
 
 function formatZuloReplyForHistory(response: ZuloResponse): string {
@@ -126,7 +130,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
         id: "welcome",
         role: "zulo",
         content:
-          "I am listening. What would you like to know about your PULSE, your strategy, or the ecosystem?",
+          "Structure first. I am Zulo — Strategic Architect for the pixel economy. PULSE, burns, market signals, canvas transforms. What are we deciding?",
       },
     ])
   }, [])
@@ -203,13 +207,24 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
       const data = (await res.json().catch(() => ({}))) as ZuloResponse & { error?: string }
 
       if (!res.ok) {
+        const retryable =
+          (data as { retryable?: boolean }).retryable === true ||
+          res.status === 502 ||
+          res.status === 504
+        const errText =
+          data.error ||
+          (res.status === 504
+            ? "Timed out waiting for the model. Retry with a shorter question."
+            : res.status === 502
+              ? "Model upstream is degraded. Strategy skills may still load on retry."
+              : `Something went wrong (${res.status}). Please try again.`)
         setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
             role: "zulo",
-            content: data.error || `Something went wrong (${res.status}). Please try again.`,
-            error: data.error,
+            content: retryable ? `${errText}` : errText,
+            error: data.error || String(res.status),
           },
         ])
         return
@@ -255,18 +270,10 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
     ? "…"
     : pulse?.rarity.tier || pulse?.status || "—"
 
-  const shortPrompt = (prompt: string) =>
-    isMobile
-      ? prompt
-          .replace(" my ", " ")
-          .replace("Should I ", "")
-          .replace("What's ", "")
-          .replace("How do I ", "")
-      : prompt
-
   const visibleOpportunities = isMobile ? opportunities.slice(0, 3) : opportunities
   const showOppsSection = opportunities.length > 0 && !(isMobile && keyboardOpen)
   const showQuickPrompts = !keyboardOpen
+  const visibleQuickPrompts = isMobile ? QUICK_PROMPTS.slice(0, 5) : QUICK_PROMPTS
 
   return (
     <div className={cn("zulo-chrome ask-shell", isMobile && "is-mobile", keyboardOpen && "keyboard-open")}>
@@ -446,15 +453,16 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
           <div className={cn("chat-footer", keyboardOpen && "pb-safe")}>
             {showQuickPrompts ? (
               <div className={cn("quick-prompts", isMobile && "scrollbar-hide quick-prompts-scroll")}>
-                {QUICK_PROMPTS.map((prompt) => (
+                {visibleQuickPrompts.map((item) => (
                   <button
-                    key={prompt}
+                    key={item.prompt}
                     type="button"
                     className="quick-prompt"
                     disabled={loading}
-                    onClick={() => void sendMessage(prompt)}
+                    title={item.prompt}
+                    onClick={() => void sendMessage(item.prompt)}
                   >
-                    {shortPrompt(prompt)}
+                    {item.label}
                   </button>
                 ))}
               </div>
