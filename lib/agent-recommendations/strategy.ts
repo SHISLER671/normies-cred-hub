@@ -11,6 +11,11 @@ import {
   type OwnedNormieSnapshot,
 } from "./burnData"
 import {
+  isBurnEfficiencyQuery,
+  scanBurnEfficiency,
+  type BurnEfficiencyResult,
+} from "./burnEfficiency"
+import {
   analyzeAcquisitionStrategy,
   FLOORS_NOTE,
   type AcquisitionAnalysis,
@@ -26,6 +31,7 @@ export interface StrategySnapshot {
   acquisition?: AcquisitionAnalysis
   burnMarketNotes?: string
   floorsNote?: string
+  burnEfficiency?: BurnEfficiencyResult
   summaryLines: string[]
 }
 
@@ -34,16 +40,30 @@ export async function buildStrategySnapshot(input: {
   focusRank?: number | null
   focusTraits: Record<string, string | number | boolean | null | undefined>
   owned?: OwnedNormieSnapshot[]
+  /** When set, may trigger Burn Efficiency Optimizer (scan burns / opportunities). */
+  userQuery?: string
+  /** Force efficiency scan even without matching query keywords. */
+  forceBurnEfficiency?: boolean
 }): Promise<StrategySnapshot> {
   const type = normalizeType(input.focusType)
   const tier = tierFromRank(input.focusRank ?? null)
   const traitAdvice = analyzeTraitCombo(input.focusTraits)
 
-  const [apEstimateForFocus, acquisition, burnMarketNotes] = await Promise.all([
-    estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
-    analyzeAcquisitionStrategy(20, 0.05),
-    getBurnMarketNotes(),
-  ])
+  const runEfficiency =
+    input.forceBurnEfficiency === true ||
+    (!!input.userQuery && isBurnEfficiencyQuery(input.userQuery))
+
+  const [apEstimateForFocus, acquisition, burnMarketNotes, burnEfficiency] =
+    await Promise.all([
+      estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
+      analyzeAcquisitionStrategy(20, 0.05),
+      getBurnMarketNotes(),
+      runEfficiency
+        ? scanBurnEfficiency({
+            ownedTokenIds: input.owned?.map((o) => o.tokenId),
+          })
+        : Promise.resolve(undefined),
+    ])
 
   let burnCandidates: OwnedNormieSnapshot[] | undefined
   let keepCandidates: OwnedNormieSnapshot[] | undefined
@@ -75,6 +95,19 @@ export async function buildStrategySnapshot(input: {
       `Burn candidates (token IDs): ${burnCandidates.map((b) => `#${b.tokenId}`).join(", ")}`,
     )
   }
+  if (burnEfficiency?.scanned) {
+    summaryLines.push(burnEfficiency.summary)
+    if (burnEfficiency.topCandidates.length) {
+      summaryLines.push(
+        `Efficiency top 5 (token | price ETH | est AP | AP/ETH): ${burnEfficiency.topCandidates
+          .map(
+            (c) =>
+              `#${c.tokenId} | ${c.floorPriceETH} | ~${c.estimatedAP} | ${c.efficiencyScore}`,
+          )
+          .join(" · ")}`,
+      )
+    }
+  }
 
   return {
     apEstimateForFocus,
@@ -85,6 +118,7 @@ export async function buildStrategySnapshot(input: {
     acquisition,
     burnMarketNotes,
     floorsNote: FLOORS_NOTE,
+    burnEfficiency,
     summaryLines,
   }
 }

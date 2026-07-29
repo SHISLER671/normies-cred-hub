@@ -24,6 +24,7 @@ export async function getZuloRecommendation(
     sessionHistory: params.sessionHistory,
     userWallet: params.userWallet,
     userEns: params.userEns,
+    userQuery: params.userQuery,
   })
 
   const rawOutput = await generateZuloResponse(context, params.userQuery)
@@ -50,6 +51,16 @@ export {
   FLOORS_NOTE,
   OPENSEA_COLLECTION_URL,
 } from "./marketData"
+export {
+  scanBurnEfficiency,
+  isBurnEfficiencyQuery,
+  fetchOpenSeaBestListings,
+  BURN_EFFICIENCY_DISCLAIMER,
+} from "./burnEfficiency"
+export type {
+  BurnEfficiencyCandidate,
+  BurnEfficiencyResult,
+} from "./burnEfficiency"
 export { analyzeTraitCombo, PREMIUM_COMBOS } from "./traitAnalysis"
 export { buildStrategySnapshot } from "./strategy"
 export {

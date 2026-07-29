@@ -40,10 +40,13 @@ export interface OwnedNormieSnapshot {
 type LiveBurnRow = {
   receiverTokenId?: string
   transferredActionPoints?: string | number
+  /** Realized AP on many revealed commits when transferredActionPoints is 0 */
+  totalActions?: string | number
   pixelCounts?: string
   timestamp?: string | number
   txHash?: string
   tokenCount?: string | number
+  revealed?: boolean
 }
 
 const TIER_FALLBACK: Record<RarityTier, { min: number; max: number; median: number }> = {
@@ -109,7 +112,18 @@ export async function fetchLiveBurns(limit = 50): Promise<BurnRecord[]> {
 
     const records: BurnRecord[] = []
     for (const row of rows) {
-      const ap = Number(row.transferredActionPoints)
+      // Prefer transferredActionPoints; many revealed rows report 0 there and
+      // put the realized AP on totalActions (per-commitment). For multi-token
+      // burns, normalize to approximate AP per burned token.
+      const transferred = Number(row.transferredActionPoints)
+      const totalActions = Number(row.totalActions)
+      const tokenCount = Math.max(1, Number(row.tokenCount) || 1)
+      let ap = Number.isFinite(transferred) && transferred > 0 ? transferred : NaN
+      if (!Number.isFinite(ap) || ap <= 0) {
+        if (Number.isFinite(totalActions) && totalActions > 0) {
+          ap = Math.round(totalActions / tokenCount)
+        }
+      }
       if (!Number.isFinite(ap) || ap <= 0) continue
       const tokenId = row.receiverTokenId != null ? Number(row.receiverTokenId) : undefined
       records.push({

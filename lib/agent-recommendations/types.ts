@@ -146,6 +146,29 @@ export interface StrategyContext {
   burnMarketNotes?: string
   floorsNote?: string
   summaryLines?: string[]
+  /** Burn Efficiency Optimizer — top AP/ETH market fodder candidates */
+  burnEfficiency?: {
+    scanned: boolean
+    topCandidates: Array<{
+      tokenId: number
+      floorPriceETH: number
+      estimatedAP: number
+      efficiencyScore: number
+      rarityTier?: string
+      rarityRank?: number | null
+      type?: string
+      pixelCount?: number
+      priceSource?: string
+      confidence?: string
+    }>
+    collectionFloorETH: number | null
+    collectionFloorSource?: string
+    burnSampleSize: number
+    historicalApMedian: number | null
+    disclaimer: string
+    summary: string
+    sources?: string[]
+  }
 }
 
 /**

@@ -24,6 +24,8 @@ type BuildContextParams = {
   sessionHistory?: Array<{ userMessage: string; zuloResponse: string }>
   userWallet?: string
   userEns?: string
+  /** User free-text — used to trigger skills like Burn Efficiency Optimizer */
+  userQuery?: string
 }
 
 type TraitsPayload = {
@@ -483,6 +485,7 @@ export async function buildZuloContext(
     focusRank: rarityRank,
     focusTraits: traitRecord,
     owned: ownedSnapshots,
+    userQuery: params.userQuery,
   })
 
   const earningOpportunities = generateOpportunities({
@@ -514,6 +517,18 @@ export async function buildZuloContext(
   }
   if (strategy.burnReasoning) {
     earningOpportunities.push(`Wallet burns: ${strategy.burnReasoning}`)
+  }
+  if (strategy.burnEfficiency?.scanned && strategy.burnEfficiency.topCandidates.length) {
+    const top = strategy.burnEfficiency.topCandidates
+      .slice(0, 5)
+      .map(
+        (c) =>
+          `#${c.tokenId} (~${c.estimatedAP} AP @ ${c.floorPriceETH} ETH → ${c.efficiencyScore} AP/ETH)`,
+      )
+      .join("; ")
+    earningOpportunities.unshift(
+      `Burn Efficiency Optimizer top candidates: ${top}. ${strategy.burnEfficiency.disclaimer}`,
+    )
   }
 
   const context: ZuloRecommendationContext = {
@@ -652,6 +667,30 @@ export async function buildZuloContext(
         burnMarketNotes: strategy.burnMarketNotes,
         floorsNote: strategy.floorsNote,
         summaryLines: strategy.summaryLines,
+        burnEfficiency: strategy.burnEfficiency
+          ? {
+              scanned: strategy.burnEfficiency.scanned,
+              topCandidates: strategy.burnEfficiency.topCandidates.map((c) => ({
+                tokenId: c.tokenId,
+                floorPriceETH: c.floorPriceETH,
+                estimatedAP: c.estimatedAP,
+                efficiencyScore: c.efficiencyScore,
+                rarityTier: c.rarityTier,
+                rarityRank: c.rarityRank,
+                type: c.type,
+                pixelCount: c.pixelCount,
+                priceSource: c.priceSource,
+                confidence: c.confidence,
+              })),
+              collectionFloorETH: strategy.burnEfficiency.collectionFloorETH,
+              collectionFloorSource: strategy.burnEfficiency.collectionFloorSource,
+              burnSampleSize: strategy.burnEfficiency.burnSampleSize,
+              historicalApMedian: strategy.burnEfficiency.historicalApMedian,
+              disclaimer: strategy.burnEfficiency.disclaimer,
+              summary: strategy.burnEfficiency.summary,
+              sources: strategy.burnEfficiency.sources,
+            }
+          : undefined,
       },
     },
   }

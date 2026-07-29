@@ -21,7 +21,15 @@ export const COMMUNITY_TOOLS: CommunityTool[] = [
       "Validate my estimates",
     ],
     audience: "analyst",
-    keywords: ["burn", "ap yield", "action points", "reveal"],
+    keywords: [
+      "burn",
+      "ap yield",
+      "action points",
+      "reveal",
+      "scan burns",
+      "burn efficiency",
+      "burn opportunities",
+    ],
   },
   {
     name: "PixelSymphony",

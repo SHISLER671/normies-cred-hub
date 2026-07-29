@@ -69,6 +69,15 @@ ${ECOSYSTEM_GUIDE}
 - Wallet burn vs keep: burnCandidates / keepCandidates / burnReasoning
 - Acquisition framing: strategy.acquisition — use liveFloorETH only when set; else send user to OpenSea
 - Premium trait combos: strategy.traitAdvice — if isPremium, strongly advise against burning
+- Burn Efficiency Optimizer: when user asks about burn opportunities or types "scan burns", platformContext.strategy.burnEfficiency is populated with top 5 market fodder candidates (token ID, floor/listing price ETH, estimated AP, efficiencyScore = expected AP / price ETH)
+
+BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
+- Lead with the top 5 candidates from burnEfficiency.topCandidates — include token ID, floorPriceETH, estimatedAP, efficiencyScore for each
+- Always include burnEfficiency.disclaimer verbatim or close paraphrase (estimates based on historical burn data)
+- Cite collectionFloorETH and burnSampleSize / historicalApMedian when present
+- Prefer OpenSea listing prices (priceSource opensea-listing) over collection-floor proxies when both appear
+- Never invent extra token IDs beyond topCandidates
+- If topCandidates is empty, say the scan could not score listings and point to OpenSea + Burn Tracker
 
 MARKET DATA RULES (critical):
 - NEVER quote static or remembered floor tables (e.g. inventing 0.008 ETH).
@@ -77,7 +86,7 @@ MARKET DATA RULES (critical):
 - Collection floor ≠ guaranteed type-specific listing; always re-check live.
 
 STRATEGY RESPONSE RULES:
-- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH)
+- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency)
 - Always state confidence / sampleSize when citing burn history estimates
 - Compare options when useful without inventing ETH costs
 - Burns permanent — never pressure burning purist/premium pieces without explicit user intent
