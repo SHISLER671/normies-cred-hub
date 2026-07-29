@@ -89,6 +89,29 @@ export type {
   RaffleAnalysis,
   ApAllocationLine,
 } from "./gachaRaffle"
+export {
+  previewCanvas,
+  analyzeExpansionReadiness,
+  runCanvasWatch,
+  runCanvasEvolution,
+  isCanvasEvolutionQuery,
+  parseProposedChanges,
+  fetchCanvasState,
+  countOnPixels,
+  densityPct,
+  transformApCost,
+  CANVAS_EVOLUTION_DISCLAIMER,
+  CANVAS_WATCH_INTERVAL_MS,
+  SIGNIFICANT_TRANSFORM_PCT,
+  AP_PER_PIXEL_EDIT,
+} from "./canvasEvolution"
+export type {
+  CanvasPreviewResult,
+  ExpansionReadinessResult,
+  CanvasWatchResult,
+  CanvasEvolutionResult,
+  ProposedCanvasChanges,
+} from "./canvasEvolution"
 export { analyzeTraitCombo, PREMIUM_COMBOS } from "./traitAnalysis"
 export { buildStrategySnapshot } from "./strategy"
 export {

@@ -480,6 +480,7 @@ export async function buildZuloContext(
     })
   }
 
+  const focusComboForStrategy = analyzeTraitCombo(traitRecord)
   const strategy = await buildStrategySnapshot({
     focusType: String(traitRecord.Type ?? agentInfo?.type ?? "unknown"),
     focusRank: rarityRank,
@@ -487,8 +488,10 @@ export async function buildZuloContext(
     owned: ownedSnapshots,
     userQuery: params.userQuery,
     focusActionPoints: actionPoints,
+    focusTokenId: tokenId,
     isHolder: ownerMatchesUser || (wallet ? holdingIds.length > 0 : false),
     isAwakened: isAwakened || isZuloDefault,
+    isPremiumFocus: focusComboForStrategy.isPremium,
   })
 
   const earningOpportunities = generateOpportunities({
@@ -553,9 +556,32 @@ export async function buildZuloContext(
       )
     }
   }
+  if (strategy.canvasEvolution?.scanned) {
+    const ce = strategy.canvasEvolution
+    if (ce.preview) {
+      earningOpportunities.unshift(
+        `Canvas Preview #${ce.preview.tokenId}: ${ce.preview.recommendation} (${ce.preview.confidence}% confidence) · ${ce.preview.before.pixelCountOn}→${ce.preview.after.pixelCountOn} on-px · ${ce.preview.costBreakdown.totalApCost} AP cost`,
+      )
+    }
+    if (ce.expansion) {
+      earningOpportunities.push(
+        `80×80 expansion readiness #${ce.expansion.tokenId}: ${ce.expansion.readinessScore}/100 — ${ce.expansion.recommendation}`,
+      )
+    }
+    if (ce.watch?.alerts.length) {
+      earningOpportunities.push(
+        `Canvas Watch alerts: ${ce.watch.alerts
+          .slice(0, 3)
+          .map((a) => a.message)
+          .join(" | ")}`,
+      )
+    }
+  }
 
   const marketState = strategy.marketSentinel?.marketState
   const gachaRaffleContext = strategy.gachaRaffle
+  const canvasEvolution = strategy.canvasEvolution
+  const canvasCtx = canvasEvolution?.canvasState
 
   const context: ZuloRecommendationContext = {
     user: {
@@ -702,6 +728,64 @@ export async function buildZuloContext(
             summary: gachaRaffleContext.summary,
           }
         : undefined,
+      canvasEvolution: canvasEvolution
+        ? {
+            mode: canvasEvolution.mode,
+            canvasState: canvasCtx
+              ? {
+                  tokenId: canvasCtx.tokenId,
+                  actionPoints: canvasCtx.actionPoints,
+                  level: canvasCtx.level,
+                  customized: canvasCtx.customized,
+                  pixelCountOn: canvasCtx.pixelCountOn,
+                  pixelCountOff: canvasCtx.pixelCountOff,
+                  densityPct: canvasCtx.densityPct,
+                  diff: canvasCtx.diff,
+                }
+              : undefined,
+            preview: canvasEvolution.preview
+              ? {
+                  tokenId: canvasEvolution.preview.tokenId,
+                  recommendation: canvasEvolution.preview.recommendation,
+                  confidence: canvasEvolution.preview.confidence,
+                  before: canvasEvolution.preview.before,
+                  after: canvasEvolution.preview.after,
+                  costBreakdown: canvasEvolution.preview.costBreakdown,
+                  aesthetic: canvasEvolution.preview.aesthetic,
+                  reasoning: canvasEvolution.preview.reasoning,
+                  editorUrl: canvasEvolution.preview.editorUrl,
+                  disclaimer: canvasEvolution.preview.disclaimer,
+                }
+              : undefined,
+            expansion: canvasEvolution.expansion
+              ? {
+                  tokenId: canvasEvolution.expansion.tokenId,
+                  readinessScore: canvasEvolution.expansion.readinessScore,
+                  actionPoints: canvasEvolution.expansion.actionPoints,
+                  level: canvasEvolution.expansion.level,
+                  currentGrid: canvasEvolution.expansion.currentGrid,
+                  targetGrid: canvasEvolution.expansion.targetGrid,
+                  apReadiness: canvasEvolution.expansion.apReadiness,
+                  densityReadiness: canvasEvolution.expansion.densityReadiness,
+                  levelReadiness: canvasEvolution.expansion.levelReadiness,
+                  milestones: canvasEvolution.expansion.milestones,
+                  blockers: canvasEvolution.expansion.blockers,
+                  recommendation: canvasEvolution.expansion.recommendation,
+                }
+              : undefined,
+            watch: canvasEvolution.watch
+              ? {
+                  watched: canvasEvolution.watch.watched,
+                  alertCount: canvasEvolution.watch.alerts.length,
+                  alerts: canvasEvolution.watch.alerts.slice(0, 8),
+                  nextDueAt: canvasEvolution.watch.nextDueAt,
+                  summary: canvasEvolution.watch.summary,
+                }
+              : undefined,
+            disclaimer: canvasEvolution.disclaimer,
+            summary: canvasEvolution.summary,
+          }
+        : undefined,
       strategy: {
         apEstimateForFocus: strategy.apEstimateForFocus,
         traitAdvice: strategy.traitAdvice,
@@ -826,6 +910,47 @@ export async function buildZuloContext(
               disclaimer: strategy.gachaRaffle.disclaimer,
               summary: strategy.gachaRaffle.summary,
               sources: strategy.gachaRaffle.sources,
+            }
+          : undefined,
+        canvasEvolution: strategy.canvasEvolution
+          ? {
+              scanned: strategy.canvasEvolution.scanned,
+              mode: strategy.canvasEvolution.mode,
+              summary: strategy.canvasEvolution.summary,
+              disclaimer: strategy.canvasEvolution.disclaimer,
+              preview: strategy.canvasEvolution.preview
+                ? {
+                    tokenId: strategy.canvasEvolution.preview.tokenId,
+                    recommendation: strategy.canvasEvolution.preview.recommendation,
+                    confidence: strategy.canvasEvolution.preview.confidence,
+                    before: strategy.canvasEvolution.preview.before,
+                    after: strategy.canvasEvolution.preview.after,
+                    costBreakdown: strategy.canvasEvolution.preview.costBreakdown,
+                    aesthetic: strategy.canvasEvolution.preview.aesthetic,
+                    reasoning: strategy.canvasEvolution.preview.reasoning,
+                    editorUrl: strategy.canvasEvolution.preview.editorUrl,
+                  }
+                : undefined,
+              expansion: strategy.canvasEvolution.expansion
+                ? {
+                    tokenId: strategy.canvasEvolution.expansion.tokenId,
+                    readinessScore: strategy.canvasEvolution.expansion.readinessScore,
+                    recommendation: strategy.canvasEvolution.expansion.recommendation,
+                    actionPoints: strategy.canvasEvolution.expansion.actionPoints,
+                    level: strategy.canvasEvolution.expansion.level,
+                    currentGrid: strategy.canvasEvolution.expansion.currentGrid,
+                    targetGrid: strategy.canvasEvolution.expansion.targetGrid,
+                    blockers: strategy.canvasEvolution.expansion.blockers,
+                  }
+                : undefined,
+              watch: strategy.canvasEvolution.watch
+                ? {
+                    watched: strategy.canvasEvolution.watch.watched,
+                    alerts: strategy.canvasEvolution.watch.alerts.slice(0, 8),
+                    nextDueAt: strategy.canvasEvolution.watch.nextDueAt,
+                    summary: strategy.canvasEvolution.watch.summary,
+                  }
+                : undefined,
             }
           : undefined,
       },

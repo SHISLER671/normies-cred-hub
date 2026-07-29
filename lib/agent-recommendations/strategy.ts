@@ -21,6 +21,11 @@ import {
   type AcquisitionAnalysis,
 } from "./marketData"
 import {
+  isCanvasEvolutionQuery,
+  runCanvasEvolution,
+  type CanvasEvolutionResult,
+} from "./canvasEvolution"
+import {
   analyzeGachaRaffle,
   isGachaRaffleQuery,
   type GachaRaffleResult,
@@ -44,6 +49,7 @@ export interface StrategySnapshot {
   burnEfficiency?: BurnEfficiencyResult
   marketSentinel?: MarketSentinelResult
   gachaRaffle?: GachaRaffleResult
+  canvasEvolution?: CanvasEvolutionResult
   summaryLines: string[]
 }
 
@@ -60,10 +66,14 @@ export async function buildStrategySnapshot(input: {
   forceMarketSentinel?: boolean
   /** Force Gacha & Raffle Intelligence even without matching query keywords. */
   forceGachaRaffle?: boolean
+  /** Force Canvas Evolution Advisor even without matching query keywords. */
+  forceCanvasEvolution?: boolean
   /** Canvas AP on focus Normie — used for gacha/raffle AP allocation. */
   focusActionPoints?: number
+  focusTokenId?: number
   isHolder?: boolean
   isAwakened?: boolean
+  isPremiumFocus?: boolean
 }): Promise<StrategySnapshot> {
   const type = normalizeType(input.focusType)
   const tier = tierFromRank(input.focusRank ?? null)
@@ -81,6 +91,12 @@ export async function buildStrategySnapshot(input: {
     input.forceGachaRaffle === true ||
     (!!input.userQuery && isGachaRaffleQuery(input.userQuery))
 
+  const runCanvas =
+    input.forceCanvasEvolution === true ||
+    (!!input.userQuery && isCanvasEvolutionQuery(input.userQuery))
+
+  const focusTokenId = input.focusTokenId ?? 7141
+
   const [
     apEstimateForFocus,
     acquisition,
@@ -88,6 +104,7 @@ export async function buildStrategySnapshot(input: {
     burnEfficiency,
     marketSentinel,
     gachaRaffle,
+    canvasEvolution,
   ] = await Promise.all([
     estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
     analyzeAcquisitionStrategy(20, 0.05),
@@ -105,6 +122,15 @@ export async function buildStrategySnapshot(input: {
           normieCount: input.owned?.length,
           isHolder: input.isHolder,
           isAwakened: input.isAwakened,
+        })
+      : Promise.resolve(undefined),
+    runCanvas
+      ? runCanvasEvolution({
+          userQuery: input.userQuery || "canvas preview",
+          focusTokenId,
+          rarityRank: input.focusRank,
+          isPremium: input.isPremiumFocus ?? traitAdvice.isPremium,
+          watchlist: input.owned?.map((o) => o.tokenId),
         })
       : Promise.resolve(undefined),
   ])
@@ -176,6 +202,20 @@ export async function buildStrategySnapshot(input: {
       )
     }
   }
+  if (canvasEvolution?.scanned) {
+    summaryLines.push(canvasEvolution.summary)
+    if (canvasEvolution.preview) {
+      const p = canvasEvolution.preview
+      summaryLines.push(
+        `Canvas Preview #${p.tokenId}: ${p.recommendation} @ ${p.confidence}% · ${p.before.pixelCountOn}→${p.after.pixelCountOn} px · cost ${p.costBreakdown.totalApCost} AP`,
+      )
+    }
+    if (canvasEvolution.expansion) {
+      summaryLines.push(
+        `80×80 readiness #${canvasEvolution.expansion.tokenId}: ${canvasEvolution.expansion.readinessScore}/100`,
+      )
+    }
+  }
 
   return {
     apEstimateForFocus,
@@ -189,6 +229,7 @@ export async function buildStrategySnapshot(input: {
     burnEfficiency,
     marketSentinel,
     gachaRaffle,
+    canvasEvolution,
     summaryLines,
   }
 }

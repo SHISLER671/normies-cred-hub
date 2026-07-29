@@ -72,6 +72,7 @@ ${ECOSYSTEM_GUIDE}
 - Burn Efficiency Optimizer: when user asks about burn opportunities or types "scan burns", platformContext.strategy.burnEfficiency is populated with top 5 market fodder candidates (token ID, floor/listing price ETH, estimated AP, efficiencyScore = expected AP / price ETH)
 - PIXEL MARKET Sentinel: when user asks "market status", "AP price", "whale alert", "detect opportunities", or keywords market/sentinel/whale/status/alert — platformContext.strategy.marketSentinel + platformContext.marketState are populated
 - Gacha & Raffle Intelligence: when user asks "gacha odds", "raffle value", "should I pull", "best raffle", or keywords gacha/raffle/pull/odds/ev/expected value — platformContext.gachaRaffle + strategy.gachaRaffle are populated
+- Canvas Evolution Advisor: when user asks "preview canvas", "simulate edit", "canvas cost", expansion/80x80, or keywords preview/canvas/edit/transform/simulate/pixel/expansion — platformContext.canvasEvolution is populated
 
 BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
 - Lead with the top 5 candidates from burnEfficiency.topCandidates — include token ID, floorPriceETH, estimatedAP, efficiencyScore for each
@@ -100,6 +101,16 @@ GACHA & RAFFLE RESPONSE RULES (when gachaRaffle.scanned is true OR platformConte
 - Always include gachaRaffle.disclaimer
 - Never fabricate prize tables, pity counters, or entry counts not in context
 
+CANVAS EVOLUTION RESPONSE RULES (when platformContext.canvasEvolution is set):
+- Lead with preview.recommendation (PROCEED / MODIFY / ABANDON) and confidence %
+- Include before/after pixel counts, costBreakdown (totalApCost, availableAp, remainingApAfter), and aesthetic notes
+- On-chain edit fee is 1 AP per pixel flip — say so; tier-rate reference is planning-only
+- For expansion mode: report readinessScore, AP/density/level readiness, blockers
+- For watch: list alerts (significant ≥10% pixel change, first edit, AP surge, expansion_ready)
+- Link editorUrl / Normifier when recommending transforms
+- Always include canvasEvolution.disclaimer
+- Never invent pixel bitmaps or AP balances not in context
+
 MARKET DATA RULES (critical):
 - NEVER quote static or remembered floor tables (e.g. inventing 0.008 ETH).
 - If acquisition.liveFloorETH is set, cite it with source/timestamp and still say verify on OpenSea before buying.
@@ -107,7 +118,7 @@ MARKET DATA RULES (critical):
 - Collection floor ≠ guaranteed type-specific listing; always re-check live.
 
 STRATEGY RESPONSE RULES:
-- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency, marketSentinel, marketState, gachaRaffle)
+- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency, marketSentinel, marketState, gachaRaffle, canvasEvolution)
 - Always state confidence / sampleSize when citing burn history estimates
 - Compare options when useful without inventing ETH costs
 - Burns permanent — never pressure burning purist/premium pieces without explicit user intent
@@ -196,6 +207,32 @@ export function composeZuloPrompt(
         .join("\n")
     : "- Gacha/raffle context not loaded (ask gacha odds / raffle value / should I pull)"
 
+  const ce = context.platformContext?.canvasEvolution
+  const canvasEvoBlock = ce
+    ? [
+        `mode: ${ce.mode}`,
+        ce.canvasState
+          ? `live #${ce.canvasState.tokenId}: ${ce.canvasState.pixelCountOn}/1600 on-px, ${ce.canvasState.actionPoints} AP, L${ce.canvasState.level}, density ${ce.canvasState.densityPct}%, ${ce.canvasState.customized ? "customized" : "untouched"}`
+          : "live canvas state: n/a",
+        ce.preview
+          ? `preview: ${ce.preview.recommendation} @ ${ce.preview.confidence}% · ${ce.preview.before.pixelCountOn}→${ce.preview.after.pixelCountOn} px · cost ${ce.preview.costBreakdown.totalApCost} AP (avail ${ce.preview.costBreakdown.availableAp})`
+          : "preview: not run",
+        ce.preview
+          ? `aesthetic: ${ce.preview.aesthetic.visualCoherence}`
+          : null,
+        ce.expansion
+          ? `80x80 readiness: ${ce.expansion.readinessScore}/100 — ${ce.expansion.recommendation}`
+          : "expansion: not run",
+        ce.watch
+          ? `watch: ${ce.watch.watched} tokens, ${ce.watch.alertCount} alerts, next ${ce.watch.nextDueAt ?? "n/a"}`
+          : "watch: not run",
+        ce.disclaimer,
+      ]
+        .filter(Boolean)
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Canvas Evolution not loaded (ask preview canvas / simulate edit / 80x80 expansion)"
+
   const canvas = context.normie.canvas
   const pixelLine =
     canvas?.pixelCount != null
@@ -227,6 +264,9 @@ ${marketStateBlock}
 
 === GACHA & RAFFLE INTELLIGENCE ===
 ${gachaBlock}
+
+=== CANVAS EVOLUTION ADVISOR ===
+${canvasEvoBlock}
 
 === STRATEGY SNAPSHOT ===
 ${strategyBlock}

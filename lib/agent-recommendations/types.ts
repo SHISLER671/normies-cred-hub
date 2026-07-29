@@ -153,6 +153,97 @@ export interface ZuloRecommendationContext {
       disclaimer: string
       summary: string
     }
+    /** Canvas Evolution Advisor — preview / expansion / watch */
+    canvasEvolution?: {
+      mode: string
+      canvasState?: {
+        tokenId: number
+        actionPoints: number
+        level: number
+        customized: boolean
+        pixelCountOn: number
+        pixelCountOff: number
+        densityPct: number
+        diff: { addedCount: number; removedCount: number; netChange: number }
+      }
+      preview?: {
+        tokenId: number
+        recommendation: "PROCEED" | "MODIFY" | "ABANDON"
+        confidence: number
+        before: {
+          pixelCountOn: number
+          pixelCountOff: number
+          actionPoints: number
+          level: number
+          customized: boolean
+          densityPct: number
+        }
+        after: {
+          pixelCountOn: number
+          pixelCountOff: number
+          actionPoints: number
+          level: number
+          customized: boolean
+          densityPct: number
+        }
+        costBreakdown: {
+          pixelsToAdd: number
+          pixelsToRemove: number
+          totalFlips: number
+          apPerPixel: number
+          totalApCost: number
+          availableAp: number
+          remainingApAfter: number
+          canAfford: boolean
+          tierRateMidPct: number
+          tierRateReferenceAp: number
+          notes: string
+        }
+        aesthetic: {
+          placementStrategy: string
+          visualCoherence: string
+          rarityImplications: string
+          puristStatusImpact: string
+          densityBeforePct: number
+          densityAfterPct: number
+          score: number
+        }
+        reasoning: string[]
+        editorUrl: string
+        disclaimer: string
+      }
+      expansion?: {
+        tokenId: number
+        readinessScore: number
+        actionPoints: number
+        level: number
+        currentGrid: { size: number; capacity: number; pixelsOn: number; densityPct: number }
+        targetGrid: { size: number; capacity: number }
+        apReadiness: { score: number; note: string }
+        densityReadiness: { score: number; note: string }
+        levelReadiness: { score: number; note: string }
+        milestones: string[]
+        blockers: string[]
+        recommendation: string
+      }
+      watch?: {
+        watched: number
+        alertCount: number
+        alerts: Array<{
+          tokenId: number
+          type: string
+          message: string
+          pixelChangePct: number | null
+          beforePixelsOn: number | null
+          afterPixelsOn: number
+          at: string
+        }>
+        nextDueAt: string | null
+        summary: string
+      }
+      disclaimer: string
+      summary: string
+    }
   }
 }
 
@@ -383,6 +474,82 @@ export interface StrategyContext {
     disclaimer: string
     summary: string
     sources?: string[]
+  }
+  /** Canvas Evolution Advisor full strategy payload */
+  canvasEvolution?: {
+    scanned: boolean
+    mode: string
+    summary: string
+    disclaimer: string
+    preview?: {
+      tokenId: number
+      recommendation: "PROCEED" | "MODIFY" | "ABANDON"
+      confidence: number
+      before: {
+        pixelCountOn: number
+        pixelCountOff: number
+        actionPoints: number
+        level: number
+        customized: boolean
+        densityPct: number
+      }
+      after: {
+        pixelCountOn: number
+        pixelCountOff: number
+        actionPoints: number
+        level: number
+        customized: boolean
+        densityPct: number
+      }
+      costBreakdown: {
+        pixelsToAdd: number
+        pixelsToRemove: number
+        totalFlips: number
+        apPerPixel: number
+        totalApCost: number
+        availableAp: number
+        remainingApAfter: number
+        canAfford: boolean
+        tierRateMidPct: number
+        tierRateReferenceAp: number
+        notes: string
+      }
+      aesthetic: {
+        placementStrategy: string
+        visualCoherence: string
+        rarityImplications: string
+        puristStatusImpact: string
+        densityBeforePct: number
+        densityAfterPct: number
+        score: number
+      }
+      reasoning: string[]
+      editorUrl: string
+    }
+    expansion?: {
+      tokenId: number
+      readinessScore: number
+      recommendation: string
+      actionPoints: number
+      level: number
+      currentGrid: { size: number; capacity: number; pixelsOn: number; densityPct: number }
+      targetGrid: { size: number; capacity: number }
+      blockers: string[]
+    }
+    watch?: {
+      watched: number
+      alerts: Array<{
+        tokenId: number
+        type: string
+        message: string
+        pixelChangePct: number | null
+        beforePixelsOn: number | null
+        afterPixelsOn: number
+        at: string
+      }>
+      nextDueAt: string | null
+      summary: string
+    }
   }
 }
 

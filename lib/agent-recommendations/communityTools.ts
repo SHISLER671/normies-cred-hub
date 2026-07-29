@@ -37,6 +37,11 @@ export const COMMUNITY_TOOLS: CommunityTool[] = [
       "raffle",
       "odds",
       "expected value",
+      "canvas",
+      "preview canvas",
+      "transform",
+      "80x80",
+      "expansion",
     ],
   },
   {
