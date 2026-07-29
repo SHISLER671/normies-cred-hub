@@ -5,6 +5,12 @@ const nextConfig = {
     root: process.cwd(),
   },
 
+  // Include Zulo persona + knowledge markdown in serverless traces
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./lib/agent-recommendations/**/*.{md,ts}"],
+    "/ask": ["./lib/agent-recommendations/**/*.{md,ts}"],
+  },
+
   images: {
     remotePatterns: [
       {

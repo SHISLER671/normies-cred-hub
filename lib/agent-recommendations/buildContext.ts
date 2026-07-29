@@ -14,6 +14,7 @@ import {
   ZULO_IDENTITY,
 } from "./constants"
 import { tierFromRank, type OwnedNormieSnapshot } from "./burnData"
+import { getPixelEconomyContextSummary } from "./loadKnowledge"
 import { estimateBurnApFromPixels, levelFromActionPoints } from "./normiesKnowledge"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
@@ -583,6 +584,9 @@ export async function buildZuloContext(
   const canvasEvolution = strategy.canvasEvolution
   const canvasCtx = canvasEvolution?.canvasState
 
+  // Pixel economy doctrine — always available for strategy-bearing answers
+  const pixelEconomy = getPixelEconomyContextSummary()
+
   const context: ZuloRecommendationContext = {
     user: {
       ens: params.userEns?.trim() || undefined,
@@ -690,6 +694,7 @@ export async function buildZuloContext(
       pulseSummary,
       zuloCanvasAPBalance,
       zuloAPBalance: zuloCanvasAPBalance,
+      pixelEconomy,
       marketState: marketState
         ? {
             asOf: marketState.asOf,

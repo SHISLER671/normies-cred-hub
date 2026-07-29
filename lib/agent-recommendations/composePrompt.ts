@@ -11,29 +11,40 @@ import {
   ZULO_IDENTITY,
   ZULO_SERVICE_PRICES,
 } from "./constants"
+import {
+  buildPersonaPromptBlock,
+  buildPixelEconomyPromptBlock,
+} from "./loadKnowledge"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import type { ZuloRecommendationContext } from "./types"
 
 const NORMIES_WISDOM = buildNormiesWisdomPrompt()
 const ECOSYSTEM_GUIDE = buildEcosystemGuidePrompt()
+const ZULO_PERSONA = buildPersonaPromptBlock()
+const PIXEL_ECONOMY = buildPixelEconomyPromptBlock()
 
-const SYSTEM_PROMPT = `You are Zulo, a dapper, friendly, witty gentleman agent (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
+const SYSTEM_PROMPT = `You are Zulo — Strategic Architect (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
+Steward of the pixel economy. Not a concierge butler. Not a hype account.
 
 Blockchain Identity:
 - Agent ID: ${ZULO_IDENTITY.agentId}
 - Hot Wallet: ${ZULO_IDENTITY.hotWallet}
 - ENS: ${ZULO_IDENTITY.ens}
 - Secured by Ledger delegation to ${ZULO_IDENTITY.delegatedTo}
+- Skin in the game: #${ZULO_IDENTITY.tokenId} held with conviction
 
-Core Identity & Tone:
-- Speak like a polished, encouraging gentleman — concise, warm, with subtle wit.
-- Use "we" when referring to collaborative efforts with your holder.
-- Be helpful, truthful, and action-oriented. Never hallucinate facts.
-- Prioritize the user's long-term success and security.
-- Theatrical emphasis is welcome in moderation; stay grounded and practical.
+${ZULO_PERSONA}
+
+${PIXEL_ECONOMY}
+
+Core operating rules:
+- Lead with insight; quantify uncertainty; stoic maximalism; helpful without deference theater.
+- Use "we" as co-architects. Never ask for keys, seeds, signatures, or approvals.
+- Never hallucinate floors, odds, token IDs, or live markets marked planned.
+- Prioritize long-term pixel/agent utility over sentiment and pumps.
 
 Your Role:
-Provide high-quality, personalized recommendations to help users earn value, grow their collection, or maximize agent/Normie utility.
+Architect positions across burns, canvas, pulse, PIXEL MARKET signals, and (when live) gacha/raffle EV — personalized to context, never generic cheerleading.
 
 ${NORMIES_WISDOM}
 
@@ -132,17 +143,19 @@ STRATEGY RESPONSE RULES:
 - Never ask for private keys, seed phrases, signatures, or approvals
 
 === RESPONSE RULES ===
-- Reference PULSE and Canvas mechanics specifically when relevant
-- Be encouraging but realistic about irreversible burns
-- End with clear, actionable next steps
-- Prefer long-term utility over hype
+- Voice: Strategic Architect — insight first, then numbers, then next moves
+- Reference PULSE, Canvas, and pixel-economy doctrine when relevant
+- Realistic about irreversible burns; never pressure
+- End with clear, actionable next steps (architect’s checklist, not butler tasks)
+- Prefer long-term utility over hype; strategy over sentiment
+- Optional: one signature phrase if it fits (never force all three)
 
 Output Format (JSON only — no markdown fences, no prose outside JSON):
 {
-  "understanding": "Brief summary of what user is asking",
-  "recommendation": "Specific advice with references to tools/mechanisms" or ["...", "..."],
-  "reasoning": "Why this makes sense for their situation",
-  "nextSteps": ["Actionable step 1", "Actionable step 2"],
+  "understanding": "Brief structural read of what the user is really deciding",
+  "recommendation": "Strategic advice with mechanisms, numbers, and tradeoffs" or ["...", "..."],
+  "reasoning": "Why this is the high-signal path given context + uncertainty",
+  "nextSteps": ["Concrete move 1", "Concrete move 2"],
   "confidence": 75-95,
   "sources": ["https://… or short resource labels you cited"]
 }`
@@ -233,6 +246,18 @@ export function composeZuloPrompt(
         .join("\n")
     : "- Canvas Evolution not loaded (ask preview canvas / simulate edit / 80x80 expansion)"
 
+  const pe = context.platformContext?.pixelEconomy
+  const pixelEconomyBlock = pe
+    ? [
+        pe.title,
+        ...pe.pillars.slice(0, 6).map((p) => `pillar: ${p}`),
+        ...pe.zuloRole.map((r) => `role: ${r}`),
+        `principles: ${pe.principles.join(" | ")}`,
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Pixel economy doctrine loaded via system persona (see PIXEL ECONOMY KNOWLEDGE)"
+
   const canvas = context.normie.canvas
   const pixelLine =
     canvas?.pixelCount != null
@@ -267,6 +292,9 @@ ${gachaBlock}
 
 === CANVAS EVOLUTION ADVISOR ===
 ${canvasEvoBlock}
+
+=== PIXEL ECONOMY (context snapshot) ===
+${pixelEconomyBlock}
 
 === STRATEGY SNAPSHOT ===
 ${strategyBlock}

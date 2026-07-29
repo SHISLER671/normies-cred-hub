@@ -153,6 +153,17 @@ export interface ZuloRecommendationContext {
       disclaimer: string
       summary: string
     }
+    /**
+     * Pixel economy doctrine — injected on all strategy-bearing contexts
+     * (from knowledge/pixel-economy.md).
+     */
+    pixelEconomy?: {
+      title: string
+      pillars: string[]
+      zuloRole: string[]
+      principles: string[]
+      source: string
+    }
     /** Canvas Evolution Advisor — preview / expansion / watch */
     canvasEvolution?: {
       mode: string

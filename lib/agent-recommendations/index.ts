@@ -141,6 +141,14 @@ export {
   ZULO_SERVICE_PRICES,
 } from "./constants"
 
+export {
+  loadZuloPersona,
+  loadPixelEconomyKnowledge,
+  buildPersonaPromptBlock,
+  buildPixelEconomyPromptBlock,
+  getPixelEconomyContextSummary,
+} from "./loadKnowledge"
+
 export { getManifest } from "./manifest"
 export {
   verifyAPPayment,
