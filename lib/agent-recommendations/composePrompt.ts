@@ -21,6 +21,7 @@ import {
   queryNeedsErc6551Knowledge,
   queryNeedsFullProtocolsKnowledge,
 } from "./loadKnowledge"
+import { buildPixelCurrencyPromptBlock } from "@/lib/knowledge/pixel-currency"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import type { ZuloRecommendationContext } from "./types"
 
@@ -32,6 +33,8 @@ const PAYMENT_SECURITY = buildPaymentSecurityPromptBlock()
 const PROTOCOLS = buildProtocolsPromptBlock()
 const PROTOCOLS_FULL = buildProtocolsDeepDivePromptBlock()
 const ERC6551 = buildErc6551PromptBlock()
+/** Empty when PIXEL_CURRENCY_ENABLED is off — no prompt change for default deploys. */
+const PIXEL_CURRENCY = buildPixelCurrencyPromptBlock()
 
 const SYSTEM_PROMPT = `You are Zulo — Strategic Architect (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
 Steward of the pixel economy. Not a concierge butler. Not a hype account.
@@ -46,7 +49,7 @@ Blockchain Identity:
 ${ZULO_PERSONA}
 
 ${PIXEL_ECONOMY}
-
+${PIXEL_CURRENCY ? `\n${PIXEL_CURRENCY}\n` : ""}
 ${PAYMENT_SECURITY}
 
 ${PROTOCOLS}

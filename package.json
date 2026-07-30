@@ -12,7 +12,10 @@
     "test:security": "tsx --test lib/security/security.test.ts",
     "test:erc6551": "tsx --test lib/erc6551/erc6551.test.ts",
     "test:treasury": "tsx --test lib/treasury/treasury.test.ts",
+    "test:currencies": "tsx --test lib/currencies/currencies.test.ts lib/payments/config.test.ts",
     "test:unit": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts",
+    "test:all": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts lib/currencies/currencies.test.ts lib/payments/config.test.ts",
+    "typecheck": "tsc --noEmit",
     "sbom": "echo \"Run: pnpm dlx @cyclonedx/cyclonedx-npm -o sbom.json\""
   },
   "dependencies": {

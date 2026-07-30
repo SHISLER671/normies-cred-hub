@@ -179,3 +179,24 @@ export {
   getServicePrice,
   type PaymentVerification,
 } from "./verifyPayment"
+
+/** Pixel currency scaffolding (feature-flagged; default off). */
+export {
+  CURRENCIES,
+  convertCurrency,
+  formatCurrencyAmount,
+  displayCurrencyLabel,
+  type CurrencyCode,
+} from "@/lib/currencies"
+export {
+  isPixelCurrencyEnabled,
+  getDefaultCurrency,
+  getAcceptedCurrencies,
+  getPaymentCurrencyConfig,
+  getPixelCurrencyStatus,
+} from "@/lib/payments/config"
+export {
+  loadPixelCurrencyKnowledge,
+  buildPixelCurrencyPromptBlock,
+  getPixelCurrencyContextSummary,
+} from "@/lib/knowledge/pixel-currency"

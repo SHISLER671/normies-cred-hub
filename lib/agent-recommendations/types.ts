@@ -165,6 +165,18 @@ export interface ZuloRecommendationContext {
       source: string
     }
     /**
+     * Pixel vs AP currency scaffolding — only when PIXEL_CURRENCY_ENABLED
+     * (from lib/knowledge/pixel-currency.md).
+     */
+    pixelCurrency?: {
+      title: string
+      status: string
+      pillars: string[]
+      conversion: string[]
+      principles: string[]
+      source: string
+    }
+    /**
      * Payment & platform security — injected on all strategy-bearing contexts
      * (from knowledge/payment-security.md).
      */
@@ -667,7 +679,18 @@ export interface ZuloManifest {
   /** How agents/users pay Zulo when A2A rails are live */
   payment?: {
     status: "planned" | "live"
-    currency: "AP"
+    /** Primary settlement currency (remains AP for backward compatibility) */
+    currency: "AP" | "PIXEL"
+    /** Discovery list — AP first, PIXEL scaffolded for PIXEL MARKET */
+    currencies?: Array<"AP" | "PIXEL">
+    /** Preferred default (env DEFAULT_CURRENCY; AP unless Pixel enabled) */
+    default?: "AP" | "PIXEL"
+    /** Always AP for legacy clients */
+    fallback?: "AP" | "PIXEL"
+    /** Conversion oracle between AP and PIXEL — planned until serc docs */
+    conversionOracle?: "planned" | "live"
+    /** Pixel currency feature status (not payment enforcement) */
+    pixelCurrencyStatus?: "disabled" | "scaffolded" | "live"
     receiverWallet: string
     /** hot-wallet | erc6551-tba — EVM destination adapter */
     receiverMode?: "hot-wallet" | "erc6551-tba"

@@ -132,6 +132,7 @@ export async function GET() {
         canvasWatch: "/api/zulo/canvas-watch",
         pulse: "/api/zulo/pulse/{tokenId}",
         history: "/api/zulo/history",
+        currencies: "/api/zulo/currencies",
         health: "/api/zulo/health",
         security: "/api/zulo/security",
         securityReport: "/api/zulo/security/report",

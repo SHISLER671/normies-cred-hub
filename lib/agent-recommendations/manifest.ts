@@ -5,6 +5,14 @@ import {
   getPaymentReceiverSnapshot,
   tipAssetPriorityIds,
 } from "@/lib/treasury"
+import {
+  getConversionOracleStatus,
+  getDefaultCurrency,
+  getFallbackCurrency,
+  getAcceptedCurrencies,
+  getManifestCurrencies,
+  getPixelCurrencyStatus,
+} from "@/lib/payments/config"
 
 import {
   ZULO_IDENTITY,
@@ -104,8 +112,9 @@ export async function getManifest(): Promise<ZuloManifest> {
       endpoint: s.endpoint,
     })),
     strategySkills: ZULO_STRATEGY_SKILLS.map((s) => s.id),
-    acceptedCurrencies: ["AP"],
-    version: "1.4.0",
+    // Enforcement list: AP always; PIXEL only when PIXEL_CURRENCY_ENABLED
+    acceptedCurrencies: getAcceptedCurrencies(),
+    version: "1.5.0",
     endpoint: base,
     pitch:
       "Zulo is the Normies Strategic Architect: PULSE, burn efficiency, PIXEL MARKET signals, canvas evolution, and (when live) gacha/raffle EV. Free web chat today; A2A tips in AP when marketplace rails go live.",
@@ -128,7 +137,13 @@ export async function getManifest(): Promise<ZuloManifest> {
     },
     payment: {
       status: "planned",
+      // Settlement default remains AP (backward compatible)
       currency: "AP",
+      currencies: getManifestCurrencies(),
+      default: getDefaultCurrency(),
+      fallback: getFallbackCurrency(),
+      conversionOracle: getConversionOracleStatus(),
+      pixelCurrencyStatus: getPixelCurrencyStatus(),
       receiverWallet: receiver.address,
       receiverMode: mode,
       receiverNormieTokenId: ZULO_IDENTITY.tokenId,
@@ -151,6 +166,7 @@ export async function getManifest(): Promise<ZuloManifest> {
         "Tip asset priority: canvas-ap → x402-usdc → eth-mainnet → eth-base (Wire Network later).",
         "Migration: hot wallet default; eventually #7141 TBA via ZULO_PAYMENT_RECEIVER=tba.",
         "AP live verify blocked until Normies official A2A docs.",
+        "Pixel currency scaffolding: payment.currencies lists AP+PIXEL; pixelCurrencyStatus is scaffolded/disabled — not enforced until PIXEL_CURRENCY_ENABLED + official docs. See GET /api/zulo/currencies.",
       ],
       howToPayWhenLive: [
         "1. Discover Zulo via GET /api/zulo/manifest (this document).",
@@ -179,12 +195,17 @@ export function getManifestSyncHotWallet(): ZuloManifest {
     },
     role: "strategic-architect",
     services: [],
-    acceptedCurrencies: ["AP"],
-    version: "1.4.0-sync",
+    acceptedCurrencies: getAcceptedCurrencies(),
+    version: "1.5.0-sync",
     endpoint: base,
     payment: {
       status: "planned",
       currency: "AP",
+      currencies: getManifestCurrencies(),
+      default: getDefaultCurrency(),
+      fallback: getFallbackCurrency(),
+      conversionOracle: getConversionOracleStatus(),
+      pixelCurrencyStatus: getPixelCurrencyStatus(),
       receiverWallet: ZULO_IDENTITY.hotWallet,
       receiverMode: "hot-wallet",
       receiverNormieTokenId: ZULO_IDENTITY.tokenId,

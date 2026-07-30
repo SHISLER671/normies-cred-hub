@@ -20,6 +20,7 @@ import {
   getPixelEconomyContextSummary,
   getProtocolsDeepDiveContextSummary,
 } from "./loadKnowledge"
+import { getPixelCurrencyContextSummary } from "@/lib/knowledge/pixel-currency"
 import { estimateBurnApFromPixels, levelFromActionPoints } from "./normiesKnowledge"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
@@ -591,6 +592,7 @@ export async function buildZuloContext(
 
   // Doctrine knowledge — always available for strategy-bearing answers
   const pixelEconomy = getPixelEconomyContextSummary()
+  const pixelCurrency = getPixelCurrencyContextSummary()
   const paymentSecurity = getPaymentSecurityContextSummary()
   const protocolsDeepDive = getProtocolsDeepDiveContextSummary()
   const erc6551 = getErc6551ContextSummary()
@@ -703,6 +705,7 @@ export async function buildZuloContext(
       zuloCanvasAPBalance,
       zuloAPBalance: zuloCanvasAPBalance,
       pixelEconomy,
+      ...(pixelCurrency ? { pixelCurrency } : {}),
       paymentSecurity,
       protocolsDeepDive,
       erc6551,
