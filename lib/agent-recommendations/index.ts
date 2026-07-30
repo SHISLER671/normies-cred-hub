@@ -180,7 +180,11 @@ export {
   type PaymentVerification,
 } from "./verifyPayment"
 
-/** Pixel currency scaffolding (feature-flagged; default off). */
+/**
+ * Pixel currency scaffolding (feature-flagged; default off).
+ * Safe for client bundles — no fs/path. Knowledge helpers stay in
+ * @/lib/knowledge/pixel-currency (imported only from server modules).
+ */
 export {
   CURRENCIES,
   convertCurrency,
@@ -195,8 +199,3 @@ export {
   getPaymentCurrencyConfig,
   getPixelCurrencyStatus,
 } from "@/lib/payments/config"
-export {
-  loadPixelCurrencyKnowledge,
-  buildPixelCurrencyPromptBlock,
-  getPixelCurrencyContextSummary,
-} from "@/lib/knowledge/pixel-currency"

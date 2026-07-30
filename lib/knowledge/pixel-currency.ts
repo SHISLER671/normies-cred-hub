@@ -2,14 +2,14 @@
  * Conditional loader for Pixel currency knowledge.
  * Does not modify existing knowledge/*.md files under agent-recommendations.
  * Loaded only when PIXEL_CURRENCY_ENABLED=true.
+ *
+ * Bundled string only (no fs/path) so this module stays edge/client-safe if imported
+ * transitively. Authoring source: pixel-currency.md (keep in sync).
  */
-
-import { readFileSync } from "fs"
-import { join } from "path"
 
 import { isPixelCurrencyEnabled } from "@/lib/payments/config"
 
-/** Bundled fallback if fs read fails in serverless (content mirrors pixel-currency.md). */
+/** Bundled copy of pixel-currency.md for serverless / flag-on inject. */
 export const PIXEL_CURRENCY_MD = `# Pixel Currency — Zulo Knowledge Base (Scaffolding)
 
 > **Status:** Scaffolded preparation for PIXEL MARKET.
@@ -63,19 +63,10 @@ Zulo must **never invent** live order books, transfer mechanics, or non-1:1 rate
 *Patience compounds. Haste erodes.*
 `
 
-function readMarkdownFromDisk(): string | null {
-  try {
-    const p = join(process.cwd(), "lib/knowledge/pixel-currency.md")
-    return readFileSync(p, "utf8")
-  } catch {
-    return null
-  }
-}
-
 /** Full markdown when flag enabled; empty string when disabled. */
 export function loadPixelCurrencyKnowledge(): string {
   if (!isPixelCurrencyEnabled()) return ""
-  return (readMarkdownFromDisk() ?? PIXEL_CURRENCY_MD).trim()
+  return PIXEL_CURRENCY_MD.trim()
 }
 
 /** Prompt block — only injected when Pixel currency feature is on. */
