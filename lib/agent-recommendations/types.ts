@@ -359,6 +359,16 @@ export interface StrategyContext {
     collectionFloorSource?: string
     burnSampleSize: number
     historicalApMedian: number | null
+    /** Current floor vs Supabase 7-day average (when history available) */
+    floorHistory?: {
+      currentFloorETH: number | null
+      avg7dFloorETH: number | null
+      min7dFloorETH: number | null
+      max7dFloorETH: number | null
+      sampleSize: number
+      pctVs7dAvg: number | null
+      vsAvgLabel: "below_avg" | "near_avg" | "above_avg" | "insufficient_data"
+    }
     disclaimer: string
     summary: string
     sources?: string[]

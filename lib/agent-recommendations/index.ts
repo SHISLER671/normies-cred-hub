@@ -60,6 +60,7 @@ export {
 export type {
   BurnEfficiencyCandidate,
   BurnEfficiencyResult,
+  FloorVsHistory,
 } from "./burnEfficiency"
 export {
   runMarketSentinel,

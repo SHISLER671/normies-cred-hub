@@ -9,6 +9,7 @@ import { getAllZuloSkills } from "@/lib/agent-recommendations/skillsCatalog"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { getCircuitState } from "@/lib/security/circuitBreaker"
+import { isSupabaseConfigured } from "@/lib/db/supabase"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 15
@@ -78,6 +79,13 @@ export async function GET() {
         : "KV missing — in-memory fallbacks active",
   }
 
+  checks.supabase = {
+    ok: isSupabaseConfigured(),
+    detail: isSupabaseConfigured()
+      ? "SUPABASE_URL + SUPABASE_KEY set (shared ThinkOS schema)"
+      : "missing SUPABASE_URL / SUPABASE_KEY",
+  }
+
   const circuit = await getCircuitState()
   checks.circuitBreaker = {
     ok: circuit.state === "closed",
@@ -123,6 +131,7 @@ export async function GET() {
         manifest: "/api/zulo/manifest",
         canvasWatch: "/api/zulo/canvas-watch",
         pulse: "/api/zulo/pulse/{tokenId}",
+        history: "/api/zulo/history",
         health: "/api/zulo/health",
         security: "/api/zulo/security",
         securityReport: "/api/zulo/security/report",

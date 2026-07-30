@@ -10,12 +10,23 @@ import {
   tierFromRank,
   type RarityTier,
 } from "./burnData"
+import { getFloorMoralis } from "@/lib/pricing/moralis"
+import {
+  getFloorTrend,
+  getHistoricalFloor,
+  isSupabaseConfigured,
+  saveBurnOpportunity,
+} from "@/lib/db/supabase"
+
 import { ECOSYSTEM_LINKS } from "./constants"
 import { getLiveCollectionFloor, OPENSEA_COLLECTION_URL } from "./marketData"
 import {
   estimateBurnApFromPixels,
   type ApTier,
 } from "./normiesKnowledge"
+
+/** Efficiency threshold for logging burn opportunities (matches optimizer alert). */
+const BURN_OPP_EFFICIENCY_THRESHOLD = 2.0
 
 export const BURN_EFFICIENCY_DISCLAIMER =
   "These are estimates based on historical burn data and current floor/listing prices — not guarantees. Reveal RNG, pixel count, gas, and listing depth all affect realized AP. Always verify live prices on OpenSea and DYOR before burning. Not financial advice."
@@ -34,6 +45,18 @@ export interface BurnEfficiencyCandidate {
   notes?: string
 }
 
+export interface FloorVsHistory {
+  currentFloorETH: number | null
+  avg7dFloorETH: number | null
+  min7dFloorETH: number | null
+  max7dFloorETH: number | null
+  sampleSize: number
+  /** Percent change vs 7d average: negative = below average (better for buy/burn). */
+  pctVs7dAvg: number | null
+  /** short / at / above relative to 7d average */
+  vsAvgLabel: "below_avg" | "near_avg" | "above_avg" | "insufficient_data"
+}
+
 export interface BurnEfficiencyResult {
   scanned: boolean
   topCandidates: BurnEfficiencyCandidate[]
@@ -41,6 +64,8 @@ export interface BurnEfficiencyResult {
   collectionFloorSource?: string
   burnSampleSize: number
   historicalApMedian: number | null
+  /** Current floor vs Supabase 7-day average */
+  floorHistory?: FloorVsHistory
   disclaimer: string
   summary: string
   sources: string[]
@@ -319,9 +344,135 @@ function scoreEfficiency(estimatedAP: number, priceETH: number): number {
   return Math.round((estimatedAP / priceETH) * 100) / 100
 }
 
+type CollectionFloorRef = {
+  floorPriceETH: number
+  source: string
+}
+
 /**
- * Run Burn Efficiency Optimizer: OpenSea floors/listings + Normies burn history
+ * Prefer Moralis floor (rarity estimate on Moralis failure), then OpenSea/Reservoir.
+ */
+async function resolveCollectionFloor(): Promise<CollectionFloorRef | null> {
+  // 1) Moralis first (internal rarity fallback when Moralis fails)
+  try {
+    const moralis = await getFloorMoralis()
+    if (moralis?.floorPriceETH != null && moralis.floorPriceETH > 0) {
+      return {
+        floorPriceETH: moralis.floorPriceETH,
+        source: moralis.source,
+      }
+    }
+  } catch (e) {
+    console.warn("[burnEfficiency] Moralis floor failed:", e)
+  }
+
+  // 2) Existing OpenSea / Reservoir live floor
+  try {
+    const live = await getLiveCollectionFloor()
+    if (live?.floorPriceETH != null && live.floorPriceETH > 0) {
+      return {
+        floorPriceETH: live.floorPriceETH,
+        source: live.source,
+      }
+    }
+  } catch (e) {
+    console.warn("[burnEfficiency] OpenSea/Reservoir floor failed:", e)
+  }
+
+  return null
+}
+
+/**
+ * Compare live floor against Supabase 7-day average (ThinkOS historical data).
+ */
+async function compareFloorVs7dAverage(
+  currentFloorETH: number | null,
+): Promise<FloorVsHistory> {
+  const empty: FloorVsHistory = {
+    currentFloorETH,
+    avg7dFloorETH: null,
+    min7dFloorETH: null,
+    max7dFloorETH: null,
+    sampleSize: 0,
+    pctVs7dAvg: null,
+    vsAvgLabel: "insufficient_data",
+  }
+
+  if (!isSupabaseConfigured()) return empty
+
+  try {
+    // Prefer aggregate helper; fall back to raw points
+    const trend = await getFloorTrend(7)
+    if (trend.sampleSize === 0 || trend.avgFloorETH == null) {
+      // Touch getHistoricalFloor for parity with ThinkOS call sites
+      const points = await getHistoricalFloor(7)
+      if (points.length === 0) return empty
+      const eth = points.map((p) => p.floor_eth)
+      const avg = eth.reduce((a, b) => a + b, 0) / eth.length
+      return buildFloorVsHistory(currentFloorETH, avg, Math.min(...eth), Math.max(...eth), eth.length)
+    }
+    return buildFloorVsHistory(
+      currentFloorETH,
+      trend.avgFloorETH,
+      trend.minFloorETH,
+      trend.maxFloorETH,
+      trend.sampleSize,
+    )
+  } catch (e) {
+    console.warn("[burnEfficiency] historical floor compare failed:", e)
+    return empty
+  }
+}
+
+function buildFloorVsHistory(
+  currentFloorETH: number | null,
+  avg7dFloorETH: number | null,
+  min7dFloorETH: number | null,
+  max7dFloorETH: number | null,
+  sampleSize: number,
+): FloorVsHistory {
+  let pctVs7dAvg: number | null = null
+  let vsAvgLabel: FloorVsHistory["vsAvgLabel"] = "insufficient_data"
+
+  if (
+    currentFloorETH != null &&
+    avg7dFloorETH != null &&
+    avg7dFloorETH > 0 &&
+    sampleSize > 0
+  ) {
+    pctVs7dAvg =
+      Math.round(((currentFloorETH - avg7dFloorETH) / avg7dFloorETH) * 10_000) /
+      100
+    // ±2% band counts as near average
+    if (pctVs7dAvg < -2) vsAvgLabel = "below_avg"
+    else if (pctVs7dAvg > 2) vsAvgLabel = "above_avg"
+    else vsAvgLabel = "near_avg"
+  }
+
+  return {
+    currentFloorETH,
+    avg7dFloorETH:
+      avg7dFloorETH != null
+        ? Math.round(avg7dFloorETH * 1e6) / 1e6
+        : null,
+    min7dFloorETH:
+      min7dFloorETH != null
+        ? Math.round(min7dFloorETH * 1e6) / 1e6
+        : null,
+    max7dFloorETH:
+      max7dFloorETH != null
+        ? Math.round(max7dFloorETH * 1e6) / 1e6
+        : null,
+    sampleSize,
+    pctVs7dAvg,
+    vsAvgLabel,
+  }
+}
+
+/**
+ * Run Burn Efficiency Optimizer: Moralis/OpenSea floors + listings + burn history
  * → top 5 candidates by expected AP / price ETH.
+ * Also compares current floor to Supabase 7-day average and logs high-efficiency opps.
  */
 export async function scanBurnEfficiency(options?: {
   ownedTokenIds?: number[]
@@ -337,18 +488,23 @@ export async function scanBurnEfficiency(options?: {
   }
 
   const sources: string[] = [
+    "moralis",
     OPENSEA_COLLECTION_URL,
     `${NORMIES_API_BASE}/history/burns`,
     ECOSYSTEM_LINKS.rarity,
   ]
+  if (isSupabaseConfigured()) {
+    sources.push("supabase:floor_prices", "supabase:burn_opportunities")
+  }
 
   const [floor, burns, listings] = await Promise.all([
-    getLiveCollectionFloor(),
+    resolveCollectionFloor(),
     fetchLiveBurns(50),
     fetchOpenSeaBestListings(20),
   ])
 
   const collectionFloorETH = floor?.floorPriceETH ?? null
+  const floorHistory = await compareFloorVs7dAverage(collectionFloorETH)
   const burnYields = burns.map((b) => b.apYield).filter((y) => y > 0)
   const historicalApMedian =
     burnYields.length > 0 ? medianOf([...burnYields].sort((a, b) => a - b)) : null
@@ -463,12 +619,33 @@ export async function scanBurnEfficiency(options?: {
   candidates.sort((a, b) => b.efficiencyScore - a.efficiencyScore)
   const topCandidates = candidates.slice(0, 5)
 
+  // Persist high-efficiency opportunities to Supabase (ThinkOS burn_opportunities)
+  if (isSupabaseConfigured() && topCandidates.length > 0) {
+    const toLog = topCandidates.filter(
+      (c) => c.efficiencyScore >= BURN_OPP_EFFICIENCY_THRESHOLD,
+    )
+    void Promise.all(
+      toLog.map((c) =>
+        saveBurnOpportunity({
+          tokenId: c.tokenId,
+          efficiencyScore: c.efficiencyScore,
+          floorPriceETH: c.floorPriceETH,
+          alerted: c.efficiencyScore >= BURN_OPP_EFFICIENCY_THRESHOLD,
+        }).catch((e) => {
+          console.warn("[burnEfficiency] saveBurnOpportunity failed:", e)
+        }),
+      ),
+    )
+  }
+
+  const historyLine = formatFloorHistoryLine(floorHistory)
+
   let summary: string
   if (topCandidates.length === 0) {
     summary =
       collectionFloorETH == null
         ? `Burn efficiency scan could not load floor prices or candidates. Check ${OPENSEA_COLLECTION_URL} and burn history manually. ${BURN_EFFICIENCY_DISCLAIMER}`
-        : `Collection floor ~${collectionFloorETH.toFixed(4)} ETH but no token candidates could be scored (listings/API temporarily unavailable). Historical burn median AP ~${historicalApMedian ?? "n/a"} (n=${burns.length}). ${BURN_EFFICIENCY_DISCLAIMER}`
+        : `Collection floor ~${collectionFloorETH.toFixed(4)} ETH but no token candidates could be scored (listings/API temporarily unavailable). Historical burn median AP ~${historicalApMedian ?? "n/a"} (n=${burns.length}). ${historyLine} ${BURN_EFFICIENCY_DISCLAIMER}`
   } else {
     const lines = topCandidates.map(
       (c, i) =>
@@ -480,6 +657,7 @@ export async function scanBurnEfficiency(options?: {
       collectionFloorETH != null
         ? `Collection floor reference: ~${collectionFloorETH.toFixed(4)} ETH${floor?.source ? ` (${floor.source})` : ""}.`
         : "Collection floor unavailable.",
+      historyLine,
       historicalApMedian != null
         ? `Recent burn sample median ~${historicalApMedian} AP (n=${burns.length}).`
         : "Live burn samples limited.",
@@ -491,9 +669,10 @@ export async function scanBurnEfficiency(options?: {
     scanned: true,
     topCandidates,
     collectionFloorETH,
-    collectionFloorSource: floor?.source,
+    collectionFloorSource: floor?.source ?? undefined,
     burnSampleSize: burns.length,
     historicalApMedian,
+    floorHistory,
     disclaimer: BURN_EFFICIENCY_DISCLAIMER,
     summary,
     sources,
@@ -501,4 +680,21 @@ export async function scanBurnEfficiency(options?: {
 
   efficiencyCache = { at: now, result }
   return result
+}
+
+function formatFloorHistoryLine(h: FloorVsHistory): string {
+  if (h.sampleSize === 0 || h.avg7dFloorETH == null) {
+    return "7-day floor history: insufficient Supabase samples yet."
+  }
+  const pct =
+    h.pctVs7dAvg != null
+      ? `${h.pctVs7dAvg > 0 ? "+" : ""}${h.pctVs7dAvg.toFixed(1)}% vs 7d avg`
+      : "n/a vs 7d avg"
+  const bias =
+    h.vsAvgLabel === "below_avg"
+      ? "Floor is below 7d average — better buy/burn window on cost basis."
+      : h.vsAvgLabel === "above_avg"
+        ? "Floor is above 7d average — fodder is relatively expensive."
+        : "Floor is near 7d average."
+  return `7-day floor: avg ~${h.avg7dFloorETH.toFixed(4)} ETH (min ${h.min7dFloorETH?.toFixed(4) ?? "n/a"}, max ${h.max7dFloorETH?.toFixed(4) ?? "n/a"}, n=${h.sampleSize}); current ${pct}. ${bias}`
 }
