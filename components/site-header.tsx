@@ -28,6 +28,12 @@ export function SiteHeader() {
               Zulo
             </Link>
             <Link
+              href="/paths"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Paths
+            </Link>
+            <Link
               href="/ask"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >

@@ -101,6 +101,41 @@ export const askBodySchema = z.object({
     .optional(),
 })
 
+/** Intent tags for Path Board ranking (closed set). */
+export const intentTagSchema = z.enum([
+  "pulse",
+  "burn",
+  "market",
+  "canvas",
+  "identity",
+  "access",
+  "strategy",
+])
+
+/**
+ * POST /api/zulo/paths — intent → ranked paths.
+ * At least one of intent | intentTag required.
+ */
+export const pathRankBodySchema = z
+  .object({
+    intent: z.string().max(200).optional(),
+    intentTag: intentTagSchema.optional(),
+    tokenId: z.number().int().min(0).max(9999).optional(),
+    wallet: walletSchema.optional(),
+    limit: z.number().int().min(3).max(5).optional().default(5),
+  })
+  .superRefine((val, ctx) => {
+    const hasIntent = typeof val.intent === "string" && val.intent.trim().length > 0
+    const hasTag = val.intentTag != null
+    if (!hasIntent && !hasTag) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide intent (short text) or intentTag (chip)",
+        path: ["intent"],
+      })
+    }
+  })
+
 export const securityReportSchema = z.object({
   summary: z.string().min(10).max(2000),
   severity: z.enum(["sev1", "sev2", "sev3", "unknown"]).optional().default("unknown"),
@@ -113,6 +148,7 @@ export const securityReportSchema = z.object({
 export type PaymentVerifyInput = z.infer<typeof paymentVerifySchema>
 export type AskBodyInput = z.infer<typeof askBodySchema>
 export type SecurityReportInput = z.infer<typeof securityReportSchema>
+export type PathRankBodyInput = z.infer<typeof pathRankBodySchema>
 
 export function servicePriceAp(service: ValidService): number {
   return ZULO_SERVICE_PRICES[service] ?? 0

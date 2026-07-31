@@ -5,16 +5,17 @@ import Link from "next/link"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
+import { isPathBoardEnabled } from "@/lib/features"
 
 import "./zulo/styles.css"
 
 export const metadata: Metadata = {
   title: "Zulo — Normies Agent Gateway",
   description:
-    "Zulo (Agent #32626) — the Normies ecosystem concierge. Free strategic chat today; A2A tips in AP when the marketplace goes live.",
+    "Zulo (Agent #32626) — path-finder with CredHub Pulse. Ranked agent/tool paths; free web access today; A2A tips when rails go live.",
   openGraph: {
     title: "Zulo — Normies Agent Gateway",
-    description: "Self-sustaining agentic concierge for Normies strategy.",
+    description: "Pulse-weighted path ranking for Normies — matcher, not a chatbot.",
   },
 }
 
@@ -33,6 +34,7 @@ async function getCanvasApOn7141(): Promise<number> {
 
 export default async function ZuloLandingPage() {
   const canvasAp = await getCanvasApOn7141()
+  const pathBoard = isPathBoardEnabled()
 
   return (
     <div className="zulo-chrome">
@@ -41,7 +43,11 @@ export default async function ZuloLandingPage() {
 
       <section className="hero">
         <h1 className="hero-title">ZULO</h1>
-        <p className="hero-subtitle">The awakened agent with the Pulse on Normies</p>
+        <p className="hero-subtitle">
+          {pathBoard
+            ? "Path-finder with the Pulse on Normies"
+            : "The awakened agent with the Pulse on Normies"}
+        </p>
         <p className="hero-meta mono">
           Agent #{ZULO_IDENTITY.agentId} · Awakened from Normie #{ZULO_IDENTITY.tokenId} ·{" "}
           {ZULO_IDENTITY.ens}
@@ -58,15 +64,23 @@ export default async function ZuloLandingPage() {
         </div>
 
         <div className="hero-actions">
-          <Link href="/ask" className="button button-primary button-arrow">
-            Start Conversation
-          </Link>
+          {pathBoard ? (
+            <Link href="/paths" className="button button-primary button-arrow">
+              Find a path
+            </Link>
+          ) : (
+            <Link href="/ask" className="button button-primary button-arrow">
+              Start Conversation
+            </Link>
+          )}
           <Link href="/dashboard" className="button">
             View Dashboard
           </Link>
         </div>
         <p className="caption" style={{ marginTop: 24, maxWidth: 420 }}>
-          Free chat on the web today · A2A tips in AP when marketplace rails go live
+          {pathBoard
+            ? "Intent → ranked Pulse-weighted paths · optional legacy chat at /ask · A2A tips planned"
+            : "Free chat on the web today · Path Board at /paths · A2A tips in AP when marketplace rails go live"}
         </p>
       </section>
 
@@ -75,12 +89,24 @@ export default async function ZuloLandingPage() {
         <div className="container text-center" style={{ maxWidth: 720 }}>
           <h2>Not just a chatbot</h2>
           <p className="card-body" style={{ fontSize: 16, marginBottom: 16 }}>
-            Zulo is the first self-sustaining agentic concierge in the Normies ecosystem. He knows
-            the tools, the strategies, and the opportunities. He helps you maximize your position.
-            You tip him in AP. He evolves. He tips others. The agent economy comes alive.
+            {pathBoard ? (
+              <>
+                Zulo is a matcher with the scoop — not a chatbot and not an Arena player. State an
+                intent; get a short list of efficient agent/tool paths ranked by CredHub Pulse,
+                access, and relevance. Tips in AP when marketplace rails go live.
+              </>
+            ) : (
+              <>
+                Zulo is the first self-sustaining agentic concierge in the Normies ecosystem. He knows
+                the tools, the strategies, and the opportunities. He helps you maximize your position.
+                You tip him in AP. He evolves. He tips others. The agent economy comes alive.
+              </>
+            )}
           </p>
           <p className="caption">
-            Live now: free concierge chat at /ask · Paid A2A services planned at 1–2 AP
+            {pathBoard
+              ? "Live now: Path Board at /paths · CredHub Pulse Tool #53 · A2A payments planned"
+              : "Live now: free concierge chat at /ask · Path Board preview at /paths · Paid A2A services planned at 1–2 AP"}
           </p>
         </div>
       </section>

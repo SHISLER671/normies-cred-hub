@@ -14,11 +14,31 @@ It is not only a dashboard. It exposes **public, agent-queryable APIs** so any a
 
 | Path | What it is |
 |------|------------|
-| **`/`** | **Zulo gateway** — monochrome Normies landing, economy pitch, live Canvas AP on #7141, CTAs |
-| **`/ask`** | **Zulo concierge chat** — PULSE dropdown, centered chat, mobile-friendly opportunities rail |
+| **`/`** | **Zulo gateway** — monochrome Normies landing; primary CTA is Path Board when `NEXT_PUBLIC_PATH_BOARD=true`, else legacy chat |
+| **`/paths`** | **Path Board** — intent chips / one sentence → 3–5 Pulse-weighted agent/tool paths (Zulo as matcher, not chatbot) |
+| **`/ask`** | **Legacy concierge chat** — frozen for new features; optional thin on-ramp later |
 | **`/dashboard`** | **CredHub dashboard** — full trust profile UI (search Normie, Ethos, ERC-8257, Horizon, Recommends) |
 | **`/zulo`** | Permanent redirect → `/ask` |
 | **`/agent-recommendations`** | Permanent redirect → `/ask` |
+
+### Path Board API
+
+```
+POST /api/zulo/paths
+GET  /api/zulo/paths?intentTag=burn&tokenId=7141
+```
+
+```json
+{
+  "intent": "efficient burn fodder",
+  "intentTag": "burn",
+  "tokenId": 7141,
+  "wallet": "0x…",
+  "limit": 5
+}
+```
+
+Ranks paths by **CredHub Pulse (0.45) + access (0.30) + relevance (0.25)**. No payment enforcement. Does not replace Tool #53 Pulse.
 
 Meet **Zulo, Normie #7141 → Agent #32626** (`32626.eth`). He is bound to *serve members, never exploit them*: he never asks for keys, pressures a transaction, or manufactures urgency. He reads on-chain signals, Normies mechanics, and community tools — and recommends what actually helps.
 

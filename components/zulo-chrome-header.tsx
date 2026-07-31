@@ -4,7 +4,7 @@ import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { cn } from "@/lib/utils"
 
 type ZuloChromeHeaderProps = {
-  active?: "home" | "ask" | "dashboard"
+  active?: "home" | "ask" | "paths" | "dashboard"
   className?: string
   trailing?: React.ReactNode
   fixed?: boolean
@@ -22,6 +22,9 @@ export function ZuloChromeHeader({
         ZULO
       </Link>
       <nav className="header-nav">
+        <Link href="/paths" className={cn(active === "paths" && "is-active")}>
+          Paths
+        </Link>
         <Link href="/ask" className={cn(active === "ask" && "is-active")}>
           Ask
         </Link>

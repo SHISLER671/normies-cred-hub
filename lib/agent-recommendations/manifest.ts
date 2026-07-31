@@ -102,6 +102,14 @@ export async function getManifest(): Promise<ZuloManifest> {
         price: { amount: 0, currency: "FREE" },
         endpoint: "/ask",
       },
+      {
+        id: "path-rank",
+        name: "Path Board Ranking",
+        description:
+          "Intent → 3–5 Pulse-weighted agent/tool paths (matcher, not chat). Free; A2A planned.",
+        price: { amount: 0, currency: "FREE" },
+        endpoint: "/api/zulo/paths",
+      },
     ],
     skills: skills.map((s) => ({
       id: s.id,
