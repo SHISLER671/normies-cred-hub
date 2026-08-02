@@ -12,9 +12,9 @@ import { ZULO } from "@/constants/contracts"
 import "../zulo/styles.css"
 
 export const metadata: Metadata = {
-  title: "PULSE — Zulo · NormiesCredHub",
+  title: "PULSE — Normies CredHub",
   description:
-    "View, verify, and build trust in your awakened ERC-8004 Normie agents. On-chain identity meets portable reputation.",
+    "PULSE on Normies CredHub: view, verify, and build trust in awakened ERC-8004 Normie agents. On-chain identity meets portable reputation — Zulo (#32626) as high-signal concierge and Tool #53.",
 }
 
 export default function DashboardPage() {

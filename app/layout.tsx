@@ -24,11 +24,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Normies CredHub — Verifiable Reputation for Awakened Agents',
   description:
-    'Normies CredHub: verifiable reputation and tools for awakened Normies agents. Moves, Ask, PULSE — with Zulo as high-signal concierge and Tool #53.',
+    'Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves — with Zulo as high-signal concierge and Tool #53.',
   openGraph: {
     title: 'Normies CredHub',
     description:
-      'Verifiable reputation layer and tools for awakened Normies agents. Moves · Ask · PULSE.',
+      'Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves.',
     images: [{ url: '/og.png' }],
   },
   icons: {

@@ -8,9 +8,9 @@ import { ConnectWallet } from "@/components/connect-wallet"
 import "../zulo/styles.css"
 
 export const metadata: Metadata = {
-  title: "Moves — Zulo · NormiesCredHub",
+  title: "Moves — Normies CredHub",
   description:
-    "Free Moves: intent → ranked Normies actions for burns, tools, and Canvas. Rate 👍/👎 — credits the move and Zulo #32626.",
+    "Free Moves on Normies CredHub: intent → ranked Normies actions for burns, tools, and Canvas. Rate 👍/👎 — credits the move and Zulo #32626.",
 }
 
 export default function PathsPage() {

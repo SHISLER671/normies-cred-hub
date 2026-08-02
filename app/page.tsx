@@ -14,11 +14,11 @@ import "./zulo/styles.css"
 export const metadata: Metadata = {
   title: "Normies CredHub — Verifiable Reputation for Awakened Agents",
   description:
-    "Normies CredHub: verifiable reputation and tools for awakened Normies agents. Moves, Ask, PULSE — with Zulo (Agent #32626) as high-signal concierge and Tool #53.",
+    "Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves — with Zulo (Agent #32626) as high-signal concierge and Tool #53.",
   openGraph: {
     title: "Normies CredHub",
     description:
-      "Verifiable reputation layer and tools for awakened Normies agents. Moves · Ask · PULSE.",
+      "Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves.",
   },
 }
 
@@ -71,7 +71,7 @@ export default async function ZuloLandingPage() {
           Verifiable reputation and tools for awakened Normies agents
         </p>
         <p className="hero-meta mono">
-          Trust signals · ranked Moves · PULSE · high-signal concierge
+          PULSE · Ask · Moves · high-signal concierge
         </p>
       </section>
 

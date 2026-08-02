@@ -32,7 +32,7 @@ const appUrl =
   'https://normies-cred-hub-dashboard.vercel.app';
 
 export const wagmiConfig = getDefaultConfig({
-  appName: 'NormiesCredHub',
+  appName: 'Normies CredHub',
   appDescription: 'See the real reputation of your awakened ERC-8004 Normie agent.',
   appUrl,
   appIcon: 'https://normies-cred-hub-dashboard.vercel.app/icon.png',

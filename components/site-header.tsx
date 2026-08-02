@@ -4,8 +4,8 @@ import { ConnectWallet } from "@/components/connect-wallet"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 
 /**
- * Shared site chrome — same Zulo monochrome header as /, /paths, /ask.
- * Kept as a client wrapper so ConnectWallet works on the dashboard.
+ * Shared site chrome — Normies CredHub monochrome header (PULSE · Ask · Moves).
+ * Client wrapper so ConnectWallet works on /dashboard (PULSE).
  */
 export function SiteHeader({
   active = "dashboard",
