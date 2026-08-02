@@ -47,10 +47,17 @@ export { estimateAPYield, findBurnCandidates, fetchLiveBurns } from "./burnData"
 export {
   analyzeAcquisitionStrategy,
   getLiveCollectionFloor,
+  resolveLiveCollectionFloor,
   CURRENT_FLOORS,
   FLOORS_NOTE,
   OPENSEA_COLLECTION_URL,
 } from "./marketData"
+export {
+  fetchFloorSnapshot,
+  isFloorMarketBurnQuery,
+  FLOOR_SNAPSHOT_FRAMING,
+} from "./floorContext"
+export type { FloorSnapshot } from "./floorContext"
 export {
   scanBurnEfficiency,
   isBurnEfficiencyQuery,

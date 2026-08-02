@@ -531,6 +531,9 @@ export async function buildZuloContext(
   if (strategy.burnReasoning) {
     earningOpportunities.push(`Wallet burns: ${strategy.burnReasoning}`)
   }
+  if (strategy.floorSnapshot) {
+    earningOpportunities.unshift(strategy.floorSnapshot.snapshotLine)
+  }
   if (strategy.burnEfficiency?.scanned && strategy.burnEfficiency.topCandidates.length) {
     const top = strategy.burnEfficiency.topCandidates
       .slice(0, 5)
@@ -586,6 +589,7 @@ export async function buildZuloContext(
   }
 
   const marketState = strategy.marketSentinel?.marketState
+  const floorSnapshot = strategy.floorSnapshot
   const gachaRaffleContext = strategy.gachaRaffle
   const canvasEvolution = strategy.canvasEvolution
   const canvasCtx = canvasEvolution?.canvasState
@@ -709,6 +713,26 @@ export async function buildZuloContext(
       paymentSecurity,
       protocolsDeepDive,
       erc6551,
+      floorSnapshot: floorSnapshot
+        ? {
+            available: floorSnapshot.available,
+            stale: floorSnapshot.stale,
+            latestFloorETH: floorSnapshot.latestFloorETH,
+            avgFloorETH: floorSnapshot.avgFloorETH,
+            minFloorETH: floorSnapshot.minFloorETH,
+            maxFloorETH: floorSnapshot.maxFloorETH,
+            pctVsAvg: floorSnapshot.pctVsAvg,
+            source: floorSnapshot.source,
+            asOf: floorSnapshot.asOf,
+            historySampleSize: floorSnapshot.historySampleSize,
+            historyDays: floorSnapshot.historyDays,
+            historyLatestRecordedAt: floorSnapshot.historyLatestRecordedAt,
+            openSeaUrl: floorSnapshot.openSeaUrl,
+            snapshotLine: floorSnapshot.snapshotLine,
+            framingLines: floorSnapshot.framingLines,
+            note: floorSnapshot.note,
+          }
+        : undefined,
       marketState: marketState
         ? {
             asOf: marketState.asOf,
@@ -834,6 +858,27 @@ export async function buildZuloContext(
         burnMarketNotes: strategy.burnMarketNotes,
         floorsNote: strategy.floorsNote,
         summaryLines: strategy.summaryLines,
+        floorSnapshot: strategy.floorSnapshot
+          ? {
+              available: strategy.floorSnapshot.available,
+              stale: strategy.floorSnapshot.stale,
+              latestFloorETH: strategy.floorSnapshot.latestFloorETH,
+              avgFloorETH: strategy.floorSnapshot.avgFloorETH,
+              minFloorETH: strategy.floorSnapshot.minFloorETH,
+              maxFloorETH: strategy.floorSnapshot.maxFloorETH,
+              pctVsAvg: strategy.floorSnapshot.pctVsAvg,
+              source: strategy.floorSnapshot.source,
+              asOf: strategy.floorSnapshot.asOf,
+              historySampleSize: strategy.floorSnapshot.historySampleSize,
+              historyDays: strategy.floorSnapshot.historyDays,
+              historyLatestRecordedAt:
+                strategy.floorSnapshot.historyLatestRecordedAt,
+              openSeaUrl: strategy.floorSnapshot.openSeaUrl,
+              snapshotLine: strategy.floorSnapshot.snapshotLine,
+              framingLines: strategy.floorSnapshot.framingLines,
+              note: strategy.floorSnapshot.note,
+            }
+          : undefined,
         burnEfficiency: strategy.burnEfficiency
           ? {
               scanned: strategy.burnEfficiency.scanned,

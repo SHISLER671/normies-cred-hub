@@ -98,6 +98,28 @@ export interface ZuloRecommendationContext {
     zuloAPBalance?: number
     /** Strategic burn / acquisition / trait analysis snapshot */
     strategy?: StrategyContext
+    /**
+     * Live floor + Supabase history snapshot for burn / market / floor intents.
+     * Same pipeline as GET /api/zulo/history (Moralis/OpenSea + floor_prices).
+     */
+    floorSnapshot?: {
+      available: boolean
+      stale: boolean
+      latestFloorETH: number | null
+      avgFloorETH: number | null
+      minFloorETH: number | null
+      maxFloorETH: number | null
+      pctVsAvg: number | null
+      source: string | null
+      asOf: string | null
+      historySampleSize: number
+      historyDays: number
+      historyLatestRecordedAt: string | null
+      openSeaUrl: string
+      snapshotLine: string
+      framingLines: string[]
+      note: string
+    }
     /** PIXEL MARKET Sentinel live market state (when skill runs) */
     marketState?: {
       asOf: string
@@ -352,6 +374,25 @@ export interface StrategyContext {
   burnMarketNotes?: string
   floorsNote?: string
   summaryLines?: string[]
+  /** Live Moralis/OpenSea + Supabase 7d history (burn/market/floor intents) */
+  floorSnapshot?: {
+    available: boolean
+    stale: boolean
+    latestFloorETH: number | null
+    avgFloorETH: number | null
+    minFloorETH: number | null
+    maxFloorETH: number | null
+    pctVsAvg: number | null
+    source: string | null
+    asOf: string | null
+    historySampleSize: number
+    historyDays: number
+    historyLatestRecordedAt: string | null
+    openSeaUrl: string
+    snapshotLine: string
+    framingLines: string[]
+    note: string
+  }
   /** Burn Efficiency Optimizer — top AP/ETH market fodder candidates */
   burnEfficiency?: {
     scanned: boolean

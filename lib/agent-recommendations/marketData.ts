@@ -3,6 +3,7 @@
 
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { NORMIES_NFT } from "@/constants/contracts"
+import { getFloorMoralis } from "@/lib/pricing/moralis"
 
 import { estimateAPYield } from "./burnData"
 
@@ -112,6 +113,47 @@ export async function getLiveCollectionFloor(): Promise<FloorPrice | null> {
   return null
 }
 
+export type ResolvedLiveFloor = {
+  floorPriceETH: number
+  source: string
+  lastUpdated: string
+}
+
+/**
+ * Live collection floor with shared preference order:
+ * Moralis (persists to Supabase floor_prices) → OpenSea / Reservoir.
+ * Used by Ask floor snapshot, burn efficiency, market sentinel, acquisition.
+ */
+export async function resolveLiveCollectionFloor(): Promise<ResolvedLiveFloor | null> {
+  try {
+    const moralis = await getFloorMoralis()
+    if (moralis?.floorPriceETH != null && moralis.floorPriceETH > 0) {
+      return {
+        floorPriceETH: moralis.floorPriceETH,
+        source: moralis.source,
+        lastUpdated: moralis.lastUpdated || new Date().toISOString(),
+      }
+    }
+  } catch (e) {
+    console.warn("[marketData] Moralis floor failed:", e)
+  }
+
+  try {
+    const live = await getLiveCollectionFloor()
+    if (live?.floorPriceETH != null && live.floorPriceETH > 0) {
+      return {
+        floorPriceETH: live.floorPriceETH,
+        source: live.source,
+        lastUpdated: live.lastUpdated || new Date().toISOString(),
+      }
+    }
+  } catch (e) {
+    console.warn("[marketData] OpenSea/Reservoir floor failed:", e)
+  }
+
+  return null
+}
+
 export interface AcquisitionOption {
   type: string
   cost: number | null
@@ -131,13 +173,14 @@ export interface AcquisitionAnalysis {
 
 /**
  * Acquisition framing using live collection floor only.
- * Never uses stale hardcoded type floors.
+ * Prefer Moralis → OpenSea/Reservoir (shared floor pipeline). Never invent type floors.
  */
 export async function analyzeAcquisitionStrategy(
   targetAP = 20,
   _budgetETH?: number,
 ): Promise<AcquisitionAnalysis> {
-  const live = await getLiveCollectionFloor()
+  // Shared resolver: Moralis first (persists history), then OpenSea/Reservoir
+  const live = await resolveLiveCollectionFloor()
   const commonAp = await estimateAPYield("human", "common", 3)
 
   if (!live?.floorPriceETH) {
@@ -156,7 +199,7 @@ export async function analyzeAcquisitionStrategy(
   const roughCost = floor * unitsGuess
 
   return {
-    recommendation: `Live collection floor ~${floor.toFixed(3)} ETH (${live.source}, as of ${live.lastUpdated}). For ~${targetAP} AP, a rough framing is on the order of ~${unitsGuess} floor unit(s) if burned as fodder (~${roughCost.toFixed(3)} ETH before gas) — this is NOT a guarantee (pixel tier, RNG, and listing depth matter). Always re-check ${OPENSEA_COLLECTION_URL} before buying. Common/Human listings are often near floor but verify. Include gas for commit+reveal. ${FLOORS_NOTE}`,
+    recommendation: `Live collection floor ~${floor.toFixed(3)} ETH (${live.source}, as of ${live.lastUpdated}) — snapshot only, not a guarantee. For ~${targetAP} AP, a rough framing is on the order of ~${unitsGuess} floor unit(s) if burned as fodder (~${roughCost.toFixed(3)} ETH before gas) — pixel tier, RNG, and listing depth matter. Always re-check ${OPENSEA_COLLECTION_URL} before buying. Common/Human listings are often near floor but verify. Include gas for commit+reveal. ${FLOORS_NOTE}`,
     options: [
       {
         type: "collection-floor",

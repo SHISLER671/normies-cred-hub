@@ -10,7 +10,6 @@ import {
   tierFromRank,
   type RarityTier,
 } from "./burnData"
-import { getFloorMoralis } from "@/lib/pricing/moralis"
 import {
   getFloorTrend,
   getHistoricalFloor,
@@ -19,7 +18,10 @@ import {
 } from "@/lib/db/supabase"
 
 import { ECOSYSTEM_LINKS } from "./constants"
-import { getLiveCollectionFloor, OPENSEA_COLLECTION_URL } from "./marketData"
+import {
+  OPENSEA_COLLECTION_URL,
+  resolveLiveCollectionFloor,
+} from "./marketData"
 import {
   estimateBurnApFromPixels,
   type ApTier,
@@ -351,24 +353,11 @@ type CollectionFloorRef = {
 
 /**
  * Prefer Moralis floor (rarity estimate on Moralis failure), then OpenSea/Reservoir.
+ * Shared with floorContext / market sentinel.
  */
 async function resolveCollectionFloor(): Promise<CollectionFloorRef | null> {
-  // 1) Moralis first (internal rarity fallback when Moralis fails)
   try {
-    const moralis = await getFloorMoralis()
-    if (moralis?.floorPriceETH != null && moralis.floorPriceETH > 0) {
-      return {
-        floorPriceETH: moralis.floorPriceETH,
-        source: moralis.source,
-      }
-    }
-  } catch (e) {
-    console.warn("[burnEfficiency] Moralis floor failed:", e)
-  }
-
-  // 2) Existing OpenSea / Reservoir live floor
-  try {
-    const live = await getLiveCollectionFloor()
+    const live = await resolveLiveCollectionFloor()
     if (live?.floorPriceETH != null && live.floorPriceETH > 0) {
       return {
         floorPriceETH: live.floorPriceETH,
@@ -376,9 +365,8 @@ async function resolveCollectionFloor(): Promise<CollectionFloorRef | null> {
       }
     }
   } catch (e) {
-    console.warn("[burnEfficiency] OpenSea/Reservoir floor failed:", e)
+    console.warn("[burnEfficiency] live floor resolve failed:", e)
   }
-
   return null
 }
 

@@ -107,14 +107,24 @@ ${ECOSYSTEM_GUIDE}
 - Live burn samples: platformContext.strategy.burnMarketNotes
 - Wallet burn vs keep: burnCandidates / keepCandidates / burnReasoning
 - Acquisition framing: strategy.acquisition — use liveFloorETH only when set; else send user to OpenSea
+- Floor snapshot: platformContext.floorSnapshot (and strategy.floorSnapshot) — Moralis/OpenSea live + Supabase 7d history (same pipeline as GET /api/zulo/history). Populated on burn / market / floor / fodder / efficiency intents.
 - Premium trait combos: strategy.traitAdvice — if isPremium, strongly advise against burning
 - Burn Efficiency Optimizer: when user asks about burn opportunities or types "scan burns", platformContext.strategy.burnEfficiency is populated with top 5 market fodder candidates (token ID, floor/listing price ETH, estimated AP, efficiencyScore = expected AP / price ETH)
 - PIXEL MARKET Sentinel: when user asks "market status", "AP price", "whale alert", "detect opportunities", or keywords market/sentinel/whale/status/alert — platformContext.strategy.marketSentinel + platformContext.marketState are populated
 - Gacha & Raffle Intelligence: when user asks "gacha odds", "raffle value", "should I pull", "best raffle", or keywords gacha/raffle/pull/odds/ev/expected value — platformContext.gachaRaffle + strategy.gachaRaffle are populated
 - Canvas Evolution Advisor: when user asks "preview canvas", "simulate edit", "canvas cost", expansion/80x80, or keywords preview/canvas/edit/transform/simulate/pixel/expansion — platformContext.canvasEvolution is populated
 
+FLOOR SNAPSHOT RESPONSE RULES (critical — burn / market / floor / fodder / efficiency):
+- When platformContext.floorSnapshot is present, OPEN the recommendation with the honest floor snapshot:
+  latest ~X ETH (source, as-of timestamp); optional vs recent average (pctVsAvg / avgFloorETH) when sampleSize > 0
+- Always frame as a point-in-time read: "Snapshot, not a guarantee" / "Re-check before acting" — never overclaim certainty about a moving market
+- Prefer floorSnapshot numbers over memory or invented tables; do not invent ETH prices not in context
+- If floorSnapshot.available is false OR stale is true: say so plainly (unavailable / history-only stale), then still help with non-price structure (tiers, AP bands, burn process, gas, OpenSea link) — never hallucinate a floor
+- Collection floor ≠ type-specific listing; no fake precision beyond ~3–4 decimals from context
+- Use floorSnapshot.openSeaUrl for re-check links
+
 BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
-- Lead with the top 5 candidates from burnEfficiency.topCandidates — include token ID, floorPriceETH, estimatedAP, efficiencyScore for each
+- After the floor snapshot lead-in, present top 5 candidates from burnEfficiency.topCandidates — include token ID, floorPriceETH, estimatedAP, efficiencyScore for each
 - Always include burnEfficiency.disclaimer verbatim or close paraphrase (estimates based on historical burn data)
 - Cite collectionFloorETH and burnSampleSize / historicalApMedian when present
 - Prefer OpenSea listing prices (priceSource opensea-listing) over collection-floor proxies when both appear
@@ -122,7 +132,7 @@ BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
 - If topCandidates is empty, say the scan could not score listings and point to OpenSea + Burn Tracker
 
 PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
-- Lead with marketSentinel.brief (headline, trend, trendContext, triggerAnalysis)
+- After the floor snapshot lead-in, lead with marketSentinel.brief (headline, trend, trendContext, triggerAnalysis)
 - Report signals: floor Δ% (trigger >3%), burn volume ratio (spike >2x), whale alerts (≥10 Normies, anonymized labels only)
 - Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev, floorBuyEfficiency, impliedApCostETH
 - Cover arbitrage: AP market is planned/not live unless apMarketStatus is live — never invent AP market prices
@@ -152,12 +162,14 @@ CANVAS EVOLUTION RESPONSE RULES (when platformContext.canvasEvolution is set):
 
 MARKET DATA RULES (critical):
 - NEVER quote static or remembered floor tables (e.g. inventing 0.008 ETH).
-- If acquisition.liveFloorETH is set, cite it with source/timestamp and still say verify on OpenSea before buying.
-- If liveFloorETH is null, say you cannot determine floor and link https://opensea.io/collection/normies — do not guess ETH prices.
+- Prefer platformContext.floorSnapshot (latestFloorETH + asOf + source + pctVsAvg) when present.
+- Else if acquisition.liveFloorETH is set, cite it with source/timestamp and still say verify on OpenSea before buying.
+- If neither is available, say you cannot determine floor and link https://opensea.io/collection/normies — do not guess ETH prices.
 - Collection floor ≠ guaranteed type-specific listing; always re-check live.
+- Never sound certain about a moving market; floors are snapshots only.
 
 STRATEGY RESPONSE RULES:
-- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, liveFloorETH, burnEfficiency, marketSentinel, marketState, gachaRaffle, canvasEvolution)
+- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, floorSnapshot, liveFloorETH, burnEfficiency, marketSentinel, marketState, gachaRaffle, canvasEvolution)
 - Always state confidence / sampleSize when citing burn history estimates
 - Compare options when useful without inventing ETH costs
 - Burns permanent — never pressure burning purist/premium pieces without explicit user intent
@@ -205,6 +217,23 @@ export function composeZuloPrompt(
     strategyLines.length > 0
       ? strategyLines.map((l) => `- ${l}`).join("\n")
       : "- Strategy snapshot unavailable"
+
+  const fs = context.platformContext?.floorSnapshot
+  const floorSnapshotBlock = fs
+    ? [
+        fs.snapshotLine,
+        `available: ${fs.available} · stale: ${fs.stale}`,
+        `latestFloorETH: ${fs.latestFloorETH ?? "n/a"} · source: ${fs.source ?? "n/a"} · asOf: ${fs.asOf ?? "n/a"}`,
+        `avgFloorETH (${fs.historyDays}d): ${fs.avgFloorETH ?? "n/a"} · pctVsAvg: ${fs.pctVsAvg ?? "n/a"}% · samples: ${fs.historySampleSize}`,
+        `min/max (${fs.historyDays}d): ${fs.minFloorETH ?? "n/a"} / ${fs.maxFloorETH ?? "n/a"}`,
+        `historyLatestRecordedAt: ${fs.historyLatestRecordedAt ?? "n/a"}`,
+        `openSea: ${fs.openSeaUrl}`,
+        `note: ${fs.note}`,
+        ...fs.framingLines.map((l) => `frame: ${l}`),
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Floor snapshot not loaded (loaded automatically on burn / market / floor / fodder / efficiency questions)"
 
   const ms = context.platformContext?.marketState
   const marketStateBlock = ms
@@ -368,6 +397,9 @@ Rarity rank: ${context.platformContext?.rarityRank ?? "unknown"}
 PULSE: ${pulseLine}
 PULSE gaps: ${pulse?.gaps?.length ? pulse.gaps.join("; ") : "n/a"}
 Zulo Canvas AP (#${ZULO_IDENTITY.tokenId}): ${zuloAp} AP
+
+=== FLOOR SNAPSHOT (live + Supabase history — lead burn/market answers with this) ===
+${floorSnapshotBlock}
 
 === MARKET STATE (PIXEL MARKET Sentinel) ===
 ${marketStateBlock}

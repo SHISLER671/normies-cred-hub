@@ -16,6 +16,11 @@ import {
   type BurnEfficiencyResult,
 } from "./burnEfficiency"
 import {
+  fetchFloorSnapshot,
+  isFloorMarketBurnQuery,
+  type FloorSnapshot,
+} from "./floorContext"
+import {
   analyzeAcquisitionStrategy,
   FLOORS_NOTE,
   type AcquisitionAnalysis,
@@ -46,6 +51,8 @@ export interface StrategySnapshot {
   acquisition?: AcquisitionAnalysis
   burnMarketNotes?: string
   floorsNote?: string
+  /** Live Moralis/OpenSea + Supabase history floor context (burn/market/floor intents) */
+  floorSnapshot?: FloorSnapshot
   burnEfficiency?: BurnEfficiencyResult
   marketSentinel?: MarketSentinelResult
   gachaRaffle?: GachaRaffleResult
@@ -95,12 +102,19 @@ export async function buildStrategySnapshot(input: {
     input.forceCanvasEvolution === true ||
     (!!input.userQuery && isCanvasEvolutionQuery(input.userQuery))
 
+  // Burn / market / floor / fodder / efficiency → always load real floor context
+  const needsFloorSnapshot =
+    runEfficiency ||
+    runSentinel ||
+    (!!input.userQuery && isFloorMarketBurnQuery(input.userQuery))
+
   const focusTokenId = input.focusTokenId ?? 7141
 
   const [
     apEstimateForFocus,
     acquisition,
     burnMarketNotes,
+    floorSnapshot,
     burnEfficiency,
     marketSentinel,
     gachaRaffle,
@@ -109,6 +123,9 @@ export async function buildStrategySnapshot(input: {
     estimateAPYield(type, tier, Object.keys(input.focusTraits).length),
     analyzeAcquisitionStrategy(20, 0.05),
     getBurnMarketNotes(),
+    needsFloorSnapshot
+      ? fetchFloorSnapshot({ historyDays: 7 })
+      : Promise.resolve(undefined),
     runEfficiency
       ? scanBurnEfficiency({
           ownedTokenIds: input.owned?.map((o) => o.tokenId),
@@ -150,14 +167,24 @@ export async function buildStrategySnapshot(input: {
     burnReasoning = result.reasoning
   }
 
-  const summaryLines: string[] = [
+  const summaryLines: string[] = []
+
+  // Lead strategy with live floor when this is a burn/market/floor question
+  if (floorSnapshot) {
+    summaryLines.push(floorSnapshot.snapshotLine)
+    for (const line of floorSnapshot.framingLines.slice(0, 4)) {
+      summaryLines.push(line)
+    }
+  }
+
+  summaryLines.push(
     `Focus estimate (${type}/${tier}): ~${apEstimateForFocus.median} AP (range ${apEstimateForFocus.min}–${apEstimateForFocus.max}, confidence ${apEstimateForFocus.confidence}, n=${apEstimateForFocus.sampleSize}).`,
     apEstimateForFocus.notes,
     traitAdvice.advice,
     burnMarketNotes,
     acquisition.recommendation,
     FLOORS_NOTE,
-  ]
+  )
 
   if (burnReasoning) summaryLines.push(burnReasoning)
   if (burnCandidates?.length) {
@@ -226,6 +253,7 @@ export async function buildStrategySnapshot(input: {
     acquisition,
     burnMarketNotes,
     floorsNote: FLOORS_NOTE,
+    floorSnapshot,
     burnEfficiency,
     marketSentinel,
     gachaRaffle,

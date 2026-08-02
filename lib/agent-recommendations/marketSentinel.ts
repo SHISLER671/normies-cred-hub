@@ -7,8 +7,8 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { estimateAPYield, fetchLiveBurns } from "./burnData"
 import { ECOSYSTEM_LINKS } from "./constants"
 import {
-  getLiveCollectionFloor,
   OPENSEA_COLLECTION_URL,
+  resolveLiveCollectionFloor,
 } from "./marketData"
 
 /** Floor move threshold (absolute %) that fires a floor signal. */
@@ -113,6 +113,12 @@ const SENTINEL_PHRASES = [
   "market condition",
   "floor alert",
   "burn spike",
+  "what's the floor",
+  "whats the floor",
+  "what is the floor",
+  "current floor",
+  "collection floor",
+  "floor price",
 ]
 
 /** True when the user wants PIXEL MARKET Sentinel intelligence. */
@@ -127,6 +133,9 @@ export function isMarketSentinelQuery(userQuery: string): boolean {
   if (q.includes("whale")) return true
   if (q.includes("market")) return true
   if (q.includes("alert")) return true
+
+  // Floor-first questions should still get sentinel market context
+  if (q === "floor" || q.includes("floor")) return true
 
   // "status" alone or with market-adjacent terms
   if (q === "status" || q === "market status") return true
@@ -551,7 +560,8 @@ export async function runMarketSentinel(options?: {
 
   const [osStats, floor, rawBurns, liveBurns, commonAp] = await Promise.all([
     fetchOpenSeaCollectionStats(),
-    getLiveCollectionFloor(),
+    // Moralis first (shared pipeline / Supabase history), then OpenSea stats fallback
+    resolveLiveCollectionFloor(),
     fetchRawBurns(100),
     fetchLiveBurns(50),
     estimateAPYield("human", "common", 3),
@@ -684,7 +694,7 @@ export async function runMarketSentinel(options?: {
   }
 
   const marketState: MarketStateSnapshot = {
-    asOf: new Date().toISOString(),
+    asOf: floor?.lastUpdated ?? new Date().toISOString(),
     floorETH,
     floorSource: floor?.source ?? (osStats ? "opensea" : undefined),
     floorChangePct:
