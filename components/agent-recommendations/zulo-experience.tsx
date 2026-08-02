@@ -5,6 +5,7 @@ import { useAccount } from "wagmi"
 import { Loader2, Send } from "lucide-react"
 
 import { useActiveNormie } from "@/components/active-normie-provider"
+import { ZuloRichText } from "@/components/agent-recommendations/zulo-rich-text"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { useEnsName } from "@/hooks/use-ens-name"
@@ -265,13 +266,26 @@ export function ZuloExperience({
                   <div className="chat-avatar">Z</div>
                 ) : null}
                 <div className="chat-stack">
-                  <div className="chat-bubble">{msg.content}</div>
+                  {/* Structured replies: hierarchy lives in the card (no duplicate wall of text) */}
                   {msg.structured && msg.role === "zulo" ? (
                     <StructuredCard
                       response={msg.structured}
                       compact={isMobile}
                     />
-                  ) : null}
+                  ) : (
+                    <div
+                      className={cn(
+                        "chat-bubble",
+                        msg.error && "chat-bubble-error",
+                      )}
+                    >
+                      {msg.role === "zulo" ? (
+                        <ZuloRichText text={msg.content} />
+                      ) : (
+                        msg.content
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -388,49 +402,80 @@ function StructuredCard({
     ? response.recommendation
     : [response.recommendation]
 
+  const sources = (response.sources ?? []).filter(
+    (s): s is string => typeof s === "string" && s.trim().length > 0,
+  )
+
   return (
     <div className={cn("response-block", compact && "response-block-compact")}>
-      {!compact ? (
+      {!compact && response.understanding ? (
         <div className="response-section">
           <p className="response-label">Understanding</p>
-          <p>{response.understanding}</p>
+          <ZuloRichText text={response.understanding} />
         </div>
       ) : null}
-      <div className="response-section">
+
+      <div className="response-section response-section-primary">
         <p className="response-label">Recommendation</p>
         {recs.length === 1 ? (
-          <p className="emphasis">{recs[0]}</p>
+          <ZuloRichText text={recs[0] ?? ""} emphasis />
         ) : (
-          <ul style={{ paddingLeft: 16, margin: 0 }}>
+          <ul className="zulo-rich-list response-rec-list">
             {recs.map((rec, i) => (
-              <li key={i} className="emphasis">
-                {rec}
+              <li key={i}>
+                <ZuloRichText text={rec} emphasis />
               </li>
             ))}
           </ul>
         )}
       </div>
+
       {!compact && response.reasoning ? (
         <div className="response-section">
           <p className="response-label">Reasoning</p>
-          <p>{response.reasoning}</p>
+          <ZuloRichText text={response.reasoning} />
         </div>
       ) : null}
+
       {response.nextSteps && response.nextSteps.length > 0 ? (
         <div className="response-section">
           <p className="response-label">Next steps</p>
-          <ul style={{ paddingLeft: 16, margin: 0 }}>
+          <ul className="zulo-rich-list">
             {response.nextSteps.map((step, i) => (
-              <li key={i}>{step}</li>
+              <li key={i}>
+                <ZuloRichText text={step} />
+              </li>
             ))}
           </ul>
         </div>
       ) : null}
+
       <div className="response-meta mono">
-        Confidence {confidence}%
-        {response.sources && response.sources.length > 0
-          ? ` · ${response.sources.slice(0, 3).join(" · ")}`
-          : ""}
+        <span>Confidence {confidence}%</span>
+        {sources.length > 0 ? (
+          <ul className="response-sources">
+            {sources.slice(0, 4).map((src, i) => {
+              const href =
+                /^https?:\/\//i.test(src.trim()) ? src.trim() : null
+              return (
+                <li key={i}>
+                  {href ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="zulo-rich-link"
+                    >
+                      {src.replace(/^https?:\/\//i, "").replace(/\/$/, "")}
+                    </a>
+                  ) : (
+                    src
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
       </div>
     </div>
   )

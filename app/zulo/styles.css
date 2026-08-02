@@ -1244,10 +1244,10 @@
   border: 1px solid var(--border);
   background: var(--bg-primary);
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--text-primary);
-  /* Long skill replies: wrap fully, never clip mid-content */
-  white-space: pre-wrap;
+  /* Rich text owns spacing; still wrap fully */
+  white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
   max-height: none;
@@ -1257,6 +1257,11 @@
   background: var(--bg-dark);
   color: var(--text-inverse);
   border-color: var(--bg-dark);
+  white-space: pre-wrap;
+}
+
+.zulo-chrome .chat-bubble-error {
+  color: var(--text-secondary);
 }
 
 .zulo-chrome .chat-stack {
@@ -1268,40 +1273,50 @@
   overflow: visible;
 }
 
-/* Structured response */
+/* Structured response — hierarchy via labels + spacing only (monochrome) */
 .zulo-chrome .response-block {
   border: 1px solid var(--border);
   background: var(--bg-primary);
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-md) calc(var(--space-md) + 2px);
   margin-top: 0;
   text-align: left;
-  /* Long skill answers must expand fully; list container scrolls, not the card */
   max-height: none;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .zulo-chrome .response-section {
-  margin-bottom: var(--space-md);
+  margin: 0;
+  padding: 0 0 var(--space-md);
+  border-bottom: 1px solid var(--border);
 }
 
-.zulo-chrome .response-section:last-child {
-  margin-bottom: 0;
+.zulo-chrome .response-section:last-of-type {
+  border-bottom: none;
+  padding-bottom: var(--space-sm);
+}
+
+.zulo-chrome .response-section-primary {
+  padding-top: 2px;
 }
 
 .zulo-chrome .response-label {
-  font-size: 11px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.16em;
   color: var(--text-muted);
-  margin-bottom: var(--space-xs);
+  margin: 0 0 10px;
+  font-weight: 500;
 }
 
 .zulo-chrome .response-section p,
 .zulo-chrome .response-section li {
   font-size: 14px;
   color: var(--text-secondary);
-  line-height: 1.6;
-  white-space: pre-wrap;
+  line-height: 1.65;
   overflow-wrap: anywhere;
   word-break: break-word;
   max-height: none;
@@ -1310,6 +1325,124 @@
 .zulo-chrome .response-section .emphasis {
   color: var(--text-primary);
   font-weight: 600;
+}
+
+/* ── Light markdown body ── */
+.zulo-chrome .zulo-rich-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.zulo-chrome .zulo-rich-text-emphasis {
+  color: var(--text-primary);
+}
+
+.zulo-chrome .zulo-rich-p {
+  margin: 0 0 0.85em;
+}
+
+.zulo-chrome .zulo-rich-p:last-child {
+  margin-bottom: 0;
+}
+
+.zulo-chrome .zulo-rich-section {
+  margin: 1.1em 0 0.4em;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.zulo-chrome .zulo-rich-section:first-child {
+  margin-top: 0;
+}
+
+.zulo-chrome .zulo-rich-section .zulo-rich-strong {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.zulo-chrome .zulo-rich-strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.zulo-chrome .zulo-rich-em {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .zulo-rich-list {
+  margin: 0.35em 0 0.9em;
+  padding: 0 0 0 1.15em;
+  list-style: disc;
+}
+
+.zulo-chrome .zulo-rich-list:last-child {
+  margin-bottom: 0;
+}
+
+.zulo-chrome .zulo-rich-list > li {
+  margin: 0 0 0.45em;
+  padding-left: 0.15em;
+  color: var(--text-secondary);
+}
+
+.zulo-chrome .zulo-rich-list > li:last-child {
+  margin-bottom: 0;
+}
+
+.zulo-chrome .zulo-rich-text-emphasis .zulo-rich-list > li {
+  color: var(--text-primary);
+}
+
+.zulo-chrome .zulo-rich-link {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  word-break: break-all;
+}
+
+.zulo-chrome .zulo-rich-link:hover {
+  opacity: 0.8;
+}
+
+.zulo-chrome .response-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .response-sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.zulo-chrome .response-sources li {
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.zulo-chrome .response-rec-list {
+  margin-top: 0;
 }
 
 .zulo-chrome .step-row {
@@ -1988,11 +2121,25 @@
 }
 
 .zulo-chrome .ask-shell.is-mobile .response-block {
-  padding: 10px;
+  padding: 12px 10px;
 }
 
-.zulo-chrome .ask-shell.is-mobile .response-block-compact .response-section {
-  margin-bottom: 8px;
+.zulo-chrome .ask-shell.is-mobile .response-section {
+  padding-bottom: 12px;
+}
+
+.zulo-chrome .ask-shell.is-mobile .zulo-rich-text {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.zulo-chrome .ask-shell.is-mobile .zulo-rich-section {
+  font-size: 11px;
+  margin-top: 0.95em;
+}
+
+.zulo-chrome .ask-shell.is-mobile .zulo-rich-list {
+  padding-left: 1.05em;
 }
 
 .zulo-chrome .quick-prompts-scroll {
