@@ -205,7 +205,7 @@ export default async function ZuloLandingPage() {
           </div>
         </div>
         <p
-          className="caption text-center"
+          className="caption text-center home-rep-copy"
           style={{
             marginTop: 32,
             maxWidth: 560,
@@ -213,32 +213,20 @@ export default async function ZuloLandingPage() {
             marginRight: "auto",
           }}
         >
-          Ratings build Zulo&apos;s trackable reputation in CredHub today.
-          On-chain tips and TBA rails activate when serc enables x402 + ERC-6551
-          for #{ZULO_IDENTITY.tokenId}. Moves stays free. Canvas AP above is #
-          {ZULO_IDENTITY.tokenId}&apos;s transform budget, not tip income.
+          Helpful ratings build Zulo&apos;s trackable reputation in CredHub
+          today. On-chain tips and TBA rails unlock when serc enables x402 +
+          ERC-6551. Moves stays free. Canvas AP shown above is #
+          {ZULO_IDENTITY.tokenId}&apos;s transform budget — not tip income.
         </p>
 
         <div className="hero-actions" style={{ marginTop: 40 }}>
-          <Link
-            href="/paths"
-            className={
-              pathBoard
-                ? "button button-primary button-arrow"
-                : "button button-arrow"
-            }
-          >
+          <Link href="/paths" className="button button-arrow">
             Moves
           </Link>
-          <Link
-            href="/ask"
-            className={
-              pathBoard ? "button" : "button button-primary button-arrow"
-            }
-          >
+          <Link href="/ask" className="button button-primary button-arrow">
             Ask
           </Link>
-          <Link href="/dashboard" className="button">
+          <Link href="/dashboard" className="button button-pulse-cta">
             PULSE
           </Link>
         </div>

@@ -625,6 +625,16 @@
   justify-content: center;
 }
 
+.zulo-chrome .home-rep-copy {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 400;
+}
+
 /* Buttons */
 .zulo-chrome .button {
   display: inline-flex;
@@ -1201,32 +1211,35 @@
 }
 
 .zulo-chrome .status-live {
-  position: relative;
-  padding-left: 18px;
   color: var(--text-primary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  /* No decorative pulse square — keep LIVE text only */
 }
 
-.zulo-chrome .status-live::before {
-  content: "■";
-  position: absolute;
-  left: 0;
+/* Homepage PULSE CTA — subtle monochrome live treatment */
+.zulo-chrome .button-pulse-cta {
+  position: relative;
+  background: var(--bg-primary);
   color: var(--text-primary);
-  animation: zulo-heartbeat 1.5s ease-in-out infinite;
+  border-color: var(--border);
+  overflow: visible;
 }
 
-@keyframes zulo-heartbeat {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.45;
-    transform: scale(0.9);
-  }
+.zulo-chrome .button-pulse-cta::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--text-primary);
+  opacity: 0;
+  pointer-events: none;
+  animation: zulo-pulse-glow var(--pulse-speed) ease-in-out infinite;
+}
+
+.zulo-chrome .button-pulse-cta:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .zulo-chrome .data-pulse {
