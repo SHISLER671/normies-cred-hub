@@ -97,38 +97,35 @@ export default async function ZuloLandingPage() {
           </div>
 
           <div className="grid-3 home-zulo-points">
-            <div>
+            <Link href="/dashboard" className="home-surface-card home-surface-card-pulse">
               <h3>PULSE</h3>
               <p>
                 Pulse-influenced advice and trust signals for the active Normie
                 — data-backed, not vibes-only.
               </p>
-            </div>
-            <div>
+              <span className="home-surface-card-go mono" aria-hidden>
+                Open →
+              </span>
+            </Link>
+            <Link href="/ask" className="home-surface-card home-surface-card-ask">
               <h3>Ask</h3>
               <p>
                 High-signal concierge chat scoped to the active Normie — PULSE
                 and Canvas, not generic chat.
               </p>
-            </div>
-            <div>
+              <span className="home-surface-card-go mono" aria-hidden>
+                Open →
+              </span>
+            </Link>
+            <Link href="/paths" className="home-surface-card home-surface-card-moves">
               <h3>Moves</h3>
               <p>
                 Ranked tryable agent/tool moves with reasoning and a clear
                 try-it step.
               </p>
-            </div>
-          </div>
-
-          <div className="hero-actions home-cta-row">
-            <Link href="/dashboard" className="button button-pulse-cta">
-              PULSE
-            </Link>
-            <Link href="/ask" className="button button-primary button-arrow">
-              Ask
-            </Link>
-            <Link href="/paths" className="button button-arrow">
-              Moves
+              <span className="home-surface-card-go mono" aria-hidden>
+                Open →
+              </span>
             </Link>
           </div>
         </div>

@@ -997,27 +997,119 @@
 .zulo-chrome .home-zulo-points {
   max-width: 900px;
   margin: 0 auto;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
-.zulo-chrome .home-zulo-points h3 {
-  margin-bottom: 8px;
-  font-size: 16px;
+.zulo-chrome .home-surface-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 148px;
+  padding: 18px 16px;
+  border: 2px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: 0;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.zulo-chrome .home-zulo-points p {
+.zulo-chrome .home-surface-card h3 {
   margin: 0;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.zulo-chrome .home-surface-card p {
+  margin: 0;
+  flex: 1 1 auto;
   font-size: 14px;
   line-height: 1.55;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 400;
 }
 
-.zulo-chrome .home-cta-row {
-  margin-top: var(--space-lg);
+.zulo-chrome .home-surface-card-go {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  margin-top: 4px;
+}
+
+/* Moves — light outline (static) */
+.zulo-chrome .home-surface-card-moves:hover,
+.zulo-chrome .home-surface-card-moves:focus-visible {
+  background: var(--bg-secondary);
+  outline: none;
+}
+
+/* Ask — strongest filled treatment */
+.zulo-chrome .home-surface-card-ask {
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  border-color: var(--bg-dark);
+}
+
+.zulo-chrome .home-surface-card-ask p {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.zulo-chrome .home-surface-card-ask:hover,
+.zulo-chrome .home-surface-card-ask:focus-visible {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  outline: none;
+}
+
+/* PULSE — subtle monochrome pulse outline */
+.zulo-chrome .home-surface-card-pulse {
+  position: relative;
+  overflow: visible;
+}
+
+.zulo-chrome .home-surface-card-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--text-primary);
+  opacity: 0;
+  pointer-events: none;
+  animation: zulo-pulse-glow var(--pulse-speed) ease-in-out infinite;
+}
+
+.zulo-chrome .home-surface-card-pulse:hover,
+.zulo-chrome .home-surface-card-pulse:focus-visible {
+  background: var(--bg-secondary);
+  outline: none;
+}
+
+.zulo-chrome .home-surface-card:active {
+  transform: translateY(1px);
+}
+
+.zulo-chrome .home-surface-card:hover .home-surface-card-go,
+.zulo-chrome .home-surface-card:focus-visible .home-surface-card-go {
+  opacity: 1;
 }
 
 @media (max-width: 768px) {
   .zulo-chrome .home-zulo-points.grid-3 {
     grid-template-columns: 1fr;
+  }
+
+  .zulo-chrome .home-surface-card {
+    min-height: 120px;
   }
 }
 

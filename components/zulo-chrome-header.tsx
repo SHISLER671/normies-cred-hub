@@ -39,17 +39,17 @@ export function ZuloChromeHeader({
         </span>
       </Link>
       <nav className="header-nav" aria-label="Primary">
-        <Link href="/paths" className={cn(movesActive && "is-active")}>
-          Moves
-        </Link>
-        <Link href="/ask" className={cn(active === "ask" && "is-active")}>
-          Ask
-        </Link>
         <Link
           href="/dashboard"
           className={cn(active === "dashboard" && "is-active")}
         >
           PULSE
+        </Link>
+        <Link href="/ask" className={cn(active === "ask" && "is-active")}>
+          Ask
+        </Link>
+        <Link href="/paths" className={cn(movesActive && "is-active")}>
+          Moves
         </Link>
         <a
           href={`https://www.normies.art/lab/agentic/agents/${ZULO_IDENTITY.agentId}`}
