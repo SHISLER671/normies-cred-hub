@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ThemeProvider, useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import { WagmiProvider } from "wagmi"
+import { ActiveNormieProvider } from "@/components/active-normie-provider"
 import { WalletGateProvider } from "@/components/wallet-gate"
 
 // Dynamic RainbowKit theme that follows our Light/Night system
@@ -64,7 +65,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         >
           <RainbowThemeProvider>
             <WalletGateProvider>
-              {children}
+              <ActiveNormieProvider>{children}</ActiveNormieProvider>
             </WalletGateProvider>
           </RainbowThemeProvider>
         </ThemeProvider>

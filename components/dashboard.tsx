@@ -10,21 +10,17 @@ import { Erc8257RegistryPanel } from "@/components/erc8257-registry-panel"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SectionLabel } from "@/components/ui/section-label"
-import { ZULO } from "@/constants/contracts"
+import { useActiveNormie } from "@/components/active-normie-provider"
+import { MyAgentsPanel } from "@/components/my-agents-panel"
 import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
 import { AgentCheckCard } from "@/components/agentcheck-card"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
 import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Wallet, Wrench } from "lucide-react"
-import { Fragment, useState, useEffect, useRef } from "react"
+import { Fragment, useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
-import { YourNormies } from "@/components/your-normies"
 import { useWalletGate } from "@/components/wallet-gate"
-import {
-  getLastSelectedNormie,
-  setLastSelectedNormie,
-} from "@/lib/last-selected-normie"
 import { useEnsName } from "@/hooks/use-ens-name"
 import {
   controlsNormie,
@@ -45,8 +41,12 @@ export function Dashboard() {
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
   const { requireWallet, promptConnect } = useWalletGate()
+  const {
+    activeTokenId: tokenId,
+    setActiveTokenId,
+    controlledNormies: myNormies,
+  } = useActiveNormie()
 
-  const [tokenId, setTokenId] = useState<number>(ZULO.tokenId)
   const [myInput, setMyInput] = useState<string>("")
 
   // Bridge search state
@@ -124,45 +124,12 @@ export function Dashboard() {
     !isZeroAddress(delegate) ? delegate : undefined
   )
 
-  const {
-    data: myNormies = [],
-    isLoading: myNormiesLoading,
-    isError: myNormiesError,
-  } = useMyNormies(address)
   const { data: ownerAgents = [] } = useMyNormies(ownerAddress)
   const { data: bridgeAgents = [] } = useMyNormies(bridgeAddress || undefined)
 
-  const restoredWalletRef = useRef<string | null>(null)
-
   function selectNormie(id: number) {
-    setTokenId(id)
-    if (address) {
-      setLastSelectedNormie(address, id)
-    }
+    setActiveTokenId(id)
   }
-
-  // Restore last selected Normie per wallet (if still owned), else default to first owned
-  useEffect(() => {
-    if (!isConnected || !address || myNormiesLoading) return
-    if (restoredWalletRef.current === address.toLowerCase()) return
-
-    const ownedIds = new Set(myNormies.map((n) => n.tokenId))
-    const saved = getLastSelectedNormie(address)
-
-    if (saved !== null && ownedIds.has(saved)) {
-      setTokenId(saved)
-    } else if (myNormies.length > 0) {
-      setTokenId((current) => (current === ZULO.tokenId ? myNormies[0].tokenId : current))
-    }
-
-    restoredWalletRef.current = address.toLowerCase()
-  }, [isConnected, address, myNormiesLoading, myNormies])
-
-  useEffect(() => {
-    if (!address) {
-      restoredWalletRef.current = null
-    }
-  }, [address])
 
   function loadMyAgent() {
     const parsed = Number.parseInt(myInput, 10)
@@ -233,17 +200,8 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Your Normies — owned collection (layout placeholder) */}
-      {isConnected && (
-        <YourNormies
-          walletAddress={address}
-          normies={myNormies}
-          isLoading={myNormiesLoading}
-          isError={myNormiesError}
-          selectedTokenId={tokenId}
-          onSelect={selectNormie}
-        />
-      )}
+      {/* My agents — controlled / delegated multi-Normie switcher */}
+      <MyAgentsPanel />
 
       {/* Profile Bridge UI - sexy linked profiles */}
       {(bridgeUsername || bridgeAddress) && (

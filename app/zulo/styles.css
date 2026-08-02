@@ -250,6 +250,318 @@
   }
 }
 
+/* ========== Active Normie switcher (header) ========== */
+
+.zulo-chrome .active-normie-switcher {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.zulo-chrome .active-normie-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 4px 8px 4px 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.zulo-chrome .active-normie-trigger:hover,
+.zulo-chrome .active-normie-trigger.is-open {
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .active-normie-pixel {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.zulo-chrome .active-normie-pixel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.zulo-chrome .active-normie-pixel-sm {
+  width: 20px;
+  height: 20px;
+}
+
+.zulo-chrome .active-normie-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.15;
+}
+
+.zulo-chrome .active-normie-kicker {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .active-normie-id {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.zulo-chrome .active-normie-empty {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-primary);
+  min-height: 40px;
+  justify-content: center;
+}
+
+.zulo-chrome .active-normie-empty-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .active-normie-empty-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.zulo-chrome .active-normie-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 120;
+  min-width: 220px;
+  max-width: min(92vw, 280px);
+  max-height: min(60vh, 320px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-md, 0 2px 0 0 rgb(0 0 0 / 0.08));
+}
+
+.zulo-chrome .active-normie-panel-hint {
+  margin: 0;
+  padding: 14px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  text-transform: none;
+}
+
+.zulo-chrome .active-normie-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+
+.zulo-chrome .active-normie-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  border-radius: 0;
+}
+
+.zulo-chrome .active-normie-option:hover {
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .active-normie-option.is-active {
+  border-color: var(--border);
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .active-normie-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.zulo-chrome .active-normie-option-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.zulo-chrome .active-normie-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.zulo-chrome .active-normie-header-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ========== My agents panel (PULSE) ========== */
+
+.zulo-chrome .my-agents-panel,
+.my-agents-panel {
+  border: 1px solid var(--border, #1a1a1a);
+  background: var(--bg-secondary, #f0f0f0);
+  padding: 16px;
+  margin-bottom: 24px;
+  border-radius: 0;
+}
+
+.my-agents-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.my-agents-kicker {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted, #4a4a4a);
+}
+
+.my-agents-count {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted, #4a4a4a);
+}
+
+.my-agents-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary, #4a4a4a);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+.my-agents-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.my-agent-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border, #1a1a1a);
+  background: var(--bg-primary, #e5e5e5);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+  font-family: inherit;
+  min-height: 120px;
+}
+
+.my-agent-card:hover {
+  background: var(--card-hover, #e8e8e8);
+}
+
+.my-agent-card.is-active {
+  border-width: 2px;
+  background: var(--bg-primary, #e5e5e5);
+}
+
+.my-agent-pixel {
+  display: block;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border, #1a1a1a);
+  background: var(--bg-secondary, #d4d4d4);
+  overflow: hidden;
+}
+
+.my-agent-pixel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.my-agent-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.my-agent-id {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.my-agent-status {
+  font-size: 11px;
+  color: var(--text-muted, #4a4a4a);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+.my-agent-active-tag {
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary, #1a1a1a);
+}
+
+@media (max-width: 640px) {
+  .zulo-chrome .active-normie-meta {
+    display: none;
+  }
+
+  .zulo-chrome .active-normie-panel {
+    right: 0;
+    left: auto;
+  }
+}
+
 .zulo-chrome .header-nav {
   display: flex;
   flex-wrap: wrap;

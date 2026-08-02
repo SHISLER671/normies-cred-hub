@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 
+import { useActiveNormie } from "@/components/active-normie-provider"
+import { ActiveNormieBadge } from "@/components/active-normie-switcher"
 import type { IntentTag, RankedPath, RankPathsResult } from "@/lib/path-ranker"
 import { useWalletGate } from "@/components/wallet-gate"
 
@@ -21,15 +23,23 @@ export function PathBoard({
 }) {
   const { address } = useAccount()
   const { promptConnect } = useWalletGate()
+  const { activeTokenId } = useActiveNormie()
   const [intentTag, setIntentTag] = useState<IntentTag | null>(null)
   const [intent, setIntent] = useState("")
   const [tokenId, setTokenId] = useState(
-    defaultTokenId != null ? String(defaultTokenId) : "",
+    defaultTokenId != null
+      ? String(defaultTokenId)
+      : String(activeTokenId),
   )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<RankPathsResult | null>(null)
   const [helpfulCount, setHelpfulCount] = useState<number | null>(null)
+
+  // Keep ranking subject in sync with Active Normie
+  useEffect(() => {
+    setTokenId(String(activeTokenId))
+  }, [activeTokenId])
 
   useEffect(() => {
     let cancelled = false
@@ -127,6 +137,7 @@ export function PathBoard({
     <div className="moves-board">
       <header>
         <p className="moves-kicker mono">MOVES · ZULO CONCIERGE · FREE</p>
+        <ActiveNormieBadge />
         <h1 className="moves-title">What are you deciding?</h1>
         <p className="moves-lede">
           High-signal Normies help for burns, trait/tool picks, and Canvas

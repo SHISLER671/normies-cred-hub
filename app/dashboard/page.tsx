@@ -21,16 +21,17 @@ export default function DashboardPage() {
 
       <main className="dash-main">
         <section className="dash-hero">
-          <p className="moves-kicker mono">CREDHUB · AWAKENED · LIVE</p>
+          <p className="moves-kicker mono">CREDHUB · PULSE · LIVE</p>
           <h1 className="moves-title">
-            See the real reputation of your awakened agent.
+            See the real reputation of your awakened agents.
           </h1>
           <p className="moves-lede">
-            A verifiable reputation layer for autonomous Normies agents. Public
-            trust profiles for every agent. Connect your wallet to see your own.
+            A verifiable reputation layer for autonomous Normies agents. Switch
+            your Active Normie in the header or My agents list — then inspect
+            trust, PULSE, and tools for that agent.
           </p>
           <p className="caption" style={{ marginTop: 16 }}>
-            Connect your wallet to unlock personalized features for your agent.
+            Connect your wallet to unlock your controlled and delegated set.
           </p>
         </section>
 

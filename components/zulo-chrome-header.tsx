@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 
+import { ActiveNormieSwitcher } from "@/components/active-normie-switcher"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { cn } from "@/lib/utils"
 
@@ -9,6 +10,8 @@ type ZuloChromeHeaderProps = {
   className?: string
   trailing?: React.ReactNode
   fixed?: boolean
+  /** Show Active Normie switcher (default true). */
+  showActiveNormie?: boolean
 }
 
 export function ZuloChromeHeader({
@@ -16,6 +19,7 @@ export function ZuloChromeHeader({
   className,
   trailing,
   fixed = true,
+  showActiveNormie = true,
 }: ZuloChromeHeaderProps) {
   const movesActive = active === "paths" || active === "moves"
 
@@ -54,6 +58,7 @@ export function ZuloChromeHeader({
         >
           View on Normies →
         </a>
+        {showActiveNormie ? <ActiveNormieSwitcher /> : null}
         {trailing}
       </nav>
     </header>

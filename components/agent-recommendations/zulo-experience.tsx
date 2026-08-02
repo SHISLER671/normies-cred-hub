@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useAccount } from "wagmi"
 import { ExternalLink, Loader2, Send } from "lucide-react"
 
+import { useActiveNormie } from "@/components/active-normie-provider"
+import { ActiveNormieBadge } from "@/components/active-normie-switcher"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { useEnsName } from "@/hooks/use-ens-name"
@@ -55,8 +57,9 @@ function shortAddr(addr: string) {
 export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { defaultTokenId?: number }) {
   const { address, isConnected } = useAccount()
   const { data: ensName } = useEnsName(address)
+  const { activeTokenId } = useActiveNormie()
 
-  const [tokenId] = useState(defaultTokenId)
+  const tokenId = activeTokenId ?? defaultTokenId
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -473,7 +476,7 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
             <span className="ask-module-toggle-label">
               <span className="mono">ZULO</span>
               <span className="ask-module-meta">
-                Agent #{ZULO_IDENTITY.agentId} · #{ZULO_IDENTITY.tokenId} · Concierge
+                Agent #{ZULO_IDENTITY.agentId} · subject #{tokenId} · Concierge
               </span>
             </span>
             <span className={cn("pulse-toggle-chevron", introOpen && "is-open")}>
@@ -482,7 +485,8 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
           </button>
           {introOpen ? (
             <div className="ask-module-body">
-              <p className="ask-intro-text">
+              <ActiveNormieBadge />
+              <p className="ask-intro-text" style={{ marginTop: 12 }}>
                 High-signal help for burns, trait/tool choices, and Canvas edits.
                 Prefer ranked tryable actions?{" "}
                 <a href="/paths" className="ask-inline-link">
@@ -490,7 +494,8 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                 </a>
               </p>
               <p className="caption" style={{ marginTop: 10, marginBottom: 0 }}>
-                NormiesCredHub PULSE Tool #53 · free chat · no keys
+                NormiesCredHub PULSE Tool #53 · free chat · no keys · subject #
+                {tokenId}
               </p>
             </div>
           ) : null}
