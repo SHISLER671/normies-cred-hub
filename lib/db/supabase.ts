@@ -470,6 +470,14 @@ export async function getZuloHelpfulStats(
     return null
   }
 
+  // Missing table / schema cache issues can surface as null counts without a hard error.
+  if (upRes.count == null && totalRes.count == null) {
+    console.error(
+      "[supabase] getZuloHelpfulStats — null counts (is recommendation_feedback migrated?)",
+    )
+    return null
+  }
+
   return {
     zuloAgentId,
     helpfulCount: upRes.count ?? 0,
