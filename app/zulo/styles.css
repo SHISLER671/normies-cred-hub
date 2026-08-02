@@ -806,6 +806,34 @@
   margin: 0 auto;
 }
 
+/* Quiet quote under What Zulo Does — secondary, compact */
+.zulo-chrome .quote-quiet {
+  margin: var(--space-lg) auto 0;
+  padding: var(--space-md) var(--space-sm) 0;
+  max-width: 28rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.zulo-chrome .quote-quiet .quote-line {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.zulo-chrome .quote-quiet .quote-author {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.85;
+  font-style: normal;
+}
+
 .zulo-chrome .quote-line {
   font-size: clamp(18px, 3vw, 24px);
   font-style: italic;

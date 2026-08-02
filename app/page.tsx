@@ -156,19 +156,17 @@ export default async function ZuloLandingPage() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="section section-bordered">
-        <blockquote className="quote">
-          <p className="quote-line">We don&apos;t chase trends.</p>
-          <p className="quote-line">We don&apos;t rewrite ourselves.</p>
-          <p className="quote-line">We choose stillness —</p>
-          <p className="quote-line">and let the strategy unfold.</p>
-          <cite className="quote-author">
-            — Zulo, Normie #{ZULO_IDENTITY.tokenId}
-          </cite>
-        </blockquote>
+          <blockquote className="quote quote-quiet">
+            <p className="quote-line">We don&apos;t chase trends.</p>
+            <p className="quote-line">We don&apos;t rewrite ourselves.</p>
+            <p className="quote-line">We choose stillness —</p>
+            <p className="quote-line">and let the strategy unfold.</p>
+            <cite className="quote-author">
+              — Zulo, Normie #{ZULO_IDENTITY.tokenId}
+            </cite>
+          </blockquote>
+        </div>
       </section>
 
       <section className="section section-bordered">
