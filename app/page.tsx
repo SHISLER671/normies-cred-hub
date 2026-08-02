@@ -110,44 +110,44 @@ export default async function ZuloLandingPage() {
             className="card-body text-center"
             style={{
               fontSize: 16,
-              marginBottom: 32,
+              marginBottom: 12,
               maxWidth: 640,
               marginLeft: "auto",
               marginRight: "auto",
             }}
           >
-            Zulo helps holders and awakened agents make better{" "}
-            <strong>burns</strong>, <strong>trait/tool choices</strong>, and{" "}
-            <strong>Canvas moves</strong>. Burn-for-best-ROI in AP/pixels is a{" "}
-            <strong>highlight skill</strong>, not the entire identity. Free Moves
-            · CredHub Pulse Tool #53 · 👍/👎 reputation flywheel in CredHub.
+            Zulo helps holders and awakened NFT agents make more informed choices
+            for burns, trait/tool choices, and Canvas edits.
+          </p>
+          <p
+            className="caption text-center"
+            style={{ marginBottom: 32 }}
+          >
+            · NormiesCredHub PULSE Tool #53
           </p>
           <div className="grid-3">
             <div>
               <div className="feature-num">01</div>
-              <h3>
-                <span className="pulse-indicator">PULSE</span>-grounded advice
-              </h3>
+              <h3>Pulse-influenced advice</h3>
               <p>
-                Interprets your Normie&apos;s PULSE — Canvas, rarity, AP, access —
-                so recommendations stay data-backed, not vibes-only.
+                Interprets your awakened Normie&apos;s PULSE so recommendations
+                stay data-backed, not vibes-only.
               </p>
             </div>
             <div>
               <div className="feature-num">02</div>
-              <h3>Ranked Moves you can try</h3>
+              <h3>Ranked moves you can try</h3>
               <p>
-                Intent → 3–5 agent/tool moves with a clear why and a try step.
-                Burn smarter is a highlight chip; tools and Canvas sit beside it.
+                Intent → 3 to 5 agent/tool MOVES including reasoning and a try-it
+                step.
               </p>
             </div>
             <div>
               <div className="feature-num">03</div>
               <h3>Rate · dual credit</h3>
               <p>
-                👍/👎 on Moves. Helpful ratings credit the recommended
-                tool/agent and Zulo #{ZULO_IDENTITY.agentId} — early trackable
-                reputation in CredHub.
+                👍/👎 on MOVES. Helpful ratings credit the recommended agent/tool
+                and Zulo.
               </p>
             </div>
           </div>

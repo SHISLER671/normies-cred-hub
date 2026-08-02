@@ -68,6 +68,8 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   const [isMobile, setIsMobile] = useState(false)
   const [keyboardOpen, setKeyboardOpen] = useState(false)
   const [opportunitiesCollapsed, setOpportunitiesCollapsed] = useState(true)
+  const [introOpen, setIntroOpen] = useState(false)
+  const [skillsOpen, setSkillsOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
   const welcomeSent = useRef(false)
@@ -81,8 +83,14 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
     const apply = () => {
-      setIsMobile(mq.matches)
-      if (!mq.matches) setOpportunitiesCollapsed(false)
+      const mobile = mq.matches
+      setIsMobile(mobile)
+      // Desktop: open skills tray + opps by default; mobile stays collapsed for density
+      if (!mobile) {
+        setOpportunitiesCollapsed(false)
+        setSkillsOpen(true)
+        setIntroOpen(true)
+      }
     }
     apply()
     mq.addEventListener("change", apply)
@@ -272,11 +280,18 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
 
   const visibleOpportunities = isMobile ? opportunities.slice(0, 3) : opportunities
   const showOppsSection = opportunities.length > 0 && !(isMobile && keyboardOpen)
-  const showQuickPrompts = !keyboardOpen
+  const showQuickPrompts = !keyboardOpen && skillsOpen
   const visibleQuickPrompts = isMobile ? QUICK_PROMPTS.slice(0, 5) : QUICK_PROMPTS
+  const oppsOpen = !opportunitiesCollapsed
 
   return (
-    <div className={cn("zulo-chrome ask-shell", isMobile && "is-mobile", keyboardOpen && "keyboard-open")}>
+    <div
+      className={cn(
+        "zulo-chrome ask-shell ask-modular",
+        isMobile && "is-mobile",
+        keyboardOpen && "keyboard-open",
+      )}
+    >
       <div className="ask-top" ref={topRef}>
         <ZuloChromeHeader
           active="ask"
@@ -285,7 +300,11 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
             <div className="header-trailing">
               <button
                 type="button"
-                className={cn("pulse-toggle", showPulse && "is-open", isMobile && "pulse-toggle-compact")}
+                className={cn(
+                  "pulse-toggle",
+                  showPulse && "is-open",
+                  isMobile && "pulse-toggle-compact",
+                )}
                 onClick={() => setShowPulse((v) => !v)}
                 aria-expanded={showPulse}
                 aria-controls="pulse-dropdown"
@@ -294,7 +313,9 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                 {!isMobile ? (
                   <span className="pulse-tier mono muted">{pulseTierLabel}</span>
                 ) : null}
-                <span className={cn("pulse-toggle-chevron", showPulse && "is-open")}>▼</span>
+                <span className={cn("pulse-toggle-chevron", showPulse && "is-open")}>
+                  ▼
+                </span>
               </button>
               {!isMobile && isConnected && address ? (
                 <span className="mono muted" style={{ fontSize: 11 }}>
@@ -307,7 +328,12 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
         />
 
         {showPulse ? (
-          <div id="pulse-dropdown" className="pulse-dropdown animate-slide-down" role="region" aria-label="PULSE data">
+          <div
+            id="pulse-dropdown"
+            className="pulse-dropdown animate-slide-down"
+            role="region"
+            aria-label="PULSE data"
+          >
             <div className="pulse-dropdown-inner">
               {pulse ? (
                 <>
@@ -316,7 +342,11 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                     <PulseField
                       label="Status"
                       value={
-                        <span className={pulse.status === "awakened" ? "status-live" : undefined}>
+                        <span
+                          className={
+                            pulse.status === "awakened" ? "status-live" : undefined
+                          }
+                        >
                           {pulse.status}
                         </span>
                       }
@@ -329,24 +359,39 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                           : `Untouched · L${pulse.canvas.level}`
                       }
                     />
-                    <PulseField label="AP" value={String(pulse.canvas.actionPoints)} />
+                    <PulseField
+                      label="AP"
+                      value={String(pulse.canvas.actionPoints)}
+                    />
                     <PulseField
                       label="Rarity"
-                      value={<span style={{ textTransform: "capitalize" }}>{pulse.rarity.tier}</span>}
+                      value={
+                        <span style={{ textTransform: "capitalize" }}>
+                          {pulse.rarity.tier}
+                        </span>
+                      }
                     />
                     <PulseField
                       label="Rank"
-                      value={pulse.rarity.rank != null ? `#${pulse.rarity.rank}` : "—"}
+                      value={
+                        pulse.rarity.rank != null ? `#${pulse.rarity.rank}` : "—"
+                      }
                     />
                     <PulseField
                       label="Score"
                       value={
-                        pulse.rarity.score != null ? pulse.rarity.score.toFixed(1) : "—"
+                        pulse.rarity.score != null
+                          ? pulse.rarity.score.toFixed(1)
+                          : "—"
                       }
                     />
                     <PulseField
                       label="Type"
-                      value={<span style={{ textTransform: "capitalize" }}>{pulse.type}</span>}
+                      value={
+                        <span style={{ textTransform: "capitalize" }}>
+                          {pulse.type}
+                        </span>
+                      }
                     />
                   </div>
 
@@ -354,7 +399,8 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                     <div style={{ marginTop: 16 }}>
                       <p className="caption">CredHub PULSE</p>
                       <p className="mono" style={{ marginTop: 4 }}>
-                        {pulse.credHub.pulseLevel}/{pulse.credHub.maxLevel} · {pulse.credHub.status}
+                        {pulse.credHub.pulseLevel}/{pulse.credHub.maxLevel} ·{" "}
+                        {pulse.credHub.status}
                       </p>
                       {pulse.credHub.gaps.length > 0 ? (
                         <p className="caption" style={{ marginTop: 6 }}>
@@ -405,7 +451,9 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
                 </>
               ) : (
                 <p className="caption text-center">
-                  {pulseLoading ? "Loading PULSE…" : "PULSE unavailable. Try again later."}
+                  {pulseLoading
+                    ? "Loading PULSE…"
+                    : "PULSE unavailable. Try again later."}
                 </p>
               )}
             </div>
@@ -413,184 +461,272 @@ export function ZuloExperience({ defaultTokenId = ZULO_IDENTITY.tokenId }: { def
         ) : null}
       </div>
 
-      {/* Centered chat stage */}
-      <main className="ask-main">
-        <div className="ask-chat">
-          <div className="chat-messages">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={cn(
-                  "chat-message",
-                  msg.role === "user" ? "chat-message-user" : "chat-message-zulo",
-                )}
-              >
-                {msg.role === "zulo" && !isMobile ? (
-                  <div className="chat-avatar">Z</div>
-                ) : null}
-                <div className="chat-stack">
-                  <div className="chat-bubble">{msg.content}</div>
-                  {msg.structured && msg.role === "zulo" ? (
-                    <StructuredCard response={msg.structured} compact={isMobile} />
+      <div className="ask-body">
+        {/* Module 1 — Identity / intro (collapsible) */}
+        <section className={cn("ask-module", introOpen && "is-open")}>
+          <button
+            type="button"
+            className="ask-module-toggle"
+            onClick={() => setIntroOpen((v) => !v)}
+            aria-expanded={introOpen}
+          >
+            <span className="ask-module-toggle-label">
+              <span className="mono">ZULO</span>
+              <span className="ask-module-meta">
+                Agent #{ZULO_IDENTITY.agentId} · #{ZULO_IDENTITY.tokenId} · Concierge
+              </span>
+            </span>
+            <span className={cn("pulse-toggle-chevron", introOpen && "is-open")}>
+              ▼
+            </span>
+          </button>
+          {introOpen ? (
+            <div className="ask-module-body">
+              <p className="ask-intro-text">
+                High-signal help for burns, trait/tool choices, and Canvas edits.
+                Prefer ranked tryable actions?{" "}
+                <a href="/paths" className="ask-inline-link">
+                  Free Moves →
+                </a>
+              </p>
+              <p className="caption" style={{ marginTop: 10, marginBottom: 0 }}>
+                NormiesCredHub PULSE Tool #53 · free chat · no keys
+              </p>
+            </div>
+          ) : null}
+        </section>
+
+        {/* Module 2 — Chat (primary, always open) */}
+        <main className="ask-main">
+          <div className="ask-chat">
+            <div className="chat-messages">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={cn(
+                    "chat-message",
+                    msg.role === "user"
+                      ? "chat-message-user"
+                      : "chat-message-zulo",
+                  )}
+                >
+                  {msg.role === "zulo" && !isMobile ? (
+                    <div className="chat-avatar">Z</div>
+                  ) : null}
+                  <div className="chat-stack">
+                    <div className="chat-bubble">{msg.content}</div>
+                    {msg.structured && msg.role === "zulo" ? (
+                      <StructuredCard
+                        response={msg.structured}
+                        compact={isMobile}
+                      />
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+
+              {loading ? (
+                <div className="chat-message chat-message-zulo">
+                  {!isMobile ? <div className="chat-avatar">Z</div> : null}
+                  <div
+                    className="chat-bubble"
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <Loader2 className="size-4 animate-spin" />
+                    Thinking…
+                  </div>
+                </div>
+              ) : null}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className={cn("chat-footer", keyboardOpen && "pb-safe")}>
+              {/* Module 3 — Skills tray (expandable) */}
+              {!keyboardOpen ? (
+                <div className={cn("ask-skills-tray", skillsOpen && "is-open")}>
+                  <button
+                    type="button"
+                    className="ask-skills-toggle"
+                    onClick={() => setSkillsOpen((v) => !v)}
+                    aria-expanded={skillsOpen}
+                  >
+                    <span>Skills / intents</span>
+                    <span
+                      className={cn("pulse-toggle-chevron", skillsOpen && "is-open")}
+                    >
+                      ▼
+                    </span>
+                  </button>
+                  {showQuickPrompts ? (
+                    <div
+                      className={cn(
+                        "quick-prompts",
+                        isMobile && "scrollbar-hide quick-prompts-scroll",
+                      )}
+                    >
+                      {visibleQuickPrompts.map((item) => (
+                        <button
+                          key={item.prompt}
+                          type="button"
+                          className="quick-prompt"
+                          disabled={loading}
+                          title={item.prompt}
+                          onClick={() => void sendMessage(item.prompt)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
                   ) : null}
                 </div>
-              </div>
-            ))}
+              ) : null}
 
-            {loading ? (
-              <div className="chat-message chat-message-zulo">
-                {!isMobile ? <div className="chat-avatar">Z</div> : null}
-                <div className="chat-bubble" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Loader2 className="size-4 animate-spin" />
-                  Thinking…
+              <div className="chat-input">
+                <input
+                  type="text"
+                  className="chat-input-field"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      if (canSend) void sendMessage()
+                    }
+                  }}
+                  placeholder={isMobile ? "Ask…" : "Ask Zulo…"}
+                  maxLength={MAX_USER_QUERY_CHARS}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="button button-primary"
+                  disabled={!canSend}
+                  onClick={() => void sendMessage()}
+                  aria-label="Send"
+                >
+                  {loading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : isMobile ? (
+                    "→"
+                  ) : (
+                    <>
+                      <Send className="size-4" />
+                      Ask
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {/* Module 4 — Opportunities / live signals (collapsible) */}
+        {showOppsSection ? (
+          <section
+            className={cn(
+              "ask-module ask-module-opps",
+              oppsOpen && "is-open",
+              isMobile && !oppsOpen && "is-collapsed",
+            )}
+            aria-label="Opportunities"
+          >
+            <button
+              type="button"
+              className="ask-module-toggle"
+              onClick={() => setOpportunitiesCollapsed((v) => !v)}
+              aria-expanded={oppsOpen}
+            >
+              <span className="ask-module-toggle-label">
+                <span>Opportunities / live signals</span>
+                <span className="ask-module-meta mono">
+                  {opportunities.length}
+                </span>
+              </span>
+              <span className={cn("pulse-toggle-chevron", oppsOpen && "is-open")}>
+                ▼
+              </span>
+            </button>
+            {oppsOpen ? (
+              <div className="ask-module-body ask-opps-body">
+                <div className={cn("opp-rail", isMobile && "scrollbar-hide")}>
+                  {visibleOpportunities.map((rec, i) => {
+                    const open = expandedOpportunity === i
+                    return (
+                      <div
+                        key={`${i}-${rec.slice(0, 20)}`}
+                        className={cn("opp-chip", open && "is-expanded")}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() =>
+                          setExpandedOpportunity(open ? null : i)
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            setExpandedOpportunity(open ? null : i)
+                          }
+                        }}
+                      >
+                        <div className="opp-chip-head">
+                          <span className="mono muted">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span
+                            className={cn(
+                              "pulse-toggle-chevron",
+                              open && "is-open",
+                            )}
+                          >
+                            ▼
+                          </span>
+                        </div>
+                        <p
+                          className={cn("opp-chip-body", !open && "clamped")}
+                        >
+                          {rec}
+                        </p>
+                        {open ? (
+                          <div
+                            className="opp-chip-expand"
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                          >
+                            <p className="caption">
+                              Ask Zulo about this opportunity
+                            </p>
+                            <button
+                              type="button"
+                              className="button button-primary button-sm"
+                              disabled={loading}
+                              onClick={() => {
+                                setExpandedOpportunity(null)
+                                if (isMobile) setOpportunitiesCollapsed(true)
+                                void sendMessage(
+                                  `Tell me more about this opportunity: ${rec}`,
+                                )
+                              }}
+                            >
+                              Ask Zulo →
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ) : null}
+          </section>
+        ) : null}
 
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className={cn("chat-footer", keyboardOpen && "pb-safe")}>
-            {showQuickPrompts ? (
-              <div className={cn("quick-prompts", isMobile && "scrollbar-hide quick-prompts-scroll")}>
-                {visibleQuickPrompts.map((item) => (
-                  <button
-                    key={item.prompt}
-                    type="button"
-                    className="quick-prompt"
-                    disabled={loading}
-                    title={item.prompt}
-                    onClick={() => void sendMessage(item.prompt)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <div className="chat-input">
-              <input
-                type="text"
-                className="chat-input-field"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    if (canSend) void sendMessage()
-                  }
-                }}
-                placeholder={isMobile ? "Ask…" : "Ask Zulo…"}
-                maxLength={MAX_USER_QUERY_CHARS}
-                disabled={loading}
-              />
-              <button
-                type="button"
-                className="button button-primary"
-                disabled={!canSend}
-                onClick={() => void sendMessage()}
-                aria-label="Send"
-              >
-                {loading ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : isMobile ? (
-                  "→"
-                ) : (
-                  <>
-                    <Send className="size-4" />
-                    Ask
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {showOppsSection ? (
-        <section
-          className={cn(
-            "opp-rail-section",
-            isMobile && opportunitiesCollapsed && "is-collapsed",
-          )}
-          aria-label="Opportunities"
-        >
-          <div className="opp-rail-inner">
-            {isMobile ? (
-              <button
-                type="button"
-                className="opp-collapse-toggle"
-                onClick={() => setOpportunitiesCollapsed((v) => !v)}
-                aria-expanded={!opportunitiesCollapsed}
-              >
-                <span>
-                  Opportunities ({opportunities.length})
-                </span>
-                <span>{opportunitiesCollapsed ? "▼" : "▲"}</span>
-              </button>
-            ) : (
-              <p className="caption" style={{ marginBottom: 8 }}>
-                Opportunities
-              </p>
-            )}
-
-            {(!isMobile || !opportunitiesCollapsed) && (
-              <div className={cn("opp-rail", isMobile && "scrollbar-hide")}>
-                {visibleOpportunities.map((rec, i) => {
-                  const open = expandedOpportunity === i
-                  return (
-                    <div
-                      key={`${i}-${rec.slice(0, 20)}`}
-                      className={cn("opp-chip", open && "is-expanded")}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setExpandedOpportunity(open ? null : i)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault()
-                          setExpandedOpportunity(open ? null : i)
-                        }
-                      }}
-                    >
-                      <div className="opp-chip-head">
-                        <span className="mono muted">{String(i + 1).padStart(2, "0")}</span>
-                        <span className={cn("pulse-toggle-chevron", open && "is-open")}>▼</span>
-                      </div>
-                      <p className={cn("opp-chip-body", !open && "clamped")}>{rec}</p>
-                      {open ? (
-                        <div
-                          className="opp-chip-expand"
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                        >
-                          <p className="caption">Ask Zulo about this opportunity</p>
-                          <button
-                            type="button"
-                            className="button button-primary button-sm"
-                            disabled={loading}
-                            onClick={() => {
-                              setExpandedOpportunity(null)
-                              if (isMobile) setOpportunitiesCollapsed(true)
-                              void sendMessage(`Tell me more about this opportunity: ${rec}`)
-                            }}
-                          >
-                            Ask Zulo →
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </section>
-      ) : null}
-
-      {!keyboardOpen ? (
-        <p className="dyor">
-          Informational only — DYOR. Burns are permanent. Zulo never asks for keys.
-        </p>
-      ) : null}
+        {!keyboardOpen ? (
+          <p className="dyor">
+            Informational only — DYOR. Burns are permanent. Zulo never asks for
+            keys.
+          </p>
+        ) : null}
+      </div>
     </div>
   )
 }
