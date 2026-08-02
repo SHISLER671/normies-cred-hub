@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 
 import type { IntentTag, RankedPath, RankPathsResult } from "@/lib/path-ranker"
@@ -9,6 +9,9 @@ import { IntentChips } from "./intent-chips"
 import { PathCard } from "./path-card"
 
 const MAX_INTENT = 200
+
+const REPUTATION_NOTE =
+  "Ratings build Zulo’s trackable reputation in CredHub today. On-chain tips and TBA rails activate when serc enables x402 + ERC-6551 for #7141."
 
 export function PathBoard({
   defaultTokenId,
@@ -24,6 +27,28 @@ export function PathBoard({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<RankPathsResult | null>(null)
+  const [helpfulCount, setHelpfulCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch("/api/zulo/feedback")
+        const data = (await res.json()) as {
+          ok?: boolean
+          helpfulCount?: number
+        }
+        if (!cancelled && res.ok && data.ok && typeof data.helpfulCount === "number") {
+          setHelpfulCount(data.helpfulCount)
+        }
+      } catch {
+        /* soft stats optional on load */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const runRank = useCallback(
     async (opts?: { tag?: IntentTag; text?: string }) => {
@@ -98,15 +123,24 @@ export function PathBoard({
           className="mono"
           style={{ fontSize: 12, letterSpacing: "0.12em", opacity: 0.7 }}
         >
-          PATH BOARD · ZULO MATCHER
+          PATH BOARD · ZULO CONCIERGE · FREE
         </p>
         <h1 style={{ margin: "8px 0 8px", fontSize: 28, fontWeight: 700 }}>
-          What do you need done?
+          What are you deciding?
         </h1>
-        <p style={{ margin: 0, fontSize: 15, opacity: 0.85, maxWidth: 520 }}>
-          Pick an intent or one short sentence. Zulo ranks 3–5 efficient agent/tool
-          paths by CredHub Pulse, access, and relevance — not a chat, not a catalog.
+        <p style={{ margin: 0, fontSize: 15, opacity: 0.85, maxWidth: 540 }}>
+          High-signal Normies help for burns, trait/tool picks, and Canvas moves.
+          Pick a chip or one short sentence — Zulo ranks 3–5 tryable paths by CredHub
+          Pulse, access, and relevance. Burn ROI is a highlight, not the whole job.
         </p>
+        {helpfulCount != null ? (
+          <p
+            className="mono"
+            style={{ margin: "12px 0 0", fontSize: 12, opacity: 0.75 }}
+          >
+            Helpful ratings · Zulo #32626 · {helpfulCount}
+          </p>
+        ) : null}
       </header>
 
       <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -213,11 +247,24 @@ export function PathBoard({
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {paths.map((p) => (
-              <PathCard key={p.pathId} path={p} />
+              <PathCard
+                key={p.pathId}
+                path={p}
+                feedbackContext={{
+                  intentTag: result.intent.primary,
+                  intentRaw: result.intent.raw || intent,
+                  subjectTokenId: result.subject.tokenId,
+                  wallet: address,
+                }}
+              />
             ))}
           </div>
           <p style={{ marginTop: 20, fontSize: 12, opacity: 0.65 }}>
             {result.zulo.note}
+          </p>
+          <p style={{ marginTop: 8, fontSize: 12, opacity: 0.65, maxWidth: 560 }}>
+            Rate any path with 👍/👎 — credits the recommended tool/agent and Zulo
+            #32626. {REPUTATION_NOTE}
           </p>
         </section>
       ) : null}

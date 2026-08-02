@@ -145,10 +145,30 @@ export const securityReportSchema = z.object({
   referenceUrl: z.string().url().max(500).optional(),
 })
 
+/**
+ * POST /api/zulo/feedback — Path Board 👍/👎 (wallet optional).
+ * Does not affect ranking in Phase 1.
+ */
+export const pathFeedbackBodySchema = z.object({
+  rating: z.enum(["up", "down"]),
+  pathId: z.string().min(1).max(200),
+  pathKind: z.string().max(64).optional(),
+  pathTitle: z.string().max(200).optional(),
+  publisherName: z.string().max(120).optional(),
+  publisherAgentId: z.number().int().positive().optional(),
+  publisherTokenId: z.number().int().min(0).max(9999).optional(),
+  intentTag: intentTagSchema.optional(),
+  intentRaw: z.string().max(200).optional(),
+  subjectTokenId: z.number().int().min(0).max(9999).optional(),
+  wallet: walletSchema.optional(),
+  context: z.literal("path-board").optional().default("path-board"),
+})
+
 export type PaymentVerifyInput = z.infer<typeof paymentVerifySchema>
 export type AskBodyInput = z.infer<typeof askBodySchema>
 export type SecurityReportInput = z.infer<typeof securityReportSchema>
 export type PathRankBodyInput = z.infer<typeof pathRankBodySchema>
+export type PathFeedbackBodyInput = z.infer<typeof pathFeedbackBodySchema>
 
 export function servicePriceAp(service: ValidService): number {
   return ZULO_SERVICE_PRICES[service] ?? 0

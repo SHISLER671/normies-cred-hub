@@ -339,3 +339,141 @@ export async function logWorkflowRun(input: {
 
   return (data as WorkflowRunRow) ?? null
 }
+
+/** Path Board 👍/👎 — dual credit (path publisher + Zulo recommender). */
+export type RecommendationFeedbackRow = {
+  id?: number
+  created_at?: string
+  rating: "up" | "down"
+  context: string
+  path_id: string
+  path_kind?: string | null
+  path_title?: string | null
+  publisher_name?: string | null
+  publisher_agent_id?: number | null
+  publisher_token_id?: number | null
+  zulo_agent_id: number
+  zulo_token_id: number
+  intent_tag?: string | null
+  intent_raw?: string | null
+  subject_token_id?: number | null
+  wallet?: string | null
+  payment_proof_id?: string | null
+  tx_hash?: string | null
+  attestation_id?: string | null
+}
+
+export type ZuloHelpfulStats = {
+  zuloAgentId: number
+  helpfulCount: number
+  totalRatings: number
+  asOf: string
+}
+
+/**
+ * Persist Path Board feedback. Returns null if Supabase missing or insert fails.
+ * Phase 1: store up+down; public UI shows helpful (up) only.
+ */
+export async function saveRecommendationFeedback(input: {
+  rating: "up" | "down"
+  pathId: string
+  pathKind?: string | null
+  pathTitle?: string | null
+  publisherName?: string | null
+  publisherAgentId?: number | null
+  publisherTokenId?: number | null
+  zuloAgentId?: number
+  zuloTokenId?: number
+  intentTag?: string | null
+  intentRaw?: string | null
+  subjectTokenId?: number | null
+  wallet?: string | null
+  context?: string
+}): Promise<RecommendationFeedbackRow | null> {
+  const supabase = getSupabase()
+  if (!supabase) {
+    console.error(
+      "[supabase] saveRecommendationFeedback failed — SUPABASE_URL/KEY required",
+    )
+    return null
+  }
+
+  const row = {
+    rating: input.rating,
+    context: input.context ?? "path-board",
+    path_id: input.pathId,
+    path_kind: input.pathKind ?? null,
+    path_title: input.pathTitle ?? null,
+    publisher_name: input.publisherName ?? null,
+    publisher_agent_id: input.publisherAgentId ?? null,
+    publisher_token_id: input.publisherTokenId ?? null,
+    zulo_agent_id: input.zuloAgentId ?? 32626,
+    zulo_token_id: input.zuloTokenId ?? 7141,
+    intent_tag: input.intentTag ?? null,
+    intent_raw: input.intentRaw ?? null,
+    subject_token_id: input.subjectTokenId ?? null,
+    wallet: input.wallet ?? null,
+  }
+
+  const { data, error } = await supabase
+    .from("recommendation_feedback")
+    .insert([row])
+    .select()
+    .maybeSingle()
+
+  if (error) {
+    console.error("[supabase] saveRecommendationFeedback error:", error.message)
+    return null
+  }
+
+  return (data as RecommendationFeedbackRow) ?? null
+}
+
+/**
+ * Aggregate helpful (👍) ratings for Zulo as recommender.
+ * Downvotes stored but not returned for public display.
+ */
+export async function getZuloHelpfulStats(
+  zuloAgentId: number = 32626,
+): Promise<ZuloHelpfulStats | null> {
+  const supabase = getSupabase()
+  if (!supabase) {
+    console.error(
+      "[supabase] getZuloHelpfulStats failed — SUPABASE_URL/KEY required",
+    )
+    return null
+  }
+
+  const asOf = new Date().toISOString()
+
+  const [upRes, totalRes] = await Promise.all([
+    supabase
+      .from("recommendation_feedback")
+      .select("id", { count: "exact", head: true })
+      .eq("zulo_agent_id", zuloAgentId)
+      .eq("rating", "up"),
+    supabase
+      .from("recommendation_feedback")
+      .select("id", { count: "exact", head: true })
+      .eq("zulo_agent_id", zuloAgentId),
+  ])
+
+  if (upRes.error) {
+    console.error("[supabase] getZuloHelpfulStats up:", upRes.error.message)
+    return null
+  }
+  if (totalRes.error) {
+    console.error(
+      "[supabase] getZuloHelpfulStats total:",
+      totalRes.error.message,
+    )
+    return null
+  }
+
+  return {
+    zuloAgentId,
+    helpfulCount: upRes.count ?? 0,
+    totalRatings: totalRes.count ?? 0,
+    asOf,
+  }
+}

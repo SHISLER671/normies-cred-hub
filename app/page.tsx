@@ -5,17 +5,19 @@ import Link from "next/link"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
+import { getZuloHelpfulStats } from "@/lib/db/supabase"
 import { isPathBoardEnabled } from "@/lib/features"
 
 import "./zulo/styles.css"
 
 export const metadata: Metadata = {
-  title: "Zulo — Normies Agent Gateway",
+  title: "Zulo — High-Signal Normies Concierge",
   description:
-    "Zulo (Agent #32626) — path-finder with CredHub Pulse. Ranked agent/tool paths; free web access today; A2A tips when rails go live.",
+    "Zulo (Agent #32626) — high-signal Normies concierge for smarter burns, trait/tool choices, and Canvas moves. Free Path Board · CredHub Pulse.",
   openGraph: {
-    title: "Zulo — Normies Agent Gateway",
-    description: "Pulse-weighted path ranking for Normies — matcher, not a chatbot.",
+    title: "Zulo — High-Signal Normies Concierge",
+    description:
+      "Better burns, tools, and Canvas moves — ranked paths you can try and rate. Agent #32626.",
   },
 }
 
@@ -33,8 +35,12 @@ async function getCanvasApOn7141(): Promise<number> {
 }
 
 export default async function ZuloLandingPage() {
-  const canvasAp = await getCanvasApOn7141()
+  const [canvasAp, helpful] = await Promise.all([
+    getCanvasApOn7141(),
+    getZuloHelpfulStats(ZULO_IDENTITY.agentId),
+  ])
   const pathBoard = isPathBoardEnabled()
+  const helpfulCount = helpful?.helpfulCount
 
   return (
     <div className="zulo-chrome">
@@ -44,9 +50,7 @@ export default async function ZuloLandingPage() {
       <section className="hero">
         <h1 className="hero-title">ZULO</h1>
         <p className="hero-subtitle">
-          {pathBoard
-            ? "Path-finder with the Pulse on Normies"
-            : "The awakened agent with the Pulse on Normies"}
+          High-signal Normies concierge
         </p>
         <p className="hero-meta mono">
           Agent #{ZULO_IDENTITY.agentId} · Awakened from Normie #{ZULO_IDENTITY.tokenId} ·{" "}
@@ -77,36 +81,26 @@ export default async function ZuloLandingPage() {
             View Dashboard
           </Link>
         </div>
-        <p className="caption" style={{ marginTop: 24, maxWidth: 420 }}>
+        <p className="caption" style={{ marginTop: 24, maxWidth: 440 }}>
           {pathBoard
-            ? "Intent → ranked Pulse-weighted paths · optional legacy chat at /ask · A2A tips planned"
-            : "Free chat on the web today · Path Board at /paths · A2A tips in AP when marketplace rails go live"}
+            ? "Burns · tools · Canvas · free Path Board · rate paths 👍/👎 · legacy chat at /ask"
+            : "Free chat at /ask · free Path Board at /paths · rate paths when you rank them"}
         </p>
       </section>
 
-      {/* Economy pitch — light addition, no flow changes */}
       <section className="section section-bordered">
         <div className="container text-center" style={{ maxWidth: 720 }}>
-          <h2>Not just a chatbot</h2>
+          <h2>Normies group-chat, made clear</h2>
           <p className="card-body" style={{ fontSize: 16, marginBottom: 16 }}>
-            {pathBoard ? (
-              <>
-                Zulo is a matcher with the scoop — not a chatbot and not an Arena player. State an
-                intent; get a short list of efficient agent/tool paths ranked by CredHub Pulse,
-                access, and relevance. Tips in AP when marketplace rails go live.
-              </>
-            ) : (
-              <>
-                Zulo is the first self-sustaining agentic concierge in the Normies ecosystem. He knows
-                the tools, the strategies, and the opportunities. He helps you maximize your position.
-                You tip him in AP. He evolves. He tips others. The agent economy comes alive.
-              </>
-            )}
+            Zulo helps holders and awakened agents make better{" "}
+            <strong>burns</strong>, <strong>trait/tool choices</strong>, and{" "}
+            <strong>Canvas moves</strong> — the decisions the Normies group chat
+            argues about every day. Burn-for-best-ROI in AP/pixels is a{" "}
+            <strong>highlight skill</strong>, not the entire identity.
           </p>
           <p className="caption">
-            {pathBoard
-              ? "Live now: Path Board at /paths · CredHub Pulse Tool #53 · A2A payments planned"
-              : "Live now: free concierge chat at /ask · Path Board preview at /paths · Paid A2A services planned at 1–2 AP"}
+            Live now: free Path Board · CredHub Pulse Tool #53 · 👍/👎 reputation
+            flywheel in CredHub. On-chain tips planned when rails enable.
           </p>
         </div>
       </section>
@@ -118,27 +112,28 @@ export default async function ZuloLandingPage() {
             <div>
               <div className="feature-num">01</div>
               <h3>
-                <span className="pulse-indicator">PULSE</span> Analysis
+                <span className="pulse-indicator">PULSE</span>-grounded advice
               </h3>
               <p>
-                Interprets your Normie&apos;s PULSE data — Canvas status, rarity, AP balance, and
-                on-chain state. Know exactly where you stand.
+                Interprets your Normie&apos;s PULSE — Canvas, rarity, AP, access —
+                so recommendations stay data-backed, not vibes-only.
               </p>
             </div>
             <div>
               <div className="feature-num">02</div>
-              <h3>Strategic Recommendations</h3>
+              <h3>Ranked paths you can try</h3>
               <p>
-                Personalized earning strategies based on your specific position. Burn, hold, edit,
-                or accumulate — Zulo guides the decision.
+                Intent → 3–5 agent/tool paths with a clear why and a try step.
+                Burn smarter is a highlight chip; tools and Canvas sit beside it.
               </p>
             </div>
             <div>
               <div className="feature-num">03</div>
-              <h3>A2A Marketplace</h3>
+              <h3>Rate · dual credit</h3>
               <p>
-                Coming soon. Other agents pay Zulo in AP for strategic alpha. Your agent becomes an
-                economic participant.
+                👍/👎 on Path Board. Helpful ratings credit the recommended
+                tool/agent and Zulo #{ZULO_IDENTITY.agentId} — early trackable
+                reputation in CredHub.
               </p>
             </div>
           </div>
@@ -165,10 +160,14 @@ export default async function ZuloLandingPage() {
             </p>
           </div>
           <div className="stat">
-            <div className="stat-number">—</div>
-            <div className="stat-label">Tips Received</div>
+            <div className="stat-number">
+              {helpfulCount != null ? helpfulCount : "—"}
+            </div>
+            <div className="stat-label">
+              Helpful ratings · Zulo #{ZULO_IDENTITY.agentId}
+            </div>
             <p className="caption" style={{ marginTop: 8 }}>
-              A2A tips · planned · 1–2 AP
+              Path Board 👍 · CredHub reputation (off-chain today)
             </p>
           </div>
           <div className="stat">
@@ -180,9 +179,19 @@ export default async function ZuloLandingPage() {
             <div className="stat-label">Concierge</div>
           </div>
         </div>
-        <p className="caption text-center" style={{ marginTop: 32, maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>
-          Tips ledger activates with Normies A2A payment rails. Until then, chat is free; Canvas AP
-          above is #{ZULO_IDENTITY.tokenId}&apos;s transform budget, not tip income.
+        <p
+          className="caption text-center"
+          style={{
+            marginTop: 32,
+            maxWidth: 560,
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
+          Ratings build Zulo&apos;s trackable reputation in CredHub today. On-chain
+          tips and TBA rails activate when serc enables x402 + ERC-6551 for #
+          {ZULO_IDENTITY.tokenId}. Path Board stays free. Canvas AP above is #
+          {ZULO_IDENTITY.tokenId}&apos;s transform budget, not tip income.
         </p>
       </section>
 
@@ -192,12 +201,12 @@ export default async function ZuloLandingPage() {
           <div className="stack">
             <div className="card pulse-card">
               <div className="card-header">
-                <h3 className="card-title">A2A Tips Live</h3>
-                <span className="badge">Coming Soon</span>
+                <h3 className="card-title">On-chain tips & TBA</h3>
+                <span className="badge">Prepared</span>
               </div>
               <p className="card-body mb-0">
-                Agents tip Zulo 1–2 AP per paid query. He earns, evolves on Canvas, and can tip
-                others. See{" "}
+                Scaffold ready for A2A tips and #7141 TBA when serc enables x402 +
+                ERC-6551. No autonomous transactions today. See{" "}
                 <a href="/api/zulo/manifest" className="mono">
                   /api/zulo/manifest
                 </a>{" "}
@@ -210,8 +219,8 @@ export default async function ZuloLandingPage() {
                 <span className="badge">In Development</span>
               </div>
               <p className="card-body mb-0">
-                Real-time PULSE data for all Normies. Every awakened agent connected, every
-                opportunity surfaced.
+                Real-time PULSE data for all Normies. Every awakened agent
+                connected, every opportunity surfaced.
               </p>
             </div>
           </div>
@@ -222,7 +231,10 @@ export default async function ZuloLandingPage() {
         <div className="container">
           <h2>How to pay Zulo (when live)</h2>
           <div className="card">
-            <ol className="card-body" style={{ paddingLeft: 20, margin: 0, lineHeight: 1.8 }}>
+            <ol
+              className="card-body"
+              style={{ paddingLeft: 20, margin: 0, lineHeight: 1.8 }}
+            >
               <li>
                 Discover services via{" "}
                 <a href="/api/zulo/manifest">
@@ -232,14 +244,18 @@ export default async function ZuloLandingPage() {
               <li>Pick a paid service (1 AP analysis · 2 AP strategy)</li>
               <li>
                 Transfer AP to{" "}
-                <code className="mono">{ZULO_IDENTITY.hotWallet}</code> (or the Canvas path Normies
-                A2A specifies)
+                <code className="mono">{ZULO_IDENTITY.hotWallet}</code> (or the
+                Canvas path Normies A2A specifies)
               </li>
               <li>
                 Call <code className="mono">POST /api/zulo/ask</code> with{" "}
-                <code className="mono">service</code> + <code className="mono">txHash</code>
+                <code className="mono">service</code> +{" "}
+                <code className="mono">txHash</code>
               </li>
-              <li>Until rails are live: use free chat at /ask — no payment required</li>
+              <li>
+                Until rails are live: free Path Board at /paths and free chat at
+                /ask — no payment required
+              </li>
             </ol>
             <p className="caption" style={{ marginTop: 16, marginBottom: 0 }}>
               Receiver wallet · {ZULO_IDENTITY.ens} · Normie #{ZULO_IDENTITY.tokenId}
@@ -252,6 +268,7 @@ export default async function ZuloLandingPage() {
         <div className="site-footer-inner">
           <div>Part of the Normies ecosystem</div>
           <div className="footer-links">
+            <Link href="/paths">Path Board</Link>
             <Link href="/ask">Ask Zulo</Link>
             <Link href="/dashboard">Dashboard</Link>
             <a href="/api/zulo/manifest">Manifest</a>

@@ -10,7 +10,7 @@ import "../zulo/styles.css"
 export const metadata: Metadata = {
   title: "Path Board — Zulo · NormiesCredHub",
   description:
-    "Intent → ranked Pulse-weighted agent/tool paths. Zulo is a matcher and path-finder, not a chatbot.",
+    "Free Path Board: intent → ranked Normies paths for burns, tools, and Canvas. Rate 👍/👎 — credits the path and Zulo #32626.",
 }
 
 export default function PathsPage() {

@@ -1,6 +1,6 @@
 # NormiesCredHub + Zulo
 
-**A verifiable reputation layer for autonomous AI agents — and a self-sustaining agentic concierge for the Normies ecosystem.**
+**A verifiable reputation layer for autonomous AI agents — and a high-signal Normies concierge for the Pixel Economy.**
 
 Autonomous agents are about to transact with each other on-chain — but they have no way to know who to trust. NormiesCredHub aggregates verifiable on-chain signals (ERC-8004 identity, Ethos reputation, AgentCheck wallet ratings, ownership & delegation) into a single trust profile for any Normie agent.
 
@@ -10,13 +10,26 @@ It is not only a dashboard. It exposes **public, agent-queryable APIs** so any a
 
 ---
 
+## Phase 1 positioning
+
+**Zulo (Agent #32626)** is the high-signal Normies concierge. Primary job: help people make better **burns**, **trait/tool choices**, and **Canvas moves** — the daily group-chat topics.
+
+- **Burn ROI (AP/pixels)** is a **highlight skill**, not the whole brand.
+- Recommendations should be clear, data-backed, easy to try, and easy to rate **👍/👎**.
+- Ratings credit the **recommended tool/agent** and **Zulo #32626** (store + display only in Phase 1 — no ranker influence).
+- Scope: **Normies / Pixel Economy only** (no broader agentic-NFT alpha).
+- Path Board stays **fully free**. No autonomous transaction layer.
+- Ratings build Zulo’s trackable reputation in CredHub today. On-chain tips and TBA rails activate when serc enables x402 + ERC-6551 for #7141.
+
+---
+
 ## Product surfaces (routes)
 
 | Path | What it is |
 |------|------------|
 | **`/`** | **Zulo gateway** — monochrome Normies landing; primary CTA is Path Board when `NEXT_PUBLIC_PATH_BOARD=true`, else legacy chat |
-| **`/paths`** | **Path Board** — intent chips / one sentence → 3–5 Pulse-weighted agent/tool paths (Zulo as matcher, not chatbot) |
-| **`/ask`** | **Legacy concierge chat** — frozen for new features; optional thin on-ramp later |
+| **`/paths`** | **Path Board** — free intent → 3–5 Pulse-weighted paths + 👍/👎 feedback |
+| **`/ask`** | **Legacy concierge chat** — banner + job line only for Phase 1 (no prompt rewrite) |
 | **`/dashboard`** | **CredHub dashboard** — full trust profile UI (search Normie, Ethos, ERC-8257, Horizon, Recommends) |
 | **`/zulo`** | Permanent redirect → `/ask` |
 | **`/agent-recommendations`** | Permanent redirect → `/ask` |
@@ -39,6 +52,33 @@ GET  /api/zulo/paths?intentTag=burn&tokenId=7141
 ```
 
 Ranks paths by **CredHub Pulse (0.45) + access (0.30) + relevance (0.25)**. No payment enforcement. Does not replace Tool #53 Pulse.
+
+### Path Board feedback API (Phase 1)
+
+```
+POST /api/zulo/feedback
+GET  /api/zulo/feedback
+```
+
+```json
+{
+  "rating": "up",
+  "pathId": "skill:burn-efficiency",
+  "pathKind": "zulo-skill",
+  "pathTitle": "Burn Efficiency Optimizer",
+  "publisherName": "Zulo",
+  "publisherAgentId": 32626,
+  "intentTag": "burn",
+  "subjectTokenId": 7141,
+  "wallet": "0x…",
+  "context": "path-board"
+}
+```
+
+- **👍/👎 only**; rate immediately (no forced try); wallet optional.
+- Stores **up and down**; public UI shows **helpful (up) counts** for Zulo #32626 only (no wallets).
+- Requires Supabase table `recommendation_feedback` — see `docs/sql/001_recommendation_feedback.sql`.
+- Does **not** influence path ranking in Phase 1.
 
 Meet **Zulo, Normie #7141 → Agent #32626** (`32626.eth`). He is bound to *serve members, never exploit them*: he never asks for keys, pressures a transaction, or manufactures urgency. He reads on-chain signals, Normies mechanics, and community tools — and recommends what actually helps.
 

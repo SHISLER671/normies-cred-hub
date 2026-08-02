@@ -86,4 +86,4 @@ function normiesRationale(
 }
 
 export const PATH_FINDER_NOTE =
-  "Zulo ranks efficient agent/tool paths from Pulse, access, and intent — matcher with the scoop, not a chatbot and not an Arena player."
+  "Zulo ranks free, tryable Normies paths from Pulse, access, and intent — high-signal concierge for burns, tools, and Canvas. Rate 👍/👎 to credit the path and Zulo #32626."
