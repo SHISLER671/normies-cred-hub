@@ -34,7 +34,7 @@ export function ZuloChromeHeader({
           href="/dashboard"
           className={cn(active === "dashboard" && "is-active")}
         >
-          Dashboard
+          PULSE
         </Link>
         <a
           href={`https://www.normies.art/lab/agentic/agents/${ZULO_IDENTITY.agentId}`}

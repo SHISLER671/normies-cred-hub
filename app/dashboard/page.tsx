@@ -8,7 +8,7 @@ import { ZULO } from "@/constants/contracts"
 import "../zulo/styles.css"
 
 export const metadata: Metadata = {
-  title: "Dashboard — Zulo · NormiesCredHub",
+  title: "PULSE — Zulo · NormiesCredHub",
   description:
     "View, verify, and build trust in your awakened ERC-8004 Normie agents. On-chain identity meets portable reputation.",
 }

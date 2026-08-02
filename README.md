@@ -27,10 +27,10 @@ It is not only a dashboard. It exposes **public, agent-queryable APIs** so any a
 
 | Path | What it is |
 |------|------------|
-| **`/`** | **Zulo gateway** — monochrome Normies landing; CTAs: Moves · Ask · Dashboard |
+| **`/`** | **Zulo gateway** — monochrome Normies landing; CTAs: Moves · Ask · PULSE |
 | **`/paths`** | **Moves** — free intent → 3–5 Pulse-weighted actions + 👍/👎 feedback |
 | **`/ask`** | **Legacy concierge chat** — banner + job line only for Phase 1 (no prompt rewrite) |
-| **`/dashboard`** | **CredHub dashboard** — full trust profile UI (search Normie, Ethos, ERC-8257, Horizon, Recommends) |
+| **`/dashboard`** | **PULSE** — full trust profile UI (search Normie, Ethos, ERC-8257, CredHub Pulse) |
 | **`/zulo`** | Permanent redirect → `/ask` |
 | **`/agent-recommendations`** | Permanent redirect → `/ask` |
 
@@ -152,7 +152,7 @@ Example pulse response:
 
 ## What this app does
 
-### CredHub (`/dashboard`)
+### PULSE (`/dashboard`)
 
 Search any Normie by token ID and view its credibility profile. Combines Normies API, ERC-8004 registries, Ethos Network, and ERC-8257 tool discovery:
 
@@ -321,7 +321,7 @@ The Credibility Framework remains extensible for **Wire Network** and other cros
 ## Features (summary)
 
 - Zulo gateway landing + chat-first `/ask` (mobile-aware)  
-- CredHub dashboard at `/dashboard`  
+- PULSE (CredHub trust UI) at `/dashboard`  
 - Search agents by token ID (0–9999)  
 - Live data: Normies API, Ethos, ERC-8004, ERC-8257  
 - Ownership, delegation, Canvas, Ethos, AgentCheck  
@@ -356,7 +356,7 @@ Open:
 
 - http://localhost:3000 — Zulo landing  
 - http://localhost:3000/ask — concierge chat  
-- http://localhost:3000/dashboard — CredHub  
+- http://localhost:3000/dashboard — PULSE  
 
 ### Environment variables
 

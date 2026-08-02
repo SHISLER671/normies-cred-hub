@@ -203,7 +203,7 @@ export default async function ZuloLandingPage() {
             Ask
           </Link>
           <Link href="/dashboard" className="button">
-            Dashboard
+            PULSE
           </Link>
         </div>
       </section>
@@ -283,7 +283,7 @@ export default async function ZuloLandingPage() {
           <div className="footer-links">
             <Link href="/paths">Moves</Link>
             <Link href="/ask">Ask</Link>
-            <Link href="/dashboard">Dashboard</Link>
+            <Link href="/dashboard">PULSE</Link>
             <a href="/api/zulo/manifest">Manifest</a>
             <a
               href={`https://www.normies.art/lab/agentic/agents/${ZULO_IDENTITY.agentId}`}
