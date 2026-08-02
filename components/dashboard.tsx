@@ -348,7 +348,7 @@ export function Dashboard() {
           )}
 
           {/* Zulo’s Credibility Framework */}
-          <div className="mx-auto max-w-2xl mt-12 border-t border-border pt-10">
+          <div className="mx-auto w-full min-w-0 max-w-2xl mt-12 border-t border-border pt-10">
             <div className="flex flex-col items-center text-center">
               <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[2px] text-primary">
                 <span className="h-px w-6 bg-primary/50" />

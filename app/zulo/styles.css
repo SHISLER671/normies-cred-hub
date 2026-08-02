@@ -104,6 +104,8 @@
   font-family: var(--font-mono);
   font-size: 14px;
   letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .zulo-chrome .caption {
@@ -706,6 +708,7 @@
 
 .zulo-chrome .chat-input-field {
   flex: 1;
+  min-width: 0;
   padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--border);
   background: var(--bg-primary);
