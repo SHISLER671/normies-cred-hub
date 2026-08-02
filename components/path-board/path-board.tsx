@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 
 import type { IntentTag, RankedPath, RankPathsResult } from "@/lib/path-ranker"
+import { useWalletGate } from "@/components/wallet-gate"
 
 import { IntentChips } from "./intent-chips"
 import { PathCard } from "./path-card"
@@ -19,6 +20,7 @@ export function PathBoard({
   defaultTokenId?: number
 }) {
   const { address } = useAccount()
+  const { promptConnect } = useWalletGate()
   const [intentTag, setIntentTag] = useState<IntentTag | null>(null)
   const [intent, setIntent] = useState("")
   const [tokenId, setTokenId] = useState(
@@ -201,9 +203,16 @@ export function PathBoard({
               wallet {address.slice(0, 6)}…{address.slice(-4)}
             </span>
           ) : (
-            <span className="caption" style={{ opacity: 0.85 }}>
+            <button
+              type="button"
+              className="caption"
+              style={{ opacity: 0.85, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
+              onClick={() =>
+                promptConnect("Connect your wallet to show access badges for tools and agents.")
+              }
+            >
               Connect wallet for access badges
-            </span>
+            </button>
           )}
         </div>
       </section>

@@ -20,6 +20,7 @@ import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
 import { YourNormies } from "@/components/your-normies"
+import { useWalletGate } from "@/components/wallet-gate"
 import {
   getLastSelectedNormie,
   setLastSelectedNormie,
@@ -43,6 +44,7 @@ import { getCurrentSignals, validateSignals } from "@/lib/signals"
 export function Dashboard() {
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
+  const { requireWallet, promptConnect } = useWalletGate()
 
   const [tokenId, setTokenId] = useState<number>(ZULO.tokenId)
   const [myInput, setMyInput] = useState<string>("")
@@ -288,8 +290,21 @@ export function Dashboard() {
       )}
 
       {!isConnected && (
-        <div className="text-center text-sm text-muted-foreground max-w-xs mx-auto">
-          Connect your wallet to unlock your agent&apos;s full view. Use Moves or Ask for Zulo guidance.
+        <div className="flex flex-col items-center gap-3 text-center max-w-xs mx-auto">
+          <p className="text-sm text-muted-foreground">
+            Connect your wallet to unlock your agent&apos;s full view. Use Moves or Ask for Zulo guidance.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() =>
+              promptConnect("Connect your wallet to unlock your agent's full dashboard view.")
+            }
+          >
+            <Wallet className="size-4" />
+            Connect wallet
+          </Button>
         </div>
       )}
 
@@ -320,7 +335,12 @@ export function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Prove Linkage Card */}
               <button
-                onClick={() => setShowLinkageModal(true)}
+                onClick={() =>
+                  requireWallet(
+                    () => setShowLinkageModal(true),
+                    "Proving linkage signs a message with your wallet to verify you control this agent.",
+                  )
+                }
                 className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
               >
                 <div className="flex items-center gap-2">

@@ -10,9 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useWalletGate } from "@/components/wallet-gate"
 import { shortenAddress } from "@/lib/format"
 import { controlsNormie, isZeroAddress } from "@/lib/normie-control"
-import { CheckCircle2, Fingerprint, ShieldAlert, ShieldCheck, XCircle } from "lucide-react"
+import { CheckCircle2, Fingerprint, ShieldAlert, ShieldCheck, Wallet, XCircle } from "lucide-react"
 import { useState } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 
@@ -37,6 +38,7 @@ export function LinkageProofModal({
 }) {
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
+  const { promptConnect } = useWalletGate()
   const [status, setStatus] = useState<Status>("idle")
   const [internalOpen, setInternalOpen] = useState(false)
 
@@ -108,9 +110,24 @@ export function LinkageProofModal({
           {status === "error" && <Result kind="error" tokenId={tokenId} />}
 
           {!isConnected ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              Connect your wallet to generate a proof.
-            </p>
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Connect your wallet to generate a proof.
+              </p>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => {
+                  setIsOpen(false)
+                  promptConnect(
+                    "Connect your wallet to sign and prove control of this agent.",
+                  )
+                }}
+              >
+                <Wallet className="size-4" />
+                Connect wallet
+              </Button>
+            </div>
           ) : status === "matched" || status === "mismatch" ? (
             <Button variant="outline" onClick={reset} className="w-full">
               Run another check

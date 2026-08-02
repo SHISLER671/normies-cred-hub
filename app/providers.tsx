@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ThemeProvider, useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import { WagmiProvider } from "wagmi"
+import { WalletGateProvider } from "@/components/wallet-gate"
 
 // Dynamic RainbowKit theme that follows our Light/Night system
 function RainbowThemeProvider({ children }: { children: React.ReactNode }) {
@@ -62,7 +63,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           disableTransitionOnChange
         >
           <RainbowThemeProvider>
-            {children}
+            <WalletGateProvider>
+              {children}
+            </WalletGateProvider>
           </RainbowThemeProvider>
         </ThemeProvider>
       </QueryClientProvider>

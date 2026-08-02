@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 
+import { ConnectWallet } from "@/components/connect-wallet"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
@@ -44,7 +45,14 @@ export default async function ZuloLandingPage() {
 
   return (
     <div className="zulo-chrome">
-      <ZuloChromeHeader active="home" />
+      <ZuloChromeHeader
+        active="home"
+        trailing={
+          <span style={{ display: "inline-flex", alignItems: "center" }}>
+            <ConnectWallet />
+          </span>
+        }
+      />
       <div className="header-spacer" aria-hidden />
 
       <section className="hero">
