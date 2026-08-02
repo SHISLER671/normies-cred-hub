@@ -666,18 +666,18 @@
 /* Quick prompts + input */
 .zulo-chrome .chat-footer {
   border-top: 1px solid var(--border);
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
 }
 
 .zulo-chrome .quick-prompts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-sm);
+  gap: 10px 12px;
+  margin-bottom: var(--space-md);
 }
 
 .zulo-chrome .quick-prompt {
-  padding: var(--space-xs) var(--space-sm);
+  padding: 10px 14px;
   border: 1px solid var(--border-light);
   background: transparent;
   color: var(--text-secondary);
@@ -686,6 +686,7 @@
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
   border-radius: 0;
+  min-height: 40px;
 }
 
 .zulo-chrome .quick-prompt:hover:not(:disabled) {
@@ -892,18 +893,18 @@
 }
 
 .zulo-chrome .dyor {
-  margin-top: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-md);
   text-align: center;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 1.75;
   max-width: 640px;
   margin-left: auto;
   margin-right: auto;
-  padding: 0 var(--space-sm);
+  padding: 0 var(--space-md);
   flex-shrink: 0;
 }
 
@@ -1018,7 +1019,7 @@
   }
 }
 
-/* Centered chat stage — tight on phone, opens on desktop */
+/* Centered chat stage — breathing room on phone, opens on desktop */
 .zulo-chrome .ask-main {
   flex: 1 1 auto;
   min-height: 0;
@@ -1027,14 +1028,14 @@
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: var(--space-sm) 1rem 0; /* px-4 */
+  padding: var(--space-md) 1rem 0;
 }
 
 /* Tablet: max-w-4xl (56rem), px-8 */
 @media (min-width: 768px) {
   .zulo-chrome .ask-main {
     max-width: 56rem;
-    padding: var(--space-md) 2rem 0;
+    padding: var(--space-lg) 2rem 0;
   }
 }
 
@@ -1042,7 +1043,7 @@
 @media (min-width: 1024px) {
   .zulo-chrome .ask-main {
     max-width: 64rem;
-    padding: var(--space-md) 4rem 0;
+    padding: var(--space-lg) 4rem 0;
   }
 }
 
@@ -1067,10 +1068,18 @@
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: var(--space-md);
+  padding: var(--space-lg) var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+.zulo-chrome .ask-chat .chat-bubble {
+  line-height: 1.65;
+}
+
+.zulo-chrome .ask-chat .chat-message-zulo .chat-bubble {
+  color: var(--text-secondary);
 }
 
 /* Message bubbles: 95% mobile → 80% tablet → 70% desktop */
@@ -1123,16 +1132,17 @@
   flex-wrap: nowrap !important;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  gap: 8px;
-  padding-bottom: 4px;
+  gap: 10px 12px;
+  padding-bottom: 6px;
+  margin-bottom: var(--space-md);
 }
 
 .zulo-chrome .quick-prompts-scroll .quick-prompt {
   flex: 0 0 auto;
   white-space: nowrap;
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-size: 12px;
-  min-height: 40px;
+  min-height: 42px;
 }
 
 .zulo-chrome .scrollbar-hide {
@@ -1183,23 +1193,25 @@
 }
 
 .zulo-chrome .ask-shell.is-mobile .dyor {
-  margin: 4px auto;
+  margin: 12px auto 16px;
   font-size: 10px;
-  padding: 0 8px;
+  padding: 0 12px;
+  line-height: 1.7;
 }
 
 .zulo-chrome .ask-chat .chat-footer {
   flex-shrink: 0;
   border-top: 1px solid var(--border);
-  padding: var(--space-sm) var(--space-md);
-  padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom, 0px));
+  padding: var(--space-md) var(--space-lg);
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom, 0px));
   background: var(--bg-secondary);
 }
 
 .zulo-chrome .ask-chat .chat-input {
   display: flex;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   align-items: stretch;
+  margin-top: 4px;
 }
 
 .zulo-chrome .ask-chat .chat-input-field {
@@ -1217,23 +1229,24 @@
   flex-shrink: 0;
   border-top: 1px solid var(--border);
   background: var(--bg-secondary);
-  padding: var(--space-sm) 0;
-  padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom, 0px));
+  padding: var(--space-md) 0 var(--space-lg);
+  padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom, 0px));
+  margin-top: 2px;
 }
 
 .zulo-chrome .opp-rail-inner {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 var(--space-sm);
+  padding: 0 var(--space-md);
 }
 
 .zulo-chrome .opp-rail {
   display: flex;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
-  padding-bottom: 6px;
+  padding-bottom: 8px;
   scrollbar-width: thin;
 }
 
@@ -1254,7 +1267,7 @@
   scroll-snap-align: start;
   width: min(280px, 85vw);
   min-height: 44px;
-  padding: var(--space-sm);
+  padding: 14px 16px;
   border: 1px solid var(--border);
   background: var(--bg-primary);
   text-align: left;
@@ -1262,6 +1275,7 @@
   cursor: pointer;
   transition: background 0.15s;
   color: var(--text-primary);
+  line-height: 1.5;
 }
 
 .zulo-chrome .opp-chip:hover,
@@ -1667,10 +1681,10 @@
 
 .zulo-chrome .ask-banner {
   border-bottom: 1px solid var(--border);
-  padding: 10px 16px;
+  padding: 14px 20px;
   text-align: center;
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.55;
   background: var(--bg-secondary);
   font-family: var(--font-inter), system-ui, sans-serif;
   color: var(--text-secondary);

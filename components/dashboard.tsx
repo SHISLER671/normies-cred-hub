@@ -5,12 +5,8 @@ import { Erc8004Card } from "@/components/erc8004-card"
 import { EthosReputation } from "@/components/ethos-reputation"
 import { LinkageProofModal } from "@/components/linkage-proof-modal"
 import { OwnershipCard } from "@/components/ownership-card"
-import { AgentHorizonModal } from "@/components/zulo-suggests-modal"
 import { ToolsModal } from "@/components/tools-modal"
 import { Erc8257RegistryPanel } from "@/components/erc8257-registry-panel"
-import { ZuloRecommendsModal, type Recommendation } from "@/components/zulo-recommends-modal"
-import type { ZuloPulseContext } from "@/lib/zulo/recommendations"
-import type { ZuloTransparency } from "@/lib/zulo/transparency"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SectionLabel } from "@/components/ui/section-label"
@@ -18,7 +14,7 @@ import { ZULO } from "@/constants/contracts"
 import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
 import { AgentCheckCard } from "@/components/agentcheck-card"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Sparkles, Wallet, Wrench } from "lucide-react"
+import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Wallet, Wrench } from "lucide-react"
 import { Fragment, useState, useEffect, useRef } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -29,7 +25,6 @@ import {
   setLastSelectedNormie,
 } from "@/lib/last-selected-normie"
 import { useEnsName } from "@/hooks/use-ens-name"
-import { isAgentAwakened, normiesApi } from "@/lib/api/normies"
 import {
   controlsNormie,
   getResolvedAgentId,
@@ -39,13 +34,11 @@ import {
   isZeroAddress,
 } from "@/lib/normie-control"
 
-import { useConnectModal } from "@rainbow-me/rainbowkit"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CredibilityConnector, CredibilitySignal } from "@/components/credibility-signal"
 import { ERC8004 } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { getCurrentSignals, validateSignals } from "@/lib/signals"
-import type { HorizonAgentContext } from "@/lib/zulo-horizon"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -62,24 +55,7 @@ export function Dashboard() {
   const [endorseResult, setEndorseResult] = useState<{ message: string; signature?: string } | null>(null)
   const [showToolsModal, setShowToolsModal] = useState(false)
   const [toolsModalTab, setToolsModalTab] = useState<"normies" | "erc8257">("normies")
-  const [showZuloRecommendsModal, setShowZuloRecommendsModal] = useState(false)
-  const [showHorizonModal, setShowHorizonModal] = useState(false)
   const [showLinkageModal, setShowLinkageModal] = useState(false)
-  const [agentPulse, setAgentPulse] = useState<{
-    pulse_level: number
-    status: string
-    breakdown: string[]
-  } | null>(null)
-
-  const { openConnectModal } = useConnectModal()
-
-  // Zulo Recommends state (lifted for the polished presentational modal)
-  const [zuloRecommendations, setZuloRecommendations] = useState<Recommendation[]>([])
-  const [zuloSummary, setZuloSummary] = useState<string | undefined>()
-  const [zuloPulseContext, setZuloPulseContext] = useState<ZuloPulseContext | undefined>()
-  const [zuloTransparency, setZuloTransparency] = useState<ZuloTransparency | undefined>()
-  const [zuloLoading, setZuloLoading] = useState(false)
-  const [zuloError, setZuloError] = useState<string | null>(null)
 
   const { data: snapshot, isLoading, isError } = useNormie(tokenId)
   const ownerAddress = snapshot?.owner.owner
@@ -102,28 +78,6 @@ export function Dashboard() {
 
   const isAwakened = isAwakenedFromSnapshot(snapshot)
   const resolvedAgentId = getResolvedAgentId(snapshot?.agent, snapshot?.binding)
-
-  useEffect(() => {
-    if (!tokenId && tokenId !== 0) return
-    let cancelled = false
-    fetch(`/api/agent/${tokenId}/pulse`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data?.pulse_level != null) {
-          setAgentPulse({
-            pulse_level: data.pulse_level,
-            status: data.status,
-            breakdown: Array.isArray(data.breakdown) ? data.breakdown : [],
-          })
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setAgentPulse(null)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [tokenId])
 
   const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
   const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
@@ -163,28 +117,6 @@ export function Dashboard() {
     isMyAgent && isConnected && address
       ? address
       : ownerAddress ?? undefined
-
-  const horizonAgentContext: HorizonAgentContext | null =
-    snapshot && !isError
-      ? {
-          tokenId,
-          name: snapshot.agent?.name || `Normie #${tokenId}`,
-          type: String(agentType),
-          isAwakened,
-          agentId: resolvedAgentId,
-          traits: snapshot.traits?.attributes,
-          canvasLevel: snapshot.canvas?.level,
-          actionPoints: snapshot.canvas?.actionPoints,
-          canvasCustomized: snapshot.canvas?.customized,
-          canvasNetChange: snapshot.canvasDiff?.netChange,
-          hasDelegate: !!delegate && !isZeroAddress(delegate),
-          ethosScore: ethos?.user?.score,
-          pulseLevel: agentPulse?.pulse_level,
-          pulseStatus: agentPulse?.status,
-          pulseBreakdown: agentPulse?.breakdown,
-          holderAddress: walletForAccess,
-        }
-      : null
 
   const { data: delegateEnsName } = useEnsName(
     !isZeroAddress(delegate) ? delegate : undefined
@@ -266,71 +198,6 @@ export function Dashboard() {
       }
     } catch (e) {
       console.error(e)
-    }
-  }
-
-  const handleZuloRecommendsClick = () => {
-    if (!isConnected) {
-      openConnectModal?.()
-      return
-    }
-
-    // Open modal immediately in loading state, then fetch
-    setZuloRecommendations([])
-    setZuloSummary(undefined)
-    setZuloPulseContext(undefined)
-    setZuloTransparency(undefined)
-    setZuloError(null)
-    setZuloLoading(true)
-    setShowZuloRecommendsModal(true)
-
-    performZuloFetch(false)
-  }
-
-  async function performZuloFetch(refresh = false) {
-    try {
-      const awakened = await isAgentAwakened(tokenId)
-      if (!awakened) {
-        setZuloError('Zulo Recommends is only available to awakened agents. Awaken your Normie first to unlock personalized tool suggestions from Zulo.')
-        setZuloLoading(false)
-        return
-      }
-
-      const agentData = await normiesApi.agentInfo(tokenId)
-
-      const res = await fetch('/api/zulo-recommends', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tokenId,
-          agentName: agentData.name,
-          traits: agentData.traits?.attributes || [],
-          agentType: agentData.type,
-          wallet: walletForAccess,
-          ethosScore: ethos?.user?.score,
-          refresh,
-        }),
-      })
-
-      const data = await res.json()
-      if (data.error) {
-        setZuloError(data.error)
-        setZuloLoading(false)
-        return
-      }
-
-      if (Array.isArray(data.recommendations) && data.recommendations.length > 0) {
-        setZuloRecommendations(data.recommendations)
-        setZuloSummary(typeof data.summary === 'string' ? data.summary : undefined)
-        setZuloPulseContext(data.pulseContext ?? undefined)
-        setZuloTransparency(data.transparency ?? undefined)
-      } else {
-        setZuloError('Zulo returned no recommendations for this agent.')
-      }
-    } catch (e) {
-      setZuloError('Could not fetch recommendations.')
-    } finally {
-      setZuloLoading(false)
     }
   }
 
@@ -422,23 +289,9 @@ export function Dashboard() {
 
       {!isConnected && (
         <div className="text-center text-sm text-muted-foreground max-w-xs mx-auto">
-          Connect your wallet to unlock your agent's full view and Zulo's personalized recommendations.
+          Connect your wallet to unlock your agent&apos;s full view. Use Moves or Ask for Zulo guidance.
         </div>
       )}
-
-      <button
-        type="button"
-        onClick={() => setShowHorizonModal(true)}
-        className="group glow-primary flex w-full flex-col items-start gap-2 rounded-none border border-primary/40 bg-card/55 p-4 text-left transition-all hover:border-primary/60 hover:bg-primary/5 active:scale-[0.985]"
-      >
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-primary" />
-          <span className="font-semibold">Zulo Horizon</span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Chat with Zulo — awakened Normie #7141. Ask about Normies, Canvas, reputation, or your loaded agent.
-        </p>
-      </button>
 
       {isError ? (
         <Card className="border-destructive/40">
@@ -460,45 +313,6 @@ export function Dashboard() {
               delegateAddress={delegate}
               delegateEnsName={delegateEnsName}
             />
-
-            {/* Zulo Recommends — Zulo's flagship agent skill */}
-            {snapshot && (
-              <div className="relative overflow-hidden rounded-none border border-primary/60 border-l-4 border-l-primary/70 bg-card/55 p-5 text-center shadow-sm">
-                {/* Muted cosmic figure as background (scoped only to this section) */}
-                <div
-                  className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none"
-                  style={{ backgroundImage: `url('/images/7141art.png')`, opacity: 0.10 }}
-                />
-                {/* Soft dark gradient overlay for readability */}
-                <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/70 via-background/25 to-background/80 pointer-events-none" />
-
-                {/* Content layer */}
-                <div className="relative z-10">
-                  <SectionLabel className="text-primary mb-1.5 tracking-[2px]">ZULO'S AGENT SKILL</SectionLabel>
-                  
-                  <h3 className="font-heading text-[26px] tracking-tight mb-2">Zulo Recommends</h3>
-                  
-                  <p className="text-[15px] text-muted-foreground max-w-md mx-auto mb-3 leading-snug">
-                    Zulo reviews your agent&apos;s on-chain data — traits, canvas state, and activity — and suggests relevant tools from the ecosystem.
-                  </p>
-
-                  <p className="text-[15px] text-muted-foreground mb-4 leading-snug">
-                    {isConnected 
-                      ? "Recommendations are tailored to this agent's current profile." 
-                      : "Connect your wallet to get recommendations for this agent."}
-                  </p>
-
-                  <Button 
-                    onClick={handleZuloRecommendsClick}
-                    variant="default"
-                    className="glow-primary px-8 py-3 text-base font-medium"
-                  >
-                    <Sparkles className="size-4 mr-2" />
-                    Ask Zulo for Recommendations
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Key Actions — card style buttons */}
@@ -761,40 +575,8 @@ export function Dashboard() {
             open={showLinkageModal}
             onOpenChange={setShowLinkageModal}
           />
-          <ZuloRecommendsModal 
-            isOpen={showZuloRecommendsModal} 
-            onClose={() => {
-              setShowZuloRecommendsModal(false)
-              // reset for next open with potentially different token
-              setZuloRecommendations([])
-              setZuloSummary(undefined)
-              setZuloPulseContext(undefined)
-              setZuloTransparency(undefined)
-              setZuloError(null)
-            }} 
-            recommendations={zuloRecommendations}
-            summary={zuloSummary}
-            pulseContext={zuloPulseContext}
-            transparency={zuloTransparency}
-            isLoading={zuloLoading}
-            error={zuloError || undefined}
-            onRefresh={
-              zuloTransparency?.cached
-                ? () => {
-                    setZuloLoading(true)
-                    setZuloError(null)
-                    void performZuloFetch(true)
-                  }
-                : undefined
-            }
-          />
         </div>
       )}
-      <AgentHorizonModal
-        agentContext={horizonAgentContext}
-        open={showHorizonModal}
-        onOpenChange={setShowHorizonModal}
-      />
     </div>
   )
 }

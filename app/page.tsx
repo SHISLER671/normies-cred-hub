@@ -96,25 +96,24 @@ export default async function ZuloLandingPage() {
       </section>
 
       <section className="section section-bordered">
-        <div className="container text-center" style={{ maxWidth: 720 }}>
-          <h2>Normies group-chat, made clear</h2>
-          <p className="card-body" style={{ fontSize: 16, marginBottom: 16 }}>
-            Zulo helps holders and awakened agents make better{" "}
-            <strong>burns</strong>, <strong>trait/tool choices</strong>, and{" "}
-            <strong>Canvas moves</strong> — the decisions the Normies group chat
-            argues about every day. Burn-for-best-ROI in AP/pixels is a{" "}
-            <strong>highlight skill</strong>, not the entire identity.
-          </p>
-          <p className="caption">
-            Live now: free Moves · CredHub Pulse Tool #53 · 👍/👎 reputation
-            flywheel in CredHub. On-chain tips planned when rails enable.
-          </p>
-        </div>
-      </section>
-
-      <section className="section section-bordered">
         <div className="container">
           <h2 className="text-center">What Zulo Does</h2>
+          <p
+            className="card-body text-center"
+            style={{
+              fontSize: 16,
+              marginBottom: 32,
+              maxWidth: 640,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            Zulo helps holders and awakened agents make better{" "}
+            <strong>burns</strong>, <strong>trait/tool choices</strong>, and{" "}
+            <strong>Canvas moves</strong>. Burn-for-best-ROI in AP/pixels is a{" "}
+            <strong>highlight skill</strong>, not the entire identity. Free Moves
+            · CredHub Pulse Tool #53 · 👍/👎 reputation flywheel in CredHub.
+          </p>
           <div className="grid-3">
             <div>
               <div className="feature-num">01</div>
