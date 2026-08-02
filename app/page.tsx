@@ -84,32 +84,51 @@ export default async function ZuloLandingPage() {
             Tool #53 · high-signal concierge
           </p>
 
-          <div className="grid-2 home-zulo-points">
+          <div className="hero-art hero-art-agent home-zulo-art">
+            <Image
+              src="/images/7141art.png"
+              alt={`Zulo — Normie #${ZULO_IDENTITY.tokenId} art`}
+              width={720}
+              height={720}
+              className="hero-art-img"
+              sizes="(max-width: 640px) 72vw, 360px"
+              priority
+            />
+          </div>
+
+          <div className="grid-3 home-zulo-points">
             <div>
-              <h3>Pulse-influenced advice</h3>
+              <h3>PULSE</h3>
               <p>
-                Interprets your awakened Normie&apos;s PULSE so recommendations
-                stay data-backed, not vibes-only.
+                Pulse-influenced advice and trust signals for the active Normie
+                — data-backed, not vibes-only.
               </p>
             </div>
             <div>
-              <h3>Ranked moves you can try</h3>
+              <h3>Ask</h3>
               <p>
-                Intent → 3 to 5 agent/tool MOVES including reasoning and a
+                High-signal concierge chat scoped to the active Normie — PULSE
+                and Canvas, not generic chat.
+              </p>
+            </div>
+            <div>
+              <h3>Moves</h3>
+              <p>
+                Ranked tryable agent/tool moves with reasoning and a clear
                 try-it step.
               </p>
             </div>
           </div>
 
           <div className="hero-actions home-cta-row">
-            <Link href="/paths" className="button button-arrow">
-              Moves
+            <Link href="/dashboard" className="button button-pulse-cta">
+              PULSE
             </Link>
             <Link href="/ask" className="button button-primary button-arrow">
               Ask
             </Link>
-            <Link href="/dashboard" className="button button-pulse-cta">
-              PULSE
+            <Link href="/paths" className="button button-arrow">
+              Moves
             </Link>
           </div>
         </div>

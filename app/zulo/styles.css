@@ -990,8 +990,12 @@
   max-width: 32rem;
 }
 
+.zulo-chrome .home-zulo-art {
+  margin: 0 auto var(--space-lg);
+}
+
 .zulo-chrome .home-zulo-points {
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
   gap: var(--space-lg);
 }
@@ -1009,6 +1013,12 @@
 
 .zulo-chrome .home-cta-row {
   margin-top: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .zulo-chrome .home-zulo-points.grid-3 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .zulo-chrome .quote-under-stats {
