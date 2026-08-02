@@ -784,6 +784,18 @@
   .zulo-chrome .stats-grid {
     grid-template-columns: repeat(4, 1fr);
   }
+
+  /* Two real stats only — keep balanced, not stretched to four columns */
+  .zulo-chrome .stats-grid.stats-grid-pair {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 480px;
+    gap: var(--space-xl);
+  }
+}
+
+.zulo-chrome .stats-grid.stats-grid-pair {
+  max-width: 420px;
+  gap: var(--space-lg);
 }
 
 /* Quote */

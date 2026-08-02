@@ -172,7 +172,7 @@ export default async function ZuloLandingPage() {
       </section>
 
       <section className="section section-bordered">
-        <div className="stats-grid">
+        <div className="stats-grid stats-grid-pair">
           <div className="stat">
             <div className="stat-number data-pulse">{canvasAp}</div>
             <div className="stat-label">
@@ -193,29 +193,7 @@ export default async function ZuloLandingPage() {
               Moves 👍 · CredHub reputation (off-chain today)
             </p>
           </div>
-          <div className="stat">
-            <div className="stat-number">∞</div>
-            <div className="stat-label">Room to grow</div>
-          </div>
-          <div className="stat">
-            <div className="stat-number status-live">Live</div>
-            <div className="stat-label">Hub surfaces</div>
-          </div>
         </div>
-        <p
-          className="caption text-center home-rep-copy"
-          style={{
-            marginTop: 32,
-            maxWidth: 560,
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        >
-          Helpful ratings build Zulo&apos;s trackable reputation in CredHub
-          today. On-chain tips and TBA rails unlock when serc enables x402 +
-          ERC-6551. Moves stays free. Canvas AP shown above is #
-          {ZULO_IDENTITY.tokenId}&apos;s transform budget — not tip income.
-        </p>
 
         <div className="hero-actions" style={{ marginTop: 40 }}>
           <Link href="/paths" className="button button-arrow">
