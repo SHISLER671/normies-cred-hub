@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { ConnectWallet } from "@/components/connect-wallet"
+import { HomeFuturePlans } from "@/components/home-future-plans"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
@@ -246,76 +247,11 @@ export default async function ZuloLandingPage() {
         </p>
       </section>
 
-      <section className="section section-bordered">
-        <div className="container">
-          <h2>The Future</h2>
-          <div className="stack">
-            <div className="card pulse-card">
-              <div className="card-header">
-                <h3 className="card-title">On-chain tips & TBA</h3>
-                <span className="badge">Prepared</span>
-              </div>
-              <p className="card-body mb-0">
-                Scaffold ready for A2A tips and #7141 TBA when serc enables x402
-                + ERC-6551. No autonomous transactions today. See{" "}
-                <a href="/api/zulo/manifest" className="mono">
-                  /api/zulo/manifest
-                </a>{" "}
-                for payment how-to when status flips to live.
-              </p>
-            </div>
-            <div className="card pulse-card">
-              <div className="card-header">
-                <h3 className="card-title">PULSE Expansion</h3>
-                <span className="badge">In Development</span>
-              </div>
-              <p className="card-body mb-0">
-                Real-time PULSE data for all Normies. Every awakened agent
-                connected, every opportunity surfaced — across CredHub, not only
-                one agent.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section section-bordered">
-        <div className="container">
-          <h2>How to pay Zulo (when live)</h2>
-          <div className="card">
-            <ol
-              className="card-body"
-              style={{ paddingLeft: 20, margin: 0, lineHeight: 1.8 }}
-            >
-              <li>
-                Discover services via{" "}
-                <a href="/api/zulo/manifest">
-                  <code className="mono">GET /api/zulo/manifest</code>
-                </a>
-              </li>
-              <li>Pick a paid service (1 AP analysis · 2 AP strategy)</li>
-              <li>
-                Transfer AP to{" "}
-                <code className="mono">{ZULO_IDENTITY.hotWallet}</code> (or the
-                Canvas path Normies A2A specifies)
-              </li>
-              <li>
-                Call <code className="mono">POST /api/zulo/ask</code> with{" "}
-                <code className="mono">service</code> +{" "}
-                <code className="mono">txHash</code>
-              </li>
-              <li>
-                Until rails are live: free Moves at /paths and free chat at /ask
-                — no payment required
-              </li>
-            </ol>
-            <p className="caption" style={{ marginTop: 16, marginBottom: 0 }}>
-              Receiver wallet · {ZULO_IDENTITY.ens} · Normie #
-              {ZULO_IDENTITY.tokenId}
-            </p>
-          </div>
-        </div>
-      </section>
+      <HomeFuturePlans
+        tokenId={ZULO_IDENTITY.tokenId}
+        ens={ZULO_IDENTITY.ens}
+        hotWallet={ZULO_IDENTITY.hotWallet}
+      />
 
       <footer className="site-footer">
         <div className="site-footer-inner">
