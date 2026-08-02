@@ -16,7 +16,6 @@
     "test:path-ranker": "tsx --test lib/path-ranker/path-ranker.test.ts",
     "test:unit": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts lib/path-ranker/path-ranker.test.ts",
     "test:all": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts lib/currencies/currencies.test.ts lib/payments/config.test.ts lib/path-ranker/path-ranker.test.ts",
-    "venice:test": "node --env-file-if-exists=.env --import tsx scripts/venice-smoke-test.ts",
     "typecheck": "tsc --noEmit",
     "sbom": "echo \"Run: pnpm dlx @cyclonedx/cyclonedx-npm -o sbom.json\""
   },
@@ -32,7 +31,6 @@
     "clsx": "2.1.1",
     "lucide-react": "1.17.0",
     "next": "16.2.6",
-    "openai": "^7.3.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sonner": "2.0.7",

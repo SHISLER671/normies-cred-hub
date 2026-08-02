@@ -5,8 +5,13 @@ import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 import { composeZuloPrompt } from "./composePrompt"
 import type { ZuloRecommendationContext } from "./types"
 
-/** xAI chat can be slow under load; abort before Vercel kills the function. */
-const XAI_TIMEOUT_MS = 45_000
+/** Inference can be slow under load; abort before Vercel kills the function. */
+const INFERENCE_TIMEOUT_MS = 45_000
+
+/** Venice GLM 5.2 is the primary model; xAI grok-4 is the fallback. */
+const VENICE_MODEL = "zai-org-glm-5-2"
+const XAI_MODEL = "grok-4"
+const XAI_ENDPOINT = "https://api.x.ai/v1/chat/completions"
 
 export class ZuloGenerateError extends Error {
   readonly code: "config" | "upstream" | "timeout" | "empty"
@@ -24,51 +29,81 @@ export class ZuloGenerateError extends Error {
   }
 }
 
-export async function generateZuloResponse(
-  context: ZuloRecommendationContext,
-  userQuery: string,
-): Promise<string> {
-  const apiKey = process.env.XAI_API_KEY?.trim()
-  if (!apiKey) {
-    throw new ZuloGenerateError(
-      "config",
-      "XAI_API_KEY is not configured",
-      500,
-    )
+interface ProviderConfig {
+  label: string
+  endpoint: string
+  apiKey: string
+  model: string
+}
+
+/** Normalize a Venice base URL (e.g. ".../api/v1") into a chat endpoint. */
+function veniceEndpoint(baseUrl: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}/chat/completions`
+}
+
+/** Resolve the primary (Venice) and fallback (xAI) providers from env. */
+function resolveProviders(): ProviderConfig[] {
+  const providers: ProviderConfig[] = []
+
+  const veniceKey = process.env.VENICE_API_KEY?.trim()
+  const veniceBase = process.env.VENICE_BASE_URL?.trim()
+  if (veniceKey && veniceBase) {
+    providers.push({
+      label: "venice",
+      endpoint: veniceEndpoint(veniceBase),
+      apiKey: veniceKey,
+      model: VENICE_MODEL,
+    })
   }
 
-  const prompt = composeZuloPrompt(context, userQuery)
+  const xaiKey = process.env.XAI_API_KEY?.trim()
+  if (xaiKey) {
+    providers.push({
+      label: "xai",
+      endpoint: XAI_ENDPOINT,
+      apiKey: xaiKey,
+      model: XAI_MODEL,
+    })
+  }
 
+  return providers
+}
+
+/** Single OpenAI-compatible chat completion call. Throws ZuloGenerateError. */
+async function callProvider(
+  provider: ProviderConfig,
+  prompt: string,
+): Promise<string> {
   let response: Response
   try {
     response = await fetchWithTimeout(
-      "https://api.x.ai/v1/chat/completions",
+      provider.endpoint,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${provider.apiKey}`,
         },
         body: JSON.stringify({
-          model: "grok-4",
+          model: provider.model,
           messages: [{ role: "user", content: prompt }],
           temperature: 0.7,
           max_tokens: 1200,
         }),
       },
-      XAI_TIMEOUT_MS,
+      INFERENCE_TIMEOUT_MS,
     )
   } catch (err) {
     if (isTimeoutError(err)) {
       throw new ZuloGenerateError(
         "timeout",
-        "xAI request timed out",
+        `${provider.label} request timed out`,
         504,
       )
     }
     throw new ZuloGenerateError(
       "upstream",
-      `xAI network error: ${err instanceof Error ? err.message : "unknown"}`,
+      `${provider.label} network error: ${err instanceof Error ? err.message : "unknown"}`,
       502,
     )
   }
@@ -76,14 +111,14 @@ export async function generateZuloResponse(
   if (!response.ok) {
     const errBody = await response.text().catch(() => "")
     console.error(
-      "[agent-recommendations] xAI error:",
+      `[agent-recommendations] ${provider.label} error:`,
       response.status,
       errBody.slice(0, 300),
     )
     throw new ZuloGenerateError(
       "upstream",
-      `xAI API error: ${response.status}`,
-      response.status >= 500 ? 502 : 502,
+      `${provider.label} API error: ${response.status}`,
+      502,
     )
   }
 
@@ -95,12 +130,53 @@ export async function generateZuloResponse(
   if (!content.trim()) {
     throw new ZuloGenerateError(
       "empty",
-      "xAI returned an empty recommendation",
+      `${provider.label} returned an empty recommendation`,
       502,
     )
   }
 
   return content
+}
+
+export async function generateZuloResponse(
+  context: ZuloRecommendationContext,
+  userQuery: string,
+): Promise<string> {
+  const providers = resolveProviders()
+  if (providers.length === 0) {
+    throw new ZuloGenerateError(
+      "config",
+      "No inference provider is configured (set VENICE_API_KEY + VENICE_BASE_URL, or XAI_API_KEY)",
+      500,
+    )
+  }
+
+  const prompt = composeZuloPrompt(context, userQuery)
+
+  let lastError: unknown
+  for (let i = 0; i < providers.length; i++) {
+    const provider = providers[i]
+    try {
+      return await callProvider(provider, prompt)
+    } catch (err) {
+      lastError = err
+      const isLast = i === providers.length - 1
+      console.error(
+        `[agent-recommendations] provider "${provider.label}" failed${isLast ? " (no fallback left)" : ", trying fallback"}:`,
+        err instanceof Error ? err.message : err,
+      )
+    }
+  }
+
+  // Every provider failed — surface the last error (already a ZuloGenerateError).
+  if (lastError instanceof ZuloGenerateError) {
+    throw lastError
+  }
+  throw new ZuloGenerateError(
+    "upstream",
+    "All inference providers failed",
+    502,
+  )
 }
 
 /** Map generate errors to user-safe API payloads. */
@@ -137,18 +213,6 @@ export function zuloErrorToResponse(err: unknown): {
           "Zulo could not reach the recommendation model. Strategy data may still be fine — please try again.",
         code: err.code,
         retryable: true,
-      },
-    }
-  }
-
-  const message = err instanceof Error ? err.message : "Unknown error"
-  if (message.includes("XAI_API_KEY")) {
-    return {
-      status: 500,
-      body: {
-        error: "XAI_API_KEY is not configured on the server",
-        code: "config",
-        retryable: false,
       },
     }
   }

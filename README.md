@@ -187,19 +187,15 @@ Landing stats distinguish:
 
 ---
 
-## Zulo AI features (three backends)
+## Zulo AI feature
 
 | Feature | UI | API | Backend | Who can use it |
 |---------|-----|-----|---------|----------------|
-| **Zulo Concierge** | `/ask` | `POST /api/zulo/ask` | xAI Grok (`XAI_API_KEY`) | Anyone (free web chat today) |
-| **Zulo Horizon** | Dashboard modal | `POST /api/zulo-horizon` | OpenRouter (`OPENROUTER_API_KEY`) | Anyone — session limits |
-| **Zulo Recommends** | Dashboard modal | `POST /api/zulo-recommends` | Venice (`VENICE_*`) | **Awakened agents only** |
+| **Zulo Concierge** | `/ask` | `POST /api/zulo/ask` | Venice GLM 5.2 (`VENICE_*`), xAI Grok fallback (`XAI_API_KEY`) | Anyone (free web chat today) |
 
-Horizon and Recommends:
-
-- Read pulse, canvas, and Ethos signals  
-- Rank ERC-8257 tools by pulse gaps and wallet access  
-- Never pressure wallet actions, purchases, or signing  
+> **Sunset note:** the earlier **Zulo Horizon** (`/api/zulo-horizon`, OpenRouter) and
+> **Zulo Recommends** (`/api/zulo-recommends`, Venice) dashboard modals have been removed.
+> The Concierge (`/ask`) is now the single inference surface.
 
 The **Concierge** (`lib/agent-recommendations/`) is a standalone plugin:
 
@@ -366,9 +362,8 @@ Open:
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `XAI_API_KEY` | For Zulo Concierge (`/ask`, `/api/zulo/ask`) | xAI Grok completions |
-| `OPENROUTER_API_KEY` | For Zulo Horizon | OpenRouter chat |
-| `VENICE_INFERENCE_KEY` or `VENICE_API_KEY` | For Zulo Recommends | Venice AI |
+| `VENICE_API_KEY` + `VENICE_BASE_URL` | For Zulo Concierge (`/ask`, `/api/zulo/ask`) — primary | Venice GLM 5.2 completions |
+| `XAI_API_KEY` | For Zulo Concierge — fallback when Venice is unavailable | xAI Grok completions |
 | `KV_REST_API_URL` | Production | Upstash Redis — rate limiting, replay, audit, circuit |
 | `KV_REST_API_TOKEN` | Production | Upstash Redis |
 | `AUDIT_LOG_HMAC_SECRET` | Production | Security audit log HMAC |
