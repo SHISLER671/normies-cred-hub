@@ -96,6 +96,13 @@ export function HomeFuturePlans({
                 </p>
               </PulseAccordionItem>
             </PulseAccordion>
+
+            <p className="home-future-manifest caption">
+              Service manifest for agents and A2A clients:{" "}
+              <a href="/api/zulo/manifest" className="mono">
+                /api/zulo/manifest
+              </a>
+            </p>
           </PulseAccordionItem>
         </PulseAccordion>
       </div>

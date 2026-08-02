@@ -176,25 +176,6 @@ export default async function ZuloLandingPage() {
         ens={ZULO_IDENTITY.ens}
         hotWallet={ZULO_IDENTITY.hotWallet}
       />
-
-      <footer className="site-footer">
-        <div className="site-footer-inner">
-          <div>Normies CredHub · part of the Normies ecosystem</div>
-          <div className="footer-links">
-            <Link href="/paths">Moves</Link>
-            <Link href="/ask">Ask</Link>
-            <Link href="/dashboard">PULSE</Link>
-            <a href="/api/zulo/manifest">Manifest</a>
-            <a
-              href={`https://www.normies.art/lab/agentic/agents/${ZULO_IDENTITY.agentId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View on Normies
-            </a>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
