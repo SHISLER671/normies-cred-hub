@@ -2504,6 +2504,141 @@
   text-align: center;
 }
 
+/* ========== PULSE accordion (mobile-first progressive disclosure) ========== */
+
+.zulo-chrome .pulse-accordion,
+.pulse-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border, #1a1a1a);
+  background: var(--bg-secondary, #f0f0f0);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.pulse-acc-item {
+  border-bottom: 1px solid var(--border, #1a1a1a);
+  min-width: 0;
+}
+
+.pulse-acc-item:last-child {
+  border-bottom: none;
+}
+
+.pulse-acc-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 14px 16px;
+  border: none;
+  background: var(--bg-primary, #e5e5e5);
+  color: var(--text-primary, #1a1a1a);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  border-radius: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pulse-acc-trigger:hover {
+  background: var(--bg-secondary, #d4d4d4);
+}
+
+.pulse-acc-item.is-open .pulse-acc-trigger {
+  background: var(--bg-secondary, #d4d4d4);
+  border-bottom: 1px solid var(--border-light, #a3a3a3);
+}
+
+.pulse-acc-trigger-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.pulse-acc-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+
+.pulse-acc-subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--text-muted, #4a4a4a);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  line-height: 1.4;
+}
+
+.pulse-acc-chevron {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--text-muted, #4a4a4a);
+  transition: transform 0.15s ease;
+  line-height: 1;
+}
+
+.pulse-acc-chevron.is-open {
+  transform: rotate(180deg);
+  color: var(--text-primary, #1a1a1a);
+}
+
+.pulse-acc-panel {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.pulse-acc-panel-inner {
+  padding: 14px 16px 18px;
+  background: var(--bg-primary, #e5e5e5);
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pulse-acc-panel-inner pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* Credibility blocks inside accordion — drop vertical connector chain feel */
+.pulse-acc-panel-inner .cred-stage {
+  margin: 0;
+}
+
+.pulse-acc-panel-inner .cred-connector {
+  display: none;
+}
+
+.zulo-chrome .dash-section-acc {
+  margin-bottom: var(--space-md);
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.zulo-chrome .cred-framework-acc {
+  margin-top: var(--space-md);
+}
+
+.zulo-chrome .cred-framework-intro {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
 .zulo-chrome .dash-footer p {
   font-size: 11px;
   letter-spacing: 0.12em;

@@ -16,7 +16,7 @@ import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
 import { AgentCheckCard } from "@/components/agentcheck-card"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
 import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Wallet, Wrench } from "lucide-react"
-import { Fragment, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
@@ -32,7 +32,10 @@ import {
 } from "@/lib/normie-control"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { CredibilityConnector, CredibilitySignal } from "@/components/credibility-signal"
+import {
+  PulseAccordion,
+  PulseAccordionItem,
+} from "@/components/pulse-accordion"
 import { ERC8004 } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { getCurrentSignals, validateSignals } from "@/lib/signals"
@@ -325,22 +328,23 @@ export function Dashboard() {
             </div>
           )}
 
-          {/* Zulo’s Credibility Framework */}
-          <div className="mx-auto w-full min-w-0 max-w-2xl mt-12 border-t border-border pt-10">
-            <div className="flex flex-col items-center text-center">
+          {/* Credibility Framework — collapsible signal sections */}
+          <div className="mx-auto w-full min-w-0 max-w-2xl mt-10 cred-framework-acc">
+            <div className="cred-framework-intro">
               <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[2px] text-primary">
                 <span className="h-px w-6 bg-primary/50" />
                 Zulo’s Credibility Framework
                 <span className="h-px w-6 bg-primary/50" />
               </span>
-              <h2 className="font-heading text-2xl font-semibold leading-tight tracking-tight mt-3 text-balance sm:text-3xl">
-                The on-chain signals that establish credibility for awakened agents.
+              <h2 className="font-heading text-xl font-semibold leading-tight tracking-tight mt-3 text-balance sm:text-2xl">
+                On-chain signals that establish credibility for awakened agents.
               </h2>
-              <p className="text-sm tracking-[1.5px] text-muted-foreground mt-2">— Analyzed by Zulo</p>
-              <span className="mt-5 h-8 w-px bg-gradient-to-b from-primary/50 to-transparent" aria-hidden="true" />
+              <p className="text-sm tracking-[1.5px] text-muted-foreground mt-2">
+                — Analyzed by Zulo · tap a section to expand
+              </p>
             </div>
 
-            <div className="cred-framework mt-2">
+            <PulseAccordion defaultOpenIds={[]} allowMultiple className="mt-4">
               {[
                 {
                   signal: identitySignal,
@@ -500,15 +504,25 @@ export function Dashboard() {
                     />
                   ),
                 },
-              ].map((section, index) => (
-                <Fragment key={section.signal.id}>
-                  {index > 0 && <CredibilityConnector />}
-                  <CredibilitySignal signal={section.signal} icon={section.icon}>
-                    {section.content}
-                  </CredibilitySignal>
-                </Fragment>
-              ))}
-            </div>
+              ].map((section) => {
+                const Icon = section.icon
+                return (
+                  <PulseAccordionItem
+                    key={section.signal.id}
+                    id={section.signal.id}
+                    title={section.signal.title}
+                    subtitle={section.signal.description}
+                  >
+                    <div className="flex gap-3 min-w-0">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-primary bg-primary/10">
+                        <Icon className="size-4 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1 cred-data">{section.content}</div>
+                    </div>
+                  </PulseAccordionItem>
+                )
+              })}
+            </PulseAccordion>
 
             <p className="text-center text-sm leading-relaxed text-muted-foreground mt-6 max-w-prose mx-auto text-pretty">
               As the ecosystem grows, these signals may become more useful for understanding and interacting with awakened agents.

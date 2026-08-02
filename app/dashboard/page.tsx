@@ -2,6 +2,10 @@ import type { Metadata } from "next"
 
 import { AgentPulseBar } from "@/components/agent-pulse-bar"
 import { Dashboard } from "@/components/dashboard"
+import {
+  PulseAccordion,
+  PulseAccordionItem,
+} from "@/components/pulse-accordion"
 import { SiteHeader } from "@/components/site-header"
 import { ZULO } from "@/constants/contracts"
 
@@ -35,63 +39,70 @@ export default function DashboardPage() {
           </p>
         </section>
 
-        <section className="dash-section">
-          <p className="dash-section-title mono">Agent-to-agent trust</p>
-          <h2
-            className="moves-title"
-            style={{ fontSize: 22, marginBottom: 8 }}
-          >
-            Agents can vet each other before they interact.
-          </h2>
-          <p className="moves-lede" style={{ marginBottom: 16 }}>
-            One public endpoint returns any agent&apos;s trust profile as JSON —
-            no dashboard required.
-          </p>
-
-          <AgentPulseBar />
-
-          <p className="caption" style={{ marginTop: 16 }}>
-            Real data pulled live from the Normies API + on-chain records.
-          </p>
-
-          <div
-            className="card"
-            style={{ marginTop: 16, padding: 16, background: "var(--bg-primary)" }}
-          >
-            <strong className="caption">Public Endpoint</strong>
-            <span className="caption"> (any agent can call this):</span>
-            <pre
-              className="mono"
-              style={{
-                marginTop: 8,
-                overflowX: "auto",
-                padding: "10px 12px",
-                background: "var(--bg-secondary)",
-                border: "1px solid var(--border)",
-                fontSize: 13,
-              }}
+        <section className="dash-section-acc">
+          <PulseAccordion defaultOpenIds={["agent-pulse"]} allowMultiple>
+            <PulseAccordionItem
+              id="agent-pulse"
+              title="Agent Pulse"
+              subtitle="Score, public endpoint, agent-to-agent trust"
             >
-              GET /api/agent/{ZULO.tokenId}/pulse
-            </pre>
-          </div>
+              <p className="moves-lede" style={{ marginBottom: 12, fontSize: 14 }}>
+                Agents can vet each other before they interact. One public
+                endpoint returns any agent&apos;s trust profile as JSON.
+              </p>
 
-          <div
-            className="card"
-            style={{ marginTop: 12, padding: 16, background: "var(--bg-primary)" }}
-          >
-            <strong className="caption">Example Response</strong>
-            <pre
-              className="mono"
-              style={{
-                marginTop: 8,
-                overflowX: "auto",
-                padding: "10px 12px",
-                background: "var(--bg-secondary)",
-                border: "1px solid var(--border)",
-                fontSize: 12,
-                lineHeight: 1.5,
-              }}
-            >
+              <AgentPulseBar />
+
+              <p className="caption" style={{ marginTop: 16 }}>
+                Real data pulled live from the Normies API + on-chain records.
+              </p>
+
+              <div
+                className="card"
+                style={{
+                  marginTop: 16,
+                  padding: 16,
+                  background: "var(--bg-secondary)",
+                }}
+              >
+                <strong className="caption">Public Endpoint</strong>
+                <span className="caption"> (any agent can call this):</span>
+                <pre
+                  className="mono"
+                  style={{
+                    marginTop: 8,
+                    overflowX: "auto",
+                    padding: "10px 12px",
+                    background: "var(--bg-primary)",
+                    border: "1px solid var(--border)",
+                    fontSize: 13,
+                  }}
+                >
+                  GET /api/agent/{ZULO.tokenId}/pulse
+                </pre>
+              </div>
+
+              <div
+                className="card"
+                style={{
+                  marginTop: 12,
+                  padding: 16,
+                  background: "var(--bg-secondary)",
+                }}
+              >
+                <strong className="caption">Example Response</strong>
+                <pre
+                  className="mono"
+                  style={{
+                    marginTop: 8,
+                    overflowX: "auto",
+                    padding: "10px 12px",
+                    background: "var(--bg-primary)",
+                    border: "1px solid var(--border)",
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                  }}
+                >
 {`{
   "token_id": ${ZULO.tokenId},
   "agent_id": ${ZULO.agentId},
@@ -107,19 +118,21 @@ export default function DashboardPage() {
   "next_signal": "Reserved for future on-chain usage metrics — there's always room for improvement.",
   "note": "This Pulse uses currently available signals from the Normies API. The 5th level unlocks as more agents transact and interact on-chain in future updates."
 }`}
-            </pre>
-          </div>
+                </pre>
+              </div>
 
-          <p className="moves-lede" style={{ marginTop: 16, fontSize: 13 }}>
-            Any awakened agent can fetch this before deciding to interact.
-          </p>
-          <p className="caption" style={{ marginTop: 8 }}>
-            Future updates will include direct signals from agent activity
-            (transactions, interactions, success patterns).
-          </p>
+              <p className="moves-lede" style={{ marginTop: 16, fontSize: 13 }}>
+                Any awakened agent can fetch this before deciding to interact.
+              </p>
+              <p className="caption" style={{ marginTop: 8 }}>
+                Future updates will include direct signals from agent activity
+                (transactions, interactions, success patterns).
+              </p>
+            </PulseAccordionItem>
+          </PulseAccordion>
         </section>
 
-        {/* Trust cards / Pulse / framework — content unchanged */}
+        {/* Trust cards / framework — My agents + collapsible signals */}
         <div style={{ paddingBottom: 48 }}>
           <Dashboard />
         </div>
