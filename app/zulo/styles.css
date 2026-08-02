@@ -976,22 +976,43 @@
   padding-bottom: var(--space-xl);
 }
 
-.zulo-chrome .hero-hub-copy {
-  max-width: 36rem;
-  margin: var(--space-md) auto 0;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--text-secondary);
-  text-transform: none;
-  letter-spacing: 0.01em;
-  font-weight: 400;
-  text-align: center;
+.zulo-chrome .hero-hub .hero-meta {
+  margin-bottom: 0;
 }
 
-.zulo-chrome .hero-hub-surfaces {
-  margin-top: 12px;
-  margin-bottom: 0;
+.zulo-chrome .home-product {
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-lg);
+}
+
+.zulo-chrome .home-zulo-meta {
+  margin: 8px auto 28px;
+  max-width: 32rem;
+}
+
+.zulo-chrome .home-zulo-points {
+  max-width: 720px;
+  margin: 0 auto;
+  gap: var(--space-lg);
+}
+
+.zulo-chrome .home-zulo-points h3 {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.zulo-chrome .home-zulo-points p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.zulo-chrome .home-cta-row {
+  margin-top: var(--space-lg);
+}
+
+.zulo-chrome .quote-under-stats {
+  margin-top: var(--space-lg);
 }
 
 @media (max-width: 640px) {
