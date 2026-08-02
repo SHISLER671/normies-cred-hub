@@ -22,6 +22,8 @@ export function IntentChips({ selected, onSelect, disabled }: IntentChipsProps) 
             disabled={disabled}
             onClick={() => onSelect(chip.tag)}
             title={chip.hint}
+            aria-label={`${chip.label}: ${chip.hint}`}
+            data-hint={chip.hint}
             className={cn(
               "moves-chip",
               active && "is-active",

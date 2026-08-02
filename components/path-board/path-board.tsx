@@ -116,16 +116,21 @@ export function PathBoard({
   }
 
   const paths: RankedPath[] = result?.paths ?? []
+  const showIdleHint = !result && !loading && !error
 
   return (
     <div className="moves-board">
       <header className="moves-header">
         <p className="moves-kicker mono">MOVES · FREE</p>
         <ActiveNormieBadge />
-        <h1 className="moves-title">What are you deciding?</h1>
+        <h1 className="moves-title">
+          Zulo helps agents and humans find tools.
+          <br />
+          What do you need a tool for today?
+        </h1>
         <p className="moves-lede">
           Pick an intent or one sentence. Zulo ranks 3–5 tryable moves for the
-          active Normie. Burn ROI is a highlight — not the whole job.
+          active Normie.
         </p>
         {helpfulCount != null ? (
           <p className="moves-stats mono">
@@ -142,6 +147,11 @@ export function PathBoard({
             onSelect={onChip}
             disabled={loading}
           />
+          {showIdleHint ? (
+            <p className="moves-idle-hint">
+              Choose a chip or type a sentence to rank moves.
+            </p>
+          ) : null}
         </div>
 
         <div className="moves-primary">
@@ -229,11 +239,11 @@ export function PathBoard({
             Ratings build trackable CredHub reputation today; on-chain tips when
             rails enable.
           </p>
+          <p className="moves-disclaimer">
+            We do not endorse these tools. We are building a system so the
+            useful ones can stand out.
+          </p>
         </section>
-      ) : !loading && !error ? (
-        <div className="moves-empty">
-          <p>Choose a chip or type a sentence to rank moves.</p>
-        </div>
       ) : null}
     </div>
   )
