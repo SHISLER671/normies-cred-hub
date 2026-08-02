@@ -1053,23 +1053,43 @@
   outline: none;
 }
 
-/* Ask — strongest filled treatment */
+/* Ask — strongest filled treatment (inverse text for contrast) */
 .zulo-chrome .home-surface-card-ask {
   background: var(--bg-dark);
   color: var(--text-inverse);
   border-color: var(--bg-dark);
 }
 
+/* Override global .zulo-chrome h3 color so titles invert on filled cards */
+.zulo-chrome .home-surface-card-ask h3,
+.zulo-chrome .home-surface-card-ask p,
+.zulo-chrome .home-surface-card-ask .home-surface-card-go {
+  color: var(--text-inverse);
+}
+
 .zulo-chrome .home-surface-card-ask p {
-  color: inherit;
-  opacity: 0.85;
+  opacity: 0.88;
+}
+
+.zulo-chrome .home-surface-card-ask .home-surface-card-go {
+  opacity: 0.75;
 }
 
 .zulo-chrome .home-surface-card-ask:hover,
 .zulo-chrome .home-surface-card-ask:focus-visible {
   background: var(--text-primary);
   border-color: var(--text-primary);
+  color: var(--text-inverse);
   outline: none;
+}
+
+.zulo-chrome .home-surface-card-ask:hover h3,
+.zulo-chrome .home-surface-card-ask:focus-visible h3,
+.zulo-chrome .home-surface-card-ask:hover p,
+.zulo-chrome .home-surface-card-ask:focus-visible p,
+.zulo-chrome .home-surface-card-ask:hover .home-surface-card-go,
+.zulo-chrome .home-surface-card-ask:focus-visible .home-surface-card-go {
+  color: var(--text-inverse);
 }
 
 /* PULSE — subtle monochrome pulse outline */
