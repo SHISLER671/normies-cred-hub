@@ -10,15 +10,7 @@ type IntentChipsProps = {
 
 export function IntentChips({ selected, onSelect, disabled }: IntentChipsProps) {
   return (
-    <div
-      role="group"
-      aria-label="Intent chips"
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 8,
-      }}
-    >
+    <div role="group" aria-label="Move intents" className="moves-chips">
       {INTENT_CHIPS.map((chip) => {
         const active = selected === chip.tag
         return (
@@ -28,20 +20,7 @@ export function IntentChips({ selected, onSelect, disabled }: IntentChipsProps) 
             disabled={disabled}
             onClick={() => onSelect(chip.tag)}
             title={chip.hint}
-            style={{
-              fontFamily: "inherit",
-              fontSize: 13,
-              padding: "8px 12px",
-              border: "1px solid var(--border, #1a1a1a)",
-              background: active
-                ? "var(--bg-dark, #1a1a1a)"
-                : "var(--bg-primary, #e5e5e5)",
-              color: active
-                ? "var(--text-inverse, #e5e5e5)"
-                : "var(--text-primary, #1a1a1a)",
-              cursor: disabled ? "not-allowed" : "pointer",
-              opacity: disabled ? 0.6 : 1,
-            }}
+            className={active ? "moves-chip is-active" : "moves-chip"}
           >
             {chip.label}
           </button>

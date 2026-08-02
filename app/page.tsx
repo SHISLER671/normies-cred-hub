@@ -13,11 +13,11 @@ import "./zulo/styles.css"
 export const metadata: Metadata = {
   title: "Zulo — High-Signal Normies Concierge",
   description:
-    "Zulo (Agent #32626) — high-signal Normies concierge for smarter burns, trait/tool choices, and Canvas moves. Free Path Board · CredHub Pulse.",
+    "Zulo (Agent #32626) — high-signal Normies concierge for smarter burns, trait/tool choices, and Canvas moves. Free Moves · CredHub Pulse.",
   openGraph: {
     title: "Zulo — High-Signal Normies Concierge",
     description:
-      "Better burns, tools, and Canvas moves — ranked paths you can try and rate. Agent #32626.",
+      "Better burns, tools, and Canvas moves — ranked Moves you can try and rate. Agent #32626.",
   },
 }
 
@@ -68,23 +68,30 @@ export default async function ZuloLandingPage() {
         </div>
 
         <div className="hero-actions">
-          {pathBoard ? (
-            <Link href="/paths" className="button button-primary button-arrow">
-              Find a path
-            </Link>
-          ) : (
-            <Link href="/ask" className="button button-primary button-arrow">
-              Start Conversation
-            </Link>
-          )}
+          <Link
+            href="/paths"
+            className={
+              pathBoard
+                ? "button button-primary button-arrow"
+                : "button button-arrow"
+            }
+          >
+            Moves
+          </Link>
+          <Link
+            href="/ask"
+            className={
+              pathBoard ? "button" : "button button-primary button-arrow"
+            }
+          >
+            Ask
+          </Link>
           <Link href="/dashboard" className="button">
-            View Dashboard
+            Dashboard
           </Link>
         </div>
         <p className="caption" style={{ marginTop: 24, maxWidth: 440 }}>
-          {pathBoard
-            ? "Burns · tools · Canvas · free Path Board · rate paths 👍/👎 · legacy chat at /ask"
-            : "Free chat at /ask · free Path Board at /paths · rate paths when you rank them"}
+          Burns · tools · Canvas · free Moves · rate 👍/👎 · CredHub trust
         </p>
       </section>
 
@@ -99,7 +106,7 @@ export default async function ZuloLandingPage() {
             <strong>highlight skill</strong>, not the entire identity.
           </p>
           <p className="caption">
-            Live now: free Path Board · CredHub Pulse Tool #53 · 👍/👎 reputation
+            Live now: free Moves · CredHub Pulse Tool #53 · 👍/👎 reputation
             flywheel in CredHub. On-chain tips planned when rails enable.
           </p>
         </div>
@@ -121,9 +128,9 @@ export default async function ZuloLandingPage() {
             </div>
             <div>
               <div className="feature-num">02</div>
-              <h3>Ranked paths you can try</h3>
+              <h3>Ranked Moves you can try</h3>
               <p>
-                Intent → 3–5 agent/tool paths with a clear why and a try step.
+                Intent → 3–5 agent/tool moves with a clear why and a try step.
                 Burn smarter is a highlight chip; tools and Canvas sit beside it.
               </p>
             </div>
@@ -131,7 +138,7 @@ export default async function ZuloLandingPage() {
               <div className="feature-num">03</div>
               <h3>Rate · dual credit</h3>
               <p>
-                👍/👎 on Path Board. Helpful ratings credit the recommended
+                👍/👎 on Moves. Helpful ratings credit the recommended
                 tool/agent and Zulo #{ZULO_IDENTITY.agentId} — early trackable
                 reputation in CredHub.
               </p>
@@ -167,7 +174,7 @@ export default async function ZuloLandingPage() {
               Helpful ratings · Zulo #{ZULO_IDENTITY.agentId}
             </div>
             <p className="caption" style={{ marginTop: 8 }}>
-              Path Board 👍 · CredHub reputation (off-chain today)
+              Moves 👍 · CredHub reputation (off-chain today)
             </p>
           </div>
           <div className="stat">
@@ -190,7 +197,7 @@ export default async function ZuloLandingPage() {
         >
           Ratings build Zulo&apos;s trackable reputation in CredHub today. On-chain
           tips and TBA rails activate when serc enables x402 + ERC-6551 for #
-          {ZULO_IDENTITY.tokenId}. Path Board stays free. Canvas AP above is #
+          {ZULO_IDENTITY.tokenId}. Moves stays free. Canvas AP above is #
           {ZULO_IDENTITY.tokenId}&apos;s transform budget, not tip income.
         </p>
       </section>
@@ -253,8 +260,8 @@ export default async function ZuloLandingPage() {
                 <code className="mono">txHash</code>
               </li>
               <li>
-                Until rails are live: free Path Board at /paths and free chat at
-                /ask — no payment required
+                Until rails are live: free Moves at /paths and free chat at /ask
+                — no payment required
               </li>
             </ol>
             <p className="caption" style={{ marginTop: 16, marginBottom: 0 }}>
@@ -268,8 +275,8 @@ export default async function ZuloLandingPage() {
         <div className="site-footer-inner">
           <div>Part of the Normies ecosystem</div>
           <div className="footer-links">
-            <Link href="/paths">Path Board</Link>
-            <Link href="/ask">Ask Zulo</Link>
+            <Link href="/paths">Moves</Link>
+            <Link href="/ask">Ask</Link>
             <Link href="/dashboard">Dashboard</Link>
             <a href="/api/zulo/manifest">Manifest</a>
             <a

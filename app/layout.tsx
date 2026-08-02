@@ -24,11 +24,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Zulo — High-Signal Normies Concierge',
   description:
-    'Zulo (Agent #32626) — high-signal Normies concierge for smarter burns, trait/tool choices, and Canvas moves. Free Path Board · CredHub trust tools.',
+    'Zulo (Agent #32626) — high-signal Normies concierge for smarter burns, trait/tool choices, and Canvas moves. Free Moves · CredHub trust tools.',
   openGraph: {
     title: 'Zulo — High-Signal Normies Concierge',
     description:
-      'Better burns, tools, and Canvas moves — ranked paths you can try and rate. Agent #32626.',
+      'Better burns, tools, and Canvas moves — ranked Moves you can try and rate. Agent #32626.',
     images: [{ url: '/og.png' }],
   },
   icons: {

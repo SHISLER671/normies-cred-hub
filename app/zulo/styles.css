@@ -1379,3 +1379,373 @@
     white-space: nowrap;
   }
 }
+
+/* ========== MOVES BOARD (/paths) ========== */
+
+.zulo-chrome .moves-board {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 var(--space-md) var(--space-xl);
+}
+
+.zulo-chrome .moves-kicker {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-xs);
+}
+
+.zulo-chrome .moves-title {
+  font-size: clamp(28px, 5vw, 36px);
+  margin: 0 0 var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.zulo-chrome .moves-lede {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 540px;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+.zulo-chrome .moves-stats {
+  margin: var(--space-sm) 0 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .moves-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.zulo-chrome .moves-label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.zulo-chrome .moves-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.zulo-chrome .moves-input {
+  flex: 1 1 220px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 0;
+  min-height: 44px;
+}
+
+.zulo-chrome .moves-input:focus {
+  outline: 2px solid var(--border);
+  outline-offset: 2px;
+}
+
+.zulo-chrome .moves-input-token {
+  width: 100px;
+  flex: 0 0 auto;
+}
+
+.zulo-chrome .moves-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.zulo-chrome .moves-chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 0;
+  min-height: 40px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.zulo-chrome .moves-chip:hover:not(:disabled) {
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .moves-chip.is-active {
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  border-color: var(--bg-dark);
+}
+
+.zulo-chrome .moves-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.zulo-chrome .moves-alert {
+  margin-top: var(--space-md);
+  font-size: 14px;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: 12px 14px;
+}
+
+.zulo-chrome .moves-results {
+  margin-top: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zulo-chrome .moves-results-meta {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.zulo-chrome .moves-footnote {
+  margin-top: var(--space-md);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 560px;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.zulo-chrome .moves-empty {
+  margin-top: var(--space-xl);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.zulo-chrome .moves-empty p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Path / move cards — shared card language */
+.zulo-chrome .path-card,
+.zulo-chrome .move-card {
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 0;
+}
+
+.zulo-chrome .move-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.zulo-chrome .move-card-rank {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.zulo-chrome .move-card-title {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.zulo-chrome .move-card-publisher {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 400;
+}
+
+.zulo-chrome .move-card-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.zulo-chrome .move-card-why {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
+
+.zulo-chrome .move-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.zulo-chrome .move-card-score {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.zulo-chrome .move-card-rate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.zulo-chrome .move-rate-btn {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 0;
+  min-height: 36px;
+}
+
+.zulo-chrome .move-rate-btn.is-selected {
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+}
+
+.zulo-chrome .move-rate-btn:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+/* ========== ASK BANNER ========== */
+
+.zulo-chrome .ask-banner {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--bg-secondary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  color: var(--text-secondary);
+}
+
+.zulo-chrome .ask-banner a {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ========== DASHBOARD SHELL (chrome only) ========== */
+
+.zulo-chrome .dash-shell {
+  min-height: 100dvh;
+}
+
+.zulo-chrome .dash-main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--space-md) var(--space-xl);
+  overflow-x: hidden;
+}
+
+.zulo-chrome .dash-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-xl) 0 var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-lg);
+}
+
+.zulo-chrome .dash-hero .moves-title {
+  max-width: 16ch;
+}
+
+.zulo-chrome .dash-hero .moves-lede {
+  max-width: 36rem;
+  margin-top: var(--space-sm);
+}
+
+.zulo-chrome .dash-section {
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: var(--space-md);
+}
+
+.zulo-chrome .dash-section-title {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-sm);
+}
+
+.zulo-chrome .dash-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-lg) 0 var(--space-xl);
+  text-align: center;
+}
+
+.zulo-chrome .dash-footer p {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Dashboard trust surfaces keep their own cards; tighten radius language */
+.zulo-chrome .dash-main [class*="rounded"] {
+  border-radius: 0 !important;
+}

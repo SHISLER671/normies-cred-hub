@@ -38,7 +38,12 @@ export function PathBoard({
           ok?: boolean
           helpfulCount?: number
         }
-        if (!cancelled && res.ok && data.ok && typeof data.helpfulCount === "number") {
+        if (
+          !cancelled &&
+          res.ok &&
+          data.ok &&
+          typeof data.helpfulCount === "number"
+        ) {
           setHelpfulCount(data.helpfulCount)
         }
       } catch {
@@ -93,14 +98,14 @@ export function PathBoard({
           setError(
             "error" in data && typeof data.error === "string"
               ? data.error
-              : "Ranking failed",
+              : "Could not rank moves",
           )
           setResult(null)
           return
         }
         setResult(data)
       } catch {
-        setError("Network error ranking paths")
+        setError("Network error ranking moves")
         setResult(null)
       } finally {
         setLoading(false)
@@ -117,47 +122,42 @@ export function PathBoard({
   const paths: RankedPath[] = result?.paths ?? []
 
   return (
-    <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 16px 48px" }}>
-      <header style={{ marginBottom: 28 }}>
-        <p
-          className="mono"
-          style={{ fontSize: 12, letterSpacing: "0.12em", opacity: 0.7 }}
-        >
-          PATH BOARD · ZULO CONCIERGE · FREE
-        </p>
-        <h1 style={{ margin: "8px 0 8px", fontSize: 28, fontWeight: 700 }}>
-          What are you deciding?
-        </h1>
-        <p style={{ margin: 0, fontSize: 15, opacity: 0.85, maxWidth: 540 }}>
-          High-signal Normies help for burns, trait/tool picks, and Canvas moves.
-          Pick a chip or one short sentence — Zulo ranks 3–5 tryable paths by CredHub
-          Pulse, access, and relevance. Burn ROI is a highlight, not the whole job.
+    <div className="moves-board">
+      <header>
+        <p className="moves-kicker mono">MOVES · ZULO CONCIERGE · FREE</p>
+        <h1 className="moves-title">What are you deciding?</h1>
+        <p className="moves-lede">
+          High-signal Normies help for burns, trait/tool picks, and Canvas
+          moves. Pick a chip or one short sentence — Zulo ranks 3–5 tryable
+          moves by CredHub Pulse, access, and relevance. Burn ROI is a
+          highlight, not the whole job.
         </p>
         {helpfulCount != null ? (
-          <p
-            className="mono"
-            style={{ margin: "12px 0 0", fontSize: 12, opacity: 0.75 }}
-          >
+          <p className="moves-stats mono">
             Helpful ratings · Zulo #32626 · {helpfulCount}
           </p>
         ) : null}
       </header>
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <IntentChips
-          selected={intentTag}
-          onSelect={onChip}
-          disabled={loading}
-        />
+      <section className="moves-form">
+        <div>
+          <span className="moves-label">Pick an intent</span>
+          <IntentChips
+            selected={intentTag}
+            onSelect={onChip}
+            disabled={loading}
+          />
+        </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <label htmlFor="path-intent" style={{ fontSize: 13, opacity: 0.8 }}>
+        <div>
+          <label htmlFor="path-intent" className="moves-label">
             Or describe the job in one sentence
           </label>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="moves-row">
             <input
               id="path-intent"
               type="text"
+              className="moves-input"
               maxLength={MAX_INTENT}
               value={intent}
               disabled={loading}
@@ -169,62 +169,39 @@ export function PathBoard({
                   void runRank()
                 }
               }}
-              style={{
-                flex: "1 1 220px",
-                fontFamily: "inherit",
-                fontSize: 14,
-                padding: "10px 12px",
-                border: "1px solid var(--border, #1a1a1a)",
-                background: "var(--bg-primary, #e5e5e5)",
-              }}
             />
             <button
               type="button"
+              className="button button-primary"
               disabled={loading}
               onClick={() => void runRank()}
-              style={{
-                fontFamily: "inherit",
-                fontSize: 14,
-                padding: "10px 16px",
-                border: "1px solid var(--border, #1a1a1a)",
-                background: "var(--bg-dark, #1a1a1a)",
-                color: "var(--text-inverse, #e5e5e5)",
-                cursor: loading ? "wait" : "pointer",
-              }}
             >
-              {loading ? "Ranking…" : "Rank paths"}
+              {loading ? "Ranking…" : "Rank moves"}
             </button>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <label htmlFor="path-token" style={{ fontSize: 13, opacity: 0.8 }}>
-            Normie token ID (optional, improves Pulse rank)
+        <div className="moves-row">
+          <label htmlFor="path-token" className="moves-label" style={{ marginBottom: 0 }}>
+            Normie token ID (optional)
           </label>
           <input
             id="path-token"
             type="number"
             min={0}
             max={9999}
+            className="moves-input moves-input-token"
             value={tokenId}
             disabled={loading}
             onChange={(e) => setTokenId(e.target.value)}
             placeholder="0–9999"
-            style={{
-              width: 100,
-              fontFamily: "inherit",
-              fontSize: 14,
-              padding: "8px 10px",
-              border: "1px solid var(--border, #1a1a1a)",
-              background: "var(--bg-primary, #e5e5e5)",
-            }}
           />
           {address ? (
             <span className="mono" style={{ fontSize: 11, opacity: 0.65 }}>
               wallet {address.slice(0, 6)}…{address.slice(-4)}
             </span>
           ) : (
-            <span style={{ fontSize: 12, opacity: 0.65 }}>
+            <span className="caption" style={{ opacity: 0.85 }}>
               Connect wallet for access badges
             </span>
           )}
@@ -232,41 +209,44 @@ export function PathBoard({
       </section>
 
       {error ? (
-        <p role="alert" style={{ marginTop: 20, color: "#7f1d1d", fontSize: 14 }}>
+        <p role="alert" className="moves-alert">
           {error}
         </p>
       ) : null}
 
       {result ? (
-        <section style={{ marginTop: 32 }}>
-          <p className="mono" style={{ fontSize: 12, opacity: 0.7, marginBottom: 12 }}>
+        <section className="moves-results">
+          <p className="moves-results-meta mono">
             Intent: {result.intent.tags.join(", ")}
             {result.subject.pulse_level != null
               ? ` · subject Pulse ${result.subject.pulse_level}/5`
               : " · no Normie loaded"}
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {paths.map((p) => (
-              <PathCard
-                key={p.pathId}
-                path={p}
-                feedbackContext={{
-                  intentTag: result.intent.primary,
-                  intentRaw: result.intent.raw || intent,
-                  subjectTokenId: result.subject.tokenId,
-                  wallet: address,
-                }}
-              />
-            ))}
-          </div>
-          <p style={{ marginTop: 20, fontSize: 12, opacity: 0.65 }}>
-            {result.zulo.note}
-          </p>
-          <p style={{ marginTop: 8, fontSize: 12, opacity: 0.65, maxWidth: 560 }}>
-            Rate any path with 👍/👎 — credits the recommended tool/agent and Zulo
-            #32626. {REPUTATION_NOTE}
+          {paths.map((p) => (
+            <PathCard
+              key={p.pathId}
+              path={p}
+              feedbackContext={{
+                intentTag: result.intent.primary,
+                intentRaw: result.intent.raw || intent,
+                subjectTokenId: result.subject.tokenId,
+                wallet: address,
+              }}
+            />
+          ))}
+          <p className="moves-footnote">{result.zulo.note}</p>
+          <p className="moves-footnote">
+            Rate any move with 👍/👎 — credits the recommended tool/agent and
+            Zulo #32626. {REPUTATION_NOTE}
           </p>
         </section>
+      ) : !loading && !error ? (
+        <div className="moves-empty">
+          <p>
+            Pick a chip or type one sentence. Zulo will rank the highest-signal
+            moves you can try right now.
+          </p>
+        </div>
       ) : null}
     </div>
   )

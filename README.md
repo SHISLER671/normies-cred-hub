@@ -18,7 +18,7 @@ It is not only a dashboard. It exposes **public, agent-queryable APIs** so any a
 - Recommendations should be clear, data-backed, easy to try, and easy to rate **👍/👎**.
 - Ratings credit the **recommended tool/agent** and **Zulo #32626** (store + display only in Phase 1 — no ranker influence).
 - Scope: **Normies / Pixel Economy only** (no broader agentic-NFT alpha).
-- Path Board stays **fully free**. No autonomous transaction layer.
+- **Moves** (formerly Path Board; route `/paths`) stays **fully free**. No autonomous transaction layer.
 - Ratings build Zulo’s trackable reputation in CredHub today. On-chain tips and TBA rails activate when serc enables x402 + ERC-6551 for #7141.
 
 ---
@@ -27,14 +27,14 @@ It is not only a dashboard. It exposes **public, agent-queryable APIs** so any a
 
 | Path | What it is |
 |------|------------|
-| **`/`** | **Zulo gateway** — monochrome Normies landing; primary CTA is Path Board when `NEXT_PUBLIC_PATH_BOARD=true`, else legacy chat |
-| **`/paths`** | **Path Board** — free intent → 3–5 Pulse-weighted paths + 👍/👎 feedback |
+| **`/`** | **Zulo gateway** — monochrome Normies landing; CTAs: Moves · Ask · Dashboard |
+| **`/paths`** | **Moves** — free intent → 3–5 Pulse-weighted actions + 👍/👎 feedback |
 | **`/ask`** | **Legacy concierge chat** — banner + job line only for Phase 1 (no prompt rewrite) |
 | **`/dashboard`** | **CredHub dashboard** — full trust profile UI (search Normie, Ethos, ERC-8257, Horizon, Recommends) |
 | **`/zulo`** | Permanent redirect → `/ask` |
 | **`/agent-recommendations`** | Permanent redirect → `/ask` |
 
-### Path Board API
+### Moves API (`/api/zulo/paths` — ranking engine unchanged)
 
 ```
 POST /api/zulo/paths
@@ -53,7 +53,7 @@ GET  /api/zulo/paths?intentTag=burn&tokenId=7141
 
 Ranks paths by **CredHub Pulse (0.45) + access (0.30) + relevance (0.25)**. No payment enforcement. Does not replace Tool #53 Pulse.
 
-### Path Board feedback API (Phase 1)
+### Moves feedback API (Phase 1)
 
 ```
 POST /api/zulo/feedback

@@ -104,9 +104,9 @@ export async function getManifest(): Promise<ZuloManifest> {
       },
       {
         id: "path-rank",
-        name: "Path Board Ranking",
+        name: "Moves Ranking",
         description:
-          "Intent → 3–5 Pulse-weighted agent/tool paths (matcher, not chat). Free; A2A planned.",
+          "Intent → 3–5 Pulse-weighted agent/tool Moves (concierge ranking, not chat). Free; A2A planned. UI at /paths.",
         price: { amount: 0, currency: "FREE" },
         endpoint: "/api/zulo/paths",
       },
