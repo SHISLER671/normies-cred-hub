@@ -61,8 +61,8 @@ export function ZuloExperience({
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [keyboardOpen, setKeyboardOpen] = useState(false)
-  const [skillsOpen, setSkillsOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const skillsDetailsRef = useRef<HTMLDetailsElement>(null)
   const welcomeSent = useRef(false)
 
   const scrollToBottom = useCallback(() => {
@@ -121,7 +121,10 @@ export function ZuloExperience({
     ])
     setInput("")
     setLoading(true)
-    setSkillsOpen(false)
+    // Keep optional Skills tray collapsed after a prompt fires
+    if (skillsDetailsRef.current) {
+      skillsDetailsRef.current.open = false
+    }
 
     const sessionHistory = messages
       .filter((m) => m.role === "user" || m.structured)
@@ -290,37 +293,7 @@ export function ZuloExperience({
           </div>
 
           <div className={cn("chat-footer", keyboardOpen && "pb-safe")}>
-            {!keyboardOpen ? (
-              <details
-                className="ask-skills-details"
-                open={skillsOpen}
-                onToggle={(e) =>
-                  setSkillsOpen((e.target as HTMLDetailsElement).open)
-                }
-              >
-                <summary className="ask-skills-summary">Skills</summary>
-                <div
-                  className={cn(
-                    "quick-prompts",
-                    isMobile && "scrollbar-hide quick-prompts-scroll",
-                  )}
-                >
-                  {QUICK_PROMPTS.map((item) => (
-                    <button
-                      key={item.prompt}
-                      type="button"
-                      className="quick-prompt"
-                      disabled={loading}
-                      title={item.prompt}
-                      onClick={() => void sendMessage(item.prompt)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </details>
-            ) : null}
-
+            {/* Input first — always visible; skills stay collapsed unless user opens them */}
             <div className="chat-input">
               <input
                 type="text"
@@ -356,6 +329,35 @@ export function ZuloExperience({
                 )}
               </button>
             </div>
+
+            {!keyboardOpen ? (
+              <details
+                ref={skillsDetailsRef}
+                className="ask-skills-details"
+                // Uncontrolled — never set open; browser default is collapsed
+              >
+                <summary className="ask-skills-summary">Skills</summary>
+                <div
+                  className={cn(
+                    "quick-prompts",
+                    isMobile && "scrollbar-hide quick-prompts-scroll",
+                  )}
+                >
+                  {QUICK_PROMPTS.map((item) => (
+                    <button
+                      key={item.prompt}
+                      type="button"
+                      className="quick-prompt"
+                      disabled={loading}
+                      title={item.prompt}
+                      onClick={() => void sendMessage(item.prompt)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            ) : null}
           </div>
         </div>
       </main>
