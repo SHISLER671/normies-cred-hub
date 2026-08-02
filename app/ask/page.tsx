@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function AskPage() {
   return (
-    <div className="zulo-chrome min-h-screen">
+    <div className="zulo-chrome ask-page-wrap">
       <div className="ask-banner">
         <strong>Zulo</strong> is the high-signal Normies concierge — burns,
         trait/tool choices, Canvas moves. Prefer ranked actions?{" "}

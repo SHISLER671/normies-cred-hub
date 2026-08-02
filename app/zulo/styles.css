@@ -910,12 +910,24 @@
 
 /* ========== CHAT-FIRST /ask SHELL ========== */
 
+/* Page wrapper: banner + shell share the viewport exactly (no overflow) */
+.zulo-chrome.ask-page-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.zulo-chrome.ask-page-wrap .ask-banner {
+  flex-shrink: 0;
+}
+
 .zulo-chrome .ask-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
-  height: 100dvh;
-  max-height: 100dvh;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
 }
 
