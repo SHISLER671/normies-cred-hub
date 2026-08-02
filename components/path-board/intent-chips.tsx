@@ -1,6 +1,7 @@
 "use client"
 
 import { INTENT_CHIPS, type IntentTag } from "@/lib/path-ranker"
+import { cn } from "@/lib/utils"
 
 type IntentChipsProps = {
   selected?: IntentTag | null
@@ -13,6 +14,7 @@ export function IntentChips({ selected, onSelect, disabled }: IntentChipsProps) 
     <div role="group" aria-label="Move intents" className="moves-chips">
       {INTENT_CHIPS.map((chip) => {
         const active = selected === chip.tag
+        const isBurnHighlight = chip.tag === "burn"
         return (
           <button
             key={chip.tag}
@@ -20,7 +22,11 @@ export function IntentChips({ selected, onSelect, disabled }: IntentChipsProps) 
             disabled={disabled}
             onClick={() => onSelect(chip.tag)}
             title={chip.hint}
-            className={active ? "moves-chip is-active" : "moves-chip"}
+            className={cn(
+              "moves-chip",
+              active && "is-active",
+              isBurnHighlight && "moves-chip-highlight",
+            )}
           >
             {chip.label}
           </button>

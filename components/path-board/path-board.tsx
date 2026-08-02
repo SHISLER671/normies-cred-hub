@@ -13,9 +13,6 @@ import { PathCard } from "./path-card"
 
 const MAX_INTENT = 200
 
-const REPUTATION_NOTE =
-  "Ratings build Zulo’s trackable reputation in CredHub today. On-chain tips and TBA rails activate when serc enables x402 + ERC-6551 for #7141."
-
 export function PathBoard({
   defaultTokenId,
 }: {
@@ -24,22 +21,14 @@ export function PathBoard({
   const { address } = useAccount()
   const { promptConnect } = useWalletGate()
   const { activeTokenId } = useActiveNormie()
+  const subjectTokenId = activeTokenId ?? defaultTokenId
+
   const [intentTag, setIntentTag] = useState<IntentTag | null>(null)
   const [intent, setIntent] = useState("")
-  const [tokenId, setTokenId] = useState(
-    defaultTokenId != null
-      ? String(defaultTokenId)
-      : String(activeTokenId),
-  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<RankPathsResult | null>(null)
   const [helpfulCount, setHelpfulCount] = useState<number | null>(null)
-
-  // Keep ranking subject in sync with Active Normie
-  useEffect(() => {
-    setTokenId(String(activeTokenId))
-  }, [activeTokenId])
 
   useEffect(() => {
     let cancelled = false
@@ -72,17 +61,12 @@ export function PathBoard({
       const tag = opts?.tag ?? intentTag ?? undefined
       const text = (opts?.text ?? intent).trim()
       if (!tag && !text) {
-        setError("Pick a chip or describe the job in one sentence.")
+        setError("Pick a chip or type one sentence.")
         return
       }
 
       setLoading(true)
       setError(null)
-
-      const parsedToken =
-        tokenId.trim() === ""
-          ? undefined
-          : Number.parseInt(tokenId.trim(), 10)
 
       const body: Record<string, unknown> = {
         limit: 5,
@@ -90,12 +74,12 @@ export function PathBoard({
       if (tag) body.intentTag = tag
       if (text) body.intent = text.slice(0, MAX_INTENT)
       if (
-        parsedToken != null &&
-        Number.isFinite(parsedToken) &&
-        parsedToken >= 0 &&
-        parsedToken <= 9999
+        subjectTokenId != null &&
+        Number.isFinite(subjectTokenId) &&
+        subjectTokenId >= 0 &&
+        subjectTokenId <= 9999
       ) {
-        body.tokenId = parsedToken
+        body.tokenId = subjectTokenId
       }
       if (address) body.wallet = address
 
@@ -123,7 +107,7 @@ export function PathBoard({
         setLoading(false)
       }
     },
-    [address, intent, intentTag, tokenId],
+    [address, intent, intentTag, subjectTokenId],
   )
 
   const onChip = (tag: IntentTag) => {
@@ -135,26 +119,24 @@ export function PathBoard({
 
   return (
     <div className="moves-board">
-      <header>
-        <p className="moves-kicker mono">MOVES · ZULO CONCIERGE · FREE</p>
+      <header className="moves-header">
+        <p className="moves-kicker mono">MOVES · FREE</p>
         <ActiveNormieBadge />
         <h1 className="moves-title">What are you deciding?</h1>
         <p className="moves-lede">
-          High-signal Normies help for burns, trait/tool picks, and Canvas
-          moves. Pick a chip or one short sentence — Zulo ranks 3–5 tryable
-          moves by CredHub Pulse, access, and relevance. Burn ROI is a
-          highlight, not the whole job.
+          Pick an intent or one sentence. Zulo ranks 3–5 tryable moves for the
+          active Normie. Burn ROI is a highlight — not the whole job.
         </p>
         {helpfulCount != null ? (
           <p className="moves-stats mono">
-            Helpful ratings · Zulo #32626 · {helpfulCount}
+            Helpful · Zulo #32626 · {helpfulCount}
           </p>
         ) : null}
       </header>
 
       <section className="moves-form">
-        <div>
-          <span className="moves-label">Pick an intent</span>
+        <div className="moves-intents-block">
+          <span className="moves-label">Intent</span>
           <IntentChips
             selected={intentTag}
             onSelect={onChip}
@@ -162,11 +144,11 @@ export function PathBoard({
           />
         </div>
 
-        <div>
+        <div className="moves-primary">
           <label htmlFor="path-intent" className="moves-label">
-            Or describe the job in one sentence
+            Or describe the job
           </label>
-          <div className="moves-row">
+          <div className="moves-row moves-row-primary">
             <input
               id="path-intent"
               type="text"
@@ -185,46 +167,29 @@ export function PathBoard({
             />
             <button
               type="button"
-              className="button button-primary"
+              className="button button-primary moves-rank-btn"
               disabled={loading}
               onClick={() => void runRank()}
             >
               {loading ? "Ranking…" : "Rank moves"}
             </button>
           </div>
-        </div>
-
-        <div className="moves-row">
-          <label htmlFor="path-token" className="moves-label" style={{ marginBottom: 0 }}>
-            Normie token ID (optional)
-          </label>
-          <input
-            id="path-token"
-            type="number"
-            min={0}
-            max={9999}
-            className="moves-input moves-input-token"
-            value={tokenId}
-            disabled={loading}
-            onChange={(e) => setTokenId(e.target.value)}
-            placeholder="0–9999"
-          />
-          {address ? (
-            <span className="mono" style={{ fontSize: 11, opacity: 0.65 }}>
-              wallet {address.slice(0, 6)}…{address.slice(-4)}
-            </span>
-          ) : (
-            <button
-              type="button"
-              className="caption"
-              style={{ opacity: 0.85, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 }}
-              onClick={() =>
-                promptConnect("Connect your wallet to show access badges for tools and agents.")
-              }
-            >
-              Connect wallet for access badges
-            </button>
-          )}
+          {!address ? (
+            <p className="moves-wallet-hint">
+              <button
+                type="button"
+                className="moves-wallet-link"
+                onClick={() =>
+                  promptConnect(
+                    "Connect your wallet to show access badges for tools and agents.",
+                  )
+                }
+              >
+                Connect wallet
+              </button>{" "}
+              for access badges · subject is Active Normie in the header
+            </p>
+          ) : null}
         </div>
       </section>
 
@@ -237,35 +202,37 @@ export function PathBoard({
       {result ? (
         <section className="moves-results">
           <p className="moves-results-meta mono">
-            Intent: {result.intent.tags.join(", ")}
+            {result.intent.tags.join(" · ")}
+            {result.subject.tokenId != null
+              ? ` · #${result.subject.tokenId}`
+              : ""}
             {result.subject.pulse_level != null
-              ? ` · subject Pulse ${result.subject.pulse_level}/5`
-              : " · no Normie loaded"}
+              ? ` · Pulse ${result.subject.pulse_level}/5`
+              : ""}
           </p>
-          {paths.map((p) => (
-            <PathCard
-              key={p.pathId}
-              path={p}
-              feedbackContext={{
-                intentTag: result.intent.primary,
-                intentRaw: result.intent.raw || intent,
-                subjectTokenId: result.subject.tokenId,
-                wallet: address,
-              }}
-            />
-          ))}
-          <p className="moves-footnote">{result.zulo.note}</p>
+          <div className="moves-results-list">
+            {paths.map((p) => (
+              <PathCard
+                key={p.pathId}
+                path={p}
+                feedbackContext={{
+                  intentTag: result.intent.primary,
+                  intentRaw: result.intent.raw || intent,
+                  subjectTokenId: result.subject.tokenId,
+                  wallet: address,
+                }}
+              />
+            ))}
+          </div>
           <p className="moves-footnote">
-            Rate any move with 👍/👎 — credits the recommended tool/agent and
-            Zulo #32626. {REPUTATION_NOTE}
+            Rate any move 👍/👎 — credits the tool/agent and Zulo #32626.
+            Ratings build trackable CredHub reputation today; on-chain tips when
+            rails enable.
           </p>
         </section>
       ) : !loading && !error ? (
         <div className="moves-empty">
-          <p>
-            Pick a chip or type one sentence. Zulo will rank the highest-signal
-            moves you can try right now.
-          </p>
+          <p>Choose a chip or type a sentence to rank moves.</p>
         </div>
       ) : null}
     </div>

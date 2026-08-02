@@ -2046,26 +2046,36 @@
   padding: 0 var(--space-md) var(--space-xl);
 }
 
+.zulo-chrome .moves-header {
+  margin-bottom: 4px;
+}
+
+.zulo-chrome .moves-header .active-normie-badge {
+  margin: 10px 0 16px;
+}
+
 .zulo-chrome .moves-kicker {
-  font-size: 12px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin: 0 0 var(--space-xs);
+  margin: 0 0 4px;
+  opacity: 0.85;
 }
 
 .zulo-chrome .moves-title {
-  font-size: clamp(28px, 5vw, 36px);
-  margin: 0 0 var(--space-sm);
+  font-size: clamp(26px, 5vw, 34px);
+  margin: 0 0 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  line-height: 1.15;
 }
 
 .zulo-chrome .moves-lede {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--text-secondary);
-  max-width: 540px;
+  max-width: 34rem;
   margin: 0;
   text-transform: none;
   letter-spacing: 0.01em;
@@ -2074,45 +2084,68 @@
 }
 
 .zulo-chrome .moves-stats {
-  margin: var(--space-sm) 0 0;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  margin: 10px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text-muted);
+  opacity: 0.7;
 }
 
 .zulo-chrome .moves-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-light);
+}
+
+.zulo-chrome .moves-intents-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zulo-chrome .moves-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-md);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
 }
 
 .zulo-chrome .moves-label {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: var(--text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .zulo-chrome .moves-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
+}
+
+.zulo-chrome .moves-row-primary {
+  gap: 10px;
 }
 
 .zulo-chrome .moves-input {
   flex: 1 1 220px;
   font-family: var(--font-mono);
   font-size: 14px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   background: var(--bg-primary);
   color: var(--text-primary);
   border-radius: 0;
-  min-height: 44px;
+  min-height: 48px;
 }
 
 .zulo-chrome .moves-input:focus {
@@ -2120,15 +2153,38 @@
   outline-offset: 2px;
 }
 
-.zulo-chrome .moves-input-token {
-  width: 100px;
-  flex: 0 0 auto;
+.zulo-chrome .moves-rank-btn {
+  min-height: 48px;
+  padding-left: 20px;
+  padding-right: 20px;
+  flex-shrink: 0;
+}
+
+.zulo-chrome .moves-wallet-hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.zulo-chrome .moves-wallet-link {
+  font: inherit;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .zulo-chrome .moves-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px 12px;
 }
 
 .zulo-chrome .moves-chip {
@@ -2136,24 +2192,34 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
   background: var(--bg-primary);
   color: var(--text-primary);
   cursor: pointer;
   border-radius: 0;
-  min-height: 40px;
-  transition: background 0.15s, color 0.15s;
+  min-height: 42px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+/* Burn smarter — monochrome highlight (stronger border / weight) */
+.zulo-chrome .moves-chip-highlight {
+  border-color: var(--border);
+  border-width: 2px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .zulo-chrome .moves-chip:hover:not(:disabled) {
   background: var(--bg-secondary);
+  border-color: var(--border);
 }
 
 .zulo-chrome .moves-chip.is-active {
   background: var(--bg-dark);
   color: var(--text-inverse);
   border-color: var(--bg-dark);
+  border-width: 2px;
 }
 
 .zulo-chrome .moves-chip:disabled {
@@ -2171,24 +2237,34 @@
 }
 
 .zulo-chrome .moves-results {
-  margin-top: var(--space-lg);
+  margin-top: var(--space-xl);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
+}
+
+.zulo-chrome .moves-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
 }
 
 .zulo-chrome .moves-results-meta {
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin: 0 0 4px;
+  margin: 0;
+  opacity: 0.8;
 }
 
 .zulo-chrome .moves-footnote {
-  margin-top: var(--space-md);
+  margin-top: var(--space-lg);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--text-muted);
   max-width: 560px;
   font-family: var(--font-inter), system-ui, sans-serif;
@@ -2198,16 +2274,16 @@
 
 .zulo-chrome .moves-empty {
   margin-top: var(--space-xl);
-  border: 1px solid var(--border);
-  background: var(--bg-secondary);
-  padding: var(--space-lg);
+  border: 1px solid var(--border-light);
+  background: transparent;
+  padding: var(--space-lg) var(--space-md);
   text-align: center;
 }
 
 .zulo-chrome .moves-empty p {
   margin: 0;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-transform: none;
   letter-spacing: 0.01em;
   font-family: var(--font-inter), system-ui, sans-serif;
@@ -2217,11 +2293,11 @@
 .zulo-chrome .path-card,
 .zulo-chrome .move-card {
   border: 1px solid var(--border);
-  padding: 16px 18px;
+  padding: 18px 20px;
   background: var(--bg-secondary);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   border-radius: 0;
 }
 
@@ -2267,7 +2343,7 @@
 .zulo-chrome .move-card-why {
   margin: 0;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--text-secondary);
   font-family: var(--font-inter), system-ui, sans-serif;
   text-transform: none;
@@ -2281,7 +2357,8 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 4px;
+  margin-top: 2px;
+  padding-top: 4px;
 }
 
 .zulo-chrome .move-card-score {
@@ -2294,8 +2371,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin-top: 4px;
-  padding-top: 10px;
+  margin-top: 2px;
+  padding-top: 12px;
   border-top: 1px solid var(--border);
 }
 
