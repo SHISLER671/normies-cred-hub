@@ -293,37 +293,49 @@ export function Dashboard() {
 
           {/* Key Actions — card style buttons */}
           {snapshot && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pulse-action-grid">
               {/* Prove Linkage Card */}
               <button
+                type="button"
                 onClick={() =>
                   requireWallet(
                     () => setShowLinkageModal(true),
                     "Proving linkage signs a message with your wallet to verify you control this agent.",
                   )
                 }
-                className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="pulse-action-btn"
               >
-                <div className="flex items-center gap-2">
-                  <Fingerprint className="size-4 text-primary" />
-                  <span className="font-semibold">Prove Linkage</span>
+                <div className="pulse-action-btn-head">
+                  <Fingerprint className="size-4 shrink-0" />
+                  <span className="pulse-action-btn-title">Prove Linkage</span>
+                  <span className="pulse-action-btn-arrow" aria-hidden>
+                    →
+                  </span>
                 </div>
-                <p className="text-sm text-muted-foreground">Unlock full features by verifying your agent.</p>
+                <p className="pulse-action-btn-desc">
+                  Unlock full features by verifying your agent.
+                </p>
               </button>
 
               {/* Browse Tools Card */}
               <button
+                type="button"
                 onClick={() => {
                   setToolsModalTab("normies")
                   setShowToolsModal(true)
                 }}
-                className="group glow-primary flex flex-col items-start gap-2 p-4 rounded-none border border-border bg-card hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm active:scale-[0.985] transition-all text-left"
+                className="pulse-action-btn"
               >
-                <div className="flex items-center gap-2">
-                  <Search className="size-4 text-primary" />
-                  <span className="font-semibold">Browse Tools</span>
+                <div className="pulse-action-btn-head">
+                  <Search className="size-4 shrink-0" />
+                  <span className="pulse-action-btn-title">Browse Tools</span>
+                  <span className="pulse-action-btn-arrow" aria-hidden>
+                    →
+                  </span>
                 </div>
-                <p className="text-sm text-muted-foreground">Explore community-built tools for Normies.</p>
+                <p className="pulse-action-btn-desc">
+                  Explore community-built tools for Normies.
+                </p>
               </button>
             </div>
           )}
@@ -331,16 +343,14 @@ export function Dashboard() {
           {/* Credibility Framework — collapsible signal sections */}
           <div className="mx-auto w-full min-w-0 max-w-2xl mt-10 cred-framework-acc">
             <div className="cred-framework-intro">
-              <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[2px] text-primary">
-                <span className="h-px w-6 bg-primary/50" />
-                Zulo’s Credibility Framework
-                <span className="h-px w-6 bg-primary/50" />
-              </span>
-              <h2 className="font-heading text-xl font-semibold leading-tight tracking-tight mt-3 text-balance sm:text-2xl">
-                On-chain signals that establish credibility for awakened agents.
+              <h2 className="cred-framework-heading">
+                Zulo&apos;s Credibility Framework
               </h2>
-              <p className="text-sm tracking-[1.5px] text-muted-foreground mt-2">
-                — Analyzed by Zulo · tap a section to expand
+              <p className="cred-framework-sub">
+                On-chain signals that establish credibility for awakened agents.
+              </p>
+              <p className="caption" style={{ marginTop: 10 }}>
+                Analyzed by Zulo · tap a section to expand
               </p>
             </div>
 

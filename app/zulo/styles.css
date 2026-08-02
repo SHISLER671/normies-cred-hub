@@ -2635,8 +2635,121 @@
 
 .zulo-chrome .cred-framework-intro {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   padding: 0 8px;
+}
+
+.zulo-chrome .cred-framework-heading {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(22px, 4.5vw, 30px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.zulo-chrome .cred-framework-sub {
+  margin: 12px 0 0;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* PULSE action cards — clear button affordance */
+.zulo-chrome .pulse-action-grid {
+  width: 100%;
+  min-width: 0;
+}
+
+.zulo-chrome .pulse-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 88px;
+  padding: 16px 18px;
+  border: 2px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+  font-family: inherit;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zulo-chrome .pulse-action-btn:hover,
+.zulo-chrome .pulse-action-btn:focus-visible {
+  background: var(--bg-dark);
+  color: var(--text-inverse);
+  border-color: var(--bg-dark);
+  outline: none;
+}
+
+.zulo-chrome .pulse-action-btn:active {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
+  transform: translateY(1px);
+}
+
+.zulo-chrome .pulse-action-btn-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.zulo-chrome .pulse-action-btn-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex: 1 1 auto;
+}
+
+.zulo-chrome .pulse-action-btn-arrow {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.zulo-chrome .pulse-action-btn:hover .pulse-action-btn-arrow,
+.zulo-chrome .pulse-action-btn:focus-visible .pulse-action-btn-arrow {
+  opacity: 1;
+}
+
+.zulo-chrome .pulse-action-btn-desc {
+  margin: 0;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.zulo-chrome .pulse-action-btn:hover .pulse-action-btn-desc,
+.zulo-chrome .pulse-action-btn:focus-visible .pulse-action-btn-desc,
+.zulo-chrome .pulse-action-btn:active .pulse-action-btn-desc {
+  color: inherit;
+  opacity: 0.85;
 }
 
 .zulo-chrome .dash-footer p {
