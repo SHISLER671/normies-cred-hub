@@ -1246,6 +1246,11 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--text-primary);
+  /* Long skill replies: wrap fully, never clip mid-content */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-height: none;
 }
 
 .zulo-chrome .chat-message-user .chat-bubble {
@@ -1259,6 +1264,8 @@
   flex-direction: column;
   gap: var(--space-sm);
   min-width: 0;
+  max-height: none;
+  overflow: visible;
 }
 
 /* Structured response */
@@ -1268,6 +1275,9 @@
   padding: var(--space-md);
   margin-top: 0;
   text-align: left;
+  /* Long skill answers must expand fully; list container scrolls, not the card */
+  max-height: none;
+  overflow: visible;
 }
 
 .zulo-chrome .response-section {
@@ -1291,6 +1301,10 @@
   font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-height: none;
 }
 
 .zulo-chrome .response-section .emphasis {

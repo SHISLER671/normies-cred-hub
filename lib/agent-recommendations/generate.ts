@@ -88,7 +88,9 @@ async function callProvider(
           model: provider.model,
           messages: [{ role: "user", content: prompt }],
           temperature: 0.7,
-          max_tokens: 1200,
+          // Skill replies (scan burns, market, canvas) need room for full JSON.
+          // 1200 often truncated mid-sentence and broke the response parser.
+          max_tokens: 4096,
         }),
       },
       INFERENCE_TIMEOUT_MS,
