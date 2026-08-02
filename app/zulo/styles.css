@@ -499,6 +499,32 @@
   padding: var(--space-md);
 }
 
+/* Homepage #7141 art — large square hero moment */
+.zulo-chrome .hero-art {
+  width: min(88vw, 420px);
+  aspect-ratio: 1 / 1;
+  margin: var(--space-md) auto 0;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.zulo-chrome .hero-art-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+  filter: grayscale(1);
+}
+
+@media (min-width: 768px) {
+  .zulo-chrome .hero-art {
+    width: min(48vw, 480px);
+  }
+}
+
 /* Identity strip */
 .zulo-chrome .identity-strip {
   border-bottom: 1px solid var(--border);

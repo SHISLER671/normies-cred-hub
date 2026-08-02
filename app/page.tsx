@@ -65,42 +65,17 @@ export default async function ZuloLandingPage() {
           {ZULO_IDENTITY.ens}
         </p>
 
-        <div className="zulo-avatar">
+        <div className="hero-art" aria-hidden={false}>
           <Image
-            src={`https://api.normies.art/normie/${ZULO_IDENTITY.tokenId}/image.svg`}
-            alt={`Zulo — Normie #${ZULO_IDENTITY.tokenId}`}
-            fill
-            className="object-contain"
+            src="/images/7141art.png"
+            alt={`Zulo — Normie #${ZULO_IDENTITY.tokenId} art`}
+            width={720}
+            height={720}
+            className="hero-art-img"
             priority
+            sizes="(max-width: 640px) 88vw, 420px"
           />
         </div>
-
-        <div className="hero-actions">
-          <Link
-            href="/paths"
-            className={
-              pathBoard
-                ? "button button-primary button-arrow"
-                : "button button-arrow"
-            }
-          >
-            Moves
-          </Link>
-          <Link
-            href="/ask"
-            className={
-              pathBoard ? "button" : "button button-primary button-arrow"
-            }
-          >
-            Ask
-          </Link>
-          <Link href="/dashboard" className="button">
-            Dashboard
-          </Link>
-        </div>
-        <p className="caption" style={{ marginTop: 24, maxWidth: 440 }}>
-          Burns · tools · Canvas · free Moves · rate 👍/👎 · CredHub trust
-        </p>
       </section>
 
       <section className="section section-bordered">
@@ -207,6 +182,30 @@ export default async function ZuloLandingPage() {
           {ZULO_IDENTITY.tokenId}. Moves stays free. Canvas AP above is #
           {ZULO_IDENTITY.tokenId}&apos;s transform budget, not tip income.
         </p>
+
+        <div className="hero-actions" style={{ marginTop: 40 }}>
+          <Link
+            href="/paths"
+            className={
+              pathBoard
+                ? "button button-primary button-arrow"
+                : "button button-arrow"
+            }
+          >
+            Moves
+          </Link>
+          <Link
+            href="/ask"
+            className={
+              pathBoard ? "button" : "button button-primary button-arrow"
+            }
+          >
+            Ask
+          </Link>
+          <Link href="/dashboard" className="button">
+            Dashboard
+          </Link>
+        </div>
       </section>
 
       <section className="section section-bordered">
