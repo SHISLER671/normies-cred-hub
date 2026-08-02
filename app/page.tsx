@@ -73,21 +73,14 @@ export default async function ZuloLandingPage() {
         <p className="hero-meta mono">
           Trust signals · ranked Moves · PULSE · high-signal concierge
         </p>
-      </section>
-
-      {/* What the hub is */}
-      <section className="section section-bordered">
-        <div className="container text-center" style={{ maxWidth: 720 }}>
-          <h2>The hub</h2>
-          <p className="card-body" style={{ fontSize: 16, marginBottom: 16 }}>
-            CredHub aggregates on-chain identity, reputation, and tool access so
-            holders and agents can verify trust before they interact — and grow
-            beyond any single concierge or surface.
-          </p>
-          <p className="caption">
-            Surfaces today: Moves · Ask · PULSE · ERC-8257 Tool #53
-          </p>
-        </div>
+        <p className="hero-hub-copy">
+          CredHub aggregates on-chain identity, reputation, and tool access so
+          holders and agents can verify trust before they interact — and grow
+          beyond any single concierge or surface.
+        </p>
+        <p className="caption hero-hub-surfaces">
+          Surfaces today: Moves · Ask · PULSE · ERC-8257 Tool #53
+        </p>
       </section>
 
       {/* Zulo — featured agent / concierge inside the hub */}

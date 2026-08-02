@@ -976,6 +976,24 @@
   padding-bottom: var(--space-xl);
 }
 
+.zulo-chrome .hero-hub-copy {
+  max-width: 36rem;
+  margin: var(--space-md) auto 0;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+  text-align: center;
+}
+
+.zulo-chrome .hero-hub-surfaces {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
 @media (max-width: 640px) {
   .zulo-chrome .header-logo {
     font-size: 16px;
