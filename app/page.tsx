@@ -8,7 +8,6 @@ import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import { getZuloHelpfulStats } from "@/lib/db/supabase"
-import { isPathBoardEnabled } from "@/lib/features"
 
 import "./zulo/styles.css"
 
@@ -41,7 +40,6 @@ export default async function ZuloLandingPage() {
     getCanvasApOn7141(),
     getZuloHelpfulStats(ZULO_IDENTITY.agentId),
   ])
-  const pathBoard = isPathBoardEnabled()
   const helpfulCount = helpful?.helpfulCount
 
   return (
