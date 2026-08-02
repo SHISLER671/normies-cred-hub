@@ -204,6 +204,52 @@
   color: var(--text-primary);
 }
 
+/* Hub brand mark in shared chrome */
+.zulo-chrome .header-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.zulo-chrome .header-brand-logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  border-radius: 0;
+}
+
+.zulo-chrome .header-brand-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.zulo-chrome .header-brand-accent {
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 480px) {
+  .zulo-chrome .header-brand-text {
+    font-size: 11px;
+  }
+
+  .zulo-chrome .header-brand-logo {
+    width: 28px;
+    height: 28px;
+  }
+}
+
 .zulo-chrome .header-nav {
   display: flex;
   flex-wrap: wrap;
@@ -499,7 +545,7 @@
   padding: var(--space-md);
 }
 
-/* Homepage #7141 art — large square hero moment */
+/* Homepage #7141 art — featured agent visual (not site logo) */
 .zulo-chrome .hero-art {
   width: min(88vw, 420px);
   aspect-ratio: 1 / 1;
@@ -507,6 +553,12 @@
   border: 1px solid var(--border);
   background: var(--bg-secondary);
   overflow: hidden;
+}
+
+.zulo-chrome .hero-art-agent {
+  width: min(72vw, 360px);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .zulo-chrome .hero-art-img {
@@ -522,6 +574,50 @@
 @media (min-width: 768px) {
   .zulo-chrome .hero-art {
     width: min(48vw, 480px);
+  }
+
+  .zulo-chrome .hero-art-agent {
+    width: min(40vw, 360px);
+  }
+}
+
+/* Hub homepage mark */
+.zulo-chrome .hub-mark {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto var(--space-md);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.zulo-chrome .hub-mark-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+}
+
+.zulo-chrome .hero-title-hub {
+  font-size: clamp(28px, 6vw, 56px);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-md);
+}
+
+.zulo-chrome .hero-hub {
+  min-height: auto;
+  padding-top: var(--space-xl);
+  padding-bottom: var(--space-xl);
+}
+
+@media (max-width: 640px) {
+  .zulo-chrome .header-logo {
+    font-size: 16px;
+    letter-spacing: 0.2em;
   }
 }
 

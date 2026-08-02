@@ -1,3 +1,4 @@
+import Image from "next/image"
 import Link from "next/link"
 
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
@@ -20,8 +21,18 @@ export function ZuloChromeHeader({
 
   return (
     <header className={cn("header", fixed && "header-fixed", className)}>
-      <Link href="/" className="header-logo">
-        ZULO
+      <Link href="/" className="header-brand">
+        <Image
+          src="/images/NLOGO.png"
+          alt="Normies"
+          width={36}
+          height={36}
+          className="header-brand-logo"
+          priority
+        />
+        <span className="header-brand-text">
+          NORMIES <span className="header-brand-accent">CREDHUB</span>
+        </span>
       </Link>
       <nav className="header-nav" aria-label="Primary">
         <Link href="/paths" className={cn(movesActive && "is-active")}>

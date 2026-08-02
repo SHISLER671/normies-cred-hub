@@ -22,17 +22,17 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Zulo — High-Signal Normies Concierge',
+  title: 'Normies CredHub — Verifiable Reputation for Awakened Agents',
   description:
-    'Zulo (Agent #32626) — high-signal Normies concierge for smarter burns, trait/tool choices, and Canvas moves. Free Moves · CredHub trust tools.',
+    'Normies CredHub: verifiable reputation and tools for awakened Normies agents. Moves, Ask, PULSE — with Zulo as high-signal concierge and Tool #53.',
   openGraph: {
-    title: 'Zulo — High-Signal Normies Concierge',
+    title: 'Normies CredHub',
     description:
-      'Better burns, tools, and Canvas moves — ranked Moves you can try and rate. Agent #32626.',
+      'Verifiable reputation layer and tools for awakened Normies agents. Moves · Ask · PULSE.',
     images: [{ url: '/og.png' }],
   },
   icons: {
-    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌀</text></svg>',
+    icon: '/images/NLOGO.png',
   },
 }
 
