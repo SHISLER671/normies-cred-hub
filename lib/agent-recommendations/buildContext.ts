@@ -15,6 +15,7 @@ import {
 } from "./constants"
 import { tierFromRank, type OwnedNormieSnapshot } from "./burnData"
 import {
+  getDualEvalAndPixelMarketContextSummary,
   getErc6551ContextSummary,
   getPaymentSecurityContextSummary,
   getPixelEconomyContextSummary,
@@ -596,6 +597,7 @@ export async function buildZuloContext(
 
   // Doctrine knowledge — always available for strategy-bearing answers
   const pixelEconomy = getPixelEconomyContextSummary()
+  const dualEvalAndPixelMarket = getDualEvalAndPixelMarketContextSummary()
   const pixelCurrency = getPixelCurrencyContextSummary()
   const paymentSecurity = getPaymentSecurityContextSummary()
   const protocolsDeepDive = getProtocolsDeepDiveContextSummary()
@@ -709,6 +711,7 @@ export async function buildZuloContext(
       zuloCanvasAPBalance,
       zuloAPBalance: zuloCanvasAPBalance,
       pixelEconomy,
+      dualEvalAndPixelMarket,
       ...(pixelCurrency ? { pixelCurrency } : {}),
       paymentSecurity,
       protocolsDeepDive,

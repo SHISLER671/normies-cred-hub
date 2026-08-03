@@ -12,6 +12,7 @@ import {
   ZULO_SERVICE_PRICES,
 } from "./constants"
 import {
+  buildDualEvalAndPixelMarketPromptBlock,
   buildErc6551PromptBlock,
   buildPaymentSecurityPromptBlock,
   buildPersonaPromptBlock,
@@ -29,6 +30,7 @@ const NORMIES_WISDOM = buildNormiesWisdomPrompt()
 const ECOSYSTEM_GUIDE = buildEcosystemGuidePrompt()
 const ZULO_PERSONA = buildPersonaPromptBlock()
 const PIXEL_ECONOMY = buildPixelEconomyPromptBlock()
+const DUAL_EVAL_PIXEL_MARKET = buildDualEvalAndPixelMarketPromptBlock()
 const PAYMENT_SECURITY = buildPaymentSecurityPromptBlock()
 const PROTOCOLS = buildProtocolsPromptBlock()
 const PROTOCOLS_FULL = buildProtocolsDeepDivePromptBlock()
@@ -49,6 +51,7 @@ Blockchain Identity:
 ${ZULO_PERSONA}
 
 ${PIXEL_ECONOMY}
+${DUAL_EVAL_PIXEL_MARKET}
 ${PIXEL_CURRENCY ? `\n${PIXEL_CURRENCY}\n` : ""}
 ${PAYMENT_SECURITY}
 
@@ -130,12 +133,26 @@ BURN EFFICIENCY RESPONSE RULES (when burnEfficiency.scanned is true):
 - Prefer OpenSea listing prices (priceSource opensea-listing) over collection-floor proxies when both appear
 - Never invent extra token IDs beyond topCandidates
 - If topCandidates is empty, say the scan could not score listings and point to OpenSea + Burn Tracker
+- Apply DUAL EVALUATION: high-px fodder (e.g. 891+) favors efficiency framing; extreme low-px + tiny supply is not auto-burn
+
+DUAL EVALUATION RESPONSE RULES (burn vs hold — always when user asks should I burn / keep / hold):
+- Use DUAL EVALUATION & PIXEL MARKET knowledge: weigh burn efficiency + scarcity/supply + identity/aesthetic + market premium signals
+- High pixel (e.g. 891+): generally better burn efficiency band (guidance, not guarantees)
+- Extreme low pixel (e.g. <300) with single-digit/low double-digit supply: may be collectible — do NOT auto-recommend burn
+- Example signal only: ~280-px with ~11 supply at large premium to floor illustrates collectible extreme — not a price oracle
+- Not every Normie is meant to burn; calm DYOR tone; no FOMO; no financial advice
+
+PIXEL MARKET STATUS RULES (when user asks PIXEL MARKET / is it live / what is Pixel / Pixel vs AP):
+- Official @normiesART announcement (Aug 2026): Pixel = Action Points (AP)
+- Status: announced / technical work in progress — NOT live trading
+- AP earned by burning Normies; market will add buy/sell later — do not invent AP prices or a live order book
+- In-app PIXEL MARKET Sentinel = floor/burn/whale intelligence, not a live Pixel order book
 
 PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
 - After the floor snapshot lead-in, lead with marketSentinel.brief (headline, trend, trendContext, triggerAnalysis)
 - Report signals: floor Δ% (trigger >3%), burn volume ratio (spike >2x), whale alerts (≥10 Normies, anonymized labels only)
 - Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev, floorBuyEfficiency, impliedApCostETH
-- Cover arbitrage: AP market is planned/not live unless apMarketStatus is live — never invent AP market prices
+- Cover arbitrage: PIXEL MARKET is announced/WIP — not live trading unless apMarketStatus is live — never invent AP market prices or order books
 - List positionRecommendations (2–4) tailored to conditions
 - Include whaleActivity.summary + correlationPatterns; never deanonymize wallets beyond provided labels
 - Always include marketSentinel.disclaimer
@@ -346,6 +363,18 @@ export function composeZuloPrompt(
         .join("\n")
     : "- Pixel economy doctrine loaded via system persona (see PIXEL ECONOMY KNOWLEDGE)"
 
+  const de = context.platformContext?.dualEvalAndPixelMarket
+  const dualEvalBlock = de
+    ? [
+        de.title,
+        ...de.pixelMarket.map((p) => `market: ${p}`),
+        ...de.dualEval.map((d) => `dual: ${d}`),
+        `principles: ${de.principles.join(" | ")}`,
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Dual evaluation + PIXEL MARKET doctrine loaded via system (see DUAL EVALUATION & PIXEL MARKET)"
+
   const ps = context.platformContext?.paymentSecurity
   const paymentSecurityBlock = ps
     ? [
@@ -443,6 +472,9 @@ ${canvasEvoBlock}
 
 === PIXEL ECONOMY (context snapshot) ===
 ${pixelEconomyBlock}
+
+=== DUAL EVALUATION & PIXEL MARKET (context snapshot) ===
+${dualEvalBlock}
 
 === PAYMENT SECURITY (context snapshot) ===
 ${paymentSecurityBlock}

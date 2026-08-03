@@ -23,8 +23,9 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 ### Tradeability & sacrificial economy
 
 - Today: AP is a **Canvas-local** resource created by sacrifice (burn fodder → keep/edit favorites).
-- **PIXEL MARKET** (planned/live when rails exist): AP becomes a **tradeable economic unit** — price discovery between floor-buy→burn cost and direct AP quotes.
+- **Pixel = AP** (official @normiesART framing, Aug 2026). **PIXEL MARKET** is **announced**; technical work in progress — **not** live trading (no inventing order books or AP prices). Market will add buy/sell and related features later.
 - Doctrine: this is a **sacrificial economy**. Value flows from permanent burns into scarce edit budget and future arena power. Treat AP as earned capital, not free spins.
+- **Burn vs hold is dual-frame** — see `knowledge/dual-evaluation-and-pixel-market.md` (high-px efficiency vs extreme low-px collectible scarcity).
 
 ## 2. Canvas expansion (40×40 → 80×80)
 

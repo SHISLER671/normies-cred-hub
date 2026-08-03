@@ -1,27 +1,29 @@
 # Pixel Currency — Zulo Knowledge Base (Scaffolding)
 
 > **Status:** Scaffolded preparation for PIXEL MARKET.  
-> **Source of truth for live Canvas mechanics:** still Action Points (AP) until official Normies / Serc docs say otherwise.  
+> **Official framing (@normiesART, Aug 2026):** **Pixel = Action Points (AP)**; market **announced / technical WIP — not live trading**.  
+> **Source of truth for live Canvas mechanics:** AP (Pixel) Canvas-local budget.  
 > **Feature flag:** `PIXEL_CURRENCY_ENABLED` (default `false`).  
-> **Default settlement:** `DEFAULT_CURRENCY=AP`.
+> **Default settlement:** `DEFAULT_CURRENCY=AP`.  
+> **Related:** `knowledge/dual-evaluation-and-pixel-market.md`, `knowledge/pixel-economy.md`.
 
-This document does **not** replace `pixel-economy.md`. It only frames the naming and conversion ambiguity around **Pixel** vs **AP**.
+This document does **not** replace `pixel-economy.md` or dual-evaluation doctrine. It only frames currency naming / conversion scaffolding for when market rails land.
 
 ---
 
 ## 1. Pixel vs AP distinction
 
-| Concept | Today (live) | PIXEL MARKET (planned) |
+| Concept | Today (live) | PIXEL MARKET (announced / WIP) |
 |---------|----------------|-------------------------|
-| **Action Points (AP)** | Canvas-local transform budget on a specific Normie | May remain the internal name, or become a **legacy alias** |
-| **Pixel (PIXEL)** | Not an independent ledger in this app | Candidate **market currency name** (Serc hint) for tradeable edit-budget units |
+| **Action Points (AP)** | Canvas-local transform budget on a specific Normie | Same unit as Pixel per official announcement |
+| **Pixel (PIXEL)** | Market-facing name for AP (not a separate live ledger here) | Future buy/sell venue for edit-budget units — **not live trading yet** |
 
-**Working assumptions (until docs drop):**
+**Working assumptions:**
 
-1. **Same unit:** Pixel is a rebrand / market-facing name for AP → **1 AP = 1 PIXEL**.
-2. **Different units:** Pixel is a tradeable market token and AP stays Canvas-local → conversion via **oracle** (placeholder rate only).
+1. **Same unit (default / official framing):** Pixel = AP → **1 AP = 1 PIXEL**.
+2. **Different units (only if future oracle docs say so):** conversion via **oracle** (placeholder rate only — never invent live prices).
 
-Zulo must **never invent** live order books, transfer mechanics, or non-1:1 rates without published oracle docs.
+Zulo must **never invent** live order books, transfer mechanics, hold-threshold X, or non-documented rates.
 
 ---
 

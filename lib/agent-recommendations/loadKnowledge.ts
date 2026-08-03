@@ -2,6 +2,7 @@
 // Authoring sources (keep .md files in sync with bundled strings below):
 //   zulo-persona.md
 //   knowledge/pixel-economy.md
+//   knowledge/dual-evaluation-and-pixel-market.md
 //   knowledge/payment-security.md
 //   knowledge/protocols-deep-dive.md
 
@@ -90,8 +91,9 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 ### Tradeability & sacrificial economy
 
 - Today: AP is a **Canvas-local** resource created by sacrifice (burn fodder → keep/edit favorites).
-- **PIXEL MARKET** (planned/live when rails exist): AP becomes a **tradeable economic unit** — price discovery between floor-buy→burn cost and direct AP quotes.
+- **Pixel = AP** (official @normiesART framing, Aug 2026). **PIXEL MARKET** is **announced**; technical work in progress — **not** live trading (no inventing order books or AP prices). Market will add buy/sell and related features later.
 - Doctrine: this is a **sacrificial economy**. Value flows from permanent burns into scarce edit budget and future arena power. Treat AP as earned capital, not free spins.
+- **Burn vs hold is dual-frame** — see \`knowledge/dual-evaluation-and-pixel-market.md\` (high-px efficiency vs extreme low-px collectible scarcity).
 
 ## 2. Canvas expansion (40×40 → 80×80)
 
@@ -167,6 +169,96 @@ He does **not** run a casino desk. He runs an **arena dashboard**: structure, od
 - Canvas Evolution Advisor — preview transforms, 80×80 readiness, canvas watch
 
 Use live \`platformContext\` payloads when present; fall back to this doctrine for mechanics and philosophy.`
+
+/** Bundled copy of knowledge/dual-evaluation-and-pixel-market.md */
+export const DUAL_EVAL_AND_PIXEL_MARKET_MD = `# Dual Evaluation & PIXEL MARKET — Zulo Knowledge
+
+> **Audience:** Always-on Ask / Zulo doctrine (burn vs hold + market status).  
+> **Tone:** Calm, DYOR, no FOMO, no financial advice.  
+> **Related:** \`knowledge/pixel-economy.md\`, \`lib/knowledge/pixel-currency.md\`
+
+---
+
+## 1. PIXEL MARKET (official status)
+
+**Source:** Official **@normiesART** announcement (**August 2026**).
+
+| Fact | Detail |
+|------|--------|
+| **What Pixel is** | **Pixel = Action Points (AP)** — same unit; market-facing name for Canvas edit budget earned by burns |
+| **Status** | **Announced**; **technical work in progress** |
+| **Live trading?** | **No** — do **not** describe a live order book, live AP/Pixel quotes, or settled peer market |
+| **How AP/Pixel is earned today** | By **burning** Normies into a receiver’s Canvas (commit → wait → reveal); Canvas-local budget |
+| **What the market will add later** | Buy/sell and other features for edit-budget units — **when live**, not before |
+| **What Zulo must not invent** | AP prices, hold-threshold **X**, order-book depth, or any standing valuation oracle |
+
+**Language for answers:**
+
+- Prefer: “PIXEL MARKET is **announced**; technical work is in progress; **not** live trading.”
+- Prefer: “**Pixel is AP** — same unit; earned by burning Normies into Canvas.”
+- Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle.
+
+PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence** for the Normie collection — it is **not** a live Pixel order book.
+
+---
+
+## 2. Dual evaluation rule (burn vs hold)
+
+Not every Normie is meant to burn. Always weigh **both** frames before recommending sacrifice.
+
+### Burn-efficiency frame
+
+- **High pixel count (e.g. 891+ on-pixels):** generally **better burn efficiency** — typically the higher AP-yield band (~3–4% of pixels as AP on reveal; treat bands as **guidance**, not guarantees).
+- Mid bands (e.g. 491–890) and lower bands (e.g. 0–490) are weaker efficiency fodder *all else equal* — still not auto-burn if scarcity or identity dominates.
+- Missed reveal windows → minimum band only. Burns are **permanent**.
+
+### Collectible / hold frame
+
+- **Extreme low pixel** (e.g. **<300** on-pixels) with **very small supply** (single-digit or low double-digit type count): may be **collectible**.
+- **Do not auto-recommend burn** on that signal alone.
+- Weigh **scarcity/supply count**, **identity/aesthetic**, and **market premium signals** alongside AP/ETH efficiency.
+
+### Always weigh (checklist)
+
+1. **Burn efficiency** — expected AP band vs acquisition cost (when known); historical samples when present  
+2. **Scarcity / supply count** — how rare is this type/face?  
+3. **Identity / aesthetic** — purist narrative, personal fit, composition intent  
+4. **Market premium signals** — listings/sales far above floor *as one signal*, not a model  
+
+**Default posture:** dual-frame, irreversible-aware, no pressure. User intent wins.
+
+### Example signal only (not a price oracle)
+
+A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to floor** illustrates a **collectible extreme** — hold/collectible frame can dominate pure AP efficiency. This is an **illustrative signal**, not a standing valuation model, not a guarantee of future premiums, and not financial advice.
+
+---
+
+## 3. Answer patterns (Ask)
+
+### “Should I burn a 280-pixel Normie?”
+
+- Do **not** auto-say burn because low pixel = weak AP band.  
+- Apply dual evaluation: low-px + small supply → collectible risk; ask/consider supply, aesthetics, premium signals.  
+- High-px fodder (891+) is where efficiency framing is usually stronger.  
+- DYOR; permanent decision.
+
+### “What is PIXEL MARKET / is it live?”
+
+- Official @normiesART announcement (Aug 2026).  
+- Pixel = AP; market adds buy/sell later.  
+- Status: announced / technical WIP — **not** live trading. No order book claims.
+
+### “Is Pixel the same as AP?”
+
+- **Yes** — Pixel is Action Points (AP) per official announcement framing.  
+- Earned by burning; Canvas-bound today. Market tradeability later when live.
+
+---
+
+## 4. Safety
+
+- No FOMO language. No guaranteed returns. No invented AP prices or hold thresholds.  
+- Prefer structure over sentiment. *Patience compounds. Haste erodes.*`
 
 /** Bundled copy of knowledge/payment-security.md */
 export const PAYMENT_SECURITY_MD = `# Payment & Platform Security — Zulo Knowledge Base
@@ -804,6 +896,11 @@ export function loadPixelEconomyKnowledge(): string {
   return PIXEL_ECONOMY_MD.trim()
 }
 
+/** Dual evaluation (burn vs hold) + PIXEL MARKET status knowledge. */
+export function loadDualEvalAndPixelMarketKnowledge(): string {
+  return DUAL_EVAL_AND_PIXEL_MARKET_MD.trim()
+}
+
 /** Payment & platform security knowledge markdown. */
 export function loadPaymentSecurityKnowledge(): string {
   return PAYMENT_SECURITY_MD.trim()
@@ -836,6 +933,19 @@ PERSONA ENFORCEMENT:
 export function buildPixelEconomyPromptBlock(): string {
   return `=== PIXEL ECONOMY KNOWLEDGE (doctrine for all strategy) ===
 ${loadPixelEconomyKnowledge()}`
+}
+
+/** Always-on dual evaluation + PIXEL MARKET status for Ask. */
+export function buildDualEvalAndPixelMarketPromptBlock(): string {
+  return `=== DUAL EVALUATION & PIXEL MARKET (burn vs hold + market status) ===
+${loadDualEvalAndPixelMarketKnowledge()}
+
+DUAL-EVAL / PIXEL MARKET ENFORCEMENT:
+- Pixel = AP (official @normiesART, Aug 2026); PIXEL MARKET announced / technical WIP — NOT live trading
+- Never invent AP prices, order books, or hold-threshold X
+- High pixel (e.g. 891+): efficiency frame usually stronger; extreme low pixel + tiny supply: do NOT auto-burn
+- Always weigh: burn efficiency + scarcity/supply + identity/aesthetic + market premium signals
+- Not every Normie is meant to burn; DYOR; no FOMO; no financial advice`
 }
 
 /** Payment & security knowledge block for system prompt. */
@@ -927,8 +1037,43 @@ export function getPixelEconomyContextSummary(): {
       "Patience compounds. Haste erodes.",
       "We don't chase pumps. We stack pixels.",
       "PIXEL MARKET is an arena, not a casino — strategy over sentiment",
+      "Pixel = AP; PIXEL MARKET announced (Aug 2026) — not live trading",
     ],
     source: "lib/agent-recommendations/knowledge/pixel-economy.md",
+  }
+}
+
+/** Dual evaluation + PIXEL MARKET summary for platformContext. */
+export function getDualEvalAndPixelMarketContextSummary(): {
+  title: string
+  pixelMarket: string[]
+  dualEval: string[]
+  principles: string[]
+  source: string
+} {
+  return {
+    title: "Dual Evaluation & PIXEL MARKET",
+    pixelMarket: [
+      "Official @normiesART announcement (Aug 2026)",
+      "Pixel = Action Points (AP) — same unit",
+      "Status: announced / technical work in progress — NOT live trading",
+      "AP earned by burning Normies; market will add buy/sell later",
+      "Do not invent AP prices, hold-threshold X, or a live order book",
+    ],
+    dualEval: [
+      "High pixel (e.g. 891+): generally better burn efficiency (higher AP band; guidance not guarantees)",
+      "Extreme low pixel (e.g. <300) with very small supply (single-digit/low double-digit): may be collectible — do NOT auto-recommend burn",
+      "Always weigh: burn efficiency + scarcity/supply count + identity/aesthetic + market premium signals",
+      "Not every Normie is meant to burn",
+      "Example signal only: ~280-px Normie (~11 supply) at large premium to floor = collectible extreme, not a valuation model",
+    ],
+    principles: [
+      "Calm dual-frame; DYOR; no FOMO; no financial advice",
+      "Burns are permanent — irreversible-aware, no pressure",
+      "PIXEL MARKET Sentinel ≠ live Pixel order book",
+    ],
+    source:
+      "lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md",
   }
 }
 

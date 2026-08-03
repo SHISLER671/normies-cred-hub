@@ -13,25 +13,27 @@ import { isPixelCurrencyEnabled } from "@/lib/payments/config"
 export const PIXEL_CURRENCY_MD = `# Pixel Currency — Zulo Knowledge Base (Scaffolding)
 
 > **Status:** Scaffolded preparation for PIXEL MARKET.
-> **Source of truth for live Canvas mechanics:** still Action Points (AP) until official Normies / Serc docs say otherwise.
+> **Official framing (@normiesART, Aug 2026):** **Pixel = Action Points (AP)**; market **announced / technical WIP — not live trading**.
+> **Source of truth for live Canvas mechanics:** AP (Pixel) Canvas-local budget.
 > **Feature flag:** \`PIXEL_CURRENCY_ENABLED\` (default \`false\`).
 > **Default settlement:** \`DEFAULT_CURRENCY=AP\`.
+> **Related:** dual-evaluation-and-pixel-market.md, pixel-economy.md.
 
-This document does **not** replace pixel-economy.md. It only frames the naming and conversion ambiguity around **Pixel** vs **AP**.
+This document does **not** replace pixel-economy.md or dual-evaluation doctrine. It only frames currency naming / conversion scaffolding for when market rails land.
 
 ## 1. Pixel vs AP distinction
 
-| Concept | Today (live) | PIXEL MARKET (planned) |
+| Concept | Today (live) | PIXEL MARKET (announced / WIP) |
 |---------|----------------|-------------------------|
-| **Action Points (AP)** | Canvas-local transform budget on a specific Normie | May remain the internal name, or become a **legacy alias** |
-| **Pixel (PIXEL)** | Not an independent ledger in this app | Candidate **market currency name** (Serc hint) for tradeable edit-budget units |
+| **Action Points (AP)** | Canvas-local transform budget on a specific Normie | Same unit as Pixel per official announcement |
+| **Pixel (PIXEL)** | Market-facing name for AP (not a separate live ledger here) | Future buy/sell venue for edit-budget units — **not live trading yet** |
 
-**Working assumptions (until docs drop):**
+**Working assumptions:**
 
-1. **Same unit:** Pixel is a rebrand / market-facing name for AP → **1 AP = 1 PIXEL**.
-2. **Different units:** Pixel is a tradeable market token and AP stays Canvas-local → conversion via **oracle** (placeholder rate only).
+1. **Same unit (default / official framing):** Pixel = AP → **1 AP = 1 PIXEL**.
+2. **Different units (only if future oracle docs say so):** conversion via **oracle** (placeholder rate only — never invent live prices).
 
-Zulo must **never invent** live order books, transfer mechanics, or non-1:1 rates without published oracle docs.
+Zulo must **never invent** live order books, transfer mechanics, hold-threshold X, or non-documented rates.
 
 ## 2. Burn mechanics (earn AP / Pixel)
 
@@ -41,24 +43,24 @@ Zulo must **never invent** live order books, transfer mechanics, or non-1:1 rate
 - Spend: **1 unit = 1 pixel add or remove** on the current 40×40 grid.
 - Prefer **Pixel** as primary market term when feature-enabled; keep **AP** as legacy alias and API field name.
 
-## 3. PIXEL MARKET trading (planned)
+## 3. PIXEL MARKET trading (announced / WIP — not live)
 
-- Venue: peer / agent market for scarce edit budget.
+- Venue: peer / agent market for scarce edit budget (when live).
 - Burn Efficiency / Market Sentinel still quote **AP per ETH** as the measurable proxy.
-- Manifest: \`payment.pixelCurrencyStatus\` scaffolded; \`payment.conversionOracle\` planned until serc docs.
+- Manifest: \`payment.pixelCurrencyStatus\` scaffolded; \`payment.conversionOracle\` planned until rails live.
 
 ## 4. Conversion scenarios
 
 - **Same unit (default):** 1 AP = 1 PIXEL (\`PIXEL_CONVERSION_MODE=same-unit\`).
 - **Oracle:** PIXEL = AP × placeholder rate (\`PIXEL_AP_ORACLE_RATE\`); never present as live market price.
-- Migration: keep AP workflows; advertise both currencies; enforce AP until flag + rails + official docs.
+- Migration: keep AP workflows; advertise both currencies; enforce AP until flag + rails.
 
 ## 5. Safety rules
 
-1. Flag off → speak in AP only; Pixel is planned naming only.
-2. Flag on / scaffolded → dual vocabulary OK; never claim enforced Pixel settlement.
+1. Flag off → speak in AP; note Pixel = AP and market not live when asked.
+2. Flag on / scaffolded → dual vocabulary OK; never claim enforced Pixel settlement or live books.
 3. Never break burn-efficiency or Canvas math denominated in AP.
-4. Prefer: “Canvas AP (market-facing name may be Pixel)” over inventing two balances.
+4. Prefer: “Pixel is AP (Canvas-local); PIXEL MARKET not live trading yet.”
 
 *Patience compounds. Haste erodes.*
 `
@@ -97,10 +99,10 @@ export function getPixelCurrencyContextSummary(): {
     title: "Pixel Currency (scaffolded)",
     status: "scaffolded",
     pillars: [
-      "Pixel may be the PIXEL MARKET name for what is currently AP (Serc hint)",
-      "AP remains Canvas-local until official transfer/oracle docs",
-      "Default assumption: 1 AP = 1 PIXEL (same-unit mode)",
-      "Alternate: variable conversion via planned oracle",
+      "Pixel = AP (official @normiesART, Aug 2026)",
+      "PIXEL MARKET announced / technical WIP — not live trading",
+      "AP remains Canvas-local; market buy/sell later when live",
+      "Default: 1 AP = 1 PIXEL (same-unit mode)",
     ],
     conversion: [
       "same-unit: identity rate (default)",
@@ -108,7 +110,7 @@ export function getPixelCurrencyContextSummary(): {
       "conversionOracle status: planned",
     ],
     principles: [
-      "Never invent live Pixel order books",
+      "Never invent live Pixel order books or hold-threshold X",
       "Burn efficiency stays AP-denominated",
       "Pixel primary term / AP legacy alias when flag on",
     ],

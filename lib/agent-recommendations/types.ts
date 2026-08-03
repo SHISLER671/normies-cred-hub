@@ -187,6 +187,17 @@ export interface ZuloRecommendationContext {
       source: string
     }
     /**
+     * Dual burn-vs-hold evaluation + PIXEL MARKET official status
+     * (from knowledge/dual-evaluation-and-pixel-market.md).
+     */
+    dualEvalAndPixelMarket?: {
+      title: string
+      pixelMarket: string[]
+      dualEval: string[]
+      principles: string[]
+      source: string
+    }
+    /**
      * Pixel vs AP currency scaffolding — only when PIXEL_CURRENCY_ENABLED
      * (from lib/knowledge/pixel-currency.md).
      */
