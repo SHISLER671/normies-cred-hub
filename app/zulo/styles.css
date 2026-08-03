@@ -986,8 +986,20 @@
 }
 
 .zulo-chrome .home-zulo-meta {
-  margin: 8px auto 28px;
+  margin: 8px auto 12px;
   max-width: 32rem;
+}
+
+/* Single calm homepage stance line — sentence case, monochrome, not a section */
+.zulo-chrome .home-orient-line {
+  margin: 0 auto 28px;
+  max-width: 36rem;
+  padding: 0 var(--space-md);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+  text-transform: none;
 }
 
 .zulo-chrome .home-zulo-art {
