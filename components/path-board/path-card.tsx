@@ -109,7 +109,11 @@ export function PathCard({
   )
 
   return (
-    <article className="move-card path-card">
+    <article
+      className="move-card path-card"
+      data-reveal
+      data-reveal-delay={String(Math.min(path.rank, 5))}
+    >
       <div className="move-card-top">
         <div>
           <div className="move-card-rank mono">

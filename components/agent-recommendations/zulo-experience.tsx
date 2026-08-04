@@ -243,7 +243,7 @@ export function ZuloExperience({
         />
       </div>
 
-      <p className="ask-context-line">
+      <p className="ask-context-line" data-reveal>
         High-signal help for the active Normie · scoped to on-chain PULSE &amp;
         Canvas — not generic chat
         <span className="ask-context-id mono"> · #{tokenId}</span>

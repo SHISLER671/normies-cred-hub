@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { ActiveNormieSwitcher } from "@/components/active-normie-switcher"
+import { ZuloMotionRoot } from "@/components/zulo-motion-root"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { cn } from "@/lib/utils"
 
@@ -25,6 +26,8 @@ export function ZuloChromeHeader({
 
   return (
     <header className={cn("header", fixed && "header-fixed", className)}>
+      {/* Product-wide motion: scroll reveal, header state, desktop cursor ring */}
+      <ZuloMotionRoot />
       <Link href="/" className="header-brand">
         <Image
           src="/images/NLOGO.png"

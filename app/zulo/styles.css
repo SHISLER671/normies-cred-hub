@@ -24,6 +24,21 @@
   --font-mono: "Courier New", Courier, "SF Mono", Monaco, ui-monospace, monospace;
   --pulse-speed: 2s;
 
+  /* Motion tokens — product-wide (quiet, consistent) */
+  --motion-fast: 120ms;
+  --motion-base: 160ms;
+  --motion-slow: 220ms;
+  --motion-reveal: 320ms;
+  --motion-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-lift: -2px;
+  --motion-press: 1px;
+  --motion-reveal-y: 12px;
+  --shadow-card: 4px 4px 0 0 rgb(0 0 0 / 0.1);
+  --shadow-soft: 0 1px 0 0 rgb(0 0 0 / 0.08);
+  --focus-ring: 2px solid var(--text-primary);
+  --focus-offset: 2px;
+
   color-scheme: light;
   font-family: var(--font-mono);
   background: var(--bg-primary);
@@ -187,12 +202,22 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-sm);
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease);
 }
 
 .zulo-chrome .header.header-fixed {
   position: fixed;
   left: 0;
   right: 0;
+}
+
+.zulo-chrome .header.header-fixed.is-scrolled {
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-soft);
+  border-bottom-color: var(--border);
 }
 
 .zulo-chrome .header-logo {
@@ -261,7 +286,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 4px 8px 4px 4px;
   border: 1px solid var(--border);
   background: var(--bg-primary);
@@ -269,11 +294,25 @@
   font-family: var(--font-mono);
   cursor: pointer;
   border-radius: 0;
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .zulo-chrome .active-normie-trigger:hover,
 .zulo-chrome .active-normie-trigger.is-open {
   background: var(--bg-secondary);
+}
+
+.zulo-chrome .active-normie-trigger:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .active-normie-trigger:active {
+  transform: translateY(var(--motion-press));
 }
 
 .zulo-chrome .active-normie-pixel {
@@ -394,6 +433,11 @@
   background: var(--bg-secondary);
 }
 
+.zulo-chrome .active-normie-option:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
 .zulo-chrome .active-normie-option.is-active {
   border-color: var(--border);
   background: var(--bg-secondary);
@@ -498,10 +542,25 @@
   border-radius: 0;
   font-family: inherit;
   min-height: 120px;
+  transition:
+    background var(--motion-base, 160ms) var(--motion-ease, ease),
+    border-color var(--motion-base, 160ms) var(--motion-ease, ease),
+    box-shadow var(--motion-base, 160ms) var(--motion-ease, ease),
+    transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .my-agent-card:hover {
   background: var(--card-hover, #e8e8e8);
+}
+
+.my-agent-card:focus-visible {
+  outline: 2px solid var(--text-primary, #1a1a1a);
+  outline-offset: 2px;
+}
+
+.my-agent-card:active {
+  transform: translateY(1px);
 }
 
 .my-agent-card.is-active {
@@ -575,12 +634,28 @@
   letter-spacing: 0.1em;
   color: var(--text-muted);
   text-decoration: none;
-  transition: color 0.2s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 2px;
+  transition:
+    color var(--motion-base) var(--motion-ease),
+    opacity var(--motion-base) var(--motion-ease);
 }
 
 .zulo-chrome .header-nav a:hover,
 .zulo-chrome .header-nav a.is-active {
   color: var(--text-primary);
+}
+
+.zulo-chrome .header-nav a:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  color: var(--text-primary);
+}
+
+.zulo-chrome .header-nav a:active {
+  opacity: 0.75;
 }
 
 .zulo-chrome .header-spacer {
@@ -651,12 +726,28 @@
   letter-spacing: 0.1em;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  min-height: 44px;
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
   border-radius: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .zulo-chrome .button:hover:not(:disabled) {
   background: var(--bg-secondary);
+}
+
+.zulo-chrome .button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .button:active:not(:disabled) {
+  transform: translateY(var(--motion-press));
 }
 
 .zulo-chrome .button:disabled {
@@ -673,6 +764,7 @@
 .zulo-chrome .button-primary:hover:not(:disabled) {
   background: var(--text-primary);
   color: var(--text-inverse);
+  border-color: var(--text-primary);
 }
 
 .zulo-chrome .button-block {
@@ -1025,9 +1117,11 @@
   text-decoration: none;
   border-radius: 0;
   transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    border-color 0.12s ease;
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1127,7 +1221,12 @@
 }
 
 .zulo-chrome .home-surface-card:active {
-  transform: translateY(1px);
+  transform: translateY(var(--motion-press));
+}
+
+.zulo-chrome .home-surface-card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .zulo-chrome .home-surface-card:hover .home-surface-card-go,
@@ -1227,6 +1326,7 @@
   display: flex;
   gap: var(--space-sm);
   max-width: 92%;
+  animation: zulo-msg-enter var(--motion-slow) var(--motion-ease-out) both;
 }
 
 .zulo-chrome .chat-message-user {
@@ -1490,14 +1590,29 @@
   font-family: var(--font-mono);
   font-size: 12px;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    background var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
   border-radius: 0;
-  min-height: 40px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .zulo-chrome .quick-prompt:hover:not(:disabled) {
   border-color: var(--border);
   color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .quick-prompt:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .quick-prompt:active:not(:disabled) {
+  transform: translateY(var(--motion-press));
 }
 
 .zulo-chrome .quick-prompt:disabled {
@@ -1520,11 +1635,22 @@
   font-family: var(--font-mono);
   font-size: 14px;
   border-radius: 0;
+  min-height: 48px;
+  transition:
+    border-color var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    background var(--motion-base) var(--motion-ease);
 }
 
 .zulo-chrome .chat-input-field:focus {
   outline: none;
   border-color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px var(--text-primary);
+}
+
+.zulo-chrome .chat-input-field:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .zulo-chrome .chat-input-field::placeholder {
@@ -2536,11 +2662,20 @@
   color: var(--text-primary);
   border-radius: 0;
   min-height: 48px;
+  transition:
+    border-color var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
 }
 
 .zulo-chrome .moves-input:focus {
-  outline: 2px solid var(--border);
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px var(--text-primary);
+}
+
+.zulo-chrome .moves-input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .zulo-chrome .moves-rank-btn {
@@ -2589,8 +2724,22 @@
   color: var(--text-primary);
   cursor: pointer;
   border-radius: 0;
-  min-height: 42px;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  min-height: 44px;
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zulo-chrome .moves-chip:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .moves-chip:active:not(:disabled) {
+  transform: translateY(var(--motion-press));
 }
 
 /* Subtle monochrome hover note (chip.hint) */
@@ -2720,6 +2869,11 @@
   flex-direction: column;
   gap: 12px;
   border-radius: 0;
+  transition:
+    border-color var(--motion-base) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    background var(--motion-base) var(--motion-ease);
 }
 
 .zulo-chrome .move-card-top {
@@ -2800,13 +2954,33 @@
 .zulo-chrome .move-rate-btn {
   font-family: var(--font-mono);
   font-size: 13px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: 1px solid var(--border);
   background: var(--bg-primary);
   color: var(--text-primary);
   cursor: pointer;
   border-radius: 0;
-  min-height: 36px;
+  min-height: 44px;
+  min-width: 44px;
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zulo-chrome .move-rate-btn:hover:not(:disabled) {
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .move-rate-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .move-rate-btn:active:not(:disabled) {
+  transform: translateY(var(--motion-press));
 }
 
 .zulo-chrome .move-rate-btn.is-selected {
@@ -2931,10 +3105,22 @@
   font-family: var(--font-mono, ui-monospace, monospace);
   border-radius: 0;
   -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--motion-base, 160ms) var(--motion-ease, ease),
+    color var(--motion-base, 160ms) var(--motion-ease, ease);
 }
 
 .pulse-acc-trigger:hover {
   background: var(--bg-secondary, #d4d4d4);
+}
+
+.pulse-acc-trigger:focus-visible {
+  outline: 2px solid var(--text-primary, #1a1a1a);
+  outline-offset: -2px;
+}
+
+.pulse-acc-trigger:active {
+  background: var(--bg-tertiary, #c4c4c4);
 }
 
 .pulse-acc-item.is-open .pulse-acc-trigger {
@@ -2972,7 +3158,7 @@
   flex-shrink: 0;
   font-size: 10px;
   color: var(--text-muted, #4a4a4a);
-  transition: transform 0.15s ease;
+  transition: transform var(--motion-base, 160ms) var(--motion-ease, ease);
   line-height: 1;
 }
 
@@ -2992,6 +3178,7 @@
   min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  animation: zulo-slide-down var(--motion-base, 160ms) var(--motion-ease-out, ease-out) both;
 }
 
 .pulse-acc-panel-inner pre {
@@ -3113,9 +3300,11 @@
   border-radius: 0;
   font-family: inherit;
   transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    border-color 0.12s ease;
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -3131,7 +3320,7 @@
   background: var(--text-primary);
   color: var(--text-inverse);
   border-color: var(--text-primary);
-  transform: translateY(1px);
+  transform: translateY(var(--motion-press));
 }
 
 .zulo-chrome .pulse-action-btn-head {
@@ -3192,4 +3381,424 @@
 /* Dashboard trust surfaces keep their own cards; tighten radius language */
 .zulo-chrome .dash-main [class*="rounded"] {
   border-radius: 0 !important;
+}
+
+/* ==========================================================================
+   PRODUCT MOTION SYSTEM — monochrome, quiet, consistent
+   Tokens: --motion-fast|base|slow|reveal, --motion-ease|ease-out,
+           --motion-lift|press|reveal-y, --shadow-card|soft, --focus-ring
+   ========================================================================== */
+
+/* --- Scroll reveal (only when .js-motion is set by ZuloMotionRoot) --- */
+.zulo-chrome.js-motion [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, var(--motion-reveal-y), 0);
+  transition:
+    opacity var(--motion-reveal) var(--motion-ease-out),
+    transform var(--motion-reveal) var(--motion-ease-out);
+  will-change: opacity, transform;
+}
+
+.zulo-chrome.js-motion [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+.zulo-chrome.js-motion [data-reveal][data-reveal-delay="1"] {
+  transition-delay: 40ms;
+}
+.zulo-chrome.js-motion [data-reveal][data-reveal-delay="2"] {
+  transition-delay: 80ms;
+}
+.zulo-chrome.js-motion [data-reveal][data-reveal-delay="3"] {
+  transition-delay: 120ms;
+}
+.zulo-chrome.js-motion [data-reveal][data-reveal-delay="4"] {
+  transition-delay: 160ms;
+}
+.zulo-chrome.js-motion [data-reveal][data-reveal-delay="5"] {
+  transition-delay: 200ms;
+}
+
+/* --- Card / list hover language (desktop fine pointer only) --- */
+@media (hover: hover) and (pointer: fine) {
+  .zulo-chrome .path-card:hover,
+  .zulo-chrome .move-card:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(var(--motion-lift));
+    border-color: var(--text-primary);
+  }
+
+  .zulo-chrome .home-surface-card-moves:hover,
+  .zulo-chrome .home-surface-card-pulse:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(var(--motion-lift));
+  }
+
+  .zulo-chrome .home-surface-card-ask:hover {
+    box-shadow: 4px 4px 0 0 rgb(0 0 0 / 0.22);
+    transform: translateY(var(--motion-lift));
+  }
+
+  .zulo-chrome .card:hover {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .zulo-chrome .my-agent-card:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(var(--motion-lift));
+    border-color: var(--text-primary);
+  }
+
+  .zulo-chrome .pulse-action-btn:hover {
+    box-shadow: var(--shadow-card);
+  }
+
+  .zulo-chrome .header-brand:hover .header-brand-logo {
+    border-color: var(--text-primary);
+  }
+}
+
+/* --- Shared expand / details language (Ask skills) --- */
+.zulo-chrome .ask-skills-summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  transition:
+    color var(--motion-base) var(--motion-ease),
+    opacity var(--motion-base) var(--motion-ease);
+}
+
+.zulo-chrome .ask-skills-summary:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.zulo-chrome .ask-skills-details[open] > :not(summary) {
+  animation: zulo-slide-down var(--motion-base) var(--motion-ease-out) both;
+}
+
+.zulo-chrome .ask-module-toggle {
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease);
+}
+
+.zulo-chrome .ask-module-toggle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.zulo-chrome .ask-module-toggle:active {
+  background: var(--bg-tertiary);
+}
+
+.zulo-chrome .pulse-toggle {
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.zulo-chrome .pulse-toggle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .pulse-toggle:active {
+  transform: translateY(var(--motion-press));
+}
+
+.zulo-chrome .pulse-toggle-chevron {
+  transition: transform var(--motion-base) var(--motion-ease);
+}
+
+/* --- Footer links --- */
+.zulo-chrome .site-footer a {
+  transition: color var(--motion-base) var(--motion-ease);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.zulo-chrome .site-footer a:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  color: var(--text-primary);
+}
+
+/* --- Wallet / shadcn buttons inside chrome (monochrome square) --- */
+.zulo-chrome .header-nav button,
+.zulo-chrome .header button {
+  border-radius: 0 !important;
+  min-height: 44px;
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease) !important;
+}
+
+.zulo-chrome .header-nav button:active,
+.zulo-chrome .header button:active {
+  transform: translateY(var(--motion-press));
+}
+
+.zulo-chrome .header-nav button:focus-visible,
+.zulo-chrome .header button:focus-visible {
+  outline: var(--focus-ring) !important;
+  outline-offset: var(--focus-offset);
+}
+
+/* --- Brand mark subtle hover --- */
+.zulo-chrome .header-brand {
+  transition: opacity var(--motion-base) var(--motion-ease);
+}
+
+.zulo-chrome .header-brand:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .header-brand-logo {
+  transition: border-color var(--motion-base) var(--motion-ease);
+}
+
+/* --- Hero art polish (home) --- */
+.zulo-chrome .hero-art {
+  transition:
+    border-color var(--motion-slow) var(--motion-ease),
+    box-shadow var(--motion-slow) var(--motion-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .zulo-chrome .hero-art:hover {
+    border-color: var(--text-primary);
+    box-shadow: var(--shadow-soft);
+  }
+}
+
+.zulo-chrome .hero-hub .hero-title-hub,
+.zulo-chrome .hero-hub .hero-subtitle,
+.zulo-chrome .hero-hub .hero-meta {
+  animation: zulo-msg-enter var(--motion-reveal) var(--motion-ease-out) both;
+}
+
+.zulo-chrome .hero-hub .hero-subtitle {
+  animation-delay: 40ms;
+}
+
+.zulo-chrome .hero-hub .hero-meta {
+  animation-delay: 80ms;
+}
+
+/* --- Message enter --- */
+@keyframes zulo-msg-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Desktop cursor ring (fine pointer only; injected by ZuloMotionRoot) --- */
+.zulo-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 1px solid var(--text-primary, #1a1a1a);
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  mix-blend-mode: difference;
+  transition:
+    width var(--motion-fast, 120ms) var(--motion-ease, ease),
+    height var(--motion-fast, 120ms) var(--motion-ease, ease),
+    margin var(--motion-fast, 120ms) var(--motion-ease, ease),
+    opacity var(--motion-base, 160ms) var(--motion-ease, ease),
+    background var(--motion-base, 160ms) var(--motion-ease, ease);
+  will-change: transform;
+}
+
+.zulo-cursor-ring.is-visible {
+  opacity: 0.85;
+}
+
+.zulo-cursor-ring.is-hot {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  opacity: 1;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.zulo-cursor-ring.is-press {
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  opacity: 1;
+}
+
+.zulo-chrome.has-cursor-ring,
+.zulo-chrome.has-cursor-ring a,
+.zulo-chrome.has-cursor-ring button,
+.zulo-chrome.has-cursor-ring [role="button"],
+.zulo-chrome.has-cursor-ring input,
+.zulo-chrome.has-cursor-ring summary {
+  cursor: none;
+}
+
+/* Keep text inputs usable — native I-beam for typing */
+.zulo-chrome.has-cursor-ring input,
+.zulo-chrome.has-cursor-ring textarea {
+  cursor: text;
+}
+
+/* --- Opp chips / residual controls --- */
+.zulo-chrome .opp-chip {
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+  min-height: 44px;
+}
+
+.zulo-chrome .opp-chip:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .opp-chip:active {
+  transform: translateY(var(--motion-press));
+}
+
+.zulo-chrome .opp-card {
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-base) var(--motion-ease);
+}
+
+.zulo-chrome .opp-card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* --- Overflow safety (effects must not cause horizontal scroll) --- */
+.zulo-chrome {
+  overflow-x: clip;
+}
+
+.zulo-chrome .path-card,
+.zulo-chrome .move-card,
+.zulo-chrome .home-surface-card,
+.zulo-chrome .my-agent-card,
+.zulo-chrome .pulse-action-btn {
+  /* room for square shadow without page overflow on most layouts */
+  max-width: 100%;
+}
+
+/* --- Mobile: lighter reveal, no lifts, no cursor --- */
+@media (max-width: 768px) {
+  .zulo-chrome {
+    --motion-reveal-y: 8px;
+    --motion-reveal: 260ms;
+    --motion-lift: 0px;
+  }
+
+  .zulo-chrome.js-motion [data-reveal] {
+    /* still animate opacity; shorter distance */
+    transform: translate3d(0, 6px, 0);
+  }
+
+  .zulo-cursor-ring {
+    display: none !important;
+  }
+
+  .zulo-chrome.has-cursor-ring,
+  .zulo-chrome.has-cursor-ring a,
+  .zulo-chrome.has-cursor-ring button,
+  .zulo-chrome.has-cursor-ring [role="button"] {
+    cursor: auto;
+  }
+}
+
+/* --- Coarse pointer / touch: no custom cursor, no hover-only lifts --- */
+@media (hover: none), (pointer: coarse) {
+  .zulo-cursor-ring {
+    display: none !important;
+  }
+
+  .zulo-chrome.has-cursor-ring,
+  .zulo-chrome.has-cursor-ring * {
+    cursor: auto !important;
+  }
+
+  .zulo-chrome {
+    --motion-lift: 0px;
+  }
+
+  .zulo-chrome .path-card:hover,
+  .zulo-chrome .move-card:hover,
+  .zulo-chrome .home-surface-card:hover,
+  .zulo-chrome .my-agent-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* --- prefers-reduced-motion: keep essential feedback, kill ornament --- */
+@media (prefers-reduced-motion: reduce) {
+  .zulo-chrome {
+    --motion-fast: 0.01ms;
+    --motion-base: 0.01ms;
+    --motion-slow: 0.01ms;
+    --motion-reveal: 0.01ms;
+    --motion-lift: 0px;
+    --pulse-speed: 0.01ms;
+  }
+
+  .zulo-chrome.js-motion [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .zulo-chrome .chat-message,
+  .zulo-chrome .hero-hub .hero-title-hub,
+  .zulo-chrome .hero-hub .hero-subtitle,
+  .zulo-chrome .hero-hub .hero-meta,
+  .zulo-chrome .pulse-acc-panel-inner,
+  .zulo-chrome .ask-skills-details[open] > :not(summary),
+  .zulo-chrome .pulse-dropdown {
+    animation: none !important;
+  }
+
+  .zulo-chrome .home-surface-card-pulse::after,
+  .zulo-chrome .pulse-indicator::after {
+    animation: none !important;
+    opacity: 0;
+  }
+
+  .zulo-cursor-ring {
+    display: none !important;
+  }
+
+  .zulo-chrome.has-cursor-ring,
+  .zulo-chrome.has-cursor-ring * {
+    cursor: auto !important;
+  }
 }

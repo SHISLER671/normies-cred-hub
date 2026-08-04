@@ -120,7 +120,7 @@ export function PathBoard({
 
   return (
     <div className="moves-board">
-      <header className="moves-header">
+      <header className="moves-header" data-reveal>
         <p className="moves-kicker mono">MOVES · FREE</p>
         <ActiveNormieBadge />
         <h1 className="moves-title">
@@ -139,7 +139,7 @@ export function PathBoard({
         ) : null}
       </header>
 
-      <section className="moves-form">
+      <section className="moves-form" data-reveal>
         <div className="moves-intents-block">
           <span className="moves-label">Intent</span>
           <IntentChips
@@ -210,7 +210,7 @@ export function PathBoard({
       ) : null}
 
       {result ? (
-        <section className="moves-results">
+        <section className="moves-results" data-reveal>
           <p className="moves-results-meta mono">
             {result.intent.tags.join(" · ")}
             {result.subject.tokenId != null

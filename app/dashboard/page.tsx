@@ -24,7 +24,7 @@ export default function DashboardPage() {
       <div className="header-spacer" aria-hidden />
 
       <main className="dash-main">
-        <section className="dash-hero">
+        <section className="dash-hero" data-reveal>
           <p className="moves-kicker mono">CREDHUB · PULSE · LIVE</p>
           <h1 className="moves-title">
             See the real reputation of your awakened agents.
@@ -39,7 +39,7 @@ export default function DashboardPage() {
           </p>
         </section>
 
-        <section className="dash-section-acc">
+        <section className="dash-section-acc" data-reveal>
           <PulseAccordion defaultOpenIds={["agent-pulse"]} allowMultiple>
             <PulseAccordionItem
               id="agent-pulse"
@@ -133,7 +133,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Trust cards / framework — My agents + collapsible signals */}
-        <div style={{ paddingBottom: 48 }}>
+        <div style={{ paddingBottom: 48 }} data-reveal>
           <Dashboard />
         </div>
 

@@ -76,7 +76,7 @@ export default async function ZuloLandingPage() {
       </section>
 
       {/* 2. What Zulo Does → 3. CTAs */}
-      <section className="section section-bordered home-product">
+      <section className="section section-bordered home-product" data-reveal>
         <div className="container">
           <h2 className="text-center">What Zulo does</h2>
           <p className="caption text-center home-zulo-meta">
@@ -101,7 +101,12 @@ export default async function ZuloLandingPage() {
           </div>
 
           <div className="grid-3 home-zulo-points">
-            <Link href="/dashboard" className="home-surface-card home-surface-card-pulse">
+            <Link
+              href="/dashboard"
+              className="home-surface-card home-surface-card-pulse"
+              data-reveal
+              data-reveal-delay="1"
+            >
               <h3>PULSE</h3>
               <p>
                 Pulse-influenced advice and trust signals for the active Normie
@@ -111,7 +116,12 @@ export default async function ZuloLandingPage() {
                 Open →
               </span>
             </Link>
-            <Link href="/ask" className="home-surface-card home-surface-card-ask">
+            <Link
+              href="/ask"
+              className="home-surface-card home-surface-card-ask"
+              data-reveal
+              data-reveal-delay="2"
+            >
               <h3>Ask</h3>
               <p>
                 High-signal concierge chat scoped to the active Normie — PULSE
@@ -121,7 +131,12 @@ export default async function ZuloLandingPage() {
                 Open →
               </span>
             </Link>
-            <Link href="/paths" className="home-surface-card home-surface-card-moves">
+            <Link
+              href="/paths"
+              className="home-surface-card home-surface-card-moves"
+              data-reveal
+              data-reveal-delay="3"
+            >
               <h3>Moves</h3>
               <p>
                 Ranked tryable agent/tool moves with reasoning and a clear
@@ -136,7 +151,7 @@ export default async function ZuloLandingPage() {
       </section>
 
       {/* 4. Stats · 5. quiet quote */}
-      <section className="section section-bordered">
+      <section className="section section-bordered" data-reveal>
         <div className="stats-grid stats-grid-pair">
           <div className="stat">
             <div className="stat-number data-pulse">{canvasAp}</div>
@@ -172,11 +187,13 @@ export default async function ZuloLandingPage() {
       </section>
 
       {/* 6. Future Plans */}
-      <HomeFuturePlans
-        tokenId={ZULO_IDENTITY.tokenId}
-        ens={ZULO_IDENTITY.ens}
-        hotWallet={ZULO_IDENTITY.hotWallet}
-      />
+      <div data-reveal>
+        <HomeFuturePlans
+          tokenId={ZULO_IDENTITY.tokenId}
+          ens={ZULO_IDENTITY.ens}
+          hotWallet={ZULO_IDENTITY.hotWallet}
+        />
+      </div>
     </div>
   )
 }
