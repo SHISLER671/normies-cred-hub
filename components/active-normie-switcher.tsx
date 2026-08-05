@@ -50,7 +50,7 @@ export function ActiveNormieSwitcher({
     }
   }, [open])
 
-  if (!isConnected || !hasWallet) {
+  if (!isConnected || !hasWallet || activeTokenId == null) {
     return (
       <div className={cn("active-normie-switcher", className)}>
         <div className="active-normie-empty" title="Connect wallet to switch Normies">
@@ -146,6 +146,14 @@ export function ActiveNormieSwitcher({
 export function ActiveNormieBadge({ className }: { className?: string }) {
   const { activeTokenId, hasWallet } = useActiveNormie()
 
+  if (!hasWallet || activeTokenId == null) {
+    return (
+      <div className={cn("active-normie-badge", className)}>
+        <span className="mono">Connect to scope Active Normie</span>
+      </div>
+    )
+  }
+
   return (
     <div className={cn("active-normie-badge", className)}>
       <span className="active-normie-pixel active-normie-pixel-sm">
@@ -157,10 +165,7 @@ export function ActiveNormieBadge({ className }: { className?: string }) {
           height={20}
         />
       </span>
-      <span className="mono">
-        Active · #{activeTokenId}
-        {!hasWallet ? " · demo" : ""}
-      </span>
+      <span className="mono">Active · #{activeTokenId}</span>
     </div>
   )
 }

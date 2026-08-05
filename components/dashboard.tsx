@@ -36,7 +36,7 @@ import {
   PulseAccordion,
   PulseAccordionItem,
 } from "@/components/pulse-accordion"
-import { ERC8004 } from "@/constants/contracts"
+import { ERC8004, ZULO } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { getCurrentSignals, validateSignals } from "@/lib/signals"
 
@@ -45,10 +45,12 @@ export function Dashboard() {
   const { signMessageAsync } = useSignMessage()
   const { requireWallet, promptConnect } = useWalletGate()
   const {
-    activeTokenId: tokenId,
+    activeTokenId,
     setActiveTokenId,
     controlledNormies: myNormies,
   } = useActiveNormie()
+  /** Dashboard showcase: Active Normie when connected, else Zulo identity piece. */
+  const tokenId = activeTokenId ?? ZULO.tokenId
 
   const [myInput, setMyInput] = useState<string>("")
 

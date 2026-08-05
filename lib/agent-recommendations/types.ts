@@ -1,6 +1,48 @@
 // lib/agent-recommendations/types.ts
 // Standalone Zulo agent recommendations plugin types.
 
+/** How this Ask turn resolves the decision subject (not Zulo's voice). */
+export type SubjectScopeMode = "general" | "active_normie" | "mentioned_ids"
+
+export interface SubjectScope {
+  mode: SubjectScopeMode
+  /** True when a wallet address was supplied with the request. */
+  walletConnected: boolean
+  /** Active Normie from client when connected; null when disconnected / not sent. */
+  activeNormieId: number | null
+  /** Token IDs parsed from the user message this turn (capped). */
+  mentionedTokenIds: number[]
+  /**
+   * When true, context.normie is Zulo's identity piece (#7141) for speaker grounding only —
+   * NOT the visitor's Active Normie or ownership claim.
+   */
+  normieIsSpeakerIdentityOnly: boolean
+  /** User owns the focus token (wallet matches on-chain owner). */
+  userOwnsFocus: boolean
+}
+
+/** Live snapshot for a token ID named in the prompt (or focus subject). */
+export interface MentionedNormieSnapshot {
+  tokenId: number
+  fetchOk: boolean
+  fetchError?: string
+  name?: string
+  traits: Record<string, string | number>
+  pixelCount?: number
+  level?: number
+  actionPoints?: number
+  customized?: boolean
+  rarityRank?: number | null
+  rarityScore?: number | null
+  openseaUrl?: string
+  rarityUrl?: string
+  burnApEstimate?: {
+    minAp: number
+    maxAp: number
+    tierLabel: string
+  }
+}
+
 export interface ZuloRecommendationContext {
   user: {
     ens?: string
@@ -86,6 +128,15 @@ export interface ZuloRecommendationContext {
     rarityScore?: number | null
     fairValue?: number | string | null
     resources?: string[]
+    /**
+     * Who/what this turn is about — never confuse Zulo #7141 identity with the visitor's subject.
+     */
+    subjectScope?: SubjectScope
+    /**
+     * Live snapshots for token IDs named in the user message (and/or active focus).
+     * Prefer these numbers over linking out to rarity.normies.art alone.
+     */
+    mentionedNormies?: MentionedNormieSnapshot[]
     /** Normies Cred Pulse (ERC-8257 Tool #53) for the focus Normie */
     pulse?: CredHubPulseData
     pulseSummary?: string

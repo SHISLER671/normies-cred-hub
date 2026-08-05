@@ -21,8 +21,12 @@ import {
 import type { OwnedNormie } from "@/lib/types"
 
 type ActiveNormieContextValue = {
-  /** Currently selected Normie token ID (always defined; defaults to featured Zulo). */
-  activeTokenId: number
+  /**
+   * Selected Normie for the connected wallet.
+   * null when disconnected — never fake #7141 as the visitor's Active Normie.
+   * When connected with no holdings, falls back to featured Zulo (#7141) for showcase.
+   */
+  activeTokenId: number | null
   setActiveTokenId: (tokenId: number) => void
   /** Controlled + delegated Normies for the connected wallet. */
   controlledNormies: OwnedNormie[]
@@ -45,13 +49,15 @@ export function ActiveNormieProvider({ children }: { children: ReactNode }) {
     isError,
   } = useMyNormies(isConnected ? address : undefined)
 
-  const [activeTokenId, setActiveTokenIdState] = useState<number>(ZULO.tokenId)
+  /** Internal selection while connected; ignored for exposed value when disconnected. */
+  const [selectedTokenId, setSelectedTokenId] = useState<number>(ZULO.tokenId)
   const restoredWalletRef = useRef<string | null>(null)
+  const hasWallet = Boolean(isConnected && address)
 
   const setActiveTokenId = useCallback(
     (tokenId: number) => {
       if (!Number.isFinite(tokenId) || tokenId < 0 || tokenId > 9999) return
-      setActiveTokenIdState(tokenId)
+      setSelectedTokenId(tokenId)
       if (address) {
         setLastSelectedNormie(address, tokenId)
       }
@@ -70,43 +76,53 @@ export function ActiveNormieProvider({ children }: { children: ReactNode }) {
     if (restoredWalletRef.current !== walletKey) {
       restoredWalletRef.current = walletKey
       if (saved !== null && ownedIds.has(saved)) {
-        setActiveTokenIdState(saved)
+        setSelectedTokenId(saved)
         return
       }
       if (controlledNormies.length > 0) {
-        setActiveTokenIdState(controlledNormies[0].tokenId)
+        setSelectedTokenId(controlledNormies[0].tokenId)
         setLastSelectedNormie(address, controlledNormies[0].tokenId)
         return
       }
-      // No controlled Normies — keep featured demo id
-      setActiveTokenIdState(ZULO.tokenId)
+      // No controlled Normies — featured demo id for connected showcase only
+      setSelectedTokenId(ZULO.tokenId)
       return
     }
 
     // After restore: if current active is no longer controlled but user has others, keep selection
     // unless list is empty (fall back to featured)
     if (controlledNormies.length === 0) return
-    if (!ownedIds.has(activeTokenId) && saved !== null && ownedIds.has(saved)) {
-      setActiveTokenIdState(saved)
+    if (
+      !ownedIds.has(selectedTokenId) &&
+      saved !== null &&
+      ownedIds.has(saved)
+    ) {
+      setSelectedTokenId(saved)
     }
   }, [
     isConnected,
     address,
     isLoading,
     controlledNormies,
-    activeTokenId,
+    selectedTokenId,
   ])
 
   useEffect(() => {
     if (!address) {
       restoredWalletRef.current = null
-      setActiveTokenIdState(ZULO.tokenId)
+      // Clear internal selection on disconnect so reconnect re-restores cleanly
+      setSelectedTokenId(ZULO.tokenId)
     }
   }, [address])
 
+  // Disconnected: no active user subject (null). Connected: selection or featured.
+  const activeTokenId = hasWallet ? selectedTokenId : null
+
   const activeNormie = useMemo(
     () =>
-      controlledNormies.find((n) => n.tokenId === activeTokenId) ?? null,
+      activeTokenId != null
+        ? controlledNormies.find((n) => n.tokenId === activeTokenId) ?? null
+        : null,
     [controlledNormies, activeTokenId],
   )
 
@@ -117,7 +133,7 @@ export function ActiveNormieProvider({ children }: { children: ReactNode }) {
       controlledNormies,
       isLoading: isConnected ? isLoading : false,
       isError: Boolean(isError),
-      hasWallet: Boolean(isConnected && address),
+      hasWallet,
       activeNormie,
     }),
     [
@@ -127,7 +143,7 @@ export function ActiveNormieProvider({ children }: { children: ReactNode }) {
       isConnected,
       isLoading,
       isError,
-      address,
+      hasWallet,
       activeNormie,
     ],
   )
@@ -142,9 +158,9 @@ export function ActiveNormieProvider({ children }: { children: ReactNode }) {
 export function useActiveNormie(): ActiveNormieContextValue {
   const ctx = useContext(ActiveNormieContext)
   if (!ctx) {
-    // Safe fallback if used outside provider (e.g. tests)
+    // Safe fallback if used outside provider (e.g. tests) — disconnected posture
     return {
-      activeTokenId: ZULO.tokenId,
+      activeTokenId: null,
       setActiveTokenId: () => {},
       controlledNormies: [],
       isLoading: false,

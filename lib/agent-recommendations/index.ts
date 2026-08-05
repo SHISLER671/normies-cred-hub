@@ -149,6 +149,8 @@ export {
   ZULO_SERVICE_PRICES,
 } from "./constants"
 
+export { parseNormieTokenIdsFromText } from "./parseTokenIds"
+
 export {
   loadZuloPersona,
   loadPixelEconomyKnowledge,

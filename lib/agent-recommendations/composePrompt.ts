@@ -192,10 +192,21 @@ STRATEGY RESPONSE RULES:
 - Burns permanent — never pressure burning purist/premium pieces without explicit user intent
 - Do NOT invent token IDs, tx hashes, census counts, or floors not in context
 
+=== SUBJECT SCOPE RULES (critical — who advice is about) ===
+- Voice is always Zulo (Agent #${ZULO_IDENTITY.agentId}, Normie #${ZULO_IDENTITY.tokenId}) — first person identity is yours, not the visitor's.
+- You may say "I hold #${ZULO_IDENTITY.tokenId} untouched" as YOUR posture — never as the visitor's default Active Normie.
+- platformContext.subjectScope.mode:
+  - "general": no Active Normie scoped, no token IDs in the message. Give general Normies guidance. If burn/hold needs specifics, ASK which token IDs. Do NOT analyze #${ZULO_IDENTITY.tokenId} as "your Normie".
+  - "mentioned_ids": user named token ID(s). Analyze those IDs using platformContext.mentionedNormies (pixels, traits, AP, rank). Dual-eval applies. Do not invent data if fetchOk is false — say fetch failed and link rarity/OpenSea.
+  - "active_normie": wallet connected with Active Normie. Prefer that token when user says "my Normie" / no ID. If they name other IDs, analyze those too (mentionedNormies).
+- NEVER imply the visitor owns #${ZULO_IDENTITY.tokenId} unless subjectScope.userOwnsFocus is true for that token OR holdings include it.
+- When normieIsSpeakerIdentityOnly is true, context.normie is speaker grounding only — not the decision subject.
+- Prefer live numbers from mentionedNormies / focus canvas over "go look up rarity.normies.art" alone.
+
 === GROUNDING RULES ===
-- Prefer facts in Current Context for live numbers (pulse, rank, score, canvas, pixelCount, AP, holdings, strategy)
+- Prefer facts in Current Context for live numbers (pulse, rank, score, canvas, pixelCount, AP, holdings, strategy, mentionedNormies)
 - If missing or uncertain, say so clearly
-- Tailor to traits, canvas, rarity, pulse gaps, strategy, and goals
+- Tailor to traits, canvas, rarity, pulse gaps, strategy, and goals when a subject exists
 - Reference tools/URLs when relevant
 - Never ask for private keys, seed phrases, signatures, or approvals
 
@@ -443,20 +454,79 @@ ${ERC6551}
         .join("\n")
     : "- ERC-6551 doctrine loaded via system (optional account plane; disabled by default)"
 
+  const scope = context.platformContext?.subjectScope
+  const mentioned = context.platformContext?.mentionedNormies ?? []
+  const subjectScopeBlock = scope
+    ? [
+        `mode: ${scope.mode}`,
+        `walletConnected: ${scope.walletConnected}`,
+        `activeNormieId: ${scope.activeNormieId ?? "none"}`,
+        `mentionedTokenIds: ${scope.mentionedTokenIds.length ? scope.mentionedTokenIds.map((id) => `#${id}`).join(", ") : "none"}`,
+        `normieIsSpeakerIdentityOnly: ${scope.normieIsSpeakerIdentityOnly}`,
+        `userOwnsFocus: ${scope.userOwnsFocus}`,
+        scope.mode === "general"
+          ? "INSTRUCTION: General guidance — do not treat #7141 as the visitor's Normie."
+          : scope.mode === "mentioned_ids"
+            ? "INSTRUCTION: Analyze named token IDs from mentionedNormies with dual-eval."
+            : "INSTRUCTION: Prefer Active Normie for 'my Normie'; include other named IDs too.",
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- subjectScope unavailable"
+
+  const mentionedBlock =
+    mentioned.length > 0
+      ? mentioned
+          .map((m) => {
+            if (!m.fetchOk) {
+              return `- #${m.tokenId}: FETCH FAILED (${m.fetchError ?? "unknown"}) — link ${m.rarityUrl ?? ECOSYSTEM_LINKS.rarity} / OpenSea; do not invent stats`
+            }
+            const traits = Object.entries(m.traits)
+              .slice(0, 8)
+              .map(([k, v]) => `${k}=${v}`)
+              .join(", ")
+            return `- #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.rarityScore != null ? ` · score ${m.rarityScore}` : ""}${m.burnApEstimate ? ` · burn ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traits ? ` · ${traits}` : ""}`
+          })
+          .join("\n")
+      : "- (no token IDs fetched this turn)"
+
+  const subjectHeadline =
+    scope?.mode === "general" || scope?.normieIsSpeakerIdentityOnly
+      ? `Decision subject: none (general) — Normie #${context.normie.id} is Zulo speaker identity only`
+      : `Decision subject: Normie #${context.normie.id}${context.normie.name ? ` (${context.normie.name})` : ""}${scope?.userOwnsFocus ? " · user owns focus" : ""}`
+
   return `${SYSTEM_PROMPT}
 ${fullProtocolsSection}${erc6551Section}
 === CURRENT CONTEXT (highlights) ===
-User: ${context.user.ens || context.user.walletAddress || "Anonymous"}
-Normie #${context.normie.id}: ${context.normie.name || ""}
-Canvas: ${
-    canvas
-      ? `${canvas.customized ? "Modified" : "Untouched"}, level ${canvas.level}, ${canvas.actionPoints} AP, ${pixelLine}`
-      : "unknown"
+User: ${context.user.ens || context.user.walletAddress || "Anonymous (disconnected OK)"}
+${subjectHeadline}
+Canvas (focus only if not speaker-identity-only): ${
+    scope?.normieIsSpeakerIdentityOnly
+      ? "n/a — no user subject this turn"
+      : canvas
+        ? `${canvas.customized ? "Modified" : "Untouched"}, level ${canvas.level}, ${canvas.actionPoints} AP, ${pixelLine}`
+        : "unknown"
   }
-Rarity rank: ${context.platformContext?.rarityRank ?? "unknown"}
-PULSE: ${pulseLine}
-PULSE gaps: ${pulse?.gaps?.length ? pulse.gaps.join("; ") : "n/a"}
-Zulo Canvas AP (#${ZULO_IDENTITY.tokenId}): ${zuloAp} AP
+Rarity rank (focus): ${
+    scope?.normieIsSpeakerIdentityOnly
+      ? "n/a"
+      : (context.platformContext?.rarityRank ?? "unknown")
+  }
+PULSE: ${scope?.normieIsSpeakerIdentityOnly ? "n/a (no user subject)" : pulseLine}
+PULSE gaps: ${
+    scope?.normieIsSpeakerIdentityOnly
+      ? "n/a"
+      : pulse?.gaps?.length
+        ? pulse.gaps.join("; ")
+        : "n/a"
+  }
+Zulo Canvas AP (#${ZULO_IDENTITY.tokenId} — Zulo's piece): ${zuloAp} AP
+
+=== SUBJECT SCOPE ===
+${subjectScopeBlock}
+
+=== MENTIONED / FETCHED NORMIES (use these numbers in dual-eval) ===
+${mentionedBlock}
 
 === FLOOR SNAPSHOT (live + Supabase history — lead burn/market answers with this) ===
 ${floorSnapshotBlock}

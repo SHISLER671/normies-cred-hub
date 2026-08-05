@@ -48,15 +48,18 @@ function formatZuloReplyForHistory(response: ZuloResponse): string {
 }
 
 export function ZuloExperience({
-  defaultTokenId = ZULO_IDENTITY.tokenId,
+  defaultTokenId: _defaultTokenId = ZULO_IDENTITY.tokenId,
 }: {
+  /** @deprecated Showcase default only — Ask no longer injects this as user subject when disconnected. */
   defaultTokenId?: number
 }) {
   const { address } = useAccount()
   const { data: ensName } = useEnsName(address)
-  const { activeTokenId } = useActiveNormie()
+  const { activeTokenId, hasWallet } = useActiveNormie()
 
-  const tokenId = activeTokenId ?? defaultTokenId
+  /** Only scope Ask to Active Normie when wallet is connected. */
+  const scopedTokenId =
+    hasWallet && activeTokenId != null ? activeTokenId : undefined
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -102,7 +105,7 @@ export function ZuloExperience({
         id: "welcome",
         role: "zulo",
         content:
-          "I am Zulo. Ask about burns, Canvas, PULSE, or the active Normie. What are we deciding?",
+          "I am Zulo. Ask about burns, Canvas, PULSE, or any Normie by token ID — free, no wallet required. Connect to scope advice to your Active Normie. What are we deciding?",
       },
     ])
   }, [])
@@ -151,7 +154,8 @@ export function ZuloExperience({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userQuery,
-          normieId: tokenId,
+          // Only pass Active Normie when wallet is connected — never fake #7141 as visitor subject
+          ...(scopedTokenId != null ? { normieId: scopedTokenId } : {}),
           sessionHistory,
           userWallet: address,
           userEns: ensName || undefined,
@@ -244,9 +248,18 @@ export function ZuloExperience({
       </div>
 
       <p className="ask-context-line" data-reveal>
-        High-signal help for the active Normie · scoped to on-chain PULSE &amp;
-        Canvas — not generic chat
-        <span className="ask-context-id mono"> · #{tokenId}</span>
+        {scopedTokenId != null ? (
+          <>
+            High-signal help · scoped to active Normie · on-chain PULSE &amp;
+            Canvas — not generic chat
+            <span className="ask-context-id mono"> · #{scopedTokenId}</span>
+          </>
+        ) : (
+          <>
+            High-signal help · on-chain Normies data — not generic chat · connect
+            wallet to scope to your Normie
+          </>
+        )}
       </p>
 
       <main className="ask-main">

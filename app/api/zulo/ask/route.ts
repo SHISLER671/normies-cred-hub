@@ -6,7 +6,6 @@ import { isAddress } from "viem"
 import {
   getZuloRecommendation,
   MAX_SESSION_HISTORY,
-  ZULO_IDENTITY,
   type ZuloResponse,
 } from "@/lib/agent-recommendations"
 import { MAX_USER_QUERY_CHARS } from "@/lib/agent-recommendations/constants"
@@ -115,9 +114,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(pay.body, { status: pay.status })
     }
 
+    // Do not default to Zulo #7141 as the user's subject — only scope when client
+    // (connected Active Normie) or explicit normieId is provided. Mentioned IDs
+    // in the query are parsed server-side in buildContext.
     const result: ZuloResponse = await getZuloRecommendation({
       userQuery,
-      normieId: normieId ?? ZULO_IDENTITY.tokenId,
+      normieId,
       sessionHistory,
       userWallet,
       userEns,

@@ -23,9 +23,15 @@ import {
 } from "./loadKnowledge"
 import { getPixelCurrencyContextSummary } from "@/lib/knowledge/pixel-currency"
 import { estimateBurnApFromPixels, levelFromActionPoints } from "./normiesKnowledge"
+import { parseNormieTokenIdsFromText } from "./parseTokenIds"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
-import type { CredHubPulseData, ZuloRecommendationContext } from "./types"
+import type {
+  CredHubPulseData,
+  MentionedNormieSnapshot,
+  SubjectScope,
+  ZuloRecommendationContext,
+} from "./types"
 
 type BuildContextParams = {
   normieId?: number
@@ -112,6 +118,154 @@ type RarityPayload = {
     frequency?: number
   }>
   attributes?: Array<{ trait_type?: string; value?: string | number }>
+}
+
+/** Full NFT metadata from /normie/:id/metadata (includes Pixel Count, Level, AP). */
+type MetadataPayload = {
+  name?: string
+  attributes?: Array<{
+    trait_type?: string
+    value?: string | number
+    display_type?: string
+  }>
+}
+
+function attrNumber(
+  attrs: MetadataPayload["attributes"] | undefined,
+  name: string,
+): number | undefined {
+  if (!attrs) return undefined
+  for (const a of attrs) {
+    if (a.trait_type !== name) continue
+    const n = typeof a.value === "number" ? a.value : Number(a.value)
+    if (Number.isFinite(n)) return n
+  }
+  return undefined
+}
+
+function attrString(
+  attrs: MetadataPayload["attributes"] | undefined,
+  name: string,
+): string | undefined {
+  if (!attrs) return undefined
+  for (const a of attrs) {
+    if (a.trait_type !== name) continue
+    if (a.value === undefined || a.value === null) return undefined
+    return String(a.value)
+  }
+  return undefined
+}
+
+/** Fetch metadata + traits + rarity for one mentioned token (for dual-eval grounding). */
+async function fetchMentionedNormieSnapshot(
+  tokenId: number,
+): Promise<MentionedNormieSnapshot> {
+  const rarityUrl = `${ECOSYSTEM_LINKS.rarity}normie/${tokenId}`
+  const openseaFallback = `${ECOSYSTEM_LINKS.opensea}/${tokenId}`
+
+  try {
+    const [metadata, traits, rarityData] = await Promise.all([
+      normiesPath<MetadataPayload>(`/normie/${tokenId}/metadata`, 8_000),
+      normiesPath<TraitsPayload>(`/normie/${tokenId}/traits`, 8_000),
+      fetchJsonSafe<RarityPayload>(
+        `${ECOSYSTEM_LINKS.rarityApi}/normie/${tokenId}`,
+        8_000,
+      ),
+    ])
+
+    if (!metadata && !traits && !rarityData) {
+      return {
+        tokenId,
+        fetchOk: false,
+        fetchError: "Normies/rarity APIs returned no data",
+        traits: {},
+        rarityUrl,
+        openseaUrl: openseaFallback,
+      }
+    }
+
+    const traitRecord = {
+      ...traitsToRecord(traits),
+    }
+    // Fill from metadata attributes when traits empty
+    if (Object.keys(traitRecord).length === 0 && metadata?.attributes) {
+      for (const attr of metadata.attributes) {
+        if (!attr.trait_type || attr.value === undefined || attr.value === null)
+          continue
+        // Skip canvas numeric attrs from trait map (stored separately)
+        if (
+          attr.trait_type === "Level" ||
+          attr.trait_type === "Pixel Count" ||
+          attr.trait_type === "Action Points" ||
+          attr.trait_type === "Customized"
+        ) {
+          continue
+        }
+        traitRecord[attr.trait_type] = attr.value
+      }
+    }
+
+    const pixelCount =
+      attrNumber(metadata?.attributes, "Pixel Count") ??
+      attrNumber(rarityData?.attributes, "Pixel Count")
+    const level =
+      attrNumber(metadata?.attributes, "Level") ??
+      attrNumber(rarityData?.attributes, "Level")
+    const actionPoints =
+      attrNumber(metadata?.attributes, "Action Points") ??
+      attrNumber(rarityData?.attributes, "Action Points")
+    const customizedRaw =
+      attrString(metadata?.attributes, "Customized") ??
+      attrString(rarityData?.attributes, "Customized")
+    const customized =
+      customizedRaw != null
+        ? !/^(no|false|0)$/i.test(customizedRaw.trim())
+        : undefined
+
+    const rarityRank =
+      typeof rarityData?.rank === "number" && Number.isFinite(rarityData.rank)
+        ? rarityData.rank
+        : null
+    const rarityScore =
+      typeof rarityData?.rarityScore === "number" &&
+      Number.isFinite(rarityData.rarityScore)
+        ? rarityData.rarityScore
+        : null
+
+    const burnApFromPixels =
+      pixelCount != null ? estimateBurnApFromPixels(pixelCount) : undefined
+
+    return {
+      tokenId,
+      fetchOk: true,
+      name: metadata?.name || rarityData?.name || `Normie #${tokenId}`,
+      traits: traitRecord,
+      pixelCount,
+      level,
+      actionPoints,
+      customized,
+      rarityRank,
+      rarityScore,
+      openseaUrl: rarityData?.openseaUrl || openseaFallback,
+      rarityUrl,
+      burnApEstimate: burnApFromPixels
+        ? {
+            minAp: burnApFromPixels.minAp,
+            maxAp: burnApFromPixels.maxAp,
+            tierLabel: burnApFromPixels.tier.label,
+          }
+        : undefined,
+    }
+  } catch (err) {
+    return {
+      tokenId,
+      fetchOk: false,
+      fetchError: err instanceof Error ? err.message : "fetch failed",
+      traits: {},
+      rarityUrl,
+      openseaUrl: openseaFallback,
+    }
+  }
 }
 
 type OpportunityInput = {
@@ -310,15 +464,46 @@ export async function buildZuloContext(
   params: BuildContextParams,
 ): Promise<ZuloRecommendationContext> {
   const now = new Date().toISOString()
-  const tokenId =
-    typeof params.normieId === "number" && Number.isFinite(params.normieId)
-      ? params.normieId
-      : ZULO_IDENTITY.tokenId
-
   const wallet =
     params.userWallet && isAddress(params.userWallet) ? params.userWallet : ""
+  const walletConnected = !!wallet
 
-  const needZuloCanvasAp = tokenId !== ZULO_IDENTITY.tokenId
+  const mentionedTokenIds = parseNormieTokenIdsFromText(params.userQuery ?? "", 5)
+  const hasActiveSubject =
+    typeof params.normieId === "number" &&
+    Number.isFinite(params.normieId) &&
+    params.normieId >= 0 &&
+    params.normieId <= 9999
+
+  // Subject resolution:
+  // - Connected Active Normie (client sent normieId) → active_normie
+  // - IDs in message only → mentioned_ids (first = primary focus)
+  // - Neither → general (no fake user subject; #7141 is Zulo speaker identity only)
+  let subjectMode: SubjectScope["mode"]
+  let focusTokenId: number
+  let normieIsSpeakerIdentityOnly = false
+
+  if (hasActiveSubject) {
+    subjectMode = "active_normie"
+    focusTokenId = params.normieId as number
+  } else if (mentionedTokenIds.length > 0) {
+    subjectMode = "mentioned_ids"
+    focusTokenId = mentionedTokenIds[0]!
+  } else {
+    subjectMode = "general"
+    focusTokenId = ZULO_IDENTITY.tokenId
+    normieIsSpeakerIdentityOnly = true
+  }
+
+  const tokenId = focusTokenId
+  const isGeneralMode = subjectMode === "general"
+  const needZuloCanvasAp = tokenId !== ZULO_IDENTITY.tokenId || isGeneralMode
+
+  // IDs to hydrate into mentionedNormies (always include all named; also focus when not general)
+  const idsToSnapshot = new Set<number>(mentionedTokenIds)
+  if (!isGeneralMode) idsToSnapshot.add(tokenId)
+  // Cap total parallel token snapshots
+  const snapshotIds = Array.from(idsToSnapshot).slice(0, 5)
 
   const [
     agentInfo,
@@ -332,23 +517,41 @@ export async function buildZuloContext(
     pulseResult,
     zuloCanvasInfo,
     pixelCount,
+    mentionedNormies,
   ] = await Promise.all([
-    normiesPath<AgentInfoPayload>(`/agents/info/${tokenId}`),
-    normiesPath<TraitsPayload>(`/normie/${tokenId}/traits`),
-    normiesPath<CanvasInfoPayload>(`/normie/${tokenId}/canvas/info`),
-    normiesPath<OwnerPayload>(`/normie/${tokenId}/owner`),
-    normiesPath<BindingPayload>(`/agents/binding/${tokenId}`),
+    isGeneralMode
+      ? Promise.resolve(null)
+      : normiesPath<AgentInfoPayload>(`/agents/info/${tokenId}`),
+    isGeneralMode
+      ? Promise.resolve(null)
+      : normiesPath<TraitsPayload>(`/normie/${tokenId}/traits`),
+    isGeneralMode
+      ? Promise.resolve(null)
+      : normiesPath<CanvasInfoPayload>(`/normie/${tokenId}/canvas/info`),
+    isGeneralMode
+      ? Promise.resolve(null)
+      : normiesPath<OwnerPayload>(`/normie/${tokenId}/owner`),
+    isGeneralMode
+      ? Promise.resolve(null)
+      : normiesPath<BindingPayload>(`/agents/binding/${tokenId}`),
     wallet ? normiesPath<HoldersPayload>(`/holders/${wallet}`) : Promise.resolve(null),
     normiesPath<HistoryStatsPayload>(`/history/stats`),
-    fetchJsonSafe<RarityPayload>(
-      `${ECOSYSTEM_LINKS.rarityApi}/normie/${tokenId}`,
-      8_000,
-    ),
-    getAgentPulse(tokenId).catch(() => null),
+    isGeneralMode
+      ? Promise.resolve(null)
+      : fetchJsonSafe<RarityPayload>(
+          `${ECOSYSTEM_LINKS.rarityApi}/normie/${tokenId}`,
+          8_000,
+        ),
+    isGeneralMode
+      ? Promise.resolve(null)
+      : getAgentPulse(tokenId).catch(() => null),
     needZuloCanvasAp
       ? normiesPath<CanvasInfoPayload>(`/normie/${ZULO_IDENTITY.tokenId}/canvas/info`)
       : Promise.resolve(null),
-    fetchPixelCount(tokenId),
+    isGeneralMode ? Promise.resolve(undefined) : fetchPixelCount(tokenId),
+    snapshotIds.length > 0
+      ? Promise.all(snapshotIds.map((id) => fetchMentionedNormieSnapshot(id)))
+      : Promise.resolve([] as MentionedNormieSnapshot[]),
   ])
 
   let pulse: CredHubPulseData | undefined
@@ -402,16 +605,29 @@ export async function buildZuloContext(
   const canvasCustomized = canvasInfo?.customized ?? agentInfo?.canvas?.customized
 
   const holdingIds = parseTokenIds(holders?.tokenIds)
-  const isZuloDefault = tokenId === ZULO_IDENTITY.tokenId
+  /** True when focus token is Zulo's piece — but only treat as *user* subject when not speaker-only. */
+  const isZuloIdentityPiece = tokenId === ZULO_IDENTITY.tokenId
+  const isZuloUserSubject = isZuloIdentityPiece && !normieIsSpeakerIdentityOnly
+
+  // Prefer pixel count from live pixels endpoint; fall back to metadata snapshot
+  const focusMention = mentionedNormies.find((m) => m.tokenId === tokenId)
+  const resolvedPixelCount =
+    pixelCount ??
+    (focusMention?.fetchOk ? focusMention.pixelCount : undefined)
+
+  // Merge traits from mentioned snapshot when primary traits empty (e.g. race)
+  if (Object.keys(traitRecord).length === 0 && focusMention?.fetchOk) {
+    Object.assign(traitRecord, focusMention.traits)
+  }
 
   const rarityRank =
     typeof rarityData?.rank === "number" && Number.isFinite(rarityData.rank)
       ? rarityData.rank
-      : null
+      : focusMention?.rarityRank ?? null
   const rarityScore =
     typeof rarityData?.rarityScore === "number" && Number.isFinite(rarityData.rarityScore)
       ? rarityData.rarityScore
-      : null
+      : focusMention?.rarityScore ?? null
 
   const traitHighlights =
     rarityData?.traitBreakdown
@@ -423,22 +639,38 @@ export async function buildZuloContext(
         frequency: typeof t.frequency === "number" ? t.frequency : undefined,
       })) ?? []
 
-  const customized = !!canvasCustomized
-  const actionPoints = canvasAp ?? 0
+  const customized =
+    canvasCustomized != null
+      ? !!canvasCustomized
+      : focusMention?.customized != null
+        ? !!focusMention.customized
+        : false
+  const actionPoints =
+    canvasAp ??
+    focusMention?.actionPoints ??
+    0
   const derivedLevel =
-    canvasLevel !== undefined ? canvasLevel : levelFromActionPoints(actionPoints)
+    canvasLevel !== undefined
+      ? canvasLevel
+      : focusMention?.level !== undefined
+        ? focusMention.level
+        : levelFromActionPoints(actionPoints)
   const burnApFromPixels =
-    pixelCount != null ? estimateBurnApFromPixels(pixelCount) : undefined
+    resolvedPixelCount != null
+      ? estimateBurnApFromPixels(resolvedPixelCount)
+      : undefined
 
-  const zuloCanvasAPBalance = isZuloDefault
-    ? actionPoints
-    : typeof zuloCanvasInfo?.actionPoints === "number"
+  // Zulo Canvas AP is always #7141 — not the visitor's focus token
+  const zuloCanvasAPBalance =
+    typeof zuloCanvasInfo?.actionPoints === "number"
       ? zuloCanvasInfo.actionPoints
-      : 0
+      : isZuloUserSubject
+        ? actionPoints
+        : 0
 
-  // Enrich a capped set of holdings for burn/keep strategy
+  // Enrich a capped set of holdings for burn/keep strategy (wallet connected only)
   const ownedSnapshots: OwnedNormieSnapshot[] = []
-  const idsToEnrich = holdingIds.slice(0, 10)
+  const idsToEnrich = isGeneralMode ? [] : holdingIds.slice(0, 10)
   if (idsToEnrich.length > 0) {
     const enriched = await Promise.all(
       idsToEnrich.map(async (id) => {
@@ -475,8 +707,11 @@ export async function buildZuloContext(
     ownedSnapshots.push(...enriched)
   }
 
-  // Always include focus token in owned set for single-hold analysis
-  if (!ownedSnapshots.some((o) => o.tokenId === tokenId)) {
+  // Include focus token in owned set for single-hold analysis (not in general/speaker-only mode)
+  if (
+    !isGeneralMode &&
+    !ownedSnapshots.some((o) => o.tokenId === tokenId)
+  ) {
     const focusCombo = analyzeTraitCombo(traitRecord)
     ownedSnapshots.push({
       tokenId,
@@ -488,39 +723,85 @@ export async function buildZuloContext(
     })
   }
 
+  // Also fold multi-mentioned snapshots into owned for dual-eval when analyzing named IDs
+  if (subjectMode === "mentioned_ids") {
+    for (const m of mentionedNormies) {
+      if (!m.fetchOk || ownedSnapshots.some((o) => o.tokenId === m.tokenId)) continue
+      const combo = analyzeTraitCombo(m.traits)
+      ownedSnapshots.push({
+        tokenId: m.tokenId,
+        type: String(m.traits.Type ?? "Unknown"),
+        rarityTier: tierFromRank(m.rarityRank),
+        rarityRank: m.rarityRank ?? 9999,
+        traits: Object.values(m.traits).map(String),
+        isPremiumCombo: combo.isPremium,
+      })
+    }
+  }
+
   const focusComboForStrategy = analyzeTraitCombo(traitRecord)
   const strategy = await buildStrategySnapshot({
-    focusType: String(traitRecord.Type ?? agentInfo?.type ?? "unknown"),
-    focusRank: rarityRank,
-    focusTraits: traitRecord,
+    focusType: String(
+      traitRecord.Type ??
+        agentInfo?.type ??
+        (isGeneralMode ? "general" : "unknown"),
+    ),
+    focusRank: isGeneralMode ? null : rarityRank,
+    focusTraits: isGeneralMode ? {} : traitRecord,
     owned: ownedSnapshots,
     userQuery: params.userQuery,
-    focusActionPoints: actionPoints,
-    focusTokenId: tokenId,
+    focusActionPoints: isGeneralMode ? 0 : actionPoints,
+    focusTokenId: isGeneralMode ? ZULO_IDENTITY.tokenId : tokenId,
     isHolder: ownerMatchesUser || (wallet ? holdingIds.length > 0 : false),
-    isAwakened: isAwakened || isZuloDefault,
-    isPremiumFocus: focusComboForStrategy.isPremium,
+    isAwakened: isGeneralMode
+      ? true
+      : isAwakened || isZuloUserSubject,
+    isPremiumFocus: isGeneralMode ? false : focusComboForStrategy.isPremium,
   })
 
-  const earningOpportunities = generateOpportunities({
-    tokenId,
-    traits: traitRecord,
-    customized,
-    actionPoints,
-    isAwakened: isAwakened || isZuloDefault,
-    agentType: agentInfo?.type,
-    rarityRank,
-    rarityScore,
-    holdingsCount: wallet ? holdingIds.length : undefined,
-    pulse: pulse ?? null,
-  })
+  const earningOpportunities = isGeneralMode
+    ? [
+        "General mode: no Active Normie scoped — answer collection-level questions; ask for token IDs when burn/hold needs specifics.",
+        `Zulo identity: I hold #${ZULO_IDENTITY.tokenId} untouched (speaker posture — not the visitor's token unless they name it or connect).`,
+        `Community tools: Multisend (${ECOSYSTEM_LINKS.multisend}), Normifier (${ECOSYSTEM_LINKS.normifier}), API (${ECOSYSTEM_LINKS.api}).`,
+        `PULSE tool: ${ECOSYSTEM_LINKS.credHubPulseTool}`,
+      ]
+    : generateOpportunities({
+        tokenId,
+        traits: traitRecord,
+        customized,
+        actionPoints,
+        isAwakened: isAwakened || isZuloUserSubject,
+        agentType: agentInfo?.type,
+        rarityRank,
+        rarityScore,
+        holdingsCount: wallet ? holdingIds.length : undefined,
+        pulse: pulse ?? null,
+      })
+
+  // Surface multi-token snapshots in opportunities when user named IDs
+  for (const m of mentionedNormies) {
+    if (!m.fetchOk) {
+      earningOpportunities.unshift(
+        `Token #${m.tokenId}: live fetch failed (${m.fetchError ?? "unknown"}) — check ${m.rarityUrl ?? ECOSYSTEM_LINKS.rarity} or OpenSea; do not invent pixels/traits.`,
+      )
+      continue
+    }
+    const traitBits = Object.entries(m.traits)
+      .slice(0, 6)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(", ")
+    earningOpportunities.unshift(
+      `Token #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.burnApEstimate ? ` · burn band ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traitBits ? ` · traits: ${traitBits}` : ""}`,
+    )
+  }
 
   if (strategy.traitAdvice?.isPremium) {
     earningOpportunities.unshift(`Strategy: ${strategy.traitAdvice.advice}`)
   }
-  if (burnApFromPixels && pixelCount != null) {
+  if (burnApFromPixels && resolvedPixelCount != null && !isGeneralMode) {
     earningOpportunities.unshift(
-      `Pixel-tier burn estimate: ${pixelCount} on-pixels (tier ${burnApFromPixels.tier.label}, ${burnApFromPixels.tier.minPct}–${burnApFromPixels.tier.maxPct}%) → theoretical ${burnApFromPixels.minAp}–${burnApFromPixels.maxAp} AP before reveal RNG`,
+      `Pixel-tier burn estimate (focus #${tokenId}): ${resolvedPixelCount} on-pixels (tier ${burnApFromPixels.tier.label}, ${burnApFromPixels.tier.minPct}–${burnApFromPixels.tier.maxPct}%) → theoretical ${burnApFromPixels.minAp}–${burnApFromPixels.maxAp} AP before reveal RNG`,
     )
   }
   if (strategy.apEstimateForFocus) {
@@ -603,6 +884,18 @@ export async function buildZuloContext(
   const protocolsDeepDive = getProtocolsDeepDiveContextSummary()
   const erc6551 = getErc6551ContextSummary()
 
+  const subjectScope: SubjectScope = {
+    mode: subjectMode,
+    walletConnected,
+    activeNormieId: hasActiveSubject ? (params.normieId as number) : null,
+    mentionedTokenIds,
+    normieIsSpeakerIdentityOnly,
+    userOwnsFocus: ownerMatchesUser,
+  }
+
+  // General mode: context.normie is Zulo speaker identity only (not visitor subject)
+  const speakerOnly = normieIsSpeakerIdentityOnly
+
   const context: ZuloRecommendationContext = {
     user: {
       ens: params.userEns?.trim() || undefined,
@@ -621,22 +914,28 @@ export async function buildZuloContext(
     },
     normie: {
       id: tokenId,
-      name:
-        rarityData?.name ||
-        agentInfo?.name ||
-        agentInfo?.traits?.name ||
-        (isZuloDefault ? `Normie #${ZULO_IDENTITY.tokenId}` : `Normie #${tokenId}`),
-      traits: traitRecord,
-      owner: ownerAddress,
-      ownerMatchesUser,
-      canvas:
-        canvasLevel !== undefined || canvasAp !== undefined || pixelCount != null
+      name: speakerOnly
+        ? `Zulo · Normie #${ZULO_IDENTITY.tokenId} (speaker identity — not visitor subject)`
+        : rarityData?.name ||
+          agentInfo?.name ||
+          agentInfo?.traits?.name ||
+          focusMention?.name ||
+          `Normie #${tokenId}`,
+      traits: speakerOnly ? {} : traitRecord,
+      owner: speakerOnly ? undefined : ownerAddress,
+      ownerMatchesUser: speakerOnly ? false : ownerMatchesUser,
+      canvas: speakerOnly
+        ? undefined
+        : canvasLevel !== undefined ||
+            canvasAp !== undefined ||
+            resolvedPixelCount != null ||
+            focusMention?.fetchOk
           ? {
               level: derivedLevel,
               actionPoints: actionPoints,
               customized,
               delegate: canvasInfo?.delegate,
-              pixelCount,
+              pixelCount: resolvedPixelCount,
               burnApEstimate: burnApFromPixels
                 ? {
                     minAp: burnApFromPixels.minAp,
@@ -647,41 +946,38 @@ export async function buildZuloContext(
                   }
                 : undefined,
             }
-          : isZuloDefault
-            ? {
-                level: 1,
-                actionPoints: 0,
-                customized: false,
-                pixelCount,
-                burnApEstimate: burnApFromPixels
-                  ? {
-                      minAp: burnApFromPixels.minAp,
-                      maxAp: burnApFromPixels.maxAp,
-                      tierLabel: burnApFromPixels.tier.label,
-                      minPct: burnApFromPixels.tier.minPct,
-                      maxPct: burnApFromPixels.tier.maxPct,
-                    }
-                  : undefined,
-              }
-            : undefined,
-      rarity: {
-        rank: rarityRank,
-        score: rarityScore,
-        fairValue: rarityData?.fairValue ?? null,
-        awake: rarityData?.awake,
-        openseaUrl: rarityData?.openseaUrl,
-        traitHighlights: traitHighlights.length ? traitHighlights : undefined,
-      },
+          : undefined,
+      rarity: speakerOnly
+        ? undefined
+        : {
+            rank: rarityRank,
+            score: rarityScore,
+            fairValue: rarityData?.fairValue ?? null,
+            awake: rarityData?.awake,
+            openseaUrl:
+              rarityData?.openseaUrl || focusMention?.openseaUrl,
+            traitHighlights: traitHighlights.length
+              ? traitHighlights
+              : undefined,
+          },
       agent: {
-        id: Number.isFinite(agentIdNum) && agentIdNum > 0 ? agentIdNum : ZULO_IDENTITY.agentId,
+        id:
+          Number.isFinite(agentIdNum) && agentIdNum > 0
+            ? agentIdNum
+            : ZULO_IDENTITY.agentId,
         name:
           agentInfo?.name ||
           rarityData?.agentName ||
-          (isZuloDefault ? ZULO_IDENTITY.name : `Agent for #${tokenId}`),
-        status: isAwakened || isZuloDefault ? "awakened" : "dormant",
-        reputation: isZuloDefault ? 75 : undefined,
-        walletAddress: isZuloDefault ? ZULO_IDENTITY.hotWallet : undefined,
-        ens: isZuloDefault ? ZULO_IDENTITY.ens : undefined,
+          (isZuloIdentityPiece ? ZULO_IDENTITY.name : `Agent for #${tokenId}`),
+        status:
+          speakerOnly || isAwakened || isZuloIdentityPiece
+            ? "awakened"
+            : "dormant",
+        reputation: isZuloIdentityPiece ? 75 : undefined,
+        walletAddress: isZuloIdentityPiece
+          ? ZULO_IDENTITY.hotWallet
+          : undefined,
+        ens: isZuloIdentityPiece ? ZULO_IDENTITY.ens : undefined,
         type: agentInfo?.type,
         tagline: agentInfo?.tagline,
         backstory: agentInfo?.backstory,
@@ -692,10 +988,14 @@ export async function buildZuloContext(
     },
     session: {
       history: mapSessionHistory(params.sessionHistory),
-      currentGoal: "maximize agent and Normie value",
+      currentGoal: isGeneralMode
+        ? "general Normies guidance"
+        : "maximize agent and Normie value",
     },
     platformContext: {
       currentTime: now,
+      subjectScope,
+      mentionedNormies,
       recentMarketTrends: buildMarketTrends(historyStats),
       earningOpportunities,
       rarityRank,
