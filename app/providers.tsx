@@ -19,17 +19,18 @@ function RainbowThemeProvider({ children }: { children: React.ReactNode }) {
     setMounted(true)
   }, [])
 
+  // Monochrome wallet chrome — matches CredHub invert palette (no accent invent)
   const rainbowTheme = mounted && resolvedTheme === 'dark'
     ? darkTheme({
-        accentColor: '#c084fc', // refined electric purple for night
-        accentColorForeground: '#111110',
-        borderRadius: 'medium',
+        accentColor: '#e5e5e5',
+        accentColorForeground: '#0d0d0d',
+        borderRadius: 'none',
         overlayBlur: 'small',
       })
     : lightTheme({
-        accentColor: '#7c3aed', // more refined purple for light
-        accentColorForeground: '#ffffff',
-        borderRadius: 'medium',
+        accentColor: '#1a1a1a',
+        accentColorForeground: '#e5e5e5',
+        borderRadius: 'none',
         overlayBlur: 'small',
       })
 
@@ -61,6 +62,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           attribute="class"
           defaultTheme="system"
           enableSystem
+          storageKey="credhub-theme"
           disableTransitionOnChange
         >
           <RainbowThemeProvider>

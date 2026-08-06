@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { ActiveNormieSwitcher } from "@/components/active-normie-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { ZuloMotionRoot } from "@/components/zulo-motion-root"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
 import { cn } from "@/lib/utils"
@@ -62,6 +63,7 @@ export function ZuloChromeHeader({
           View on Normies →
         </a>
         {showActiveNormie ? <ActiveNormieSwitcher /> : null}
+        <ThemeToggle />
         {trailing}
       </nav>
     </header>

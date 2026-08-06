@@ -1,7 +1,7 @@
 /* app/zulo/styles.css — Normies monochrome system, SCOPED to .zulo-chrome only */
 
 .zulo-chrome {
-  /* Tokens */
+  /* Tokens — light (default): off-white / off-black monochrome */
   --bg-primary: #e5e5e5;
   --bg-secondary: #d4d4d4;
   --bg-tertiary: #c4c4c4;
@@ -13,6 +13,14 @@
   --border: #1a1a1a;
   --border-light: #a3a3a3;
   --accent: #1a1a1a;
+  --card-hover: #e8e8e8;
+
+  /* Cursor ring (theme-aware; square, monochrome) */
+  --cursor-ring: var(--text-primary);
+  --cursor-ring-opacity: 0.88;
+  --cursor-ring-hot-opacity: 1;
+  --cursor-ring-fill: rgb(0 0 0 / 0.06);
+  --cursor-ring-glow: color-mix(in oklab, var(--text-primary) 28%, transparent);
 
   --space-xs: 8px;
   --space-sm: 16px;
@@ -46,6 +54,34 @@
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+}
+
+/* Dark = inverted grayscale of light (no new color system) */
+.dark .zulo-chrome {
+  --bg-primary: #0d0d0d;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #262626;
+  --bg-dark: #e5e5e5;
+  --text-primary: #e5e5e5;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --text-inverse: #0d0d0d;
+  --border: #a3a3a3;
+  --border-light: #4a4a4a;
+  --accent: #e5e5e5;
+  --card-hover: #222222;
+
+  --cursor-ring: var(--text-primary);
+  --cursor-ring-opacity: 0.9;
+  --cursor-ring-hot-opacity: 1;
+  --cursor-ring-fill: rgb(255 255 255 / 0.08);
+  --cursor-ring-glow: color-mix(in oklab, var(--text-primary) 32%, transparent);
+
+  --shadow-card: 4px 4px 0 0 rgb(255 255 255 / 0.08);
+  --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.06);
+  --focus-ring: 2px solid var(--text-primary);
+
+  color-scheme: dark;
 }
 
 .zulo-chrome *,
@@ -273,6 +309,48 @@
     width: 28px;
     height: 28px;
   }
+}
+
+/* ========== Theme toggle (header) ========== */
+.zulo-chrome .theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease),
+    color var(--motion-base) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.zulo-chrome .theme-toggle:hover {
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .theme-toggle:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .theme-toggle:active {
+  transform: translateY(var(--motion-press));
+}
+
+.zulo-chrome .theme-toggle-icon {
+  display: block;
+  pointer-events: none;
 }
 
 /* ========== Active Normie switcher (header) ========== */
@@ -3437,7 +3515,7 @@
   }
 
   .zulo-chrome .home-surface-card-ask:hover {
-    box-shadow: 4px 4px 0 0 rgb(0 0 0 / 0.22);
+    box-shadow: var(--shadow-card);
     transform: translateY(var(--motion-lift));
   }
 
@@ -3609,6 +3687,7 @@
 }
 
 /* --- Desktop cursor ring (fine pointer only; injected by ZuloMotionRoot) --- */
+/* Theme-aware via :root/.dark --cursor-ring* (body-mounted). Square, monochrome. */
 .zulo-cursor-ring {
   position: fixed;
   top: 0;
@@ -3616,31 +3695,41 @@
   width: 28px;
   height: 28px;
   margin: -14px 0 0 -14px;
-  border: 1px solid var(--text-primary, #1a1a1a);
+  border: 1.5px solid var(--cursor-ring, #1a1a1a);
   border-radius: 0;
   pointer-events: none;
   z-index: 9999;
   opacity: 0;
-  mix-blend-mode: difference;
+  background: transparent;
+  box-shadow: none;
+  /* translate set by JS; scale pulse uses transform so keep them independent via scale property */
   transition:
-    width var(--motion-fast, 120ms) var(--motion-ease, ease),
-    height var(--motion-fast, 120ms) var(--motion-ease, ease),
-    margin var(--motion-fast, 120ms) var(--motion-ease, ease),
-    opacity var(--motion-base, 160ms) var(--motion-ease, ease),
-    background var(--motion-base, 160ms) var(--motion-ease, ease);
-  will-change: transform;
+    width 120ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    height 120ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    margin 120ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity 160ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    background 160ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    border-width 120ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    box-shadow 160ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: translate, scale;
 }
 
 .zulo-cursor-ring.is-visible {
-  opacity: 0.85;
+  opacity: var(--cursor-ring-opacity, 0.88);
+  /* Soft scale pulse — primary eye-catcher (monochrome, not neon) */
+  animation: zulo-cursor-pulse 1.5s ease-in-out infinite;
 }
 
 .zulo-cursor-ring.is-hot {
   width: 36px;
   height: 36px;
   margin: -18px 0 0 -18px;
-  opacity: 1;
-  background: rgb(255 255 255 / 0.08);
+  opacity: var(--cursor-ring-hot-opacity, 1);
+  border-width: 2.5px;
+  background: var(--cursor-ring-fill, rgb(0 0 0 / 0.06));
+  box-shadow: 0 0 0 1px var(--cursor-ring-glow, transparent);
+  animation: none; /* snap hot — static high contrast on targets */
+  scale: 1;
 }
 
 .zulo-cursor-ring.is-press {
@@ -3648,6 +3737,19 @@
   height: 22px;
   margin: -11px 0 0 -11px;
   opacity: 1;
+  animation: none;
+  box-shadow: none;
+  scale: 1;
+}
+
+@keyframes zulo-cursor-pulse {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.06;
+  }
 }
 
 .zulo-chrome.has-cursor-ring,
@@ -3793,12 +3895,22 @@
     opacity: 0;
   }
 
-  .zulo-cursor-ring {
-    display: none !important;
+  /* Cursor: keep static high-contrast ring; no pulse/glow animation */
+  .zulo-cursor-ring,
+  .zulo-cursor-ring.is-visible,
+  .zulo-cursor-ring.is-hot,
+  .zulo-cursor-ring.is-press {
+    animation: none !important;
+    box-shadow: none !important;
   }
 
-  .zulo-chrome.has-cursor-ring,
-  .zulo-chrome.has-cursor-ring * {
-    cursor: auto !important;
+  .zulo-cursor-ring.is-visible {
+    opacity: 1;
+    border-width: 2px;
+  }
+
+  .zulo-cursor-ring.is-hot {
+    border-width: 2.5px;
+    background: var(--cursor-ring-fill, transparent);
   }
 }

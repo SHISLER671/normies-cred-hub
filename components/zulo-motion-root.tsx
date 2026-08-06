@@ -110,6 +110,7 @@ export function ZuloMotionRoot() {
     }
 
     /* ---------- cursor ring (desktop fine pointer only) ---------- */
+    /* Reduced-motion: still show static high-contrast ring (CSS kills pulse). */
     let ring: HTMLDivElement | null = null
     let moveHandler: ((e: PointerEvent) => void) | null = null
     let overHandler: ((e: Event) => void) | null = null
@@ -117,10 +118,12 @@ export function ZuloMotionRoot() {
     let downHandler: (() => void) | null = null
     let upHandler: (() => void) | null = null
 
-    if (!reduced && finePointer) {
+    if (finePointer) {
       ring = document.createElement("div")
       ring.className = "zulo-cursor-ring"
       ring.setAttribute("aria-hidden", "true")
+      // Mount on body so overflow:clip on .zulo-chrome never clips the ring.
+      // Theme colors come from :root / .dark CSS variables.
       document.body.appendChild(ring)
       root.classList.add("has-cursor-ring")
 
@@ -132,7 +135,8 @@ export function ZuloMotionRoot() {
         x = e.clientX
         y = e.clientY
         if (!ring) return
-        ring.style.transform = `translate3d(${x}px, ${y}px, 0)`
+        // Position only via translate — scale pulse lives in CSS on the element
+        ring.style.translate = `${x}px ${y}px`
         if (!visible) {
           visible = true
           ring.classList.add("is-visible")
@@ -140,7 +144,7 @@ export function ZuloMotionRoot() {
       }
 
       const interactiveSelector =
-        "a, button, input, textarea, select, summary, [role='button'], .button, .home-surface-card, .path-card, .move-card, .moves-chip, .quick-prompt, .pulse-action-btn, .my-agent-card, .pulse-acc-trigger, .active-normie-trigger, .chat-input-field, .moves-input"
+        "a, button, input, textarea, select, summary, [role='button'], .button, .theme-toggle, .home-surface-card, .path-card, .move-card, .moves-chip, .quick-prompt, .pulse-action-btn, .my-agent-card, .pulse-acc-trigger, .active-normie-trigger, .chat-input-field, .moves-input"
 
       overHandler = (e: Event) => {
         const t = e.target

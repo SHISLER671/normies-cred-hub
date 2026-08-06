@@ -1,12 +1,41 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* Class-based dark mode (next-themes attribute="class" on <html>) */
+@custom-variant dark (&:is(.dark *));
+
 /* =========================================================
    NORMIES CRED HUB — DESIGN SYSTEM
    Light (default) = clean off-white / off-black
    Night = refined off-black version of the same aesthetic
    Philosophy: off-black > off-white > off-perfect
    ========================================================= */
+
+/* Map design tokens → Tailwind utilities (bg-background, text-primary, …) */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+}
 
 /* ---------- LIGHT MODE (Default) — Normies monochrome continuity ---------- */
 :root {
@@ -43,6 +72,13 @@
   /* Soft, intentional shadows — nearly flat */
   --shadow: 0 1px 0 0 rgb(0 0 0 / 0.06);
   --shadow-md: 0 2px 0 0 rgb(0 0 0 / 0.08);
+
+  /* Desktop cursor ring (body-mounted; theme-aware) */
+  --cursor-ring: #1a1a1a;
+  --cursor-ring-opacity: 0.88;
+  --cursor-ring-hot-opacity: 1;
+  --cursor-ring-fill: rgb(0 0 0 / 0.06);
+  --cursor-ring-glow: rgb(0 0 0 / 0.22);
 }
 
 /* ---------- NIGHT MODE (off-black monochrome continuity) ---------- */
@@ -60,7 +96,7 @@
   --muted: #1f1f1f;
   --muted-foreground: #a3a3a3;
 
-  --border: #333333;
+  --border: #a3a3a3;
   --input: #1a1a1a;
 
   /* Monochrome primary in dark */
@@ -71,8 +107,15 @@
   --destructive: #ef4444;
   --ring: #a3a3a3;
 
-  --shadow: 0 1px 0 0 rgb(0 0 0 / 0.4);
-  --shadow-md: 0 2px 0 0 rgb(0 0 0 / 0.5);
+  --shadow: 0 1px 0 0 rgb(255 255 255 / 0.06);
+  --shadow-md: 0 2px 0 0 rgb(255 255 255 / 0.08);
+
+  /* Light ring on dark surfaces */
+  --cursor-ring: #e5e5e5;
+  --cursor-ring-opacity: 0.9;
+  --cursor-ring-hot-opacity: 1;
+  --cursor-ring-fill: rgb(255 255 255 / 0.08);
+  --cursor-ring-glow: rgb(255 255 255 / 0.28);
 }
 
 /* ---------- TYPOGRAPHY ---------- */
@@ -95,9 +138,30 @@
 }
 
 /* ---------- BASE REFINEMENTS ---------- */
+html {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
   font-feature-settings: "kern" "tnum";
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+}
+
+/* Visually hidden (a11y labels) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* High-quality focus rings */
