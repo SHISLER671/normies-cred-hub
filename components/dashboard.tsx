@@ -185,11 +185,11 @@ export function Dashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pixel-texture sm:gap-10">
+    <div className="flex w-full min-w-0 flex-col gap-6 pixel-texture sm:gap-10">
       {/* Search bar — manual Normie lookup */}
       {isConnected && (
         <div className="rounded-none border border-border bg-card/70 p-4 sm:p-5">
-          <div className="flex items-center gap-2 max-w-sm mx-auto">
+          <div className="flex w-full max-w-sm items-center gap-2">
             <label htmlFor="token-id-input" className="sr-only">Normie token ID</label>
             <input
               id="token-id-input"
@@ -244,7 +244,7 @@ export function Dashboard() {
       )}
 
       {isMyAgent && (
-        <div className="mx-auto text-center">
+        <div>
           <div className="inline-block text-sm tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-none text-primary">
             Your Awakened Agent
             {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[10px] normal-case tracking-normal text-primary/60">• via delegate</span>}
@@ -253,7 +253,7 @@ export function Dashboard() {
       )}
 
       {!isConnected && (
-        <div className="flex flex-col items-center gap-3 text-center max-w-xs mx-auto">
+        <div className="flex max-w-md flex-col items-start gap-3 text-left">
           <p className="text-sm text-muted-foreground">
             Connect your wallet to unlock your agent&apos;s full view. Use Moves or Ask for Zulo guidance.
           </p>
@@ -273,7 +273,7 @@ export function Dashboard() {
 
       {isError ? (
         <Card className="border-destructive/40">
-          <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+          <CardContent className="flex flex-col items-start gap-3 py-12 text-left">
             <AlertTriangle className="size-8 text-destructive" />
             <p className="font-medium">Could not load Normie #{tokenId}</p>
             <p className="max-w-sm text-sm text-muted-foreground">Try another token ID.</p>
@@ -343,7 +343,7 @@ export function Dashboard() {
           )}
 
           {/* Credibility Framework — collapsible signal sections */}
-          <div className="mx-auto w-full min-w-0 max-w-2xl mt-10 cred-framework-acc">
+          <div className="cred-framework-acc mt-10 w-full min-w-0">
             <div className="cred-framework-intro">
               <h2 className="cred-framework-heading">
                 Zulo&apos;s Credibility Framework
@@ -536,19 +536,19 @@ export function Dashboard() {
               })}
             </PulseAccordion>
 
-            <p className="text-center text-sm leading-relaxed text-muted-foreground mt-6 max-w-prose mx-auto text-pretty">
+            <p className="mt-6 max-w-prose text-left text-sm leading-relaxed text-pretty text-muted-foreground">
               As the ecosystem grows, these signals may become more useful for understanding and interacting with awakened agents.
             </p>
           </div>
 
-          {/* Linked agents via owner — subtle & centered */}
+          {/* Linked agents via owner — same left column as Moves */}
           {snapshot && ownerAgents.length > 1 && (() => {
             const siblings = ownerAgents.filter((n) => n.tokenId !== tokenId).slice(0, 8);
             if (siblings.length === 0) return null;
             return (
-              <div className="text-center">
+              <div className="text-left">
                 <SectionLabel className="mb-2">Also Linked Via Owner</SectionLabel>
-                <div className="flex flex-wrap justify-center gap-1.5">
+                <div className="flex flex-wrap justify-start gap-1.5">
                   {siblings.map((normie) => (
                     <button
                       key={normie.tokenId}

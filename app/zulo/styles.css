@@ -3097,8 +3097,9 @@
   min-height: 100dvh;
 }
 
+/* Same horizontal system as .moves-board (/paths): left content column */
 .zulo-chrome .dash-main {
-  max-width: 1000px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 0 var(--space-md) var(--space-xl);
   overflow-x: hidden;
@@ -3107,20 +3108,25 @@
 .zulo-chrome .dash-hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   padding: var(--space-xl) 0 var(--space-lg);
   border-bottom: 1px solid var(--border);
   margin-bottom: var(--space-lg);
 }
 
 .zulo-chrome .dash-hero .moves-title {
-  max-width: 16ch;
+  max-width: none;
 }
 
 .zulo-chrome .dash-hero .moves-lede {
-  max-width: 36rem;
+  max-width: 34rem;
   margin-top: var(--space-sm);
+}
+
+.zulo-chrome .dash-hero .caption {
+  text-align: left;
+  max-width: 34rem;
 }
 
 .zulo-chrome .dash-section {
@@ -3140,7 +3146,7 @@
 .zulo-chrome .dash-footer {
   border-top: 1px solid var(--border);
   padding: var(--space-lg) 0 var(--space-xl);
-  text-align: center;
+  text-align: left;
 }
 
 /* ========== PULSE accordion (mobile-first progressive disclosure) ========== */
@@ -3326,9 +3332,9 @@
 }
 
 .zulo-chrome .cred-framework-intro {
-  text-align: center;
+  text-align: left;
   margin-bottom: 20px;
-  padding: 0 8px;
+  padding: 0;
 }
 
 .zulo-chrome .cred-framework-heading {
@@ -3351,9 +3357,7 @@
   text-transform: none;
   letter-spacing: 0.01em;
   font-weight: 400;
-  max-width: 28rem;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 34rem;
 }
 
 /* PULSE action cards — clear button affordance */
@@ -3452,8 +3456,8 @@
   text-transform: uppercase;
   color: var(--text-muted);
   line-height: 1.7;
-  max-width: 28rem;
-  margin: 0 auto;
+  max-width: 34rem;
+  margin: 0;
 }
 
 /* Dashboard trust surfaces keep their own cards; tighten radius language */
