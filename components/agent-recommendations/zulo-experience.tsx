@@ -36,6 +36,30 @@ const QUICK_PROMPTS = [
   { label: "Earn AP", prompt: "How do I earn more AP strategically?" },
 ] as const
 
+/**
+ * Concierge-style in-flight labels while POST /api/zulo/ask is pending.
+ * Elapsed-time phases only — not true server stages.
+ */
+const ASK_STATUS_PHASES = [
+  { afterMs: 0, label: "Reading your question…" },
+  { afterMs: 2_000, label: "Checking saved resources…" },
+  { afterMs: 4_000, label: "Using Zulo's PULSE tool…" },
+  { afterMs: 7_000, label: "Asking Venice…" },
+  { afterMs: 12_000, label: "Zulo is deliberating…" },
+] as const
+
+/** Timeout / 504 coaching — concise, mobile-friendly, example-led. */
+const TIMEOUT_COACHING =
+  "Timed out waiting for the model. Try a more concise or specific question — e.g. which should I hold or burn #1234 or #5678? pixel count + dual-eval."
+
+function statusLabelForElapsed(elapsedMs: number): string {
+  let label: string = ASK_STATUS_PHASES[0].label
+  for (const phase of ASK_STATUS_PHASES) {
+    if (elapsedMs >= phase.afterMs) label = phase.label
+  }
+  return label
+}
+
 function formatZuloReplyForHistory(response: ZuloResponse): string {
   const rec = Array.isArray(response.recommendation)
     ? response.recommendation.join(" · ")
@@ -63,6 +87,8 @@ export function ZuloExperience({
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
+  /** Elapsed-time concierge label while ask is in flight; cleared on settle. */
+  const [askStatus, setAskStatus] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [keyboardOpen, setKeyboardOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -114,6 +140,20 @@ export function ZuloExperience({
     if (messages.length > 1 || loading) scrollToBottom()
   }, [messages, loading, scrollToBottom])
 
+  // Rotate calm monochrome status by elapsed time while ask is in flight.
+  // Text-only updates (no spinner/bar); works with prefers-reduced-motion.
+  useEffect(() => {
+    if (!loading) {
+      setAskStatus(null)
+      return
+    }
+    const started = Date.now()
+    const tick = () => setAskStatus(statusLabelForElapsed(Date.now() - started))
+    tick()
+    const id = window.setInterval(tick, 400)
+    return () => window.clearInterval(id)
+  }, [loading])
+
   async function sendMessage(raw?: string) {
     const userQuery = (raw ?? input).trim()
     if (!userQuery || loading) return
@@ -125,6 +165,7 @@ export function ZuloExperience({
     ])
     setInput("")
     setLoading(true)
+    setAskStatus(statusLabelForElapsed(0))
     // Keep optional Skills tray collapsed after a prompt fires
     if (skillsDetailsRef.current) {
       skillsDetailsRef.current.open = false
@@ -172,13 +213,20 @@ export function ZuloExperience({
           (data as { retryable?: boolean }).retryable === true ||
           res.status === 502 ||
           res.status === 504
+        const isTimeout =
+          res.status === 504 ||
+          (data as { code?: string }).code === "timeout"
         const errText =
-          data.error ||
-          (res.status === 504
-            ? "Timed out waiting for the model. Retry with a shorter question."
-            : res.status === 502
-              ? "Model upstream is degraded. Strategy skills may still load on retry."
-              : `Something went wrong (${res.status}). Please try again.`)
+          isTimeout
+            ? // Prefer shared coaching; rewrite legacy “shorter question” payloads too
+              data.error &&
+              !/shorter question/i.test(data.error)
+                ? data.error
+                : TIMEOUT_COACHING
+            : data.error ||
+              (res.status === 502
+                ? "Model upstream is degraded. Strategy skills may still load on retry."
+                : `Something went wrong (${res.status}). Please try again.`)
         setMessages((prev) => [
           ...prev,
           {
@@ -209,18 +257,25 @@ export function ZuloExperience({
         ...prev,
         { id: crypto.randomUUID(), role: "zulo", content, structured },
       ])
-    } catch {
+    } catch (err) {
+      const aborted =
+        err instanceof DOMException
+          ? err.name === "AbortError"
+          : err instanceof Error && /abort|timeout/i.test(err.message)
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "zulo",
-          content: "I apologize — the connection faltered. Please try again.",
-          error: "network",
+          content: aborted
+            ? TIMEOUT_COACHING
+            : "I apologize — the connection faltered. Please try again.",
+          error: aborted ? "timeout" : "network",
         },
       ])
     } finally {
       setLoading(false)
+      setAskStatus(null)
     }
   }
 
@@ -303,15 +358,20 @@ export function ZuloExperience({
               </div>
             ))}
 
-            {loading ? (
-              <div className="chat-message chat-message-zulo">
+            {loading && askStatus ? (
+              <div
+                className="chat-message chat-message-zulo"
+                aria-live="polite"
+                aria-atomic="true"
+              >
                 {!isMobile ? <div className="chat-avatar">Z</div> : null}
-                <div
-                  className="chat-bubble"
-                  style={{ display: "flex", alignItems: "center", gap: 8 }}
-                >
-                  <Loader2 className="size-4 animate-spin" />
-                  Thinking…
+                <div className="chat-stack">
+                  <div
+                    className="chat-bubble ask-inflight-status"
+                    // Calm monochrome status only — no spinner, bar, or color theater
+                  >
+                    {askStatus}
+                  </div>
                 </div>
               </div>
             ) : null}

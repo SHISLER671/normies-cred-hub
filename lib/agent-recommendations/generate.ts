@@ -202,7 +202,7 @@ export function zuloErrorToResponse(err: unknown): {
         status: 504,
         body: {
           error:
-            "Zulo took too long to think — the model timed out. Try a shorter question or retry in a moment.",
+            "Timed out waiting for the model. Try a more concise or specific question — e.g. which should I hold or burn #1234 or #5678? pixel count + dual-eval.",
           code: err.code,
           retryable: true,
         },
