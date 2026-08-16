@@ -12,17 +12,17 @@
 
 | Fact | Detail |
 |------|--------|
-| **What Pixel is** | **Pixel = Action Points (AP)** — same unit; market-facing name for Canvas edit budget earned by burns |
-| **Status** | **Announced**; **technical work in progress** |
+| **What Pixel is** | **#PIXEL = Action Points (AP)** — Canvas edit budget. **Not a token.** Not `$PIXEL`. |
+| **Status** | **Getting ready** — foundation / canvas / agents in progress; **not** live full rules |
 | **Live trading?** | **No** — do **not** describe a live order book, live AP/Pixel quotes, or settled peer market |
 | **How AP/Pixel is earned today** | By **burning** Normies into a receiver’s Canvas (commit → wait → reveal); Canvas-local budget |
-| **What the market will add later** | Buy/sell and other features for edit-budget units — **when live**, not before |
+| **What the market will add later** | **TBA** — do not invent buy/sell, order books, or qualification rules |
 | **What Zulo must not invent** | AP prices, hold-threshold **X**, order-book depth, or any standing valuation oracle |
 
 **Language for answers:**
 
-- Prefer: “PIXEL MARKET is **announced**; technical work is in progress; **not** live trading.”
-- Prefer: “**Pixel is AP** — same unit; earned by burning Normies into Canvas.”
+- Prefer: “PIXEL MARKET is **getting ready**; **not** live full rules.”
+- Prefer: “**#PIXEL is Action Points, not a token** — earned by burning Normies into Canvas.”
 - Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle.
 
 PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence** for the Normie collection — it is **not** a live Pixel order book.
@@ -71,14 +71,13 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 
 ### “What is PIXEL MARKET / is it live?”
 
-- Official @normiesART announcement (Aug 2026).  
-- Pixel = AP; market adds buy/sell later.  
-- Status: announced / technical WIP — **not** live trading. No order book claims.
+- Official framing: **#PIXEL = AP, not a token.**  
+- Status: **getting ready** — **not** live full rules. No order book claims. Mechanics beyond public posts = TBA.
 
 ### “Is Pixel the same as AP?”
 
-- **Yes** — Pixel is Action Points (AP) per official announcement framing.  
-- Earned by burning; Canvas-bound today. Market tradeability later when live.
+- **Yes** — #PIXEL is Action Points (AP). **Not** a tradable token.  
+- Earned by burning; Canvas-bound today. Market rules TBA.
 
 ---
 

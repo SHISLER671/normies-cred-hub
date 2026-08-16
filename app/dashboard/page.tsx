@@ -34,6 +34,9 @@ export default function DashboardPage() {
             your Active Normie in the header or My agents list — then inspect
             trust, PULSE, and tools for that agent.
           </p>
+          <p className="caption" style={{ marginTop: 10 }}>
+            Built for agents and holders who verify trust before they engage.
+          </p>
           <p className="caption" style={{ marginTop: 16 }}>
             Connect your wallet to unlock your controlled and delegated set.
           </p>

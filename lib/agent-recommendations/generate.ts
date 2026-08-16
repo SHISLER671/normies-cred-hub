@@ -87,7 +87,7 @@ async function callProvider(
         body: JSON.stringify({
           model: provider.model,
           messages: [{ role: "user", content: prompt }],
-          temperature: 0.7,
+          temperature: 0.35,
           // Skill replies (scan burns, market, canvas) need room for full JSON.
           // 1200 often truncated mid-sentence and broke the response parser.
           max_tokens: 4096,

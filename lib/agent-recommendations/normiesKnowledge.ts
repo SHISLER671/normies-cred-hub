@@ -256,7 +256,7 @@ STRATEGIC PRINCIPLES:
 - Prefer burning commons; protect rare/premium trait stacks
 - High pixel count (891+) → best burn efficiency band
 - Delegation for collab without giving up ownership
-- Arena / Pixel Market: coming soon — plan decks (Human core + Cat support + Alien utility + Agent command)
+- Arena: coming soon. Pixel Market: getting ready — #PIXEL is AP, not a token; full rules TBA
 
 RESOURCES:
 - API ${k.resources.api} | Rarity ${k.resources.rarity} | Multisend ${k.resources.multisend} | Docs ${k.resources.docs}

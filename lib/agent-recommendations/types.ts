@@ -170,6 +170,10 @@ export interface ZuloRecommendationContext {
       snapshotLine: string
       framingLines: string[]
       note: string
+      /** Moralis collection floor USD when the live fetch provided it. */
+      floorPriceUsd?: number | null
+      /** Derived ETH-USD from floor ETH + floor USD. Never invent. */
+      ethUsd?: number | null
     }
     /** PIXEL MARKET Sentinel live market state (when skill runs) */
     marketState?: {
@@ -245,6 +249,18 @@ export interface ZuloRecommendationContext {
       title: string
       pixelMarket: string[]
       dualEval: string[]
+      principles: string[]
+      source: string
+    }
+    /**
+     * Collab pillars, rails TBA, money-myth patterns
+     * (from knowledge/collab-rails-and-ask-patterns.md).
+     */
+    collabRails?: {
+      title: string
+      pillars: string[]
+      rails: string[]
+      zulo: string[]
       principles: string[]
       source: string
     }
@@ -454,6 +470,8 @@ export interface StrategyContext {
     snapshotLine: string
     framingLines: string[]
     note: string
+    floorPriceUsd?: number | null
+    ethUsd?: number | null
   }
   /** Burn Efficiency Optimizer — top AP/ETH market fodder candidates */
   burnEfficiency?: {

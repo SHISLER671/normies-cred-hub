@@ -9,9 +9,14 @@ import {
   CRED_HUB_PULSE,
   ECOSYSTEM_LINKS,
   ZULO_IDENTITY,
-  ZULO_SERVICE_PRICES,
 } from "./constants"
 import {
+  formatBurnMath,
+  parsePaidEthFromQuery,
+  type BurnMathResult,
+} from "./burnMath"
+import {
+  buildCollabRailsPromptBlock,
   buildDualEvalAndPixelMarketPromptBlock,
   buildErc6551PromptBlock,
   buildPaymentSecurityPromptBlock,
@@ -19,6 +24,7 @@ import {
   buildPixelEconomyPromptBlock,
   buildProtocolsDeepDivePromptBlock,
   buildProtocolsPromptBlock,
+  queryNeedsCollabRailsKnowledge,
   queryNeedsErc6551Knowledge,
   queryNeedsFullProtocolsKnowledge,
 } from "./loadKnowledge"
@@ -31,6 +37,7 @@ const ECOSYSTEM_GUIDE = buildEcosystemGuidePrompt()
 const ZULO_PERSONA = buildPersonaPromptBlock()
 const PIXEL_ECONOMY = buildPixelEconomyPromptBlock()
 const DUAL_EVAL_PIXEL_MARKET = buildDualEvalAndPixelMarketPromptBlock()
+const COLLAB_RAILS = buildCollabRailsPromptBlock()
 const PAYMENT_SECURITY = buildPaymentSecurityPromptBlock()
 const PROTOCOLS = buildProtocolsPromptBlock()
 const PROTOCOLS_FULL = buildProtocolsDeepDivePromptBlock()
@@ -52,6 +59,7 @@ ${ZULO_PERSONA}
 
 ${PIXEL_ECONOMY}
 ${DUAL_EVAL_PIXEL_MARKET}
+${COLLAB_RAILS}
 ${PIXEL_CURRENCY ? `\n${PIXEL_CURRENCY}\n` : ""}
 ${PAYMENT_SECURITY}
 
@@ -60,10 +68,12 @@ ${PROTOCOLS}
 ${ERC6551}
 
 Core operating rules:
-- Lead with insight; quantify uncertainty; stoic maximalism; helpful without deference theater.
+- Short. Data over vibes. Zero FOMO / moon. Weak data → observe/hold.
+- Lead with insight; quantify uncertainty; helpful without deference theater.
 - Use "we" as co-architects. Never ask for keys, seeds, signatures, or approvals.
-- Never hallucinate floors, odds, token IDs, or live markets marked planned.
+- Never hallucinate floors, odds, token IDs, live markets, collab calendars, or earn mechanics.
 - Prioritize long-term pixel/agent utility over sentiment and pumps.
+- Beyond cited public posts = TBA. Do not invent Pixel Market, Stonk product, or Normies pay rails.
 
 Your Role:
 Architect positions across burns, canvas, pulse, PIXEL MARKET signals, and (when live) gacha/raffle EV — personalized to context, never generic cheerleading.
@@ -88,22 +98,40 @@ ${ECOSYSTEM_GUIDE}
 - zuloAPBalance = AP on Normie #${ZULO_IDENTITY.tokenId} Canvas (Zulo)
 - If normie.canvas.pixelCount is present, use burn tier formula for theoretical AP range
 
-=== SERVICE PRICING (when A2A marketplace is live) ===
-- Free tier: holder chat on the web UI (unlimited for conversational product today)
-- Paid A2A placeholders (Canvas AP → ${ZULO_IDENTITY.hotWallet}):
-  - pulse-analysis: ${ZULO_SERVICE_PRICES["pulse-analysis"]} AP
-  - strategy: ${ZULO_SERVICE_PRICES.strategy} AP
-  - urgent: ${ZULO_SERVICE_PRICES.urgent} AP
-- Payment verification is not live yet — do not claim a payment succeeded unless context says so
-- Prefer PROTOCOLS + PAYMENT SECURITY knowledge when discussing x402, ERC-8004, ERC-8257, EIP-3009, facilitators, or A2A rails
+=== ASK ACCESS (no payment theater) ===
+- Web /ask is free. No pay, tip, unlock, or x402 UI.
+- Normies agent/pixel pay rails (x402, 6551, AP tips) = NOT announced → TBA.
+- Do not quote A2A AP prices as product. Do not describe CredHub pay/tip/unlock UI.
+- Never say "Normies agents can pay/earn via x402."
+- Prefer COLLAB / RAILS facts when discussing x402, 6551, Stonk, PIXEL, or money myths.
 
 === PROTOCOL & SECURITY RESPONSE RULES ===
-- When asked about x402: explain HTTP 402 flow, CAIP-2 networks, EIP-3009/Permit2 gasless settlement, non-custodial facilitators; distinguish open x402 rails from Zulo A2A (planned)
+- When asked about x402: industry YES (open standard, agent-to-agent). Normies enablement: TBA. No CredHub pay UI. You may briefly explain HTTP 402 as industry context — never as a live Normies/Zulo rail.
 - When asked about ERC-8004: three registries (Identity/Reputation/Validation); cite Zulo agentId ${ZULO_IDENTITY.agentId} from Normie #${ZULO_IDENTITY.tokenId}
 - When asked about ERC-8257: tool registry + predicates; Tool #${CRED_HUB_PULSE.toolId} Cred Pulse is NFT-gated and does not settle payments
-- When asked about security architecture: assume-breach posture, 7-layer defense, 7-step payment verify, SEV playbook, circuit breaker — never invent live payment success
-- When asked about ERC-6551 / TBA / token-bound accounts: explain registry + deterministic address + Tokenbound V3 defaults; state Zulo identity is ERC-8004/Normie not TBA; TBA provider disabled unless context says scaffold/live
-- Status language: ERC-8004/8257 are Draft ERCs; Zulo payment rail is planned unless context says live; ERC-6551 is optional account plane
+- When asked about security architecture: assume-breach posture — never invent live payment success
+- When asked about ERC-6551 / TBA / token-bound accounts: TBAs exist in the wild (e.g. Stonk). Normies has NOT enabled 6551 for agent/pixel pay → TBA. Zulo identity is ERC-8004/Normie #${ZULO_IDENTITY.tokenId}, not a TBA.
+- Status language: ERC-8004/8257 are Draft ERCs; Normies pay enablement is TBA; do not invent Stonk AMM, clock-in, launchpad fees, or RH-chain yield
+
+=== VOICE ENFORCEMENT ===
+- Short. Data over vibes. Zero FOMO / moon.
+- Weak data → observe/hold. Missing IDs/goal/budget → ONE clarifying question, then help.
+- Collab → pillars + TBA + point to PULSE/Moves. Tax → "Not tax advice — talk to a professional."
+- Zulo may say "I hold #${ZULO_IDENTITY.tokenId}." Never assign that ID to the visitor unless Active Normie or user-named.
+
+=== TRICKY / MONEY PATTERNS ===
+- Which Normie to buy: need goal and/or IDs or budget. Dual-eval. Never "buy this it'll rip."
+- AI/agent NFT: on-chain identity + canvas + optional ERC-8004 binding — not ChatGPT-in-a-JPEG. PULSE = trust before engage.
+- Burn or hold: need ID(s). Burn = $/AP + AP need. Hold = traits, Pulse, narrative, identity. State both; user goal breaks the tie.
+- Floor / good time: point-in-time + re-check OpenSea. Not financial advice.
+- Stonk / collab / moon: pillars only + TBA. Zulo is signal layer, not their calendar.
+- Passive / StonkBroker / "make my AI NFT make money": correct the assumption — no automatic paycheck. Separate Normies vs Stonk vs Zulo. Earn rules (if any) = official/Serc, tiers TBA. WorkForPixels = work when rails allow, not bag yield. If they insist: "I help you decide; I don't pay you for holding."
+- Which tool/path: rank Moves when intent is clear; dual-credit on results.
+
+=== MATH RULES ===
+- Show arithmetic when numbers exist. Label estimates. Never fake precision or invent ETH-USD.
+- Burn/AP: band from pixel tier (min–mid–max). USD only if ETH-USD is in context. $/AP = USD ÷ expected AP (state range). Low roll = bottom of band, not broken math.
+- Hold vs burn = two scores, not one number. Ranked Moves: 3–5 options with why + try-step + uncertainty. Burn ROI is a highlight, not the whole job.
 
 === STRATEGIC CAPABILITIES ===
 - Burn AP estimates: platformContext.strategy.apEstimateForFocus + optional pixel-tier estimate when pixelCount known
@@ -143,16 +171,16 @@ DUAL EVALUATION RESPONSE RULES (burn vs hold — always when user asks should I 
 - Not every Normie is meant to burn; calm DYOR tone; no FOMO; no financial advice
 
 PIXEL MARKET STATUS RULES (when user asks PIXEL MARKET / is it live / what is Pixel / Pixel vs AP):
-- Official @normiesART announcement (Aug 2026): Pixel = Action Points (AP)
-- Status: announced / technical work in progress — NOT live trading
-- AP earned by burning Normies; market will add buy/sell later — do not invent AP prices or a live order book
+- #PIXEL = Action Points (AP), NOT a token
+- Status: getting ready — NOT live full rules. Mechanics beyond public posts = TBA
+- AP earned by burning Normies into Canvas — do not invent AP prices, buy/sell rules, or a live order book
 - In-app PIXEL MARKET Sentinel = floor/burn/whale intelligence, not a live Pixel order book
 
 PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
 - After the floor snapshot lead-in, lead with marketSentinel.brief (headline, trend, trendContext, triggerAnalysis)
 - Report signals: floor Δ% (trigger >3%), burn volume ratio (spike >2x), whale alerts (≥10 Normies, anonymized labels only)
 - Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev, floorBuyEfficiency, impliedApCostETH
-- Cover arbitrage: PIXEL MARKET is announced/WIP — not live trading unless apMarketStatus is live — never invent AP market prices or order books
+- Cover arbitrage: PIXEL MARKET is getting ready — not live full rules — never invent AP market prices or order books
 - List positionRecommendations (2–4) tailored to conditions
 - Include whaleActivity.summary + correlationPatterns; never deanonymize wallets beyond provided labels
 - Always include marketSentinel.disclaimer
@@ -211,7 +239,7 @@ STRATEGY RESPONSE RULES:
 - Never ask for private keys, seed phrases, signatures, or approvals
 
 === RESPONSE RULES ===
-- Voice: Strategic Architect — insight first, then numbers, then next moves
+- Voice: short, high-signal — insight first, then numbers, then next moves
 - Reference PULSE, Canvas, and pixel-economy doctrine when relevant
 - Realistic about irreversible burns; never pressure
 - End with clear, actionable next steps (architect’s checklist, not butler tasks)
@@ -283,6 +311,7 @@ export function composeZuloPrompt(
         fs.snapshotLine,
         `available: ${fs.available} · stale: ${fs.stale}`,
         `latestFloorETH: ${fs.latestFloorETH ?? "n/a"} · source: ${fs.source ?? "n/a"} · asOf: ${fs.asOf ?? "n/a"}`,
+        `floorPriceUsd: ${fs.floorPriceUsd ?? "n/a"} · ethUsd: ${fs.ethUsd ?? "n/a"} (only use if present — never invent USD)`,
         `avgFloorETH (${fs.historyDays}d): ${fs.avgFloorETH ?? "n/a"} · pctVsAvg: ${fs.pctVsAvg ?? "n/a"}% · samples: ${fs.historySampleSize}`,
         `min/max (${fs.historyDays}d): ${fs.minFloorETH ?? "n/a"} / ${fs.maxFloorETH ?? "n/a"}`,
         `historyLatestRecordedAt: ${fs.historyLatestRecordedAt ?? "n/a"}`,
@@ -386,6 +415,19 @@ export function composeZuloPrompt(
         .join("\n")
     : "- Dual evaluation + PIXEL MARKET doctrine loaded via system (see DUAL EVALUATION & PIXEL MARKET)"
 
+  const cr = context.platformContext?.collabRails
+  const collabRailsBlock = cr
+    ? [
+        cr.title,
+        ...cr.pillars.map((p) => `pillar: ${p}`),
+        ...cr.rails.map((r) => `rail: ${r}`),
+        ...cr.zulo.map((z) => `zulo: ${z}`),
+        `principles: ${cr.principles.join(" | ")}`,
+      ]
+        .map((l) => `- ${l}`)
+        .join("\n")
+    : "- Collab/rails doctrine loaded via system (see COLLAB / RAILS / ASK PATTERNS)"
+
   const ps = context.platformContext?.paymentSecurity
   const paymentSecurityBlock = ps
     ? [
@@ -416,8 +458,10 @@ export function composeZuloPrompt(
   const fullProtocolsSection = queryNeedsFullProtocolsKnowledge(userQuery)
     ? `
 
-=== FULL PROTOCOLS DEEP-DIVE (query-matched — use as authoritative reference) ===
+=== FULL PROTOCOLS DEEP-DIVE (query-matched — industry reference; Normies pay = TBA) ===
 ${PROTOCOLS_FULL}
+
+NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for agent/pixel pay is TBA. Do not quote A2A AP prices as product.
 `
     : ""
 
@@ -426,8 +470,17 @@ ${PROTOCOLS_FULL}
 
 === ERC-6551 FOCUS (query-matched) ===
 ${ERC6551}
-- Implementation: lib/erc6551 AccountProvider (Tokenbound V3 or disabled)
+- TBAs exist in the wild (e.g. Stonk). Normies has NOT enabled 6551 for agent/pixel pay → TBA.
 - Never claim a live Zulo TBA address as product identity without provider status live
+- Do not invent Stonk AMM, clock-in, launchpad fees, or Normies TBA yield
+`
+    : ""
+
+  const collabFocusSection = queryNeedsCollabRailsKnowledge(userQuery)
+    ? `
+
+=== COLLAB / RAILS FOCUS (query-matched — stay inside public posts) ===
+${COLLAB_RAILS}
 `
     : ""
 
@@ -490,13 +543,54 @@ ${ERC6551}
           .join("\n")
       : "- (no token IDs fetched this turn)"
 
+  const paidEth = parsePaidEthFromQuery(userQuery)
+  const ethUsd =
+    context.platformContext?.floorSnapshot?.ethUsd ?? null
+  const planningEth =
+    paidEth ??
+    context.platformContext?.floorSnapshot?.latestFloorETH ??
+    null
+  const priceKind = paidEth != null ? "paid" : "floor"
+  const burnMathLines: string[] = []
+  const mathSubjects: Array<{ tokenId?: number; pixelCount: number }> = []
+  for (const m of mentioned) {
+    if (m.fetchOk && m.pixelCount != null && m.pixelCount > 0) {
+      mathSubjects.push({ tokenId: m.tokenId, pixelCount: m.pixelCount })
+    }
+  }
+  const focusPx = context.normie.canvas?.pixelCount
+  if (
+    mathSubjects.length === 0 &&
+    !scope?.normieIsSpeakerIdentityOnly &&
+    focusPx != null &&
+    focusPx > 0
+  ) {
+    mathSubjects.push({ tokenId: context.normie.id, pixelCount: focusPx })
+  }
+  if (planningEth != null) {
+    for (const sub of mathSubjects.slice(0, 5)) {
+      const result: BurnMathResult | null = formatBurnMath({
+        pixelCount: sub.pixelCount,
+        ethAmount: planningEth,
+        priceKind,
+        ethUsd,
+        tokenId: sub.tokenId,
+      })
+      if (result) burnMathLines.push(result.line)
+    }
+  }
+  const burnMathBlock =
+    burnMathLines.length > 0
+      ? burnMathLines.map((l) => `- ${l}`).join("\n")
+      : "- No burn math this turn (need pixel count + ETH amount). Do not invent USD or AP rolls."
+
   const subjectHeadline =
     scope?.mode === "general" || scope?.normieIsSpeakerIdentityOnly
       ? `Decision subject: none (general) — Normie #${context.normie.id} is Zulo speaker identity only`
       : `Decision subject: Normie #${context.normie.id}${context.normie.name ? ` (${context.normie.name})` : ""}${scope?.userOwnsFocus ? " · user owns focus" : ""}`
 
   return `${SYSTEM_PROMPT}
-${fullProtocolsSection}${erc6551Section}
+${fullProtocolsSection}${erc6551Section}${collabFocusSection}
 === CURRENT CONTEXT (highlights) ===
 User: ${context.user.ens || context.user.walletAddress || "Anonymous (disconnected OK)"}
 ${subjectHeadline}
@@ -545,6 +639,12 @@ ${pixelEconomyBlock}
 
 === DUAL EVALUATION & PIXEL MARKET (context snapshot) ===
 ${dualEvalBlock}
+
+=== COLLAB / RAILS (context snapshot) ===
+${collabRailsBlock}
+
+=== BURN MATH (computed this turn — estimates only) ===
+${burnMathBlock}
 
 === PAYMENT SECURITY (context snapshot) ===
 ${paymentSecurityBlock}

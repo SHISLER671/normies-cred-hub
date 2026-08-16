@@ -117,6 +117,7 @@ export type ResolvedLiveFloor = {
   floorPriceETH: number
   source: string
   lastUpdated: string
+  floorPriceUsd?: number | null
 }
 
 /**
@@ -132,6 +133,7 @@ export async function resolveLiveCollectionFloor(): Promise<ResolvedLiveFloor | 
         floorPriceETH: moralis.floorPriceETH,
         source: moralis.source,
         lastUpdated: moralis.lastUpdated || new Date().toISOString(),
+        floorPriceUsd: moralis.floorPriceUsd ?? null,
       }
     }
   } catch (e) {

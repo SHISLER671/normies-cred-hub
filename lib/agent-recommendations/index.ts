@@ -150,6 +150,11 @@ export {
 } from "./constants"
 
 export { parseNormieTokenIdsFromText } from "./parseTokenIds"
+export {
+  formatBurnMath,
+  parsePaidEthFromQuery,
+  deriveEthUsd,
+} from "./burnMath"
 
 export {
   loadZuloPersona,
@@ -158,17 +163,21 @@ export {
   loadProtocolsDeepDiveKnowledge,
   loadProtocolsCondensedKnowledge,
   loadErc6551Knowledge,
+  loadCollabRailsKnowledge,
   buildPersonaPromptBlock,
   buildPixelEconomyPromptBlock,
   buildDualEvalAndPixelMarketPromptBlock,
+  buildCollabRailsPromptBlock,
   buildPaymentSecurityPromptBlock,
   buildProtocolsPromptBlock,
   buildProtocolsDeepDivePromptBlock,
   buildErc6551PromptBlock,
   queryNeedsFullProtocolsKnowledge,
   queryNeedsErc6551Knowledge,
+  queryNeedsCollabRailsKnowledge,
   getPixelEconomyContextSummary,
   getDualEvalAndPixelMarketContextSummary,
+  getCollabRailsContextSummary,
   getPaymentSecurityContextSummary,
   getProtocolsDeepDiveContextSummary,
   getErc6551ContextSummary,

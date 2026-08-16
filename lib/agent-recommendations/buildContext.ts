@@ -15,6 +15,7 @@ import {
 } from "./constants"
 import { tierFromRank, type OwnedNormieSnapshot } from "./burnData"
 import {
+  getCollabRailsContextSummary,
   getDualEvalAndPixelMarketContextSummary,
   getErc6551ContextSummary,
   getPaymentSecurityContextSummary,
@@ -879,6 +880,7 @@ export async function buildZuloContext(
   // Doctrine knowledge — always available for strategy-bearing answers
   const pixelEconomy = getPixelEconomyContextSummary()
   const dualEvalAndPixelMarket = getDualEvalAndPixelMarketContextSummary()
+  const collabRails = getCollabRailsContextSummary()
   const pixelCurrency = getPixelCurrencyContextSummary()
   const paymentSecurity = getPaymentSecurityContextSummary()
   const protocolsDeepDive = getProtocolsDeepDiveContextSummary()
@@ -1012,6 +1014,7 @@ export async function buildZuloContext(
       zuloAPBalance: zuloCanvasAPBalance,
       pixelEconomy,
       dualEvalAndPixelMarket,
+      collabRails,
       ...(pixelCurrency ? { pixelCurrency } : {}),
       paymentSecurity,
       protocolsDeepDive,
@@ -1034,6 +1037,8 @@ export async function buildZuloContext(
             snapshotLine: floorSnapshot.snapshotLine,
             framingLines: floorSnapshot.framingLines,
             note: floorSnapshot.note,
+            floorPriceUsd: floorSnapshot.floorPriceUsd ?? null,
+            ethUsd: floorSnapshot.ethUsd ?? null,
           }
         : undefined,
       marketState: marketState

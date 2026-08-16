@@ -9,6 +9,7 @@ import {
   type FloorTrendSummary,
 } from "@/lib/db/supabase"
 
+import { deriveEthUsd } from "./burnMath"
 import {
   OPENSEA_COLLECTION_URL,
   resolveLiveCollectionFloor,
@@ -41,6 +42,10 @@ export interface FloorSnapshot {
   snapshotLine: string
   framingLines: string[]
   note: string
+  /** Present only when Moralis (or another live source) returned USD. */
+  floorPriceUsd?: number | null
+  /** floorPriceUsd / latestFloorETH when both exist. Never invented. */
+  ethUsd?: number | null
 }
 
 const FLOOR_MARKET_BURN_PHRASES = [
@@ -166,6 +171,8 @@ function buildUnavailableSnapshot(
       note,
     ],
     note,
+    floorPriceUsd: null,
+    ethUsd: null,
   }
 }
 
@@ -233,6 +240,9 @@ export async function fetchFloorSnapshot(options?: {
     vsAvgPart = " · 7d history: no Supabase samples yet"
   }
 
+  const floorPriceUsd = live?.floorPriceUsd ?? null
+  const ethUsd = deriveEthUsd(latestFloorETH, floorPriceUsd)
+
   const staleTag = stale ? " [STALE — history only; live fetch failed]" : ""
   const snapshotLine = `Floor snapshot: latest ~${ethStr} ETH (${sourceLabel}, as of ${asOfLabel})${vsAvgPart}${staleTag}. ${FLOOR_SNAPSHOT_FRAMING}`
 
@@ -267,5 +277,7 @@ export async function fetchFloorSnapshot(options?: {
     note: stale
       ? "Stale history-only floor — say so plainly; still help with non-price structure."
       : FLOOR_SNAPSHOT_FRAMING,
+    floorPriceUsd,
+    ethUsd,
   }
 }
