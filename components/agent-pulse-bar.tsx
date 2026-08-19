@@ -79,7 +79,8 @@ export function AgentPulseBar() {
                 <li>Clean ownership &amp; delegation</li>
               </ul>
               <p className="mt-2">
-                The 5th level is reserved for future on-chain usage metrics.
+                Level 5 (Luminous) is earned from recent Pulse checks and
+                Pulse-conditioned Paths activity.
               </p>
             </section>
 

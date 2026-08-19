@@ -1,15 +1,19 @@
 import { ERC8004, IDENTITY_REGISTRY_READ_ABI, NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { getTokenUsageSignal } from "@/lib/instrumentation/pulse-paths"
 import type { AgentInfo, CanvasDiff, CanvasInfo, NormieOwner } from "@/lib/types"
 import { publicClient } from "@/lib/viem-client"
 
 export const MAX_LEVEL = 5
 
+export const USAGE_BREAKDOWN_SIGNAL =
+  "Recent agent usage / interaction signal"
+
 export const NOTE =
-  "This Pulse uses currently available signals from the Normies API. The 5th level unlocks as more agents transact and interact on-chain in future updates — there's always room for improvement."
+  "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history."
 
 export const NEXT_SIGNAL =
-  "Reserved for future on-chain usage metrics (transactions, interactions, swarm activity)."
+  "Earn Luminous with recent Pulse checks and Pulse-conditioned Paths activity."
 
 const STATUS_BY_LEVEL: Record<number, string> = {
   0: "Dormant",
@@ -149,19 +153,45 @@ export async function getAgentPulse(tokenId: number): Promise<AgentPulseResult> 
     breakdown.push("Clean ownership & delegation")
   }
 
-  const pulse_level = breakdown.length
+  let usageEarned = false
+  try {
+    const usage = await getTokenUsageSignal(tokenId)
+    usageEarned = usage.earned
+  } catch {
+    usageEarned = false
+  }
+
+  const assembled = assemblePulseSignals(breakdown, usageEarned)
 
   return {
     ok: true,
     data: {
       token_id: tokenId,
       agent_id: agentId,
-      pulse_level,
       max_level: MAX_LEVEL,
-      status: STATUS_BY_LEVEL[pulse_level] ?? "Dormant",
-      breakdown,
-      next_signal: pulse_level < MAX_LEVEL ? NEXT_SIGNAL : null,
-      note: NOTE,
+      ...assembled,
     },
+  }
+}
+
+/** Apply optional 5th usage signal. Fail-open callers pass earned=false. */
+export function assemblePulseSignals(
+  staticBreakdown: string[],
+  usageEarned: boolean,
+): Pick<
+  AgentPulseResponse,
+  "breakdown" | "pulse_level" | "status" | "next_signal" | "note"
+> {
+  const breakdown = [...staticBreakdown]
+  if (usageEarned && !breakdown.includes(USAGE_BREAKDOWN_SIGNAL)) {
+    breakdown.push(USAGE_BREAKDOWN_SIGNAL)
+  }
+  const pulse_level = Math.min(MAX_LEVEL, breakdown.length)
+  return {
+    breakdown,
+    pulse_level,
+    status: STATUS_BY_LEVEL[pulse_level] ?? "Dormant",
+    next_signal: pulse_level >= MAX_LEVEL ? null : NEXT_SIGNAL,
+    note: NOTE,
   }
 }

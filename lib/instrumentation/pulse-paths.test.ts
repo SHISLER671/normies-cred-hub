@@ -9,6 +9,9 @@ import {
   __expirePulseRecentForTests,
   __forceMemoryStoreForTests,
   __resetUsageMemoryForTests,
+  USAGE_CONDITIONED_PATHS_THRESHOLD,
+  USAGE_PULSE_CALLS_THRESHOLD,
+  getTokenUsageSignal,
   getUsageMetrics,
   recordPathsCall,
   recordPulseCall,
@@ -150,5 +153,40 @@ describe("metrics + fail-open", () => {
 
     const metrics = await getUsageMetrics()
     assert.equal(metrics.pulseCalls, 0)
+  })
+})
+
+describe("level-5 usage signal", () => {
+  it("does not earn with sparse Pulse calls", async () => {
+    __resetUsageMemoryForTests()
+    await recordPulseCall({ tokenId: 200, source: "get" })
+    const s = await getTokenUsageSignal(200)
+    assert.equal(s.earned, false)
+    assert.equal(s.pulseCalls, 1)
+  })
+
+  it("earns after enough Pulse calls in the lookback window", async () => {
+    __resetUsageMemoryForTests()
+    for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD; i++) {
+      await recordPulseCall({ tokenId: 201, source: "get" })
+    }
+    const s = await getTokenUsageSignal(201)
+    assert.equal(s.pulseCalls, USAGE_PULSE_CALLS_THRESHOLD)
+    assert.equal(s.earned, true)
+  })
+
+  it("earns from Pulse-conditioned Paths activity", async () => {
+    __resetUsageMemoryForTests()
+    await recordPulseCall({ tokenId: 202, source: "get" })
+    for (let i = 0; i < USAGE_CONDITIONED_PATHS_THRESHOLD; i++) {
+      await recordPathsCall({
+        tokenId: 202,
+        intentTag: "burn",
+        pathCount: 3,
+      })
+    }
+    const s = await getTokenUsageSignal(202)
+    assert.ok(s.conditionedPaths >= USAGE_CONDITIONED_PATHS_THRESHOLD)
+    assert.equal(s.earned, true)
   })
 })

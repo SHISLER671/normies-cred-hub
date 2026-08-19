@@ -119,8 +119,8 @@ export default function DashboardPage() {
     "Canvas activity detected",
     "Clean ownership & delegation"
   ],
-  "next_signal": "Reserved for future on-chain usage metrics — there's always room for improvement.",
-  "note": "This Pulse uses currently available signals from the Normies API. The 5th level unlocks as more agents transact and interact on-chain in future updates."
+  "next_signal": "Earn Luminous with recent Pulse checks and Pulse-conditioned Paths activity.",
+  "note": "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history."
 }`}
                 </pre>
               </div>

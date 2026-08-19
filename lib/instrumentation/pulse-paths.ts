@@ -6,6 +6,11 @@ import { after } from "next/server"
 import type { NextRequest } from "next/server"
 
 export const PULSE_RECENT_WINDOW_SEC = 900
+/** Rolling window for Pulse level-5 usage signal. */
+export const USAGE_LOOKBACK_DAYS = 14
+export const USAGE_PULSE_CALLS_THRESHOLD = 8
+export const USAGE_CONDITIONED_PATHS_THRESHOLD = 3
+const DAY_TTL_SEC = 16 * 86_400
 const EVENTS_MAX = 10_000
 const METRICS_EVENTS_DEFAULT = 20
 
@@ -17,6 +22,10 @@ const KEY = {
   events: "usage:events",
   source: (source: PulseCallSource) => `usage:pulse:source:${source}`,
   recent: (tokenId: number) => `usage:pulse:recent:${tokenId}`,
+  pulseDay: (tokenId: number, day: string) =>
+    `usage:pulse:day:${tokenId}:${day}`,
+  conditionedDay: (tokenId: number, day: string) =>
+    `usage:paths:conditioned:day:${tokenId}:${day}`,
 } as const
 
 export type PulseCallSource = "get" | "post" | "tool"
@@ -188,6 +197,88 @@ function parseEventJson(
   }
 }
 
+function utcDay(ms = Date.now()): string {
+  return new Date(ms).toISOString().slice(0, 10)
+}
+
+function lookbackDays(n: number): string[] {
+  const out: string[] = []
+  const now = Date.now()
+  for (let i = 0; i < n; i++) {
+    out.push(utcDay(now - i * 86_400_000))
+  }
+  return out
+}
+
+async function incrDaily(
+  client: Redis,
+  key: string,
+): Promise<void> {
+  await client.incr(key)
+  await client.expire(key, DAY_TTL_SEC)
+}
+
+export type TokenUsageSignal = {
+  pulseCalls: number
+  conditionedPaths: number
+  earned: boolean
+  lookbackDays: number
+}
+
+/**
+ * Fail-open usage read for Pulse level 5.
+ * Earned when recent Pulse calls or Pulse-conditioned Paths meet thresholds.
+ */
+export async function getTokenUsageSignal(
+  tokenId: number,
+): Promise<TokenUsageSignal> {
+  const empty: TokenUsageSignal = {
+    pulseCalls: 0,
+    conditionedPaths: 0,
+    earned: false,
+    lookbackDays: USAGE_LOOKBACK_DAYS,
+  }
+  try {
+    if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId > 9999) {
+      return empty
+    }
+    const days = lookbackDays(USAGE_LOOKBACK_DAYS)
+    const pulseKeys = days.map((d) => KEY.pulseDay(tokenId, d))
+    const condKeys = days.map((d) => KEY.conditionedDay(tokenId, d))
+    const client = getRedis()
+    let pulseCalls = 0
+    let conditionedPaths = 0
+    if (client) {
+      const vals = await client.mget<(number | string | null)[]>(
+        ...pulseKeys,
+        ...condKeys,
+      )
+      const rows = Array.isArray(vals) ? vals : []
+      for (let i = 0; i < days.length; i++) {
+        pulseCalls += toCount(rows[i])
+        conditionedPaths += toCount(rows[i + days.length])
+      }
+    } else {
+      for (const d of days) {
+        pulseCalls += memGetCount(KEY.pulseDay(tokenId, d))
+        conditionedPaths += memGetCount(KEY.conditionedDay(tokenId, d))
+      }
+    }
+    const earned =
+      pulseCalls >= USAGE_PULSE_CALLS_THRESHOLD ||
+      conditionedPaths >= USAGE_CONDITIONED_PATHS_THRESHOLD
+    return {
+      pulseCalls,
+      conditionedPaths,
+      earned,
+      lookbackDays: USAGE_LOOKBACK_DAYS,
+    }
+  } catch (err) {
+    console.warn("[instrumentation] getTokenUsageSignal failed", err)
+    return empty
+  }
+}
+
 async function hasRecentPulse(tokenId: number): Promise<boolean> {
   const client = getRedis()
   if (client) {
@@ -224,6 +315,7 @@ export async function recordPulseCall(input: PulseCallInput): Promise<void> {
     const json = JSON.stringify(event)
 
     const client = getRedis()
+    const day = utcDay()
     if (client) {
       await Promise.all([
         client.set(KEY.recent(input.tokenId), JSON.stringify(recent), {
@@ -233,6 +325,7 @@ export async function recordPulseCall(input: PulseCallInput): Promise<void> {
         client.incr(KEY.source(input.source)),
         client.sadd(KEY.tokens, input.tokenId),
         client.lpush(KEY.events, json),
+        incrDaily(client, KEY.pulseDay(input.tokenId, day)),
       ])
       await client.ltrim(KEY.events, 0, EVENTS_MAX - 1)
       return
@@ -241,6 +334,7 @@ export async function recordPulseCall(input: PulseCallInput): Promise<void> {
     memSetRecent(input.tokenId, recent)
     memIncr(KEY.pulseCount)
     memIncr(KEY.source(input.source))
+    memIncr(KEY.pulseDay(input.tokenId, day))
     memTokens.add(input.tokenId)
     memPushEvent(json)
   } catch (err) {
@@ -280,19 +374,26 @@ export async function recordPathsCall(input: PathsCallInput): Promise<boolean> {
     const json = JSON.stringify(event)
 
     const client = getRedis()
+    const day = utcDay()
     if (client) {
       const ops: Array<Promise<unknown>> = [
         client.incr(KEY.pathsCount),
         client.lpush(KEY.events, json),
       ]
-      if (pulseConditioned) ops.push(client.incr(KEY.conditionedCount))
+      if (pulseConditioned && tokenId != null) {
+        ops.push(client.incr(KEY.conditionedCount))
+        ops.push(incrDaily(client, KEY.conditionedDay(tokenId, day)))
+      }
       await Promise.all(ops)
       await client.ltrim(KEY.events, 0, EVENTS_MAX - 1)
       return pulseConditioned
     }
 
     memIncr(KEY.pathsCount)
-    if (pulseConditioned) memIncr(KEY.conditionedCount)
+    if (pulseConditioned && tokenId != null) {
+      memIncr(KEY.conditionedCount)
+      memIncr(KEY.conditionedDay(tokenId, day))
+    }
     memPushEvent(json)
     return pulseConditioned
   } catch (err) {

@@ -14,10 +14,10 @@
     "test:treasury": "tsx --test lib/treasury/treasury.test.ts",
     "test:currencies": "tsx --test lib/currencies/currencies.test.ts lib/payments/config.test.ts",
     "test:path-ranker": "tsx --test lib/path-ranker/path-ranker.test.ts",
-    "test:instrumentation": "tsx --test lib/instrumentation/pulse-paths.test.ts",
+    "test:instrumentation": "tsx --test lib/instrumentation/pulse-paths.test.ts lib/api/agent-pulse.test.ts",
     "test:ask": "tsx --test lib/agent-recommendations/ask-facts.test.ts",
-    "test:unit": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts lib/path-ranker/path-ranker.test.ts lib/agent-recommendations/ask-facts.test.ts lib/instrumentation/pulse-paths.test.ts",
-    "test:all": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts lib/currencies/currencies.test.ts lib/payments/config.test.ts lib/path-ranker/path-ranker.test.ts lib/agent-recommendations/ask-facts.test.ts lib/instrumentation/pulse-paths.test.ts",
+    "test:unit": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts lib/path-ranker/path-ranker.test.ts lib/agent-recommendations/ask-facts.test.ts lib/instrumentation/pulse-paths.test.ts lib/api/agent-pulse.test.ts",
+    "test:all": "tsx --test lib/security/security.test.ts lib/erc6551/erc6551.test.ts lib/treasury/treasury.test.ts lib/currencies/currencies.test.ts lib/payments/config.test.ts lib/path-ranker/path-ranker.test.ts lib/agent-recommendations/ask-facts.test.ts lib/instrumentation/pulse-paths.test.ts lib/api/agent-pulse.test.ts",
     "typecheck": "tsc --noEmit",
     "sbom": "echo \"Run: pnpm dlx @cyclonedx/cyclonedx-npm -o sbom.json\""
   },
