@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { AgentToolsFoot } from "@/components/agent-tools-block"
 import { PathBoard } from "@/components/path-board"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
@@ -27,6 +28,7 @@ export default function PathsPage() {
       <div className="header-spacer" aria-hidden />
       <main style={{ paddingTop: 8, paddingBottom: 24 }}>
         <PathBoard defaultTokenId={ZULO_IDENTITY.tokenId} />
+        <AgentToolsFoot />
       </main>
     </div>
   )

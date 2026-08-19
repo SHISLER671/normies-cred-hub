@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 
+import { AgentToolsHomeLine } from "@/components/agent-tools-block"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { HomeFuturePlans } from "@/components/home-future-plans"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
@@ -83,6 +84,7 @@ export default async function ZuloLandingPage() {
             Agent #{ZULO_IDENTITY.agentId} · Normie #{ZULO_IDENTITY.tokenId} ·
             Tool #53 · high-signal concierge
           </p>
+          <AgentToolsHomeLine />
           <p className="home-orient-line text-center">
             For newholders and AP stackers: ranked Moves and high-signal Ask —
             confirm the decision, don&apos;t drown in docs.

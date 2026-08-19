@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { AgentPulseBar } from "@/components/agent-pulse-bar"
+import { AgentToolsStrip } from "@/components/agent-tools-block"
 import { Dashboard } from "@/components/dashboard"
 import {
   PulseAccordion,
@@ -133,6 +134,10 @@ export default function DashboardPage() {
               </p>
             </PulseAccordionItem>
           </PulseAccordion>
+        </section>
+
+        <section className="dash-section-acc" data-reveal>
+          <AgentToolsStrip />
         </section>
 
         {/* Trust cards / framework — My agents + collapsible signals */}

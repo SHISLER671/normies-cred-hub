@@ -3483,6 +3483,100 @@
   margin: 0;
 }
 
+.zulo-chrome .agent-tools-strip {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  max-width: 720px;
+}
+
+.zulo-chrome .agent-tools-kicker {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .agent-tools-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.zulo-chrome .agent-tool-name {
+  font-weight: 500;
+}
+
+.zulo-chrome .agent-tool-id {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.95em;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.zulo-chrome .agent-tool-id-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.zulo-chrome .agent-tools-manifests {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.zulo-chrome .agent-tools-manifests a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.zulo-chrome .agent-tools-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.zulo-chrome .agent-tools-home {
+  margin: 0 auto 10px;
+  max-width: 32rem;
+}
+
+.zulo-chrome .agent-tools-foot {
+  margin: 16px auto 8px;
+  padding: 0 16px;
+  max-width: 720px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .agent-tools-foot a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.zulo-chrome.ask-page-wrap .agent-tools-foot {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 8px 20px 12px;
+  border-top: 1px solid var(--border);
+  max-width: none;
+}
+
 /* Dashboard trust surfaces keep their own cards; tighten radius language */
 .zulo-chrome .dash-main [class*="rounded"] {
   border-radius: 0 !important;

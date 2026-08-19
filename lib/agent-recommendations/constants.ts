@@ -1,6 +1,8 @@
 // lib/agent-recommendations/constants.ts
 // Zulo identity baselines + ecosystem links for the recommendations plugin.
 
+import { ethereumListing, NORMIES_CRED_PULSE } from "@/lib/erc8257/our-tools"
+
 /** Featured proof-of-concept agent: Normie #7141 → Zulo → ERC-8004 agentId 32626. */
 export const ZULO_IDENTITY = {
   tokenId: 7141,
@@ -18,11 +20,14 @@ export const ZULO_RECOMMENDATIONS_DYOR =
 export const MAX_SESSION_HISTORY = 5
 export const MAX_USER_QUERY_CHARS = 1000
 
-/** Normies Cred Pulse — ERC-8257 Tool #53 on this app. */
+/** Normies Cred Pulse — ERC-8257 Ethereum Tool #53 on this app. */
+const pulseEth = ethereumListing(NORMIES_CRED_PULSE)
+
 export const CRED_HUB_PULSE = {
-  toolId: 53,
+  toolId: pulseEth.toolId,
   pathTemplate: "/api/agent/{tokenId}/pulse",
-  openSeaToolsUrl: "https://opensea.io/tools/erc8257/ethereum/53",
+  openSeaToolsUrl:
+    pulseEth.openseaUrl ?? "https://opensea.io/tools/erc8257/ethereum/53",
 } as const
 
 /**
