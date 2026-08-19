@@ -18,8 +18,63 @@ import {
 } from "@/lib/zulo/recommendations"
 
 import { tagsForSkill } from "./intents"
-import type { IntentTag, PathCandidate, ParsedIntent } from "./types"
+import type {
+  IntentTag,
+  PathCandidate,
+  PathNextStep,
+  ParsedIntent,
+} from "./types"
 import type { AccessStatus } from "./types"
+
+const APP_ORIGIN = "https://normiescredhub.vercel.app"
+
+function nextStepForSkill(
+  skillId: string,
+  chip: string,
+  prompt: string,
+  tokenId?: number,
+): PathNextStep {
+  if (skillId === "pulse-analysis") {
+    if (tokenId != null) {
+      const path = `/api/agent/${tokenId}/pulse`
+      return {
+        label: `GET Pulse for #${tokenId}`,
+        href: path,
+        method: "GET",
+        endpoint: `${APP_ORIGIN}${path}`,
+        executable: true,
+      }
+    }
+    return {
+      label: "POST CredHub Pulse",
+      href: "/api/agent",
+      method: "POST",
+      endpoint: `${APP_ORIGIN}/api/agent`,
+      inputSchema: {
+        type: "object",
+        required: ["tokenId"],
+        properties: { tokenId: { type: "integer", minimum: 0, maximum: 9999 } },
+      },
+      executable: true,
+    }
+  }
+
+  const intentTag = tagsForSkill(skillId as Parameters<typeof tagsForSkill>[0])[0]
+  const body: Record<string, unknown> = {
+    intent: prompt,
+  }
+  if (intentTag) body.intentTag = intentTag
+  if (tokenId != null) body.tokenId = tokenId
+
+  return {
+    label: `POST Paths · ${chip}`,
+    href: `/paths?skill=${skillId}`,
+    method: "POST",
+    endpoint: `${APP_ORIGIN}/api/zulo/paths`,
+    body,
+    executable: true,
+  }
+}
 
 const SKIP_SKILL_IDS = new Set(["holder-chat"])
 
@@ -111,11 +166,6 @@ export function candidatesFromSkills(
           ? 35
           : 15
 
-    const endpoint =
-      skill.id === "pulse-analysis" && tokenId != null
-        ? `/api/agent/${tokenId}/pulse`
-        : skill.endpoint
-
     out.push({
       pathId: `skill:${skill.id}`,
       kind: "zulo-skill",
@@ -132,26 +182,12 @@ export function candidatesFromSkills(
         status: "open",
         note: "Free web path · A2A payment planned",
       },
-      nextStep: {
-        label:
-          skill.id === "pulse-analysis"
-            ? "Read CredHub Pulse"
-            : skill.id === "burn-efficiency"
-              ? "Run burn efficiency scan"
-              : skill.id === "market-sentinel"
-                ? "Open market sentinel"
-                : skill.id === "canvas-evolution"
-                  ? "Preview canvas path"
-                  : `Use ${skill.chip}`,
-        href:
-          skill.id === "pulse-analysis" && tokenId != null
-            ? endpoint
-            : skill.endpoint === "/api/zulo/ask"
-              ? `/paths?skill=${skill.id}`
-              : skill.endpoint,
-        method: skill.id === "pulse-analysis" ? "GET" : "link",
-        endpoint: skill.endpoint,
-      },
+      nextStep: nextStepForSkill(
+        skill.id,
+        skill.chip,
+        skill.prompt,
+        tokenId,
+      ),
       pulseAffinity,
       skillId: skill.id,
     })
@@ -185,9 +221,10 @@ export function candidatesFromNormiesTools(
         note: "Official Normies surface (open web)",
       },
       nextStep: {
-        label: `Open ${tool.name}`,
+        label: `Open ${tool.name} (web)`,
         href: tool.url,
         method: "link" as const,
+        executable: false,
       },
       pulseAffinity: affinity,
       category: tool.category,
@@ -231,11 +268,26 @@ export function candidatesFromRegistryTools(
       nextStep: {
         label:
           tool.toolId === CRED_HUB_PULSE.toolId
-            ? "Call CredHub Pulse (Tool #53)"
-            : `Open Tool #${tool.toolId}`,
+            ? `POST CredHub Pulse (Tool #${tool.toolId})`
+            : tool.endpoint
+              ? `POST Tool #${tool.toolId}`
+              : `Open Tool #${tool.toolId}`,
         href: tool.endpoint || tool.openseaUrl,
         method: tool.endpoint ? ("POST" as const) : ("link" as const),
         endpoint: tool.endpoint || undefined,
+        toolId: tool.toolId,
+        chain: tool.chain,
+        inputSchema: tool.endpoint
+          ? {
+              type: "object",
+              description: "See the tool manifest inputs at the metadata URI",
+            }
+          : undefined,
+        body:
+          tool.toolId === CRED_HUB_PULSE.toolId && ctx?.tokenId != null
+            ? { tokenId: ctx.tokenId }
+            : undefined,
+        executable: Boolean(tool.endpoint),
       },
       pulseAffinity: affinity,
     }
@@ -306,9 +358,10 @@ export function candidatesFromCommunity(
         note: "Community tool — open web",
       },
       nextStep: {
-        label: `Open ${tool.name}`,
+        label: `Open ${tool.name} (web)`,
         href: tool.url,
         method: "link" as const,
+        executable: false,
       },
       pulseAffinity: 10,
     }
