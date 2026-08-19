@@ -156,13 +156,14 @@ Example pulse response:
 ### Tool: Normies Paths
 
 - **Name**: Normies Paths
-- **Tool ID**: 215 (Ethereum, Normie NFT gated) · 530 (Base, open) · 2 (Abstract, open)
+- **Tool ID**: 215 (Ethereum, Normie NFT gated) · 530 (Base, open) · 2 (Abstract, open) · 14 (Robinhood Chain, open)
 - **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-paths.json
 - **Endpoint**: `POST https://normiescredhub.vercel.app/api/zulo/paths` (also supports GET with query params)
-- **Access**: Ethereum uses ERC721OwnerPredicate on the Normie collection (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`). Base and Abstract cannot use that gate (`CollectionNoCode`) so they are registered open.
+- **Access**: Ethereum uses ERC721OwnerPredicate on the Normie collection (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`). Base, Abstract, and Robinhood Chain cannot use that gate (`CollectionNoCode`) so they are registered open.
 - **Creator**: `0xb8792e6516b88e73ed0723f8c1c8a92531a98767`
 - **Registry**: ERC-8257 Tool Registry (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)
 - **OpenSea**: https://opensea.io/tools/erc8257/ethereum/215 · https://opensea.io/tools/erc8257/base/530 · https://opensea.io/tools/erc8257/abstract/2
+- **Robinhood Chain** (chainId 4663): Tool #14, open access, same manifest/endpoint. Explorer: https://robinhoodchain.blockscout.com/tx/0xba44bcbea0f91f05179455bd6080f5ea2ec4164c99d4088ec0933b04301e3e14
 
 **Purpose**: After checking **Normies Cred Pulse**, call this tool to receive 3–5 Pulse-weighted ranked paths. Built for autonomous agent-to-agent and NFT-to-NFT decision making. Agents choose a path, then execute the concrete next step (the move).
 
