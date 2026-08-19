@@ -101,12 +101,13 @@ Use the `opensea-tool-sdk` skill to set up access and call the tool below.
 ### Tool
 
 - **Name**: Normies Cred Pulse  
-- **Tool ID**: 53  
+- **Tool ID**: 53 (Ethereum, Normie NFT gated) · 531 (Base, open) · 1 (Abstract, open)  
 - **Endpoint**: `POST https://normiescredhub.vercel.app/api/agent`  
 - **GET (public)**: `GET https://normiescredhub.vercel.app/api/agent/{tokenId}/pulse`  
 - **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json  
-- **Access**: Gated to Normie NFT holders only (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`)  
-- **Registry**: ERC-8257 Tool Registry on Ethereum + Base (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)
+- **Access**: Ethereum is gated to Normie NFT holders (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`). Base and Abstract are open — the Normie ERC-721 has no contract on those chains (`CollectionNoCode`).  
+- **Registry**: ERC-8257 Tool Registry (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)  
+- **OpenSea**: https://opensea.io/tools/erc8257/ethereum/53 · https://opensea.io/tools/erc8257/base/531 · https://opensea.io/tools/erc8257/abstract/1
 
 ### Inputs
 
@@ -126,7 +127,7 @@ curl -X POST "https://normiescredhub.vercel.app/api/agent" \
 curl "https://normiescredhub.vercel.app/api/agent/7141/pulse"
 ```
 
-Note: The registry-gated tool path requires the caller to hold a Normie NFT (`ERC721OwnerPredicate`). The public GET pulse endpoint remains available for read-only profiles.
+Note: On Ethereum the registry-gated tool path requires the caller to hold a Normie NFT (`ERC721OwnerPredicate`). Base/Abstract listings are open discovery copies of the same HTTPS endpoint. The public GET pulse endpoint remains available for read-only profiles.
 
 Example pulse response:
 
@@ -155,13 +156,13 @@ Example pulse response:
 ### Tool: Normies Paths
 
 - **Name**: Normies Paths
-- **Tool ID**: 215 (Ethereum, Normie NFT gated) · 530 (Base, open — Normies ERC-721 has no contract on Base)
+- **Tool ID**: 215 (Ethereum, Normie NFT gated) · 530 (Base, open) · 2 (Abstract, open)
 - **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-paths.json
 - **Endpoint**: `POST https://normiescredhub.vercel.app/api/zulo/paths` (also supports GET with query params)
-- **Access**: Ethereum uses ERC721OwnerPredicate on the Normie collection (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`). Base cannot use that gate (`CollectionNoCode`) so it is registered open.
+- **Access**: Ethereum uses ERC721OwnerPredicate on the Normie collection (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`). Base and Abstract cannot use that gate (`CollectionNoCode`) so they are registered open.
 - **Creator**: `0xb8792e6516b88e73ed0723f8c1c8a92531a98767`
 - **Registry**: ERC-8257 Tool Registry (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)
-- **OpenSea**: https://opensea.io/tools/erc8257/ethereum/215 · https://opensea.io/tools/erc8257/base/530
+- **OpenSea**: https://opensea.io/tools/erc8257/ethereum/215 · https://opensea.io/tools/erc8257/base/530 · https://opensea.io/tools/erc8257/abstract/2
 
 **Purpose**: After checking **Normies Cred Pulse**, call this tool to receive 3–5 Pulse-weighted ranked paths. Built for autonomous agent-to-agent and NFT-to-NFT decision making. Agents choose a path, then execute the concrete next step (the move).
 
