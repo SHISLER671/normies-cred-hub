@@ -167,6 +167,21 @@ describe("composed Ask prompt", () => {
     assert.match(prompt, /do not act/i)
     assert.match(prompt, /Never manufacture urgency/)
   })
+
+  it("teaches Normies Cred Pulse then Normies Paths with canonical Ethereum IDs", () => {
+    const prompt = composeZuloPrompt(
+      generalContext(),
+      "what tools should agents call?",
+    )
+    assert.match(prompt, /NORMIES AGENT TOOLS/)
+    assert.match(prompt, /Normies Cred Pulse/)
+    assert.match(prompt, /Normies Paths/)
+    assert.match(prompt, /Tool #53/)
+    assert.match(prompt, /Tool #215/)
+    assert.match(prompt, /Never invent tool IDs/)
+    assert.match(prompt, /Pulse → Paths/)
+    assert.match(prompt, /Call this after Pulse/)
+  })
 })
 
 describe("pulse-first guarantee", () => {

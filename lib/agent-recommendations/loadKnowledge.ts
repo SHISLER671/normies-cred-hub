@@ -6,6 +6,9 @@
 //   knowledge/collab-rails-and-ask-patterns.md
 //   knowledge/payment-security.md
 //   knowledge/protocols-deep-dive.md
+//   knowledge/agent-tools.md  (IDs generated from lib/erc8257/our-tools.ts)
+
+import { formatAgentToolsKnowledge } from "@/lib/erc8257/our-tools"
 
 /** Bundled copy of zulo-persona.md */
 export const ZULO_PERSONA_MD = `# Zulo — Strategic Architect Persona
@@ -969,6 +972,21 @@ export function buildProtocolsPromptBlock(): string {
 ${loadProtocolsCondensedKnowledge()}`
 }
 
+/** Official CredHub ERC-8257 tools — IDs from lib/erc8257/our-tools.ts. */
+export function loadAgentToolsKnowledge(): string {
+  return formatAgentToolsKnowledge().trim()
+}
+
+export function buildAgentToolsPromptBlock(): string {
+  return `=== NORMIES AGENT TOOLS (ERC-8257 — Pulse then Paths) ===
+${loadAgentToolsKnowledge()}
+
+AGENT-TOOLS ENFORCEMENT:
+- When the user asks about tools, trust, agents calling each other, or how to act on a Normie, briefly mention the Pulse → Paths sequence and the two tool names/IDs if relevant.
+- Never invent tool IDs. Prefer the official names "Normies Cred Pulse" and "Normies Paths".
+- Ethereum IDs are canonical. Other listed chains are open discovery copies of the same HTTPS endpoints.`
+}
+
 /** Full protocols deep-dive block (strategy / protocol / security queries). */
 export function buildProtocolsDeepDivePromptBlock(): string {
   return `=== PROTOCOLS DEEP-DIVE (full reference) ===
@@ -1144,7 +1162,7 @@ export function getProtocolsDeepDiveContextSummary(): {
     ],
     erc8257: [
       "Draft tool registry; OpenSea CREATE2 0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1",
-      "Tool #53 Normies Cred Pulse — Normie NFT gated; no funds in registry",
+      "Normies Cred Pulse Ethereum Tool #53 then Normies Paths Ethereum Tool #215 — Pulse first, Paths second; NFT gated on Ethereum",
     ],
     zulo: [
       "Web /ask is free. Normies agent/pixel pay rails (x402, 6551, AP tips) = not announced → TBA",
@@ -1293,7 +1311,7 @@ Zulo may say **“I hold #7141.”** Never assign #7141 to the visitor unless Ac
 Need constraints: budget, goal (hold / burn / AP / traits / agent), or specific token IDs. No IDs → ask for 2–5 candidates **or** budget + goal in **one** line; offer dual-eval template. IDs given → compare pixels, traits, rank/rarity if available, burn band vs hold value; state uncertainty. Never: “buy this one it’ll rip.” Prefer: data → tradeoff → user’s goal.
 
 **What is an AI NFT / agent NFT?**
-Normies frame: on-chain identity + programmable canvas + optional agent binding (ERC-8004) — not “ChatGPT in a JPEG.” Agent NFT = NFT that can bind identity / endpoints / accounts; tools/reputation can attach (e.g. PULSE Tool #53). Point to PULSE for trust-before-engage; Moves/Ask for decisions.
+Normies frame: on-chain identity + programmable canvas + optional agent binding (ERC-8004) — not “ChatGPT in a JPEG.” Agent NFT = NFT that can bind identity / endpoints / accounts; tools/reputation can attach (e.g. Normies Cred Pulse). Point to PULSE then Paths for trust-before-engage; Moves/Ask for decisions.
 
 **Should I burn or hold?**
 Need token ID(s) or Active Normie. Burn: $/AP, pixel tier, need for AP now. Hold: traits, rarity, Pulse, canvas/narrative, agent identity. State **both**; user goal breaks the tie. Soft data → observe. Premium / purist / high-Pulse → lean hold unless user goal is pure AP.
@@ -1311,7 +1329,7 @@ Industry: **yes**. Normies enablement: **TBA**. No CredHub pay UI.
 “Not tax advice — talk to a professional.”
 
 **Which tool / path?**
-Rank Moves when intent is clear; dual-credit on results; no endorsement beyond data.
+Pulse first (Normies Cred Pulse, Ethereum Tool #53) then Paths (Normies Paths, Ethereum Tool #215). Rank Moves when intent is clear; dual-credit on results; never invent tool IDs.
 
 **Can my agent be a StonkBroker / passive income / make my AI NFT make money?**
 Correct the assumption in one line: a Normie / agent NFT is **not** an automatic paycheck. Map which economy they mean. What’s public vs TBA. What they can do now: verify on PULSE, rank Moves, define goal (hold vs AP vs agent use). No “you’ll earn if you just hold.”

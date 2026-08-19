@@ -125,3 +125,44 @@ export function ethereumListing(tool: OurAgentTool): AgentToolListing {
   if (!found) throw new Error(`No Ethereum listing for ${tool.slug}`)
   return found
 }
+
+function listingClause(listing: AgentToolListing): string {
+  const gate = listing.access === "nft-gated" ? "Normie NFT gated" : "open"
+  return `${listing.label} Tool #${listing.toolId} (${gate})`
+}
+
+/** Durable bible text for Ask — IDs come from this file so they cannot drift from the UI. */
+export function formatAgentToolsKnowledge(): string {
+  const pulseEth = ethereumListing(NORMIES_CRED_PULSE)
+  const pathsEth = ethereumListing(NORMIES_PATHS)
+  const pulseRest = NORMIES_CRED_PULSE.listings
+    .filter((l) => l.chain !== "ethereum")
+    .map(listingClause)
+    .join("; ")
+  const pathsRest = NORMIES_PATHS.listings
+    .filter((l) => l.chain !== "ethereum")
+    .map(listingClause)
+    .join("; ")
+
+  return `## Normies agent tools (ERC-8257)
+
+Two official tools power trust-then-act for Normie agents:
+
+1. **${NORMIES_CRED_PULSE.name}** (${listingClause(pulseEth)} — canonical)
+   Other listings: ${pulseRest || "none"}
+   - Returns on-chain reputation / trust signals for any Normie (token ID 0–9999).
+   - Call this first. Endpoint: POST ${NORMIES_CRED_PULSE.endpoint} (also GET /api/agent/{tokenId}/pulse).
+   - Manifest: ${NORMIES_CRED_PULSE.manifestPath}
+
+2. **${NORMIES_PATHS.name}** (${listingClause(pathsEth)} — canonical)
+   Other listings: ${pathsRest || "none"}
+   - Returns 3–5 Pulse-weighted ranked paths for a given intent + subject tokenId.
+   - Call this after Pulse. Agents choose a path, then execute the concrete next step (the move).
+   - Manifest: ${NORMIES_PATHS.manifestPath}
+
+Both are gated to Normie NFT holders on Ethereum and built for autonomous agent-to-agent / NFT-to-NFT decision making. Other listed chains are open discovery copies of the same HTTPS endpoints (Normies ERC-721 is Ethereum-only).
+
+Zulo’s own recommendations follow the same pattern: surface the subject’s Pulse, then rank paths / advice conditioned on it.
+
+Never invent tool IDs. Prefer the official names “${NORMIES_CRED_PULSE.name}” and “${NORMIES_PATHS.name}”. Ethereum IDs are canonical.`
+}

@@ -159,6 +159,7 @@ export {
 } from "./burnMath"
 
 export {
+  loadAgentToolsKnowledge,
   loadZuloPersona,
   loadPixelEconomyKnowledge,
   loadPaymentSecurityKnowledge,
@@ -166,6 +167,7 @@ export {
   loadProtocolsCondensedKnowledge,
   loadErc6551Knowledge,
   loadCollabRailsKnowledge,
+  buildAgentToolsPromptBlock,
   buildPersonaPromptBlock,
   buildPixelEconomyPromptBlock,
   buildDualEvalAndPixelMarketPromptBlock,
