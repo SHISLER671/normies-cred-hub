@@ -3,6 +3,11 @@ import { describe, it } from "node:test"
 
 import { composeZuloPrompt } from "./composePrompt"
 import {
+  ensurePulseFirst,
+  formatPulseLead,
+  resolvePulseSubject,
+} from "./pulseFirst"
+import {
   formatBurnMath,
   parsePaidEthFromQuery,
 } from "./burnMath"
@@ -152,5 +157,142 @@ describe("composed Ask prompt", () => {
     const prompt = composeZuloPrompt(generalContext(), "is PIXEL a token")
     assert.doesNotMatch(prompt, /market will add buy\/sell later/i)
     assert.match(prompt, /NOT a token/)
+  })
+
+  it("instructs Pulse-first structure before ranked advice", () => {
+    const prompt = composeZuloPrompt(generalContext(), "what should I burn")
+    assert.match(prompt, /PULSE-FIRST RESPONSE RULES/)
+    assert.match(prompt, /Always open with or immediately include the subject's Pulse/)
+    assert.match(prompt, /Pulse data unavailable for this token/)
+    assert.match(prompt, /do not act/i)
+    assert.match(prompt, /Never manufacture urgency/)
+  })
+})
+
+describe("pulse-first guarantee", () => {
+  it("does not invent visitor Pulse in general mode", () => {
+    const subject = resolvePulseSubject(generalContext())
+    assert.equal(subject.hasSubject, false)
+    assert.equal(formatPulseLead(subject), null)
+
+    const out = ensurePulseFirst(
+      {
+        understanding: "General burn question.",
+        recommendation: "Need a token ID.",
+        reasoning: "No subject.",
+        nextSteps: ["Name a token ID"],
+        confidence: 80,
+      },
+      generalContext(),
+    )
+    assert.equal(out.pulseLead, undefined)
+    assert.equal(out.confidence, 80)
+    assert.doesNotMatch(out.understanding, /Pulse /)
+  })
+
+  it("prepends Pulse snapshot when the model forgets", () => {
+    const ctx = generalContext()
+    ctx.platformContext!.subjectScope = {
+      mode: "mentioned_ids",
+      walletConnected: false,
+      activeNormieId: null,
+      mentionedTokenIds: [7141],
+      normieIsSpeakerIdentityOnly: false,
+      userOwnsFocus: false,
+    }
+    ctx.platformContext!.pulse = {
+      tokenId: 7141,
+      agentId: 32626,
+      pulseLevel: 4,
+      maxLevel: 5,
+      status: "Strong",
+      breakdown: [
+        "ERC-8004 registered",
+        "Has active agent card",
+        "Canvas activity detected",
+        "Clean ownership & delegation",
+      ],
+      gaps: [],
+      nextSignal: null,
+      note: "",
+    }
+
+    const out = ensurePulseFirst(
+      {
+        understanding: "You want burn fodder.",
+        recommendation: "Ranked moves follow.",
+        reasoning: "Efficiency plus identity.",
+        nextSteps: ["Check PULSE", "Do not act if unsure"],
+        confidence: 82,
+      },
+      ctx,
+    )
+    assert.match(out.pulseLead ?? "", /^Pulse 4\/5 \(Strong\)/)
+    assert.match(out.pulseLead ?? "", /conditioned on this/)
+    assert.match(out.understanding, /^Pulse 4\/5 \(Strong\)/)
+    assert.equal(out.confidence, 82)
+  })
+
+  it("caps confidence when Pulse is missing for a subject token", () => {
+    const ctx = generalContext()
+    ctx.platformContext!.subjectScope = {
+      mode: "active_normie",
+      walletConnected: true,
+      activeNormieId: 42,
+      mentionedTokenIds: [],
+      normieIsSpeakerIdentityOnly: false,
+      userOwnsFocus: true,
+    }
+    ctx.normie.id = 42
+
+    const out = ensurePulseFirst(
+      {
+        understanding: "Looking at #42.",
+        recommendation: "Hold vs burn needs more signal.",
+        reasoning: "Thin data.",
+        nextSteps: ["Re-check Pulse"],
+        confidence: 88,
+      },
+      ctx,
+    )
+    assert.equal(out.pulseLead, "Pulse data unavailable for this token → confidence capped.")
+    assert.match(out.understanding, /Pulse data unavailable/)
+    assert.equal(out.confidence, 55)
+  })
+
+  it("does not duplicate an existing Pulse lead", () => {
+    const ctx = generalContext()
+    ctx.platformContext!.subjectScope = {
+      mode: "mentioned_ids",
+      walletConnected: false,
+      activeNormieId: null,
+      mentionedTokenIds: [1],
+      normieIsSpeakerIdentityOnly: false,
+      userOwnsFocus: false,
+    }
+    ctx.platformContext!.pulse = {
+      tokenId: 1,
+      agentId: null,
+      pulseLevel: 2,
+      maxLevel: 5,
+      status: "Building",
+      breakdown: ["ERC-8004 registered"],
+      gaps: [],
+      nextSignal: null,
+      note: "",
+    }
+    const lead = formatPulseLead(resolvePulseSubject(ctx))!
+    const out = ensurePulseFirst(
+      {
+        understanding: `${lead}\n\nYou asked about identity.`,
+        recommendation: "Stay with Pulse gaps.",
+        reasoning: "Already led with Pulse.",
+        nextSteps: [],
+        confidence: 70,
+      },
+      ctx,
+    )
+    const count = (out.understanding.match(/Pulse 2\/5/g) ?? []).length
+    assert.equal(count, 1)
   })
 })

@@ -86,4 +86,4 @@ function normiesRationale(
 }
 
 export const PATH_FINDER_NOTE =
-  "Zulo ranks free, tryable Normies Moves from Pulse, access, and intent — high-signal concierge for burns, tools, and Canvas. Rate 👍/👎 to credit the move and Zulo #32626."
+  "Zulo checks Pulse first, then ranks free, tryable Normies Moves from Pulse, access, and intent — trust before engage. Rate 👍/👎 to credit the move and Zulo #32626."

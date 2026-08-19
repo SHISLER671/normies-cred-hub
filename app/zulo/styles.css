@@ -1502,6 +1502,13 @@
   font-weight: 500;
 }
 
+.zulo-chrome .response-pulse-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
 .zulo-chrome .response-section p,
 .zulo-chrome .response-section li {
   font-size: 14px;
@@ -2900,6 +2907,15 @@
   flex-direction: column;
   gap: 16px;
   margin-top: 14px;
+}
+
+.zulo-chrome .moves-pulse-lead {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  max-width: 560px;
 }
 
 .zulo-chrome .moves-results-meta {

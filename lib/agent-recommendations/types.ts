@@ -859,6 +859,8 @@ export interface ZuloResponse {
   confidence?: number
   /** Optional tool / doc URLs or labels cited in the answer */
   sources?: string[]
+  /** Canonical Pulse-first lead. Always set when a subject tokenId exists. */
+  pulseLead?: string
 }
 
 /**

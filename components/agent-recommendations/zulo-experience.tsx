@@ -479,12 +479,26 @@ function StructuredCard({
     (s): s is string => typeof s === "string" && s.trim().length > 0,
   )
 
+  const understanding = response.understanding?.trim() ?? ""
+  const pulseLead = response.pulseLead?.trim() ?? ""
+  const understandingWithoutLead =
+    pulseLead && understanding.startsWith(pulseLead)
+      ? understanding.slice(pulseLead.length).trim()
+      : understanding
+
   return (
     <div className={cn("response-block", compact && "response-block-compact")}>
-      {!compact && response.understanding ? (
+      {pulseLead ? (
+        <div className="response-section response-pulse-lead">
+          <p className="response-label">Pulse</p>
+          <p className="response-pulse-text">{pulseLead}</p>
+        </div>
+      ) : null}
+
+      {!compact && understandingWithoutLead ? (
         <div className="response-section">
           <p className="response-label">Understanding</p>
-          <ZuloRichText text={response.understanding} />
+          <ZuloRichText text={understandingWithoutLead} />
         </div>
       ) : null}
 

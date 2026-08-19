@@ -211,13 +211,19 @@ export function PathBoard({
 
       {result ? (
         <section className="moves-results" data-reveal>
+          <p className="moves-pulse-lead">
+            {result.subject.tokenId != null
+              ? result.subject.pulse_level != null
+                ? `Pulse ${result.subject.pulse_level}/5${
+                    result.subject.status ? ` (${result.subject.status})` : ""
+                  } — ranked moves below are conditioned on this.`
+                : "Pulse data unavailable for this token → ranking uses other signals; confidence capped."
+              : "No subject Normie this turn — moves are not Pulse-conditioned."}
+          </p>
           <p className="moves-results-meta mono">
             {result.intent.tags.join(" · ")}
             {result.subject.tokenId != null
               ? ` · #${result.subject.tokenId}`
-              : ""}
-            {result.subject.pulse_level != null
-              ? ` · Pulse ${result.subject.pulse_level}/5`
               : ""}
           </p>
           <div className="moves-results-list">

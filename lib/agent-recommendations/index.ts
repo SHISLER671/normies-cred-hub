@@ -4,6 +4,7 @@
 import { buildZuloContext } from "./buildContext"
 import { generateZuloResponse } from "./generate"
 import { postProcessZuloOutput } from "./postProcess"
+import { ensurePulseFirst } from "./pulseFirst"
 import type {
   CredHubPulseData,
   RecommendParams,
@@ -28,7 +29,8 @@ export async function getZuloRecommendation(
   })
 
   const rawOutput = await generateZuloResponse(context, params.userQuery)
-  return postProcessZuloOutput(rawOutput)
+  const processed = postProcessZuloOutput(rawOutput)
+  return ensurePulseFirst(processed, context)
 }
 
 export type {
