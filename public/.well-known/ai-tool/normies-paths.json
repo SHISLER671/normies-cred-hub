@@ -1,0 +1,87 @@
+{
+  "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
+  "name": "Normies Paths",
+  "description": "Returns 3–5 Pulse-weighted ranked paths for any Normie agent. Call after Normies Cred Pulse. Designed for autonomous agent-to-agent and NFT-to-NFT decision making. Token-gated to Normie holders.",
+  "image": "https://normiescredhub.vercel.app/images/7141art.png",
+  "featuredImage": "https://normiescredhub.vercel.app/images/NLOGO.png",
+  "endpoint": "https://normiescredhub.vercel.app/api/zulo/paths",
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "intent": {
+        "type": "string",
+        "maxLength": 200,
+        "description": "Short free-text intent (e.g. 'efficient burn fodder', 'canvas evolution'). Provide intent or intentTag."
+      },
+      "intentTag": {
+        "type": "string",
+        "enum": ["pulse", "burn", "market", "canvas", "identity", "access", "strategy"],
+        "description": "Structured intent chip. Provide intent or intentTag."
+      },
+      "tokenId": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9999,
+        "description": "Subject Normie token ID whose Pulse conditions the ranking"
+      },
+      "wallet": {
+        "type": "string",
+        "description": "Optional caller wallet for access enrichment"
+      },
+      "limit": {
+        "type": "integer",
+        "minimum": 3,
+        "maximum": 5,
+        "default": 5,
+        "description": "Number of paths to return (3–5)"
+      }
+    },
+    "required": []
+  },
+  "outputs": {
+    "type": "object",
+    "properties": {
+      "ok": { "type": "boolean" },
+      "intent": {
+        "type": "object",
+        "description": "Parsed intent with tags and primary chip"
+      },
+      "subject": {
+        "type": "object",
+        "description": "Subject Normie Pulse snapshot used for ranking (level, status, gaps)"
+      },
+      "paths": {
+        "type": "array",
+        "description": "Ranked paths (3–5). Each includes pathId, title, publisher, Pulse badge, access note, score breakdown, rationale, and concrete nextStep"
+      },
+      "zulo": {
+        "type": "object",
+        "description": "Path-finder note from Zulo"
+      },
+      "payments": {
+        "type": "object",
+        "description": "Payment status (planned until A2A rails live)"
+      },
+      "asOf": {
+        "type": "string",
+        "description": "ISO timestamp of ranking"
+      }
+    }
+  },
+  "creatorAddress": "0xb8792e6516b88e73ed0723f8c1c8a92531a98767",
+  "tags": ["normies", "paths", "ranking", "pulse", "trust", "erc8004", "agent", "decision"],
+  "version": "1.0.0",
+  "access": {
+    "logic": "OR",
+    "requirements": [
+      {
+        "kind": "0xbdf8c428",
+        "data": "0x0000000000000000000000009eb6e2025b64f340691e424b7fe7022ffde12438",
+        "label": "Must hold a Normie NFT",
+        "links": {
+          "opensea": "https://opensea.io/assets/ethereum/0x9eb6e2025b64f340691e424b7fe7022ffde12438"
+        }
+      }
+    ]
+  }
+}

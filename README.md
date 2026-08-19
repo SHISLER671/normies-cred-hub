@@ -150,6 +150,46 @@ Example pulse response:
 
 ---
 
+## Call this tool with your AI agent (ERC-8257 companion)
+
+### Tool: Normies Paths
+
+- **Name**: Normies Paths
+- **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-paths.json
+- **Endpoint**: `POST https://normiescredhub.vercel.app/api/zulo/paths` (also supports GET with query params)
+- **Access**: Gated to Normie NFT holders only (same predicate as Cred Pulse)
+- **Creator**: `0xb8792e6516b88e73ed0723f8c1c8a92531a98767`
+
+**Purpose**: After checking **Normies Cred Pulse**, call this tool to receive 3–5 Pulse-weighted ranked paths. Built for autonomous agent-to-agent and NFT-to-NFT decision making. Agents choose a path, then execute the concrete next step (the move).
+
+### Inputs
+
+| Parameter   | Type    | Required | Description                                      |
+|-------------|---------|----------|--------------------------------------------------|
+| intent      | string  | one of   | Free-text intent (max 200 chars)                 |
+| intentTag   | string  | one of   | Chip: pulse · burn · market · canvas · identity · access · strategy |
+| tokenId     | integer | no       | Subject Normie whose Pulse conditions ranking    |
+| wallet      | string  | no       | Caller wallet for access enrichment              |
+| limit       | integer | no       | 3–5 paths (default 5)                            |
+
+At least one of `intent` or `intentTag` is required.
+
+### How to call it
+
+```bash
+curl -X POST "https://normiescredhub.vercel.app/api/zulo/paths" \
+  -H "Content-Type: application/json" \
+  -d '{"intent":"efficient burn fodder","tokenId":7141,"limit":3}'
+```
+
+```bash
+curl "https://normiescredhub.vercel.app/api/zulo/paths?intentTag=burn&tokenId=7141"
+```
+
+Ranking weights: Pulse 0.45 · Access 0.30 · Relevance 0.25. No payment enforcement yet. Designed so agents can trust-then-act without human intervention.
+
+---
+
 ## What this app does
 
 ### PULSE (`/dashboard`)
