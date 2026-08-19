@@ -20,6 +20,7 @@ import {
   candidatesFromSkills,
   mergeCandidates,
 } from "./candidates"
+import { getPathFeedbackScores } from "./feedback"
 import { parseIntent } from "./intents"
 import { PATH_FINDER_NOTE, buildRationale } from "./rationale"
 import { scoreCandidate } from "./score"
@@ -63,9 +64,19 @@ export async function rankPaths(input: RankPathsInput): Promise<RankPathsResult>
   )
 
   const boosts = await signalBoosts(intent.tags, candidates)
+  const feedbackScores = await getPathFeedbackScores(
+    candidates.map((c) => c.pathId),
+  )
 
   const scored = candidates.map((c) => {
-    const score = scoreCandidate(c, subject, intent, undefined, boosts.get(c.pathId) ?? 0)
+    const score = scoreCandidate(
+      c,
+      subject,
+      intent,
+      undefined,
+      boosts.get(c.pathId) ?? 0,
+      feedbackScores.get(c.pathId) ?? 0.5,
+    )
     const path: RankedPath = {
       rank: 0,
       pathId: c.pathId,

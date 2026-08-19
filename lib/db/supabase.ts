@@ -485,3 +485,41 @@ export async function getZuloHelpfulStats(
     asOf,
   }
 }
+
+/** Recent 👍/👎 rows for path ranking. Empty if Supabase missing or query fails. */
+export async function getRecommendationFeedbackRows(
+  pathIds: string[],
+  days = 90,
+): Promise<Array<{ path_id: string; rating: "up" | "down" }>> {
+  const supabase = getSupabase()
+  if (!supabase || pathIds.length === 0) return []
+
+  const lookback = Math.max(1, Math.min(365, Math.floor(days) || 90))
+  const since = new Date(Date.now() - lookback * 86_400_000).toISOString()
+  const ids = pathIds.slice(0, 80)
+
+  const { data, error } = await supabase
+    .from("recommendation_feedback")
+    .select("path_id, rating")
+    .in("path_id", ids)
+    .gte("created_at", since)
+    .limit(2000)
+
+  if (error) {
+    console.warn("[supabase] getRecommendationFeedbackRows:", error.message)
+    return []
+  }
+  if (!Array.isArray(data)) return []
+
+  const out: Array<{ path_id: string; rating: "up" | "down" }> = []
+  for (const row of data) {
+    if (
+      row &&
+      typeof row.path_id === "string" &&
+      (row.rating === "up" || row.rating === "down")
+    ) {
+      out.push({ path_id: row.path_id, rating: row.rating })
+    }
+  }
+  return out
+}

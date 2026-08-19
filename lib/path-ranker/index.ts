@@ -18,6 +18,7 @@ export {
   candidatesFromCommunity,
   mergeCandidates,
 } from "./candidates"
+export { helpfulScoreFromCounts } from "./feedback"
 export type {
   IntentTag,
   PathKind,

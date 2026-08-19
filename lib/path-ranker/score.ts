@@ -141,19 +141,27 @@ export function relevanceScore(
 }
 
 export function combineScores(
-  parts: { pulse: number; access: number; relevance: number },
+  parts: {
+    pulse: number
+    access: number
+    relevance: number
+    feedback?: number
+  },
   weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS,
 ): PathScore {
+  const feedback = parts.feedback ?? 0.5
   const total =
     weights.pulse * parts.pulse +
     weights.access * parts.access +
-    weights.relevance * parts.relevance
+    weights.relevance * parts.relevance +
+    weights.feedback * feedback
 
   return {
     total: round4(total),
     pulse: round4(parts.pulse),
     access: round4(parts.access),
     relevance: round4(parts.relevance),
+    feedback: round4(feedback),
   }
 }
 
@@ -163,11 +171,13 @@ export function scoreCandidate(
   intent: ParsedIntent,
   weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS,
   signalBoost = 0,
+  feedback = 0.5,
 ): PathScore {
   const parts = {
     pulse: pulseScore(candidate, subject, intent.tags),
     access: accessScore(candidate.access.status),
     relevance: relevanceScore(candidate, intent),
+    feedback,
   }
   const score = combineScores(parts, weights)
   if (signalBoost !== 0) {

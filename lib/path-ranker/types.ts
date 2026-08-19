@@ -22,6 +22,7 @@ export type PathScore = {
   pulse: number
   access: number
   relevance: number
+  feedback: number
 }
 
 export type PathPublisher = {
@@ -35,6 +36,14 @@ export type PathNextStep = {
   href?: string
   method?: "GET" | "POST" | "link"
   endpoint?: string
+  /** Minimal body for POST callers (additive). */
+  body?: Record<string, unknown>
+  /** Hint to read the tool manifest for full inputs. */
+  inputSchema?: Record<string, unknown>
+  toolId?: number
+  chain?: string
+  /** True when endpoint + GET/POST is meant to be called by an agent. */
+  executable?: boolean
 }
 
 export type RankedPath = {
@@ -133,13 +142,15 @@ export type ScoreWeights = {
   pulse: number
   access: number
   relevance: number
+  feedback: number
 }
 
-/** Default weights: Pulse primary, then access, then relevance. */
+/** Pulse-primary; feedback is a weak quality loop and cannot dominate. */
 export const DEFAULT_SCORE_WEIGHTS: ScoreWeights = {
-  pulse: 0.45,
-  access: 0.3,
+  pulse: 0.4,
+  access: 0.25,
   relevance: 0.25,
+  feedback: 0.1,
 }
 
 export const MAX_PATHS = 5

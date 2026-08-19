@@ -51,7 +51,7 @@ GET  /api/zulo/paths?intentTag=burn&tokenId=7141
 }
 ```
 
-Ranks paths by **CredHub Pulse (0.45) + access (0.30) + relevance (0.25)**. No payment enforcement. Does not replace Tool #53 Pulse.
+Ranks paths by **CredHub Pulse (0.40) + access (0.25) + relevance (0.25) + feedback (0.10)**. No payment enforcement. Does not replace Tool #53 Pulse.
 
 ### Moves feedback API (Phase 1)
 
@@ -145,8 +145,8 @@ Example pulse response:
     "Canvas activity detected",
     "Clean ownership & delegation"
   ],
-  "next_signal": "Reserved for future on-chain usage metrics (transactions, interactions, swarm activity).",
-  "note": "This Pulse uses currently available signals from the Normies API. The 5th level unlocks as more agents transact and interact on-chain in future updates — there's always room for improvement."
+  "next_signal": "Earn Luminous with recent Pulse checks and Pulse-conditioned Paths activity.",
+  "note": "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history."
 }
 ```
 

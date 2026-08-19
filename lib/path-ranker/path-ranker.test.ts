@@ -11,6 +11,7 @@ import {
   scoreCandidate,
   combineScores,
   DEFAULT_SCORE_WEIGHTS,
+  helpfulScoreFromCounts,
   candidatesFromSkills,
   type PathCandidate,
   type RankPathsSubject,
@@ -67,14 +68,28 @@ describe("tag overlap & scoring pure functions", () => {
   it("weights sum to 1", () => {
     const w = DEFAULT_SCORE_WEIGHTS
     assert.equal(
-      Math.round((w.pulse + w.access + w.relevance) * 100) / 100,
+      Math.round(
+        (w.pulse + w.access + w.relevance + w.feedback) * 100,
+      ) / 100,
       1,
     )
+    assert.ok(w.feedback <= 0.15)
+    assert.ok(w.pulse >= w.access)
   })
 
   it("combineScores applies Pulse-primary weights", () => {
-    const s = combineScores({ pulse: 1, access: 0, relevance: 0 })
+    const s = combineScores({ pulse: 1, access: 0, relevance: 0, feedback: 0 })
     assert.equal(s.total, DEFAULT_SCORE_WEIGHTS.pulse)
+  })
+
+  it("helpful paths outrank equal peers via weak feedback", () => {
+    const base = { pulse: 0.5, access: 0.5, relevance: 0.5 }
+    const up = combineScores({ ...base, feedback: 0.9 })
+    const down = combineScores({ ...base, feedback: 0.1 })
+    const cold = combineScores({ ...base, feedback: 0.5 })
+    assert.ok(up.total > cold.total)
+    assert.ok(cold.total > down.total)
+    assert.ok(up.total - down.total < 0.12)
   })
 })
 
@@ -164,6 +179,17 @@ describe("scoreCandidate burn intent prefers burn skill", () => {
   })
 })
 
+describe("feedback scoring", () => {
+  it("is neutral with no votes", () => {
+    assert.equal(helpfulScoreFromCounts(0, 0), 0.5)
+  })
+
+  it("rises with ups and falls with downs", () => {
+    assert.ok(helpfulScoreFromCounts(5, 0) > 0.5)
+    assert.ok(helpfulScoreFromCounts(0, 5) < 0.5)
+  })
+})
+
 describe("candidates (no network)", () => {
   it("includes Zulo skills and excludes holder-chat", () => {
     const intent = parseIntent({ intentTag: "burn" })
@@ -172,6 +198,21 @@ describe("candidates (no network)", () => {
     assert.ok(skills.some((c) => c.skillId === "pulse-analysis"))
     assert.ok(!skills.some((c) => c.skillId === "holder-chat"))
     assert.ok(skills.every((c) => c.publisher.name === "Zulo"))
+  })
+
+  it("makes Zulo skills agent-executable", () => {
+    const intent = parseIntent({ intentTag: "pulse" })
+    const skills = candidatesFromSkills(intent, 7141)
+    const pulse = skills.find((c) => c.skillId === "pulse-analysis")
+    assert.ok(pulse)
+    assert.equal(pulse!.nextStep.method, "GET")
+    assert.equal(pulse!.nextStep.executable, true)
+    assert.match(pulse!.nextStep.endpoint ?? "", /\/api\/agent\/7141\/pulse/)
+    const burn = skills.find((c) => c.skillId === "burn-efficiency")
+    assert.ok(burn)
+    assert.equal(burn!.nextStep.method, "POST")
+    assert.equal(burn!.nextStep.executable, true)
+    assert.match(burn!.nextStep.endpoint ?? "", /\/api\/zulo\/paths/)
   })
 
   it("returns capped Normies tool candidates", () => {
