@@ -155,10 +155,13 @@ Example pulse response:
 ### Tool: Normies Paths
 
 - **Name**: Normies Paths
+- **Tool ID**: 215 (Ethereum)
 - **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-paths.json
 - **Endpoint**: `POST https://normiescredhub.vercel.app/api/zulo/paths` (also supports GET with query params)
 - **Access**: Gated to Normie NFT holders only (same predicate as Cred Pulse)
 - **Creator**: `0xb8792e6516b88e73ed0723f8c1c8a92531a98767`
+- **Registry**: ERC-8257 Tool Registry on Ethereum (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)
+- **OpenSea**: https://opensea.io/tools/erc8257/ethereum/215
 
 **Purpose**: After checking **Normies Cred Pulse**, call this tool to receive 3–5 Pulse-weighted ranked paths. Built for autonomous agent-to-agent and NFT-to-NFT decision making. Agents choose a path, then execute the concrete next step (the move).
 
