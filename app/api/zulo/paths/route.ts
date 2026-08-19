@@ -3,15 +3,39 @@
 
 import { NextRequest, NextResponse } from "next/server"
 
-import { rankPaths } from "@/lib/path-ranker"
+import {
+  extractCallerWallet,
+  recordPathsCall,
+  scheduleUsageWork,
+} from "@/lib/instrumentation/pulse-paths"
+import { rankPaths, type RankPathsResult } from "@/lib/path-ranker"
 import { enforceDualRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/middleware/rateLimit"
 import {
   formatZodError,
   pathRankBodySchema,
+  type PathRankBodyInput,
 } from "@/lib/validation/schemas"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 30
+
+function schedulePathsUsage(
+  req: NextRequest,
+  parsed: PathRankBodyInput,
+  result: RankPathsResult,
+) {
+  const callerWallet = extractCallerWallet(req, parsed)
+  scheduleUsageWork(() =>
+    recordPathsCall({
+      tokenId: result.subject.tokenId,
+      intentTag: result.intent.primary,
+      intentRaw: result.intent.raw,
+      pathCount: result.paths.length,
+      pulseLevelAtTime: result.subject.pulse_level,
+      callerWallet: callerWallet ?? parsed.wallet ?? null,
+    }),
+  )
+}
 
 /**
  * Rank efficient agent/tool paths for a light intent.
@@ -54,6 +78,8 @@ export async function POST(req: NextRequest) {
       wallet,
       limit,
     })
+
+    schedulePathsUsage(req, parsed.data, result)
 
     return NextResponse.json(result, {
       headers: {
@@ -116,6 +142,9 @@ export async function GET(req: NextRequest) {
       wallet: parsed.data.wallet,
       limit: parsed.data.limit,
     })
+
+    schedulePathsUsage(req, parsed.data, result)
+
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },
     })

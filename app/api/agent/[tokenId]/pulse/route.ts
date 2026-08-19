@@ -1,4 +1,9 @@
 import { getAgentPulse, parseTokenId } from "@/lib/api/agent-pulse"
+import {
+  extractCallerWallet,
+  recordPulseCall,
+  scheduleUsageWork,
+} from "@/lib/instrumentation/pulse-paths"
 import { type NextRequest, NextResponse } from "next/server"
 
 const CACHE_HEADERS = {
@@ -10,7 +15,7 @@ const CACHE_HEADERS = {
  * Calculated on the fly from Normies API + ERC-8004 on-chain reads.
  */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ tokenId: string }> },
 ) {
   const { tokenId: tokenIdStr } = await params
@@ -25,6 +30,17 @@ export async function GET(
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status })
   }
+
+  const callerWallet = extractCallerWallet(req)
+  scheduleUsageWork(() =>
+    recordPulseCall({
+      tokenId,
+      agentId: result.data.agent_id,
+      source: "get",
+      callerWallet,
+      pulseLevel: result.data.pulse_level,
+    }),
+  )
 
   return NextResponse.json(result.data, { headers: CACHE_HEADERS })
 }

@@ -1,4 +1,9 @@
 import { getAgentPulse, parseTokenId } from "@/lib/api/agent-pulse"
+import {
+  extractCallerWallet,
+  recordPulseCall,
+  scheduleUsageWork,
+} from "@/lib/instrumentation/pulse-paths"
 import { type NextRequest, NextResponse } from "next/server"
 
 const CACHE_HEADERS = {
@@ -30,6 +35,17 @@ export async function POST(req: NextRequest) {
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status })
   }
+
+  const callerWallet = extractCallerWallet(req, body)
+  scheduleUsageWork(() =>
+    recordPulseCall({
+      tokenId,
+      agentId: result.data.agent_id,
+      source: "tool",
+      callerWallet,
+      pulseLevel: result.data.pulse_level,
+    }),
+  )
 
   return NextResponse.json(result.data, { headers: CACHE_HEADERS })
 }
