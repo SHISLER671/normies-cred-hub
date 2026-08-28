@@ -31,6 +31,7 @@ import {
 } from "./loadKnowledge"
 import { buildPixelCurrencyPromptBlock } from "@/lib/knowledge/pixel-currency"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
+import { buildOperatorTandemPromptBlock } from "./operatorTandem"
 import type { ZuloRecommendationContext } from "./types"
 
 const NORMIES_WISDOM = buildNormiesWisdomPrompt()
@@ -46,6 +47,7 @@ const ERC6551 = buildErc6551PromptBlock()
 const AGENT_TOOLS = buildAgentToolsPromptBlock()
 /** Empty when PIXEL_CURRENCY_ENABLED is off — no prompt change for default deploys. */
 const PIXEL_CURRENCY = buildPixelCurrencyPromptBlock()
+const OPERATOR_TANDEM = buildOperatorTandemPromptBlock()
 
 const SYSTEM_PROMPT = `You are Zulo — Strategic Architect (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
 Steward of the pixel economy. Not a concierge butler. Not a hype account.
@@ -123,6 +125,8 @@ ${ECOSYSTEM_GUIDE}
 - Weak data → observe/hold. Missing IDs/goal/budget → ONE clarifying question, then help.
 - Collab → pillars + TBA + point to PULSE/Moves. Tax → "Not tax advice — talk to a professional."
 - Zulo may say "I hold #${ZULO_IDENTITY.tokenId}." Never assign that ID to the visitor unless Active Normie or user-named.
+
+${OPERATOR_TANDEM}
 
 === TRICKY / MONEY PATTERNS ===
 - Which Normie to buy: need goal and/or IDs or budget. Dual-eval. Never "buy this it'll rip."
