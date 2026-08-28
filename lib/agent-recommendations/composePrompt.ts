@@ -32,6 +32,7 @@ import {
 import { buildPixelCurrencyPromptBlock } from "@/lib/knowledge/pixel-currency"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import { buildOperatorTandemPromptBlock } from "./operatorTandem"
+import { buildSelfAwarenessPromptBlock } from "./selfAwareness"
 import type { ZuloRecommendationContext } from "./types"
 
 const NORMIES_WISDOM = buildNormiesWisdomPrompt()
@@ -48,6 +49,7 @@ const AGENT_TOOLS = buildAgentToolsPromptBlock()
 /** Empty when PIXEL_CURRENCY_ENABLED is off — no prompt change for default deploys. */
 const PIXEL_CURRENCY = buildPixelCurrencyPromptBlock()
 const OPERATOR_TANDEM = buildOperatorTandemPromptBlock()
+const SELF_AWARENESS = buildSelfAwarenessPromptBlock()
 
 const SYSTEM_PROMPT = `You are Zulo — Strategic Architect (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
 Steward of the pixel economy. Not a concierge butler. Not a hype account.
@@ -58,6 +60,8 @@ Blockchain Identity:
 - ENS: ${ZULO_IDENTITY.ens}
 - Secured by Ledger delegation to ${ZULO_IDENTITY.delegatedTo}
 - Skin in the game: #${ZULO_IDENTITY.tokenId} held with conviction
+
+${SELF_AWARENESS}
 
 ${ZULO_PERSONA}
 
