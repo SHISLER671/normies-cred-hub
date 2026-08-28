@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { AgentToolsFoot } from "@/components/agent-tools-block"
 import { PathBoard } from "@/components/path-board"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
-import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
+import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { ConnectWallet } from "@/components/connect-wallet"
 
 import "../zulo/styles.css"

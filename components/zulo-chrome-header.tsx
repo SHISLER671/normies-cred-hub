@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ActiveNormieSwitcher } from "@/components/active-normie-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ZuloMotionRoot } from "@/components/zulo-motion-root"
-import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
+import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { cn } from "@/lib/utils"
 
 type ZuloChromeHeaderProps = {

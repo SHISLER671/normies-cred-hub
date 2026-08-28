@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 import { ZuloExperience } from "@/components/agent-recommendations/zulo-experience"
 import { AgentToolsFoot } from "@/components/agent-tools-block"
-import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
+import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 
 import "../zulo/styles.css"
 

@@ -2,8 +2,8 @@ import { getAgentPulse, parseTokenId } from "@/lib/api/agent-pulse"
 import {
   extractCallerWallet,
   recordPulseCall,
-  scheduleUsageWork,
 } from "@/lib/instrumentation/pulse-paths"
+import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { type NextRequest, NextResponse } from "next/server"
 
 const CACHE_HEADERS = {

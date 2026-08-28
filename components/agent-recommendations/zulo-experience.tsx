@@ -13,8 +13,8 @@ import {
   MAX_SESSION_HISTORY,
   MAX_USER_QUERY_CHARS,
   ZULO_IDENTITY,
-  type ZuloResponse,
-} from "@/lib/agent-recommendations"
+} from "@/lib/agent-recommendations/constants"
+import type { ZuloResponse } from "@/lib/agent-recommendations/types"
 import { cn } from "@/lib/utils"
 
 type ChatMessage = {

@@ -6,8 +6,8 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   extractCallerWallet,
   recordPathsCall,
-  scheduleUsageWork,
 } from "@/lib/instrumentation/pulse-paths"
+import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { rankPaths, type RankPathsResult } from "@/lib/path-ranker"
 import { enforceDualRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/middleware/rateLimit"
 import {

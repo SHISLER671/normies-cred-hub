@@ -2,7 +2,6 @@
 // Reuses Upstash Redis (same KV as rate limits / audit). Fail-open: never throw.
 
 import { Redis } from "@upstash/redis"
-import { after } from "next/server"
 import type { NextRequest } from "next/server"
 
 export const PULSE_RECENT_WINDOW_SEC = 900
@@ -505,21 +504,6 @@ export async function getUsageMetrics(opts?: {
   } catch (err) {
     console.warn("[instrumentation] getUsageMetrics failed", err)
     return empty
-  }
-}
-
-/** Schedule usage work after the response (Next 16 `after`), else void. */
-export function scheduleUsageWork(work: () => Promise<unknown>): void {
-  const run = () => {
-    void work().catch((err) => {
-      console.warn("[instrumentation] usage work failed", err)
-    })
-  }
-
-  try {
-    after(run)
-  } catch {
-    run()
   }
 }
 

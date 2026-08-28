@@ -6,7 +6,7 @@ import { AgentToolsHomeLine } from "@/components/agent-tools-block"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { HomeFuturePlans } from "@/components/home-future-plans"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
-import { ZULO_IDENTITY } from "@/lib/agent-recommendations"
+import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import { getZuloHelpfulStats } from "@/lib/db/supabase"
 
