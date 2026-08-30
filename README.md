@@ -102,8 +102,8 @@ Use the `opensea-tool-sdk` skill to set up access and call the tool below.
 
 - **Name**: Normies Cred Pulse  
 - **Tool ID**: 53 (Ethereum, Normie NFT gated) · 531 (Base, open) · 1 (Abstract, open) · 15 (Robinhood Chain, open)  
-- **Endpoint**: `POST https://normiescredhub.vercel.app/api/agent`  
-- **GET (public)**: `GET https://normiescredhub.vercel.app/api/agent/{tokenId}/pulse`  
+- **GET (public) first**: `GET https://normiescredhub.vercel.app/api/agent/{tokenId}/pulse`  
+- **POST (gated) second**: `POST https://normiescredhub.vercel.app/api/agent` (official ERC-8257 endpoint)  
 - **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json  
 - **Access**: Ethereum is gated to Normie NFT holders (`0x9eb6e2025b64f340691e424b7fe7022ffde12438`). Base, Abstract, and Robinhood Chain are open — the Normie ERC-721 has no contract on those chains (`CollectionNoCode`).  
 - **Registry**: ERC-8257 Tool Registry (`0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1`)  
@@ -118,14 +118,16 @@ Use the `opensea-tool-sdk` skill to set up access and call the tool below.
 
 ### How to call it
 
+Public GET first (no gate). Gated POST second (official ERC-8257 endpoint, Normie holders).
+
+```bash
+curl "https://normiescredhub.vercel.app/api/agent/7141/pulse"
+```
+
 ```bash
 curl -X POST "https://normiescredhub.vercel.app/api/agent" \
   -H "Content-Type: application/json" \
   -d '{"tokenId": 1234}'
-```
-
-```bash
-curl "https://normiescredhub.vercel.app/api/agent/7141/pulse"
 ```
 
 Note: On Ethereum the registry-gated tool path requires the caller to hold a Normie NFT (`ERC721OwnerPredicate`). Base/Abstract/Robinhood listings are open discovery copies of the same HTTPS endpoint. The public GET pulse endpoint remains available for read-only profiles.

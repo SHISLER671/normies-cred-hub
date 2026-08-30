@@ -1,7 +1,7 @@
 {
   "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
   "name": "Normies Cred Pulse",
-  "description": "Returns on-chain reputation and trust signals for any Normie agent (token ID 0–9999). Only accessible to Normie NFT holders.",
+  "description": "Public read: GET /api/agent/{tokenId}/pulse (no gate). Holder tool: POST /api/agent (ERC-8257 Eth #53, Normie-gated). Call Paths after Pulse.",
   "image": "https://normiescredhub.vercel.app/images/7141art.png",
   "featuredImage": "https://normiescredhub.vercel.app/images/NLOGO.png",
   "endpoint": "https://normiescredhub.vercel.app/api/agent",

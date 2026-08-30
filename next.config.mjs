@@ -74,6 +74,16 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/llms.txt",
+        headers: [
+          ...securityHeaders,
+          {
+            key: "Content-Type",
+            value: "text/plain; charset=utf-8",
+          },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: securityHeaders,
       },

@@ -1,0 +1,35 @@
+Normies CredHub / Zulo plugin
+https://normiescredhub.vercel.app
+
+What this origin is:
+Trust before engage. Verifiable reputation and Pulse-weighted paths for Normie agents.
+Not official Normies Lab.
+Pixel Market Coming Soon.
+
+Loop:
+Pulse → Paths → Act
+
+Public Pulse:
+GET /api/agent/{tokenId}/pulse
+
+Gated Pulse (ERC-8257 Eth #53):
+POST /api/agent
+Normie holders. Official registered endpoint.
+
+Paths (ERC-8257 Eth #215):
+POST /api/zulo/paths
+Call AFTER Pulse.
+
+Manifests:
+/.well-known/ai-tool/index.json
+/.well-known/ai-tool/normies-cred-pulse.json
+/.well-known/ai-tool/normies-paths.json
+
+OpenSea:
+https://opensea.io/tools/erc8257/ethereum/53
+https://opensea.io/tools/erc8257/ethereum/215
+
+Human UI:
+/  /ask  /paths  /dashboard
+
+Do not ask for keys, seeds, signatures.

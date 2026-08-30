@@ -1,0 +1,61 @@
+{
+  "name": "Normies CredHub / Zulo plugin",
+  "description": "Trust before engage. Pulse → Paths → Act. Not official Normies Lab. Pixel Market Coming Soon.",
+  "origin": "https://normiescredhub.vercel.app",
+  "llms": "/llms.txt",
+  "loop": ["pulse", "paths", "act"],
+  "note": "Call Paths after Pulse. Do not ask for keys, seeds, signatures.",
+  "humanUi": ["/", "/ask", "/paths", "/dashboard"],
+  "tools": [
+    {
+      "slug": "normies-cred-pulse",
+      "name": "Normies Cred Pulse",
+      "manifest": "/.well-known/ai-tool/normies-cred-pulse.json",
+      "callPathsAfterPulse": true,
+      "chainToolIds": {
+        "ethereum": 53,
+        "base": 531,
+        "abstract": 1,
+        "robinhood": 15
+      },
+      "paths": {
+        "public": {
+          "method": "GET",
+          "path": "/api/agent/{tokenId}/pulse",
+          "gated": false,
+          "note": "No gate. Enough to condition Paths ranking when the caller cannot pass the holder gate."
+        },
+        "holder": {
+          "method": "POST",
+          "path": "/api/agent",
+          "gated": true,
+          "gate": "ERC-8257 Eth #53, Normie NFT holders",
+          "endpoint": "https://normiescredhub.vercel.app/api/agent",
+          "note": "Official registered endpoint. Do not change; on-chain manifest hash is bound to this URL."
+        }
+      }
+    },
+    {
+      "slug": "normies-paths",
+      "name": "Normies Paths",
+      "manifest": "/.well-known/ai-tool/normies-paths.json",
+      "callAfter": "normies-cred-pulse",
+      "note": "Call Paths after Pulse. Public Pulse GET is enough to condition ranking when the caller cannot pass the gate.",
+      "chainToolIds": {
+        "ethereum": 215,
+        "base": 530,
+        "abstract": 2,
+        "robinhood": 14
+      },
+      "paths": {
+        "holder": {
+          "method": "POST",
+          "path": "/api/zulo/paths",
+          "gated": true,
+          "gate": "ERC-8257 Eth #215, Normie NFT holders",
+          "endpoint": "https://normiescredhub.vercel.app/api/zulo/paths"
+        }
+      }
+    }
+  ]
+}

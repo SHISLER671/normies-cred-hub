@@ -1,7 +1,7 @@
 {
   "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
   "name": "Normies Paths",
-  "description": "Returns 3–5 Pulse-weighted ranked paths for any Normie agent. Call after Normies Cred Pulse. Designed for autonomous agent-to-agent and NFT-to-NFT decision making. Token-gated to Normie holders.",
+  "description": "Returns 3–5 Pulse-weighted ranked paths for any Normie agent. Call after Normies Cred Pulse. Public Pulse GET is enough to condition ranking when the caller cannot pass the gate. Designed for autonomous agent-to-agent and NFT-to-NFT decision making. Token-gated to Normie holders.",
   "image": "https://normiescredhub.vercel.app/images/7141art.png",
   "featuredImage": "https://normiescredhub.vercel.app/images/NLOGO.png",
   "endpoint": "https://normiescredhub.vercel.app/api/zulo/paths",
