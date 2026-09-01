@@ -17,6 +17,10 @@ import {
   getDualEvalAndPixelMarketContextSummary,
   queryNeedsCollabRailsKnowledge,
 } from "./loadKnowledge"
+import {
+  buildOperatorTandemPromptBlock,
+  buildVisitorSafeTandemPromptBlock,
+} from "./operatorTandem"
 import type { ZuloRecommendationContext } from "./types"
 
 function generalContext(): ZuloRecommendationContext {
@@ -63,8 +67,24 @@ describe("collab / rails knowledge", () => {
     const block = buildCollabRailsPromptBlock()
     assert.match(block, /Action Points/)
     assert.match(block, /not a token/i)
-    assert.match(block, /getting ready/i)
+    assert.match(block, /Coming Soon/)
+    assert.match(block, /not live full rules/i)
     assert.doesNotMatch(block, /market will add buy\/sell later/i)
+  })
+
+  it("keeps 2026-08-31 / 2026-09-01 pairing add-on inside public rails", () => {
+    const block = buildCollabRailsPromptBlock()
+    assert.match(block, /Future is Agentic/)
+    assert.match(block, /NORMIES x STONKBROKERS/)
+    assert.match(block, /TBA until @normiesART posts it live/)
+    assert.match(block, /fees to projects/i)
+    assert.match(block, /Zulo does not accept public pay-in/)
+    assert.match(block, /not a CredHub feature/)
+    assert.match(block, /Never invent a Hive URL/)
+    assert.match(block, /Zulo does not place the trade/)
+    assert.doesNotMatch(block, /Zulo Desk/)
+    assert.doesNotMatch(block, /Grok Bot/)
+    assert.doesNotMatch(block, /AGNT/)
   })
 
   it("splits industry x402 from Normies TBA", () => {
@@ -78,8 +98,35 @@ describe("collab / rails knowledge", () => {
     const summary = getDualEvalAndPixelMarketContextSummary()
     const joined = summary.pixelMarket.join(" ")
     assert.match(joined, /NOT a token/i)
-    assert.match(joined, /getting ready/i)
+    assert.match(joined, /Coming Soon/)
+    assert.match(joined, /NOT live full rules/i)
     assert.doesNotMatch(joined, /will add buy\/sell later/i)
+  })
+})
+
+describe("operator tandem layers", () => {
+  it("keeps the internal roster dated 2026-09-01 and renamed Zulo Desk", () => {
+    const internal = buildOperatorTandemPromptBlock()
+    assert.match(internal, /Two desks exist as of 2026-09-01 \(Guam\)/)
+    assert.match(internal, /Zulo Voice/)
+    assert.match(internal, /Zulo Desk \(renamed from Hive Desk\)/)
+    assert.match(internal, /Never put HOT\/AGNT\/COLD private keys/)
+    assert.match(
+      internal,
+      /Do not name Zulo Desk, Grok Bot, Cursor, or credit budgets in visitor-facing recommendation text/,
+    )
+  })
+
+  it("exposes a visitor-safe tandem without desk names", () => {
+    const visitor = buildVisitorSafeTandemPromptBlock()
+    assert.match(visitor, /Public voice @zulo7141 is human-pasted/)
+    assert.match(visitor, /No autonomous posts/)
+    assert.match(visitor, /No keys, burns, approvals, or pay-in through CredHub/)
+    assert.match(visitor, /Live facts: ON-CHAIN or OFFICIAL only/)
+    assert.doesNotMatch(visitor, /Grok Bot/)
+    assert.doesNotMatch(visitor, /Zulo Desk/)
+    assert.doesNotMatch(visitor, /Hive Desk/)
+    assert.doesNotMatch(visitor, /Cursor/)
   })
 })
 
@@ -93,6 +140,15 @@ describe("queryNeedsCollabRailsKnowledge", () => {
     )
     assert.equal(queryNeedsCollabRailsKnowledge("is PIXEL a token"), true)
     assert.equal(queryNeedsCollabRailsKnowledge("hello"), false)
+  })
+
+  it("matches hive, stonk launch, and pay-zulo asks", () => {
+    assert.equal(queryNeedsCollabRailsKnowledge("Where is the Hive?"), true)
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("Can my agent launch on Stonk today?"),
+      true,
+    )
+    assert.equal(queryNeedsCollabRailsKnowledge("Where do I pay Zulo?"), true)
   })
 })
 
@@ -144,7 +200,7 @@ describe("composed Ask prompt", () => {
     assert.match(prompt, /swarm/)
     assert.match(prompt, /launchpad/)
     assert.match(prompt, /#PIXEL = Action Points, NOT a token/)
-    assert.match(prompt, /getting ready/)
+    assert.match(prompt, /Coming Soon/)
     assert.match(prompt, /industry YES/i)
     assert.match(prompt, /Normies enablement: TBA/)
     assert.match(prompt, /not a StonkBroker/i)
@@ -157,6 +213,37 @@ describe("composed Ask prompt", () => {
     const prompt = composeZuloPrompt(generalContext(), "is PIXEL a token")
     assert.doesNotMatch(prompt, /market will add buy\/sell later/i)
     assert.match(prompt, /NOT a token/)
+    assert.match(prompt, /Coming Soon/)
+    assert.match(prompt, /not live full rules/i)
+  })
+
+  it("keeps visitor Ask tandem free of desk names and keys", () => {
+    const prompt = composeZuloPrompt(
+      generalContext(),
+      "Can Zulo tweet? Where do I pay Zulo?",
+    )
+    assert.match(prompt, /Public voice @zulo7141 is human-pasted/)
+    assert.match(prompt, /No autonomous posts/)
+    assert.match(prompt, /No keys, burns, approvals, or pay-in through CredHub/)
+    assert.match(prompt, /Live facts: ON-CHAIN or OFFICIAL only/)
+    assert.doesNotMatch(prompt, /Grok Bot/)
+    assert.doesNotMatch(prompt, /Zulo Desk/)
+    assert.doesNotMatch(prompt, /Hive Desk/)
+    assert.doesNotMatch(prompt, /Cursor/)
+    assert.doesNotMatch(prompt, /SuperGrok/)
+    assert.doesNotMatch(prompt, /AGNT/)
+    assert.doesNotMatch(prompt, /Zulo can trade your bag/)
+  })
+
+  it("answers stonk-launch and hive asks as pairing + TBA, not live rails", () => {
+    const prompt = composeZuloPrompt(
+      generalContext(),
+      "Can my agent launch on Stonk today? Where is the Hive?",
+    )
+    assert.match(prompt, /TBA until @normiesART posts it live/)
+    assert.match(prompt, /Zulo does not place the trade/)
+    assert.match(prompt, /not a CredHub (?:page|feature)/)
+    assert.match(prompt, /Never invent a Hive URL/)
   })
 
   it("instructs Pulse-first structure before ranked advice", () => {

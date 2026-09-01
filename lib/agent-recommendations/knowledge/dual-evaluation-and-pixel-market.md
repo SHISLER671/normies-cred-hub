@@ -13,7 +13,7 @@
 | Fact | Detail |
 |------|--------|
 | **What Pixel is** | **#PIXEL = Action Points (AP)** — Canvas edit budget. **Not a token.** Not `$PIXEL`. |
-| **Status** | **Getting ready** — foundation / canvas / agents in progress; **not** live full rules |
+| **Status** | **Coming Soon** / **not** live full rules — foundation / canvas / agents in progress |
 | **Live trading?** | **No** — do **not** describe a live order book, live AP/Pixel quotes, or settled peer market |
 | **How AP/Pixel is earned today** | By **burning** Normies into a receiver’s Canvas (commit → wait → reveal); Canvas-local budget |
 | **What the market will add later** | **TBA** — do not invent buy/sell, order books, or qualification rules |
@@ -21,7 +21,7 @@
 
 **Language for answers:**
 
-- Prefer: “PIXEL MARKET is **getting ready**; **not** live full rules.”
+- Prefer: “PIXEL MARKET is **Coming Soon** / **not** live full rules.”
 - Prefer: “**#PIXEL is Action Points, not a token** — earned by burning Normies into Canvas.”
 - Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle.
 
@@ -72,7 +72,7 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 ### “What is PIXEL MARKET / is it live?”
 
 - Official framing: **#PIXEL = AP, not a token.**  
-- Status: **getting ready** — **not** live full rules. No order book claims. Mechanics beyond public posts = TBA.
+- Status: **Coming Soon** / **not** live full rules. No order book claims. Mechanics beyond public posts = TBA.
 
 ### “Is Pixel the same as AP?”
 

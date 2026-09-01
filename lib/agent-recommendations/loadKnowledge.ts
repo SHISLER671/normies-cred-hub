@@ -96,7 +96,7 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 ### Tradeability & sacrificial economy
 
 - Today: AP is a **Canvas-local** resource created by sacrifice (burn fodder → keep/edit favorites).
-- **#PIXEL = Action Points (AP), not a token** (Serc / @normiesART). **PIXEL MARKET** is **getting ready** — not live full rules. Do not invent order books, buy/sell mechanics, AP prices, or hold-thresholds.
+- **#PIXEL = Action Points (AP), not a token** (Serc / @normiesART). **PIXEL MARKET** is **Coming Soon** / **not** live full rules. Do not invent order books, buy/sell mechanics, AP prices, or hold-thresholds.
 - Doctrine: this is a **sacrificial economy**. Value flows from permanent burns into scarce edit budget and future arena power. Treat AP as earned capital, not free spins.
 - **Burn vs hold is dual-frame** — see \`knowledge/dual-evaluation-and-pixel-market.md\` (high-px efficiency vs extreme low-px collectible scarcity).
 
@@ -191,7 +191,7 @@ export const DUAL_EVAL_AND_PIXEL_MARKET_MD = `# Dual Evaluation & PIXEL MARKET �
 | Fact | Detail |
 |------|--------|
 | **What Pixel is** | **#PIXEL = Action Points (AP)** — Canvas edit budget. **Not a token.** Not \`$PIXEL\`. |
-| **Status** | **Getting ready** — foundation / canvas / agents in progress; **not** live full rules |
+| **Status** | **Coming Soon** / **not** live full rules — foundation / canvas / agents in progress |
 | **Live trading?** | **No** — do **not** describe a live order book, live AP/Pixel quotes, or settled peer market |
 | **How AP/Pixel is earned today** | By **burning** Normies into a receiver’s Canvas (commit → wait → reveal); Canvas-local budget |
 | **What the market will add later** | **TBA** — do not invent buy/sell, order books, or qualification rules |
@@ -199,7 +199,7 @@ export const DUAL_EVAL_AND_PIXEL_MARKET_MD = `# Dual Evaluation & PIXEL MARKET �
 
 **Language for answers:**
 
-- Prefer: “PIXEL MARKET is **getting ready**; **not** live full rules.”
+- Prefer: “PIXEL MARKET is **Coming Soon** / **not** live full rules.”
 - Prefer: “**#PIXEL is Action Points, not a token** — earned by burning Normies into Canvas.”
 - Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle.
 
@@ -250,7 +250,7 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 ### “What is PIXEL MARKET / is it live?”
 
 - Official framing: **#PIXEL = AP, not a token.**  
-- Status: **getting ready** — **not** live full rules. No order book claims. Mechanics beyond public posts = TBA.
+- Status: **Coming Soon** / **not** live full rules. No order book claims. Mechanics beyond public posts = TBA.
 
 ### “Is Pixel the same as AP?”
 
@@ -947,7 +947,7 @@ export function buildDualEvalAndPixelMarketPromptBlock(): string {
 ${loadDualEvalAndPixelMarketKnowledge()}
 
 DUAL-EVAL / PIXEL MARKET ENFORCEMENT:
-- #PIXEL = Action Points, NOT a token; PIXEL MARKET is getting ready — NOT live full rules
+- #PIXEL = Action Points, NOT a token; PIXEL MARKET is Coming Soon / NOT live full rules
 - Never invent AP prices, order books, buy/sell mechanics, or hold-threshold X
 - High pixel (e.g. 891+): efficiency frame usually stronger; extreme low pixel + tiny supply: do NOT auto-burn
 - Always weigh: burn efficiency + scarcity/supply + identity/aesthetic + market premium signals
@@ -1045,7 +1045,7 @@ export function getPixelEconomyContextSummary(): {
       "AP earned only by burning (commit→reveal); bound to a specific Normie Canvas",
       "1 AP = 1 pixel add/remove on 40×40 (1600); Level = floor(AP/10)+1",
       "Burn tiers by on-pixel count: 0–490 →1–4%, 491–890 →2–4%, 891+ →3–4%",
-      "Sacrificial economy: burns fund AP; #PIXEL = AP (not a token); Pixel Market getting ready — rules TBA",
+      "Sacrificial economy: burns fund AP; #PIXEL = AP (not a token); Pixel Market Coming Soon / not live full rules",
       "Expansion path 40×40 → 80×80: stockpile AP, keep flexible density, stage placement",
       "Gacha EV = Σ(p×value)/cost (+EV >1); raffle EV ≈ prize/(entry×N); high-value edge ≥20%",
     ],
@@ -1058,7 +1058,7 @@ export function getPixelEconomyContextSummary(): {
       "Patience compounds. Haste erodes.",
       "We don't chase pumps. We stack pixels.",
       "PIXEL MARKET is an arena, not a casino — strategy over sentiment",
-      "#PIXEL = AP, not a token; PIXEL MARKET getting ready — not live full rules",
+      "#PIXEL = AP, not a token; PIXEL MARKET Coming Soon / not live full rules",
     ],
     source: "lib/agent-recommendations/knowledge/pixel-economy.md",
   }
@@ -1076,7 +1076,7 @@ export function getDualEvalAndPixelMarketContextSummary(): {
     title: "Dual Evaluation & PIXEL MARKET",
     pixelMarket: [
       "#PIXEL = Action Points (AP) — NOT a token",
-      "Status: getting ready — NOT live full rules",
+      "Status: Coming Soon / NOT live full rules",
       "AP earned by burning Normies into Canvas; market mechanics TBA",
       "Do not invent AP prices, buy/sell rules, hold-threshold X, or a live order book",
     ],
@@ -1274,10 +1274,28 @@ A Normie agent is **not** a StonkBroker and does **not** earn Stonk distribution
 
 Sources: https://x.com/normiesART/status/2087642222464282842 · https://x.com/serc1n/status/2088179350176665770 · https://x.com/serc1n/status/2088231994563977686
 
+### 2026-08-31 / 2026-09-01 official add-on (do not expand)
+
+- OFFICIAL @serc1n (2026-08-31): “Future is Agentic. NORMIES x STONKBROKERS.” Pairing language is public.
+- Public pillars stay: swarm / social · prediction / decision · token launchpad / agent economy.
+- Autonomous launch / buy / sell on StonkBrokers or Robinhood is **direction**, not a live Zulo or CredHub action. Treat as **TBA until @normiesART posts it live**.
+- Simple Farmer / Stonk public ethos: synergistic partner queue, nobody left out, comms-first. Not a live product spec. Not “Normies are exit liquidity.”
+- Money story until @normiesART posts more: **fees to projects**. No invented split, ticker, or RH coin.
+- 6551 = wallet *shape* (NFT-bound account) in the wild. Not a live Zulo spend rail. x402 not enabled for Normies/Zulo pay.
+- PUBLIC Hive (civilization / collective intelligence language in Serc channel) is **not** a CredHub feature and **not** the operator desk. Architecture lock: Pulse → Paths → Act. Add Hive as a **link-only path only after an official public page exists**. Do not clone Hive into NCH. Do not leak sneak-UI shots.
+- WorkForPixels / #WillWork4PIXEL = labor/trust stance, not a live paycheck or market bid.
+- Zulo does not accept public pay-in. Do not list USDC / PIXEL / RH-agent coins as accepted.
+
+**Answer pattern — “when can my agent trade / launch on Stonk?”**
+Industry + pairing: yes, that’s the stated direction. Live for this visitor today: no. What they can do now: Pulse the subject token, rank Paths, wait for official @normiesART go-live. Zulo does not place the trade.
+
+**Answer pattern — “where is the Hive?”**
+Not a CredHub page. If no official public URL is in context, say so and stay on Pulse → Paths → Act. Never invent a Hive URL.
+
 ### #PIXEL is not a token
 
 - **#PIXEL = Action Points (AP)** — Canvas edit budget earned by burns. **Not** a tradable \`$PIXEL\` token.
-- Pixel Market = **getting ready**. Foundation / canvas / agents in progress. **Not** live full rules. Do not invent order books, buy/sell mechanics, hold-thresholds, or AP prices.
+- Pixel Market = **Coming Soon** / **not** live full rules. Foundation / canvas / agents in progress. Do not invent order books, buy/sell mechanics, hold-thresholds, or AP prices.
 
 Sources: https://x.com/serc1n/status/2087596252812759045 · https://x.com/serc1n/status/2088906632931447025 · https://x.com/serc1n/status/2088266683400016215
 
@@ -1370,10 +1388,15 @@ ${loadCollabRailsKnowledge()}
 
 COLLAB / RAILS ENFORCEMENT:
 - Normies × StonkBrokers = agent infra. Pillars ONLY: swarm · predict · agent launchpad/economy. Else TBA.
+- Pairing language is public (OFFICIAL @serc1n 2026-08-31). Autonomous launch/buy/sell on Stonk/RH = direction, TBA until @normiesART posts live. Zulo does not place the trade.
 - A Normie agent is NOT a StonkBroker and does not earn Stonk distributions.
-- #PIXEL = Action Points, NOT a token. Pixel Market = getting ready, not live full rules.
-- x402 industry-live: yes. 6551 TBAs exist in the wild. Normies enablement of either for pay = TBA.
+- #PIXEL = Action Points, NOT a token. Pixel Market = Coming Soon / not live full rules.
+- x402 industry-live: yes. 6551 = wallet shape in the wild. Not a live Zulo spend rail. Normies/Zulo pay enablement of either = TBA.
 - Never: "Normies agents can pay/earn via x402." No pay/tip/unlock UI. No Stonk AMM/clock-in/RH-chain yield.
+- PUBLIC Hive is not a CredHub feature and not the operator desk. Never invent a Hive URL. Stay Pulse → Paths → Act.
+- WorkForPixels / #WillWork4PIXEL = labor/trust stance, not a live paycheck.
+- Zulo does not accept public pay-in. Do not list USDC / PIXEL / RH-agent coins as accepted.
+- Money story until @normiesART posts more: fees to projects. No invented split, ticker, or RH coin.
 - Tax → "Not tax advice — talk to a professional."
 - Passive / make money → correct the assumption; no guaranteed yield; Zulo does not pay for holding.
 - Zulo may say "I hold #7141." Never assign #7141 to the visitor unless Active Normie or user-named.`
@@ -1401,7 +1424,15 @@ export function queryNeedsCollabRailsKnowledge(userQuery: string): boolean {
     /\btax(es|able)?\b/.test(q) ||
     /which\s+normie/.test(q) ||
     /ai\s*nft/.test(q) ||
-    /agent\s*nft/.test(q)
+    /agent\s*nft/.test(q) ||
+    /\bhive\b/.test(q) ||
+    /\brobinhood\b/.test(q) ||
+    /launch\s+on\s+stonk/.test(q) ||
+    /trade\s+on\s+stonk/.test(q) ||
+    /work\s*for\s*pixels/.test(q) ||
+    /willwork4pixel/.test(q) ||
+    /where\s+do\s+i\s+pay/.test(q) ||
+    /pay\s+zulo/.test(q)
   )
 }
 
@@ -1418,19 +1449,25 @@ export function getCollabRailsContextSummary(): {
     pillars: [
       "Normies × StonkBrokers = agent infrastructure",
       "Public pillars ONLY: swarm (agent social) · autonomous decision/prediction · agent launchpad/economy",
+      "OFFICIAL pairing: Future is Agentic. NORMIES x STONKBROKERS (2026-08-31)",
+      "Autonomous launch/buy/sell on Stonk/RH = direction, TBA until @normiesART posts live",
       "Everything else (timing, AMM, clock-in, RH-chain, distributions) = TBA",
       "A Normie agent is NOT a StonkBroker and does not earn Stonk distributions",
     ],
     rails: [
-      "#PIXEL = Action Points, NOT a token; Pixel Market = getting ready, not live full rules",
-      "6551 TBAs exist in the wild; x402 is industry-live",
+      "#PIXEL = Action Points, NOT a token; Pixel Market = Coming Soon / not live full rules",
+      "6551 = wallet shape in the wild; not a live Zulo spend rail; x402 is industry-live",
       "Normies has NOT enabled 6551 or x402 for agent/pixel pay → TBA",
       "Never: Normies agents can pay/earn via x402. No CredHub pay UI",
+      "PUBLIC Hive is not a CredHub feature; never invent a Hive URL; Pulse → Paths → Act",
+      "Zulo does not accept public pay-in; do not list USDC / PIXEL / RH-agent coins as accepted",
+      "Money story until @normiesART posts more: fees to projects — no invented split, ticker, or RH coin",
     ],
     zulo: [
       "PULSE = trust before engage · Moves/Ask = signal before act",
-      "WorkForPixels = effort when rails allow, not bag yield",
+      "WorkForPixels / #WillWork4PIXEL = labor/trust stance, not a live paycheck",
       "Dual-credit = visible rep. Zulo does not pay for holding",
+      "Zulo does not place Stonk/RH trades. Wait for official @normiesART go-live",
     ],
     principles: [
       "Short. Data over vibes. Zero FOMO. Weak data → observe/hold",

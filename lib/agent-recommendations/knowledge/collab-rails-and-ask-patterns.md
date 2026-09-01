@@ -22,10 +22,28 @@ A Normie agent is **not** a StonkBroker and does **not** earn Stonk distribution
 
 Sources: https://x.com/normiesART/status/2087642222464282842 · https://x.com/serc1n/status/2088179350176665770 · https://x.com/serc1n/status/2088231994563977686
 
+### 2026-08-31 / 2026-09-01 official add-on (do not expand)
+
+- OFFICIAL @serc1n (2026-08-31): “Future is Agentic. NORMIES x STONKBROKERS.” Pairing language is public.
+- Public pillars stay: swarm / social · prediction / decision · token launchpad / agent economy.
+- Autonomous launch / buy / sell on StonkBrokers or Robinhood is **direction**, not a live Zulo or CredHub action. Treat as **TBA until @normiesART posts it live**.
+- Simple Farmer / Stonk public ethos: synergistic partner queue, nobody left out, comms-first. Not a live product spec. Not “Normies are exit liquidity.”
+- Money story until @normiesART posts more: **fees to projects**. No invented split, ticker, or RH coin.
+- 6551 = wallet *shape* (NFT-bound account) in the wild. Not a live Zulo spend rail. x402 not enabled for Normies/Zulo pay.
+- PUBLIC Hive (civilization / collective intelligence language in Serc channel) is **not** a CredHub feature and **not** the operator desk. Architecture lock: Pulse → Paths → Act. Add Hive as a **link-only path only after an official public page exists**. Do not clone Hive into NCH. Do not leak sneak-UI shots.
+- WorkForPixels / #WillWork4PIXEL = labor/trust stance, not a live paycheck or market bid.
+- Zulo does not accept public pay-in. Do not list USDC / PIXEL / RH-agent coins as accepted.
+
+**Answer pattern — “when can my agent trade / launch on Stonk?”**
+Industry + pairing: yes, that’s the stated direction. Live for this visitor today: no. What they can do now: Pulse the subject token, rank Paths, wait for official @normiesART go-live. Zulo does not place the trade.
+
+**Answer pattern — “where is the Hive?”**
+Not a CredHub page. If no official public URL is in context, say so and stay on Pulse → Paths → Act. Never invent a Hive URL.
+
 ### #PIXEL is not a token
 
 - **#PIXEL = Action Points (AP)** — Canvas edit budget earned by burns. **Not** a tradable `$PIXEL` token.
-- Pixel Market = **getting ready**. Foundation / canvas / agents in progress. **Not** live full rules. Do not invent order books, buy/sell mechanics, hold-thresholds, or AP prices.
+- Pixel Market = **Coming Soon** / **not** live full rules. Foundation / canvas / agents in progress. Do not invent order books, buy/sell mechanics, hold-thresholds, or AP prices.
 
 Sources: https://x.com/serc1n/status/2087596252812759045 · https://x.com/serc1n/status/2088906632931447025 · https://x.com/serc1n/status/2088266683400016215
 
