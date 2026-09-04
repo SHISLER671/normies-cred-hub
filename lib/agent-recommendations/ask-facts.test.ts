@@ -11,6 +11,8 @@ import {
   formatBurnMath,
   parsePaidEthFromQuery,
 } from "./burnMath"
+import { COMMUNITY_TOOLS } from "./communityTools"
+import { ECOSYSTEM_LINKS } from "./constants"
 import {
   buildCollabRailsPromptBlock,
   getCollabRailsContextSummary,
@@ -70,6 +72,37 @@ describe("collab / rails knowledge", () => {
     assert.match(block, /Coming Soon/)
     assert.match(block, /not live full rules/i)
     assert.doesNotMatch(block, /market will add buy\/sell later/i)
+  })
+
+  it("keeps Yacht Club as a community rail, not a Stonk pillar", () => {
+    const block = buildCollabRailsPromptBlock()
+    const summary = getCollabRailsContextSummary()
+    assert.match(block, /Community build — Normies Yacht Club/)
+    assert.match(block, /not official Normies product/)
+    assert.match(block, /@OsayKancuno/)
+    assert.match(block, /normiesyachtclub\.com/)
+    assert.match(block, /\/developers/)
+    assert.match(block, /\/purser/)
+    assert.match(block, /\/claim/)
+    assert.match(block, /0x87306c282eBd62Fe1c80AA69Dd9408331Dc11f64/)
+    assert.match(block, /Anchor Points ≠ Normies PIXEL/)
+    assert.match(block, /Brokers’ Atoll ≠ StonkBrokers/)
+    assert.match(block, /Do not write “official Normies Yacht Club”/)
+    assert.match(block, /Zulo does not claim, mint, or sign/)
+    assert.match(block, /Do not pitch NYC Anchor Points as an earn product/)
+    assert.match(block, /will not execute standing orders/)
+    assert.match(block, /CredHub does not run their agents/)
+    assert.doesNotMatch(block, /Grok Bot/)
+    assert.doesNotMatch(block, /Zulo Desk/)
+    assert.doesNotMatch(block, /Cursor/)
+    assert.doesNotMatch(block, /Halu/)
+    assert.doesNotMatch(block, /#2688/)
+    assert.doesNotMatch(block, /0x4301dc2/i)
+    assert.ok(
+      summary.pillars.every((p) => !/yacht/i.test(p)),
+      "Yacht Club must not sit in official StonkBrokers pillars",
+    )
+    assert.ok(summary.rails.some((r) => /Yacht Club = community build/.test(r)))
   })
 
   it("keeps 2026-08-31 / 2026-09-01 pairing add-on inside public rails", () => {
@@ -149,6 +182,35 @@ describe("queryNeedsCollabRailsKnowledge", () => {
       true,
     )
     assert.equal(queryNeedsCollabRailsKnowledge("Where do I pay Zulo?"), true)
+  })
+
+  it("matches Yacht Club community-rail asks", () => {
+    assert.equal(queryNeedsCollabRailsKnowledge("What is Normies Yacht Club?"), true)
+    assert.equal(queryNeedsCollabRailsKnowledge("Are Yacht Club points PIXEL?"), true)
+    assert.equal(
+      queryNeedsCollabRailsKnowledge(
+        "Is Yacht Club the Hive / Arena / Pixel Market / StonkBrokers?",
+      ),
+      true,
+    )
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("Should I burn #7141 for a yacht?"),
+      true,
+    )
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("I burned a Normie — do I get a yacht?"),
+      true,
+    )
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("can Zulo talk to the Yacht Club API?"),
+      true,
+    )
+    assert.equal(queryNeedsCollabRailsKnowledge("Can Zulo run my Purser agent?"), true)
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("what are Anchor Points / the Tide / Chandlery?"),
+      true,
+    )
+    assert.equal(queryNeedsCollabRailsKnowledge("is Brokers' Atoll StonkBrokers?"), true)
   })
 })
 
@@ -233,6 +295,52 @@ describe("composed Ask prompt", () => {
     assert.doesNotMatch(prompt, /SuperGrok/)
     assert.doesNotMatch(prompt, /AGNT/)
     assert.doesNotMatch(prompt, /Zulo can trade your bag/)
+  })
+
+  it("answers Yacht Club as community, not official product / PIXEL / Hive", () => {
+    const questions = [
+      "What is Normies Yacht Club?",
+      "Are Yacht Club points PIXEL?",
+      "Is Yacht Club the Hive / Arena / Pixel Market / StonkBrokers?",
+      "Should I burn #7141 for a yacht?",
+      "I burned a Normie — do I get a yacht?",
+      "can Zulo / CredHub talk to the Yacht Club API?",
+      "Can Zulo run my Purser agent?",
+      "what are Anchor Points / the Tide / Chandlery?",
+    ]
+    for (const q of questions) {
+      const prompt = composeZuloPrompt(generalContext(), q)
+      assert.match(prompt, /not official Normies product/)
+      assert.match(prompt, /@OsayKancuno/)
+      assert.match(prompt, /normiesyachtclub\.com/)
+      assert.match(prompt, /\/purser/)
+      assert.match(prompt, /\/developers/)
+      assert.match(prompt, /Anchor Points ≠ PIXEL/)
+      assert.match(prompt, /Marina \/ Agent Islands \/ Trade Wind Quay ≠ Hive \/ Pixel Market \/ Arena/)
+      assert.match(prompt, /Brokers' Atoll ≠ StonkBrokers/)
+      assert.match(prompt, /Do not write "official Normies Yacht Club"/)
+      assert.match(prompt, /Last-face hygiene/)
+      assert.match(prompt, /do not treat #7141 as the visitor's Normie/i)
+      assert.match(prompt, /hold Purser keys, or execute standing orders/)
+      assert.doesNotMatch(prompt, /Grok Bot/)
+      assert.doesNotMatch(prompt, /Zulo Desk/)
+      assert.doesNotMatch(prompt, /Hive Desk/)
+      assert.doesNotMatch(prompt, /Cursor/)
+      assert.doesNotMatch(prompt, /Halu/)
+      assert.doesNotMatch(prompt, /#2688/)
+      assert.doesNotMatch(prompt, /0x4301dc2/i)
+    }
+  })
+
+  it("does not add Yacht Club to community-tools Paths catalog or ecosystem links", () => {
+    const names = COMMUNITY_TOOLS.map((t) => `${t.name} ${t.url}`).join("\n")
+    assert.doesNotMatch(names, /yacht/i)
+    assert.doesNotMatch(names, /normiesyachtclub/i)
+    const links = Object.values(ECOSYSTEM_LINKS)
+      .map((v) => (typeof v === "function" ? v(1) : v))
+      .join("\n")
+    assert.doesNotMatch(links, /yacht/i)
+    assert.doesNotMatch(links, /normiesyachtclub/i)
   })
 
   it("answers stonk-launch and hive asks as pairing + TBA, not live rails", () => {
