@@ -1028,7 +1028,7 @@
 /* Footer */
 .zulo-chrome .site-footer {
   border-top: 1px solid var(--border);
-  padding: var(--space-lg);
+  padding: 12px var(--space-lg);
 }
 
 .zulo-chrome .site-footer-inner {
@@ -3577,6 +3577,12 @@
   max-width: none;
 }
 
+.zulo-chrome.ask-page-wrap .site-footer {
+  flex-shrink: 0;
+  border-top: none;
+  padding: 0 20px 12px;
+}
+
 /* Dashboard trust surfaces keep their own cards; tighten radius language */
 .zulo-chrome .dash-main [class*="rounded"] {
   border-radius: 0 !important;
@@ -4034,4 +4040,85 @@
     border-width: 2.5px;
     background: var(--cursor-ring-fill, transparent);
   }
+}
+
+/* --- Hygiene: 404, legal, thin contact footer --- */
+.zulo-chrome .not-found-main {
+  min-height: calc(100dvh - 160px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.zulo-chrome .not-found-main .hero-title-hub {
+  margin-bottom: var(--space-sm);
+}
+
+.zulo-chrome .not-found-main .hero-subtitle {
+  margin-bottom: var(--space-lg);
+}
+
+.zulo-chrome .legal-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md) var(--space-lg);
+}
+
+.zulo-chrome .legal-page h1 {
+  font-size: clamp(28px, 6vw, 40px);
+  margin: 0 0 var(--space-md);
+}
+
+.zulo-chrome .legal-page h2 {
+  font-size: 14px;
+  margin: var(--space-lg) 0 var(--space-sm);
+}
+
+.zulo-chrome .legal-page p,
+.zulo-chrome .legal-page li {
+  font-size: 15px;
+  line-height: 1.6;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+}
+
+.zulo-chrome .legal-page ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.zulo-chrome .legal-page li + li {
+  margin-top: 8px;
+}
+
+.zulo-chrome .legal-updated {
+  margin-top: var(--space-xl);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .site-footer-contact {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-muted);
+}
+
+.zulo-chrome .site-footer-contact a {
+  text-transform: none;
+}
+
+.zulo-chrome .dash-footer .site-footer-contact {
+  margin-top: 16px;
+  max-width: none;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: none;
 }

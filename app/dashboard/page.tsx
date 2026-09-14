@@ -7,6 +7,7 @@ import {
   PulseAccordion,
   PulseAccordionItem,
 } from "@/components/pulse-accordion"
+import { SiteFooterContact } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { ZULO } from "@/constants/contracts"
 
@@ -153,6 +154,7 @@ export default function DashboardPage() {
             <br />
             Data from Normies · Ethos · ERC-8004. We are awakened.
           </p>
+          <SiteFooterContact />
         </footer>
       </main>
     </div>

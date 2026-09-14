@@ -75,7 +75,7 @@ export function ActiveNormieSwitcher({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={normieImageUrl(activeTokenId)}
-            alt=""
+            alt={`Normie #${activeTokenId}`}
             width={28}
             height={28}
           />
@@ -118,7 +118,7 @@ export function ActiveNormieSwitcher({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={normieImageUrl(n.tokenId)}
-                          alt=""
+                          alt={`Normie #${n.tokenId}`}
                           width={28}
                           height={28}
                         />
@@ -160,7 +160,7 @@ export function ActiveNormieBadge({ className }: { className?: string }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={normieImageUrl(activeTokenId)}
-          alt=""
+          alt={`Normie #${activeTokenId}`}
           width={20}
           height={20}
         />

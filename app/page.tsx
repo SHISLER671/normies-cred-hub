@@ -5,6 +5,7 @@ import Link from "next/link"
 import { AgentToolsHomeLine } from "@/components/agent-tools-block"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { HomeFuturePlans } from "@/components/home-future-plans"
+import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
@@ -92,10 +93,10 @@ export default async function ZuloLandingPage() {
 
           <div className="hero-art hero-art-agent home-zulo-art">
             <Image
-              src="/images/7141art.png"
+              src="/images/7141art.webp"
               alt={`Zulo — Normie #${ZULO_IDENTITY.tokenId} art`}
               width={720}
-              height={720}
+              height={716}
               className="hero-art-img"
               sizes="(max-width: 640px) 72vw, 360px"
               priority
@@ -196,6 +197,7 @@ export default async function ZuloLandingPage() {
           hotWallet={ZULO_IDENTITY.hotWallet}
         />
       </div>
+      <SiteFooter />
     </div>
   )
 }
