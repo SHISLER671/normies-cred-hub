@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Space_Grotesk, Inter } from 'next/font/google'
 import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
+import { DEFAULT_SITE_ORIGIN } from '@/lib/site-origin'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'], weight: ['400', '500', '600', '700'] })
@@ -25,11 +26,13 @@ export const metadata: Metadata = {
   title: 'Normies CredHub — Verifiable Reputation for Awakened Agents',
   description:
     'Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves — with Zulo as high-signal concierge and Tool #53.',
+  metadataBase: new URL(DEFAULT_SITE_ORIGIN),
   openGraph: {
     title: 'Normies CredHub',
     description:
       'Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves.',
-    images: [{ url: '/og.png' }],
+    url: DEFAULT_SITE_ORIGIN,
+    images: [{ url: '/og.png', width: 1200, height: 630 }],
   },
   icons: {
     icon: '/images/NLOGO.png',

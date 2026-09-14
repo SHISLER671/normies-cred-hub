@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 
 import { AgentToolsFoot } from "@/components/agent-tools-block"
 import { PathBoard } from "@/components/path-board"
+import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { ConnectWallet } from "@/components/connect-wallet"
@@ -30,6 +31,7 @@ export default function PathsPage() {
         <PathBoard defaultTokenId={ZULO_IDENTITY.tokenId} />
         <AgentToolsFoot />
       </main>
+      <SiteFooter />
     </div>
   )
 }
