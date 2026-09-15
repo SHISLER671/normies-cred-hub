@@ -7,11 +7,44 @@ import { ConnectWallet } from "@/components/connect-wallet"
 import { HomeFuturePlans } from "@/components/home-future-plans"
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
-import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
+import {
+  ECOSYSTEM_LINKS,
+  ZULO_IDENTITY,
+} from "@/lib/agent-recommendations/constants"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import { getZuloHelpfulStats } from "@/lib/db/supabase"
 
 import "./zulo/styles.css"
+
+const OFFICIAL_SURFACES = [
+  { name: "Canvas", status: "LIVE" },
+  { name: "Pixel Market", status: "COMING SOON" },
+  { name: "Arena", status: "COMING SOON" },
+] as const
+
+const CREDHUB_SURFACES = [
+  {
+    name: "PULSE",
+    href: "/dashboard",
+    line: "Trust signals for the active Normie.",
+    cardClass: "home-surface-card-pulse",
+    delay: "1",
+  },
+  {
+    name: "ASK",
+    href: "/ask",
+    line: "High-signal concierge for the active Normie.",
+    cardClass: "",
+    delay: "2",
+  },
+  {
+    name: "MOVES",
+    href: "/paths",
+    line: "Ranked next steps you can try.",
+    cardClass: "home-surface-card-moves",
+    delay: "3",
+  },
+] as const
 
 export const metadata: Metadata = {
   title: "Normies CredHub — Verifiable Reputation for Awakened Agents",
@@ -45,7 +78,7 @@ export default async function ZuloLandingPage() {
   const helpfulCount = helpful?.helpfulCount
 
   return (
-    <div className="zulo-chrome">
+    <div className="zulo-chrome zulo-home">
       <ZuloChromeHeader
         active="home"
         trailing={
@@ -56,7 +89,7 @@ export default async function ZuloLandingPage() {
       />
       <div className="header-spacer" aria-hidden />
 
-      {/* 1. Hero */}
+      {/* 1. Hero — one outlined CTA; wallet stays in the header */}
       <section className="hero hero-hub">
         <div className="hub-mark">
           <Image
@@ -75,9 +108,52 @@ export default async function ZuloLandingPage() {
         <p className="hero-meta mono">
           PULSE · Ask · Moves · high-signal concierge
         </p>
+        <div className="hero-actions">
+          <Link href="/ask" className="button">
+            Ask Zulo →
+          </Link>
+          <a
+            href={ECOSYSTEM_LINKS.main}
+            className="hero-secondary-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View on Normies →
+          </a>
+        </div>
       </section>
 
-      {/* 2. What Zulo Does → 3. CTAs */}
+      {/* Official Lab status — link out; CredHub does not run these */}
+      <section className="section section-bordered home-official" data-reveal>
+        <div className="container">
+          <div className="home-official-row" role="list">
+            {OFFICIAL_SURFACES.map((surface) => (
+              <a
+                key={surface.name}
+                href={ECOSYSTEM_LINKS.lab}
+                className="home-status-chip"
+                role="listitem"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>{surface.name}</span>
+                <span
+                  className={
+                    surface.status === "LIVE" ? "badge badge-live" : "badge badge-soon"
+                  }
+                >
+                  {surface.status}
+                </span>
+              </a>
+            ))}
+          </div>
+          <p className="caption text-center home-official-caption">
+            Official Lab. CredHub does not run these.
+          </p>
+        </div>
+      </section>
+
+      {/* 2. What Zulo Does → CredHub tiles */}
       <section className="section section-bordered home-product" data-reveal>
         <div className="container">
           <h2 className="text-center">What Zulo does</h2>
@@ -104,52 +180,27 @@ export default async function ZuloLandingPage() {
           </div>
 
           <div className="grid-3 home-zulo-points">
-            <Link
-              href="/dashboard"
-              className="home-surface-card home-surface-card-pulse"
-              data-reveal
-              data-reveal-delay="1"
-            >
-              <h3>PULSE</h3>
-              <p>
-                Pulse-influenced advice and trust signals for the active Normie
-                — data-backed, not vibes-only.
-              </p>
-              <span className="home-surface-card-go mono" aria-hidden>
-                Open →
-              </span>
-            </Link>
-            <Link
-              href="/ask"
-              className="home-surface-card home-surface-card-ask"
-              data-reveal
-              data-reveal-delay="2"
-            >
-              <h3>Ask</h3>
-              <p>
-                High-signal concierge chat scoped to the active Normie — PULSE
-                and Canvas, not generic chat.
-              </p>
-              <span className="home-surface-card-go mono" aria-hidden>
-                Open →
-              </span>
-            </Link>
-            <Link
-              href="/paths"
-              className="home-surface-card home-surface-card-moves"
-              data-reveal
-              data-reveal-delay="3"
-            >
-              <h3>Moves</h3>
-              <p>
-                Ranked tryable agent/tool moves with reasoning and a clear
-                try-it step.
-              </p>
-              <span className="home-surface-card-go mono" aria-hidden>
-                Open →
-              </span>
-            </Link>
+            {CREDHUB_SURFACES.map((surface) => (
+              <Link
+                key={surface.name}
+                href={surface.href}
+                className={`home-surface-card home-cred-card ${surface.cardClass}`.trim()}
+                data-reveal
+                data-reveal-delay={surface.delay}
+              >
+                <span className="badge badge-live">LIVE</span>
+                <h3>{surface.name}</h3>
+                <p>{surface.line}</p>
+                <span className="home-surface-card-go mono" aria-hidden>
+                  Open →
+                </span>
+              </Link>
+            ))}
           </div>
+
+          <p className="caption text-center home-type-legend">
+            Official types · Humans · Cats · Aliens · Agents
+          </p>
         </div>
       </section>
 
