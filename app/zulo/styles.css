@@ -13,6 +13,7 @@
   --border: #1a1a1a;
   --border-light: #a3a3a3;
   --accent: #1a1a1a;
+  --zulo-accent: #22d3ee;
   --card-hover: #e8e8e8;
 
   /* Cursor ring (theme-aware; square, monochrome) */
@@ -44,7 +45,7 @@
   --motion-reveal-y: 12px;
   --shadow-card: 4px 4px 0 0 rgb(0 0 0 / 0.1);
   --shadow-soft: 0 1px 0 0 rgb(0 0 0 / 0.08);
-  --focus-ring: 2px solid var(--text-primary);
+  --focus-ring: 1px solid color-mix(in oklab, var(--zulo-accent) 30%, transparent);
   --focus-offset: 2px;
 
   color-scheme: light;
@@ -79,7 +80,6 @@
 
   --shadow-card: 4px 4px 0 0 rgb(255 255 255 / 0.08);
   --shadow-soft: 0 1px 0 0 rgb(255 255 255 / 0.06);
-  --focus-ring: 2px solid var(--text-primary);
 
   color-scheme: dark;
 }
@@ -726,6 +726,10 @@
   color: var(--text-primary);
 }
 
+.zulo-chrome .header-nav a.nav-ask.is-active {
+  color: var(--zulo-accent);
+}
+
 .zulo-chrome .header-nav a:focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-offset);
@@ -1054,6 +1058,12 @@
   color: var(--text-primary);
 }
 
+.zulo-chrome .site-footer a.footer-zulo,
+.zulo-chrome .site-footer a.footer-zulo:hover,
+.zulo-chrome .site-footer a.footer-zulo:focus-visible {
+  color: var(--zulo-accent);
+}
+
 .zulo-chrome .footer-links {
   display: flex;
   flex-wrap: wrap;
@@ -1323,10 +1333,6 @@
 }
 
 /* Home kinship with official www.normies.art — scoped to .zulo-home */
-.zulo-chrome.zulo-home {
-  --zulo-accent: #22d3ee;
-}
-
 .zulo-chrome.zulo-home .header {
   border-bottom-color: color-mix(in oklab, var(--text-primary) 18%, transparent);
   padding-top: 12px;
@@ -1353,11 +1359,6 @@
 
 .zulo-chrome.zulo-home .hero-hub .button {
   border-color: var(--zulo-accent);
-}
-
-.zulo-chrome.zulo-home .hero-hub .button:focus-visible {
-  outline: 2px solid var(--zulo-accent);
-  outline-offset: var(--focus-offset);
 }
 
 .zulo-chrome.zulo-home .hero-hub .button:hover:not(:disabled) {
@@ -1521,7 +1522,11 @@
 .zulo-chrome .home-cred-card:hover,
 .zulo-chrome .home-cred-card:focus-visible {
   background: var(--bg-secondary);
-  outline: none;
+}
+
+.zulo-chrome .home-cred-card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .zulo-chrome .home-type-legend {
@@ -1936,8 +1941,8 @@
 
 .zulo-chrome .chat-input-field:focus {
   outline: none;
-  border-color: var(--text-primary);
-  box-shadow: inset 0 0 0 1px var(--text-primary);
+  border-color: var(--zulo-accent);
+  box-shadow: inset 0 0 0 1px var(--zulo-accent);
 }
 
 .zulo-chrome .chat-input-field:focus-visible {
@@ -2673,6 +2678,15 @@
   min-height: 44px;
   min-width: 72px;
   flex-shrink: 0;
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--zulo-accent);
+}
+
+.zulo-chrome .ask-chat .chat-input .button:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--zulo-accent);
 }
 
 /* Opportunities rail (used inside collapsible ask module) */

@@ -49,7 +49,10 @@ export function ZuloChromeHeader({
         >
           PULSE
         </Link>
-        <Link href="/ask" className={cn(active === "ask" && "is-active")}>
+        <Link
+          href="/ask"
+          className={cn("nav-ask", active === "ask" && "is-active")}
+        >
           Ask
         </Link>
         <Link href="/paths" className={cn(movesActive && "is-active")}>

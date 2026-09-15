@@ -8,7 +8,12 @@ export function SiteFooterContact() {
     <p className="site-footer-contact mono">
       shisler671.eth
       {" · "}
-      <a href={X_PROFILE} target="_blank" rel="noopener noreferrer">
+      <a
+        href={X_PROFILE}
+        className="footer-zulo"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         @zulo7141
       </a>
       {" · "}
