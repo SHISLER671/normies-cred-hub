@@ -34,7 +34,7 @@ const CREDHUB_SURFACES = [
     name: "ASK",
     href: "/ask",
     line: "High-signal concierge for the active Normie.",
-    cardClass: "",
+    cardClass: "home-cred-card-ask",
     delay: "2",
   },
   {
@@ -102,6 +102,17 @@ export default async function ZuloLandingPage() {
           />
         </div>
         <h1 className="hero-title hero-title-hub">Normies CredHub</h1>
+        <div className="hero-art hero-art-agent hero-soul-frame">
+          <Image
+            src="/images/7141art.webp"
+            alt="Zulo — Normie #7141 art"
+            width={720}
+            height={716}
+            className="hero-art-img"
+            sizes="(max-width: 640px) 78vw, 440px"
+            priority
+          />
+        </div>
         <p className="hero-subtitle">
           Verifiable reputation and tools for awakened Normies agents
         </p>
@@ -166,18 +177,6 @@ export default async function ZuloLandingPage() {
             For newholders and AP stackers: ranked Moves and high-signal Ask —
             confirm the decision, don&apos;t drown in docs.
           </p>
-
-          <div className="hero-art hero-art-agent home-zulo-art">
-            <Image
-              src="/images/7141art.webp"
-              alt={`Zulo — Normie #${ZULO_IDENTITY.tokenId} art`}
-              width={720}
-              height={716}
-              className="hero-art-img"
-              sizes="(max-width: 640px) 72vw, 360px"
-              priority
-            />
-          </div>
 
           <div className="grid-3 home-zulo-points">
             {CREDHUB_SURFACES.map((surface) => (

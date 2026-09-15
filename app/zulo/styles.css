@@ -1323,6 +1323,10 @@
 }
 
 /* Home kinship with official www.normies.art — scoped to .zulo-home */
+.zulo-chrome.zulo-home {
+  --zulo-accent: #22d3ee;
+}
+
 .zulo-chrome.zulo-home .header {
   border-bottom-color: color-mix(in oklab, var(--text-primary) 18%, transparent);
   padding-top: 12px;
@@ -1347,9 +1351,66 @@
   align-items: center;
 }
 
+.zulo-chrome.zulo-home .hero-hub .button {
+  border-color: var(--zulo-accent);
+}
+
+.zulo-chrome.zulo-home .hero-hub .button:focus-visible {
+  outline: 2px solid var(--zulo-accent);
+  outline-offset: var(--focus-offset);
+}
+
 .zulo-chrome.zulo-home .hero-hub .button:hover:not(:disabled) {
   background: var(--text-primary);
   color: var(--bg-primary);
+}
+
+.zulo-chrome.zulo-home .hero-soul-frame {
+  position: relative;
+  width: min(78vw, 400px);
+  margin: var(--space-md) auto var(--space-md);
+}
+
+.zulo-chrome.zulo-home .hero-soul-frame .hero-art-img {
+  filter: none;
+}
+
+.zulo-chrome.zulo-home .hero-soul-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--zulo-accent);
+  pointer-events: none;
+  animation: zulo-breathe 6s ease-in-out infinite;
+}
+
+@keyframes zulo-breathe {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.zulo-chrome.zulo-home .hero-hub:hover .hero-soul-frame::after,
+.zulo-chrome.zulo-home .hero-hub:focus-within .hero-soul-frame::after {
+  animation: none;
+  opacity: 0.55;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .zulo-chrome.zulo-home .hero-soul-frame:hover {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .zulo-chrome.zulo-home .hero-soul-frame {
+    width: min(44vw, 440px);
+  }
 }
 
 .zulo-chrome .hero-secondary-link {
@@ -1450,6 +1511,11 @@
 
 .zulo-chrome .home-cred-card.home-surface-card-pulse::after {
   display: none;
+}
+
+.zulo-chrome.zulo-home .home-cred-card-ask .badge-live {
+  border-color: var(--zulo-accent);
+  color: var(--zulo-accent);
 }
 
 .zulo-chrome .home-cred-card:hover,
@@ -4162,6 +4228,13 @@
   .zulo-chrome .pulse-indicator::after {
     animation: none !important;
     opacity: 0;
+  }
+
+  .zulo-chrome.zulo-home .hero-soul-frame::after,
+  .zulo-chrome.zulo-home .hero-hub:hover .hero-soul-frame::after,
+  .zulo-chrome.zulo-home .hero-hub:focus-within .hero-soul-frame::after {
+    animation: none !important;
+    opacity: 0.15;
   }
 
   /* Cursor: keep static high-contrast ring; no pulse/glow animation */
