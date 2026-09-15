@@ -1322,6 +1322,147 @@
   }
 }
 
+/* Home kinship with official www.normies.art — scoped to .zulo-home */
+.zulo-chrome.zulo-home .header {
+  border-bottom-color: color-mix(in oklab, var(--text-primary) 18%, transparent);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.zulo-chrome.zulo-home .header.header-fixed.is-scrolled {
+  border-bottom-color: color-mix(in oklab, var(--text-primary) 22%, transparent);
+}
+
+.zulo-chrome.zulo-home .header-nav a {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+}
+
+.zulo-chrome.zulo-home .header-spacer {
+  height: 64px;
+}
+
+.zulo-chrome.zulo-home .hero-hub .hero-actions {
+  margin-top: var(--space-lg);
+  align-items: center;
+}
+
+.zulo-chrome.zulo-home .hero-hub .button:hover:not(:disabled) {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+.zulo-chrome .hero-secondary-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 2px;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--motion-base) var(--motion-ease);
+}
+
+.zulo-chrome .hero-secondary-link:hover,
+.zulo-chrome .hero-secondary-link:focus-visible {
+  color: var(--text-primary);
+}
+
+.zulo-chrome .hero-secondary-link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .home-official {
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-lg);
+}
+
+.zulo-chrome .home-official-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.zulo-chrome .home-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 0;
+  transition:
+    background var(--motion-base) var(--motion-ease),
+    border-color var(--motion-base) var(--motion-ease);
+}
+
+.zulo-chrome .home-status-chip:hover,
+.zulo-chrome .home-status-chip:focus-visible {
+  background: var(--bg-secondary);
+}
+
+.zulo-chrome .home-status-chip:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.zulo-chrome .home-official-caption {
+  margin: var(--space-md) auto 0;
+  max-width: 32rem;
+}
+
+.zulo-chrome .badge-live {
+  opacity: 1;
+}
+
+.zulo-chrome .badge-soon {
+  opacity: 0.6;
+}
+
+.zulo-chrome .home-cred-card {
+  position: relative;
+  overflow: visible;
+  border-width: 1px;
+  padding-top: 28px;
+  min-height: 132px;
+}
+
+.zulo-chrome .home-cred-card .badge {
+  position: absolute;
+  top: -0.6rem;
+  left: 1rem;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  padding: 2px 8px;
+  background: var(--bg-primary);
+}
+
+.zulo-chrome .home-cred-card.home-surface-card-pulse::after {
+  display: none;
+}
+
+.zulo-chrome .home-cred-card:hover,
+.zulo-chrome .home-cred-card:focus-visible {
+  background: var(--bg-secondary);
+  outline: none;
+}
+
+.zulo-chrome .home-type-legend {
+  margin: var(--space-lg) auto 0;
+  max-width: 32rem;
+}
+
 .zulo-chrome .quote-under-stats {
   margin-top: var(--space-lg);
 }
@@ -3636,7 +3777,8 @@
   }
 
   .zulo-chrome .home-surface-card-moves:hover,
-  .zulo-chrome .home-surface-card-pulse:hover {
+  .zulo-chrome .home-surface-card-pulse:hover,
+  .zulo-chrome .home-cred-card:hover {
     box-shadow: var(--shadow-card);
     transform: translateY(var(--motion-lift));
   }
