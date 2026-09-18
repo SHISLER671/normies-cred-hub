@@ -47,9 +47,9 @@ export const NORMIES_KNOWLEDGE = {
     },
     actionPoints: {
       boundTo: "Specific Normie (non-transferable)",
-      usage: "Add or remove pixels on 40×40 grid",
-      cost: "1 AP per pixel changed",
-      notConsumed: "Can redo transforms within budget",
+      usage: "Add or remove pixels on 40×40 grid in official Normies UI",
+      cost: "Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit",
+      notConsumed: "AP stays on the keeper; not spent when you draw / preview",
       budgetDisplay: "Green = added, Gray = removed (editor only, not on-chain)",
     },
     levels: {
@@ -238,7 +238,7 @@ CANVAS / BURN ECONOMICS:
   • 491–890 px → 2–4%
   • 891+ px → 3–4% (best efficiency band)
 - Reveal window: ${k.canvas.burnMechanics.revealWindow}; miss window → ${k.canvas.burnMechanics.penalty}
-- AP bound to specific Normie (non-transferable); 1 AP = 1 pixel add/remove
+- AP bound to specific Normie (non-transferable); sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official UI — not an AP debit. CredHub / Normifier preview is not a spend rail.
 - Level = floor(AP/10)+1 (starts at 1); Arena stats scale with Level
 - Delegate: transform only; cannot burn/claim/transfer; one delegate per Normie
 

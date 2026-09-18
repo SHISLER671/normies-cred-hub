@@ -234,7 +234,7 @@ export async function buildStrategySnapshot(input: {
     if (canvasEvolution.preview) {
       const p = canvasEvolution.preview
       summaryLines.push(
-        `Canvas Preview #${p.tokenId}: ${p.recommendation} @ ${p.confidence}% · ${p.before.pixelCountOn}→${p.after.pixelCountOn} px · cost ${p.costBreakdown.totalApCost} AP`,
+        `Canvas Preview #${p.tokenId}: ${p.recommendation} @ ${p.confidence}% · ${p.before.pixelCountOn}→${p.after.pixelCountOn} px · ${p.costBreakdown.totalFlips} px official #PIXEL budget (not an AP debit)`,
       )
     }
     if (canvasEvolution.expansion) {

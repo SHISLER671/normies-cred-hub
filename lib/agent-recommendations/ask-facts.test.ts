@@ -11,6 +11,7 @@ import {
   formatBurnMath,
   parsePaidEthFromQuery,
 } from "./burnMath"
+import { CANVAS_EVOLUTION_DISCLAIMER } from "./canvasEvolution"
 import { COMMUNITY_TOOLS } from "./communityTools"
 import { ECOSYSTEM_LINKS } from "./constants"
 import {
@@ -72,6 +73,21 @@ describe("collab / rails knowledge", () => {
     assert.match(block, /Coming Soon/)
     assert.match(block, /not live full rules/i)
     assert.doesNotMatch(block, /market will add buy\/sell later/i)
+  })
+
+  it("locks canvas / Normifier preview as not an AP debit", () => {
+    const block = buildCollabRailsPromptBlock()
+    assert.match(block, /not spent when you draw/i)
+    assert.match(block, /#PIXEL as pixel budget/)
+    assert.match(block, /1 PIXEL = 1 pixel/)
+    assert.match(block, /not an AP debit/)
+    assert.match(block, /Preview on Normifier/)
+    assert.match(block, /not a spend rail/)
+    assert.match(block, /customize to earn PIXEL/)
+    assert.doesNotMatch(block, /before spending/i)
+    assert.doesNotMatch(block, /spending \d+ AP/i)
+    assert.doesNotMatch(block, /this will cost AP/i)
+    assert.doesNotMatch(block, /1 AP per pixel/i)
   })
 
   it("keeps Yacht Club as a community rail, not a Stonk pillar", () => {
@@ -323,6 +339,35 @@ describe("composed Ask prompt", () => {
     assert.match(prompt, /NOT a token/)
     assert.match(prompt, /Coming Soon/)
     assert.match(prompt, /not live full rules/i)
+  })
+
+  it("does not tell visitors they spend AP to preview or customize appearance", () => {
+    const questions = [
+      "Preview edits on Normifier",
+      "Should I customize my canvas?",
+      "preview canvas add 12 pixels",
+    ]
+    for (const q of questions) {
+      const prompt = composeZuloPrompt(generalContext(), q)
+      assert.match(prompt, /Preview on Normifier before you commit a canvas edit in official UI/)
+      assert.match(prompt, /AP stays on the token you keep/)
+      assert.match(prompt, /#PIXEL as pixel budget/)
+      assert.match(prompt, /not an AP debit/)
+      assert.match(prompt, /CredHub \/ Normifier preview is not a spend rail/)
+      assert.match(prompt, /Holder draws \/ canvases only at official Normies UI/)
+      assert.doesNotMatch(prompt, /before spending/i)
+      assert.doesNotMatch(prompt, /spending \d+ AP/i)
+      assert.doesNotMatch(prompt, /this will cost AP/i)
+      assert.doesNotMatch(prompt, /On-chain edit fee is 1 AP per pixel/i)
+      assert.doesNotMatch(prompt, /1 AP per pixel (?:changed|flip|add)/i)
+      assert.doesNotMatch(prompt, /Grok Bot/)
+      assert.doesNotMatch(prompt, /Zulo Desk/)
+      assert.doesNotMatch(prompt, /Cursor/)
+    }
+    assert.doesNotMatch(CANVAS_EVOLUTION_DISCLAIMER, /AP cost uses 1 AP/)
+    assert.doesNotMatch(CANVAS_EVOLUTION_DISCLAIMER, /1 AP per pixel/)
+    assert.match(CANVAS_EVOLUTION_DISCLAIMER, /not an AP debit/)
+    assert.match(CANVAS_EVOLUTION_DISCLAIMER, /not a spend rail/)
   })
 
   it("keeps visitor Ask tandem free of desk names and keys", () => {

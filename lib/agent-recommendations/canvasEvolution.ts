@@ -29,7 +29,7 @@ export const SIGNIFICANT_TRANSFORM_PCT = 10
 export const AP_PER_PIXEL_EDIT = 1
 
 export const CANVAS_EVOLUTION_DISCLAIMER =
-  "Canvas previews are estimates from live Normies API state + your stated changes — not an on-chain simulation. AP cost uses 1 AP per pixel flip (add/remove). Aesthetic/rarity notes are heuristics. 80×80 expansion readiness is forward-looking and not a guarantee of protocol features. DYOR before transforming. Not financial advice."
+  "Canvas previews are estimates from live Normies API state + your stated changes — not an on-chain simulation. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit. AP stays on the keeper; not spent when you draw or preview. CredHub / Normifier preview is not a spend rail. Aesthetic/rarity notes are heuristics. 80×80 expansion readiness is forward-looking and not a guarantee of protocol features. DYOR before transforming. Not financial advice."
 
 export type CanvasVerdict = "PROCEED" | "MODIFY" | "ABANDON"
 
@@ -542,7 +542,7 @@ function decideVerdict(input: {
 
   if (!input.canAfford) {
     reasoning.push(
-      `ABANDON path: transform costs ${input.totalApCost} AP but only ${input.availableAp} AP available on this Canvas.`,
+      `ABANDON path: this preview is ${input.totalApCost} px of official #PIXEL budget; AP holdings on this token are ${input.availableAp} (holdings, not a canvas price). AP is not spent when you draw.`,
     )
     reasoning.push("Burn fodder into this Normie or reduce edit scope before transforming.")
     return { verdict: "ABANDON", reasoning, confidence: 88 }
@@ -574,7 +574,7 @@ function decideVerdict(input: {
 
   if (input.totalApCost > input.availableAp * 0.5 && input.availableAp > 0) {
     reasoning.push(
-      `Edit uses ${Math.round((input.totalApCost / input.availableAp) * 100)}% of remaining AP — leave headroom for later polish.`,
+      `This preview is ${input.totalApCost} px of official #PIXEL budget against ${input.availableAp} AP holdings on the keeper — not an AP debit. Stage smaller commits if you want more room to iterate.`,
     )
     return {
       verdict: "MODIFY",
@@ -596,7 +596,7 @@ function decideVerdict(input: {
   }
 
   reasoning.push(
-    `Affordable (${input.totalApCost} AP ≤ ${input.availableAp} AP) with acceptable aesthetic risk score ${input.aestheticScore}/100.`,
+    `Official #PIXEL budget ${input.totalApCost} px vs ${input.availableAp} AP holdings on the keeper (not an AP debit) with acceptable aesthetic risk score ${input.aestheticScore}/100.`,
   )
   if (!input.customized) {
     reasoning.push("Note: first transform ends purist/untouched status.")
@@ -696,7 +696,7 @@ export async function previewCanvas(
     canAfford,
     tierRateMidPct: tierRef.midPct,
     tierRateReferenceAp: tierRef.referenceAp,
-    notes: `On-chain edit fee = ${AP_PER_PIXEL_EDIT} AP × ${totalFlips} flips = ${totalApCost} AP. Tier-rate reference (${tierRef.tierLabel} mid ${tierRef.midPct}%) ≈ ${tierRef.referenceAp} AP is a burn-band planning metric only — not the edit fee.`,
+    notes: `Official customize uses #PIXEL as pixel budget (${totalFlips} px if committed in official UI) — not an AP debit. AP holdings on this token: ${state.actionPoints} (stay on the keeper). CredHub / Normifier preview is not a spend rail. Tier-rate reference (${tierRef.tierLabel} mid ${tierRef.midPct}%) ≈ ${tierRef.referenceAp} is a burn-band planning metric only.`,
   }
 
   const aesthetic = assessAesthetic({
@@ -732,7 +732,7 @@ export async function previewCanvas(
   const summary = [
     `Canvas Preview #${tokenId}: ${verdict} (confidence ${confidence}%)`,
     `Before ${state.pixelCountOn}/1600 on-px → after ${afterOn}/1600 (add ${actualAdd}, remove ${actualRemove}).`,
-    `Cost ${totalApCost} AP (${AP_PER_PIXEL_EDIT}/px) · available ${state.actionPoints} AP · remaining ${remainingApAfter}.`,
+    `Official #PIXEL budget ${totalFlips} px (1 PIXEL = 1 pixel) · AP holdings ${state.actionPoints} stay on the keeper · not an AP debit.`,
     `Burn-tier band before ~${beforeBurn.minAp}–${beforeBurn.maxAp} AP vs after ~${afterBurn.minAp}–${afterBurn.maxAp} AP (if burned as fodder later).`,
     aesthetic.puristStatusImpact,
     ...reasoning.slice(0, 3),

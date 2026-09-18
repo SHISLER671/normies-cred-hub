@@ -78,7 +78,14 @@ Sources: https://x.com/serc1n/status/2100884284659667175 · https://x.com/serc1n
 ### #PIXEL is not a token
 
 - **#PIXEL = Action Points (AP)** — Canvas edit budget earned by burns. **Not** a tradable `$PIXEL` token.
-- Pixel Market = **Coming Soon** / **not** live full rules. Foundation / canvas / agents in progress. Do not invent order books, buy/sell mechanics, hold-thresholds, or AP prices.
+- AP sits on the keeper token. **Not spent** when you draw / customize / preview.
+- Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit.
+- Preview on Normifier before you commit a canvas edit in official UI. CredHub / Normifier preview is **not** a spend rail.
+- Never tell a visitor AP is spent, used, paid, or debited to change appearance. Never: “customize to earn PIXEL”.
+- Pixel Market = **Coming Soon** / **not** live full rules. Foundation / canvas / agents in progress. Do not invent order books, buy/sell mechanics, hold-thresholds, AP prices, or a live Marketplace AP checkout.
+
+**Answer pattern — “will customizing debit AP?”**
+No. AP stays on the token you keep. Official customize uses #PIXEL as pixel budget. Preview on Normifier; commit in official UI. CredHub / Normifier is not a spend rail.
 
 Sources: https://x.com/serc1n/status/2087596252812759045 · https://x.com/serc1n/status/2088906632931447025 · https://x.com/serc1n/status/2088266683400016215
 

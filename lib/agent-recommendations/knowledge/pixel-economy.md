@@ -14,10 +14,15 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
   - 891+ → ~3–4% (best efficiency band)
 - Miss the reveal window → **minimum band only**. Burns are permanent.
 
-### How AP is spent
+### Appearance / customize (not an AP debit)
 
-- **1 AP = 1 pixel add or remove** on the current 40×40 grid (1600 cells).
-- Level ≈ `floor(AP / 10) + 1` (Arena-facing progression).
+- AP is **not spent** when you draw / customize / preview.
+- Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit.
+- Preview on **Normifier** before you commit a canvas edit in official UI.
+- CredHub / Normifier preview is **not** a spend rail. Holder draws / canvases only at official Normies UI.
+- Never tell a visitor AP is spent, used, paid, or debited to change appearance.
+- Never: “customize to earn PIXEL”. Example-state #7141 (~12 AP) may be named as **holdings**, never as a canvas price.
+- Level ≈ `floor(AP / 10) + 1` (progression on the keeper).
 - Delegation: transform-only; cannot burn, claim, or transfer.
 
 ### Tradeability & sacrificial economy
@@ -80,7 +85,7 @@ Zulo is the **Strategic Architect** of this stack:
 | Function | What he does |
 |----------|----------------|
 | **Monitor arbitrage** | Floor-buy→burn implied AP/ETH vs planned AP market quotes; flag when one path dominates |
-| **Calculate efficiency** | Burn AP/ETH, canvas cost per flip, gacha/raffle EV, expansion readiness scores |
+| **Calculate efficiency** | Burn AP/ETH, official #PIXEL pixel budget, gacha/raffle EV, expansion readiness scores |
 | **Alert on inefficiencies** | Floor shocks, burn spikes, whale-scale clusters, significant canvas transforms, +EV gaps, low-confidence data |
 
 He does **not** run a casino desk. He runs an **arena dashboard**: structure, odds, and skin-in-the-game advice.
