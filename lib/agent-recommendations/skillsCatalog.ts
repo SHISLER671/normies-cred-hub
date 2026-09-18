@@ -59,7 +59,7 @@ export const ZULO_STRATEGY_SKILLS: ZuloSkillDef[] = [
     name: "Canvas Evolution Advisor",
     chip: "Preview canvas",
     prompt: "preview canvas add 12 pixels",
-    description: "Transform cost, PROCEED/MODIFY/ABANDON, 80×80 readiness, canvas watch.",
+    description: "Preview transforms, PROCEED/MODIFY/ABANDON, 80×80 readiness, canvas watch — not an AP spend.",
     triggers: ["preview canvas", "simulate edit", "canvas cost", "80x80", "expansion"],
     status: "live",
     endpoint: "/api/zulo/ask",

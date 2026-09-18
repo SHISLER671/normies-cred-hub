@@ -387,7 +387,7 @@ function generateOpportunities(input: OpportunityInput): string[] {
 
   if (input.actionPoints > 0) {
     opportunities.push(
-      `Action Points: ${input.actionPoints} AP available — preview edits in Normifier (${ECOSYSTEM_LINKS.normifier}) before spending.`,
+      `Action Points: ${input.actionPoints} AP on the keeper token (holdings, not a canvas price) — preview on Normifier (${ECOSYSTEM_LINKS.normifier}) before you commit a canvas edit in official UI. AP is not spent when you draw. CredHub / Normifier preview is not a spend rail.`,
     )
   }
 
@@ -853,7 +853,7 @@ export async function buildZuloContext(
     const ce = strategy.canvasEvolution
     if (ce.preview) {
       earningOpportunities.unshift(
-        `Canvas Preview #${ce.preview.tokenId}: ${ce.preview.recommendation} (${ce.preview.confidence}% confidence) · ${ce.preview.before.pixelCountOn}→${ce.preview.after.pixelCountOn} on-px · ${ce.preview.costBreakdown.totalApCost} AP cost`,
+        `Canvas Preview #${ce.preview.tokenId}: ${ce.preview.recommendation} (${ce.preview.confidence}% confidence) · ${ce.preview.before.pixelCountOn}→${ce.preview.after.pixelCountOn} on-px · ${ce.preview.costBreakdown.totalFlips} px official #PIXEL budget (not an AP debit)`,
       )
     }
     if (ce.expansion) {

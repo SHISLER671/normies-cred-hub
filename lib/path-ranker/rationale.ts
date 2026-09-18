@@ -44,7 +44,7 @@ function skillRationale(
     case "market-sentinel":
       return `Market Sentinel frames floor Δ, burn spikes, and whale clusters. Use it when “${intent.primary}” means don't fly blind on listings.`
     case "canvas-evolution":
-      return `Canvas Evolution prices transforms and flags PROCEED/MODIFY/ABANDON. Right move when the job is pixels, not chatter (${pulseNote}).`
+      return `Canvas Evolution previews transforms and flags PROCEED/MODIFY/ABANDON — not an AP spend. Right move when the job is pixels, not chatter (${pulseNote}).`
     case "gacha-raffle":
       return `Gacha/raffle EV is partial until live feeds are dense — treat it as a framing pass, not a guarantee.`
     default:

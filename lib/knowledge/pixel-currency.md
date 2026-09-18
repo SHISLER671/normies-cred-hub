@@ -34,7 +34,7 @@ Unchanged sacrificial economy (see pixel-economy doctrine):
 - **Earn only by burning** Normies into a receiver’s Canvas (commit → wait → reveal).
 - Yield bands by on-pixel count (0–490, 491–890, 891+).
 - Budget is **bound to a Normie Canvas**, not `eth_getBalance` and not TBA inventory.
-- Spend: **1 unit = 1 pixel add or remove** on the current 40×40 grid.
+- Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit. AP is not spent when you draw / preview.
 
 When speaking under Pixel-enabled UI:
 

@@ -23,7 +23,8 @@
 
 - Prefer: “PIXEL MARKET is **Coming Soon** / **not** live full rules.”
 - Prefer: “**#PIXEL is Action Points, not a token** — earned by burning Normies into Canvas.”
-- Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle.
+- Prefer: official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) — not an AP debit. AP is not spent when you draw.
+- Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle. Never tell a visitor AP is spent or debited to change appearance.
 
 PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence** for the Normie collection — it is **not** a live Pixel order book.
 

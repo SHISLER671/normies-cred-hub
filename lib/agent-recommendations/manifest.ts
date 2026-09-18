@@ -91,7 +91,7 @@ export async function getManifest(): Promise<ZuloManifest> {
       {
         id: "canvas-preview",
         name: "Canvas Evolution Preview",
-        description: "Simulate edits, AP cost, PROCEED/MODIFY/ABANDON",
+        description: "Simulate edits, official #PIXEL pixel budget, PROCEED/MODIFY/ABANDON — not an AP debit",
         price: { amount: ZULO_SERVICE_PRICES["pulse-analysis"] ?? 1, currency: "AP" },
         endpoint: "/api/zulo/ask",
       },

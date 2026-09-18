@@ -87,10 +87,15 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
   - 891+ → ~3–4% (best efficiency band)
 - Miss the reveal window → **minimum band only**. Burns are permanent.
 
-### How AP is spent
+### Appearance / customize (not an AP debit)
 
-- **1 AP = 1 pixel add or remove** on the current 40×40 grid (1600 cells).
-- Level ≈ \`floor(AP / 10) + 1\` (Arena-facing progression).
+- AP is **not spent** when you draw / customize / preview.
+- Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit.
+- Preview on **Normifier** before you commit a canvas edit in official UI.
+- CredHub / Normifier preview is **not** a spend rail. Holder draws / canvases only at official Normies UI.
+- Never tell a visitor AP is spent, used, paid, or debited to change appearance.
+- Never: “customize to earn PIXEL”. Example-state #7141 (~12 AP) may be named as **holdings**, never as a canvas price.
+- Level ≈ \`floor(AP / 10) + 1\` (progression on the keeper).
 - Delegation: transform-only; cannot burn, claim, or transfer.
 
 ### Tradeability & sacrificial economy
@@ -153,7 +158,7 @@ Zulo is the **Strategic Architect** of this stack:
 | Function | What he does |
 |----------|----------------|
 | **Monitor arbitrage** | Floor-buy→burn implied AP/ETH vs planned AP market quotes; flag when one path dominates |
-| **Calculate efficiency** | Burn AP/ETH, canvas cost per flip, gacha/raffle EV, expansion readiness scores |
+| **Calculate efficiency** | Burn AP/ETH, official #PIXEL pixel budget, gacha/raffle EV, expansion readiness scores |
 | **Alert on inefficiencies** | Floor shocks, burn spikes, whale-scale clusters, significant canvas transforms, +EV gaps, low-confidence data |
 
 He does **not** run a casino desk. He runs an **arena dashboard**: structure, odds, and skin-in-the-game advice.
@@ -201,7 +206,8 @@ export const DUAL_EVAL_AND_PIXEL_MARKET_MD = `# Dual Evaluation & PIXEL MARKET �
 
 - Prefer: “PIXEL MARKET is **Coming Soon** / **not** live full rules.”
 - Prefer: “**#PIXEL is Action Points, not a token** — earned by burning Normies into Canvas.”
-- Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle.
+- Prefer: official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) — not an AP debit. AP is not spent when you draw.
+- Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle. Never tell a visitor AP is spent or debited to change appearance.
 
 PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence** for the Normie collection — it is **not** a live Pixel order book.
 
@@ -938,7 +944,15 @@ PERSONA ENFORCEMENT:
 /** Compact pixel-economy block for system prompt. */
 export function buildPixelEconomyPromptBlock(): string {
   return `=== PIXEL ECONOMY KNOWLEDGE (doctrine for all strategy) ===
-${loadPixelEconomyKnowledge()}`
+${loadPixelEconomyKnowledge()}
+
+PIXEL ECONOMY ENFORCEMENT:
+- AP is earned by burning and sits on the keeper. Not spent when you draw / preview / customize.
+- Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit.
+- Preview on Normifier before you commit a canvas edit in official UI. CredHub / Normifier is not a spend rail.
+- Never tell a visitor they will spend, use, pay, or burn AP to change appearance. Never "customize to earn PIXEL".
+- Pixel Market spend sinks are Coming Soon / not a live checkout.
+- Example-state #7141 (~12 AP) may be named as holdings, never as a canvas price.`
 }
 
 /** Always-on dual evaluation + PIXEL MARKET status for Ask. */
@@ -948,7 +962,8 @@ ${loadDualEvalAndPixelMarketKnowledge()}
 
 DUAL-EVAL / PIXEL MARKET ENFORCEMENT:
 - #PIXEL = Action Points, NOT a token; PIXEL MARKET is Coming Soon / NOT live full rules
-- Never invent AP prices, order books, buy/sell mechanics, or hold-threshold X
+- Never invent AP prices, order books, buy/sell mechanics, hold-threshold X, or a live Marketplace AP checkout
+- Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit. AP is not spent when you draw.
 - High pixel (e.g. 891+): efficiency frame usually stronger; extreme low pixel + tiny supply: do NOT auto-burn
 - Always weigh: burn efficiency + scarcity/supply + identity/aesthetic + market premium signals
 - Not every Normie is meant to burn; DYOR; no FOMO; no financial advice`
@@ -1043,7 +1058,7 @@ export function getPixelEconomyContextSummary(): {
     title: "Pixel Economy Doctrine",
     pillars: [
       "AP earned only by burning (commit→reveal); bound to a specific Normie Canvas",
-      "1 AP = 1 pixel add/remove on 40×40 (1600); Level = floor(AP/10)+1",
+      "AP sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit",
       "Burn tiers by on-pixel count: 0–490 →1–4%, 491–890 →2–4%, 891+ →3–4%",
       "Sacrificial economy: burns fund AP; #PIXEL = AP (not a token); Pixel Market Coming Soon / not live full rules",
       "Expansion path 40×40 → 80×80: stockpile AP, keep flexible density, stage placement",
@@ -1051,7 +1066,7 @@ export function getPixelEconomyContextSummary(): {
     ],
     zuloRole: [
       "Monitor arbitrage (floor-burn vs AP market quotes when live)",
-      "Calculate efficiency (burn AP/ETH, canvas costs, gacha/raffle EV, expansion readiness)",
+      "Calculate efficiency (burn AP/ETH, official #PIXEL pixel budget, gacha/raffle EV, expansion readiness)",
       "Alert on inefficiencies (floor shocks, burn spikes, whale clusters, canvas transforms, +EV gaps)",
     ],
     principles: [
@@ -1330,7 +1345,14 @@ Sources: https://x.com/serc1n/status/2100884284659667175 · https://x.com/serc1n
 ### #PIXEL is not a token
 
 - **#PIXEL = Action Points (AP)** — Canvas edit budget earned by burns. **Not** a tradable \`$PIXEL\` token.
-- Pixel Market = **Coming Soon** / **not** live full rules. Foundation / canvas / agents in progress. Do not invent order books, buy/sell mechanics, hold-thresholds, or AP prices.
+- AP sits on the keeper token. **Not spent** when you draw / customize / preview.
+- Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit.
+- Preview on Normifier before you commit a canvas edit in official UI. CredHub / Normifier preview is **not** a spend rail.
+- Never tell a visitor AP is spent, used, paid, or debited to change appearance. Never: “customize to earn PIXEL”.
+- Pixel Market = **Coming Soon** / **not** live full rules. Foundation / canvas / agents in progress. Do not invent order books, buy/sell mechanics, hold-thresholds, AP prices, or a live Marketplace AP checkout.
+
+**Answer pattern — “will customizing debit AP?”**
+No. AP stays on the token you keep. Official customize uses #PIXEL as pixel budget. Preview on Normifier; commit in official UI. CredHub / Normifier is not a spend rail.
 
 Sources: https://x.com/serc1n/status/2087596252812759045 · https://x.com/serc1n/status/2088906632931447025 · https://x.com/serc1n/status/2088266683400016215
 
@@ -1482,6 +1504,9 @@ COLLAB / RAILS ENFORCEMENT:
 - Five camps: Human, Cat, Alien, Agent, Zombie. A day lasts six minutes. Type / level / on-chain history matter.
 - Zombies 21/21 sealed ≠ join Arena from CredHub.
 - Prefer 2026-09-18 official Arena description over older deck-building / commit-reveal copy.
+- Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit. AP is not spent when you draw / preview / customize.
+- Preview on Normifier before you commit a canvas edit in official UI. CredHub / Normifier is not a spend rail.
+- Never tell a visitor they will spend, use, pay, or burn AP to change appearance. Never "customize to earn PIXEL".
 - x402 industry-live: yes. 6551 = wallet shape in the wild. Not a live Zulo spend rail. Normies/Zulo pay enablement of either = TBA.
 - Never: "Normies agents can pay/earn via x402." No pay/tip/unlock UI. No Stonk AMM/clock-in/RH-chain yield.
 - PUBLIC Hive is not a CredHub feature and not the operator desk. Never invent a Hive URL. Stay Pulse → Paths → Act.
@@ -1582,6 +1607,7 @@ export function getCollabRailsContextSummary(): {
       "Arena death = in-round grave + loot; next-round respawn; NFT is not burned",
       "Arena grouping = same/related wallets possible, not automatic; Zulo does not form the team",
       "Arena survivors earn #PIXEL; in-world PX ≠ a shop; Pixel Market not opened by that post",
+      "AP sits on the keeper; official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit; CredHub / Normifier is not a spend rail",
       "6551 = wallet shape in the wild; not a live Zulo spend rail; x402 is industry-live",
       "Normies has NOT enabled 6551 or x402 for agent/pixel pay → TBA",
       "Never: Normies agents can pay/earn via x402. No CredHub pay UI",
