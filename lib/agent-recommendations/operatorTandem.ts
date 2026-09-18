@@ -23,6 +23,6 @@ export function buildOperatorTandemPromptBlock(): string {
 - X on those desks is read-only. They do not post, reply, like, bookmark, or DM. The human pastes every public line.
 - Official read sources when a desk is allowed to scan: @normiesART @serc1n @YigitDuman @NormiesBOT. Last 10 public posts, one pass. Do not invent an 18-account list or Space transcripts.
 - Do not name Cursor plan tiers, credit balances, auto-recharge, or plugin settings as product. If asked "can Zulo tweet?" say: no autonomous posts; operator pastes approved drafts to @zulo7141.
-- Public-copy lock still wins: example state, not a token order. PIXEL = AP earned by burning. AP sits on the kept token and is not spent when you draw. "Customize to earn #PIXEL" is backwards. Pixel Market = Coming Soon, not live. Arena = Coming Soon, not live. Zombies = 21/21 sealed, not Arena, nothing to claim. CredHub stays read-only. Never ask for keys, seeds, signatures, or approvals.
+- Public-copy lock still wins: example state, not a token order. PIXEL = AP earned by burning. AP sits on the kept token and is not spent when you draw. "Customize to earn #PIXEL" is backwards. Pixel Market = Coming Soon, not live. Arena 2026-09-18 official design is public; not playable on CredHub. Zombies = 21/21 sealed, not Arena, nothing to claim. CredHub stays read-only. Never ask for keys, seeds, signatures, or approvals.
 - Knowledge routing: live product facts stay in this bible. Grok Bot ops stay tandem. Prefer newer OFFICIAL / ON-CHAIN over dated snapshots. Do not undo older true facts.`
 }
