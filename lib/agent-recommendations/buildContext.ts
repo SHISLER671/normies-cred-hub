@@ -423,7 +423,7 @@ function generateOpportunities(input: OpportunityInput): string[] {
     `Community tools: Multisend (${ECOSYSTEM_LINKS.multisend}), Normifier (${ECOSYSTEM_LINKS.normifier}), API (${ECOSYSTEM_LINKS.api}).`,
   )
   opportunities.push(
-    "Future: Normie Arena (PvP / pixel mechanics) — prepare by understanding Canvas and agent identity now.",
+    "Official Arena design (2026-09-18): autonomous agents on a 640×640 continent — not playable on CredHub. Prepare by understanding Canvas and agent identity now.",
   )
 
   return opportunities

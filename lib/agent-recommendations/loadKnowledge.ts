@@ -1292,6 +1292,41 @@ Industry + pairing: yes, that’s the stated direction. Live for this visitor to
 **Answer pattern — “where is the Hive?”**
 Not a CredHub page. If no official public URL is in context, say so and stay on Pulse → Paths → Act. Never invent a Hive URL.
 
+### 2026-09-18 official Arena description (do not expand)
+
+OFFICIAL @serc1n (2026-09-18). Description is **public**. Playable enter-now is **not** this post. CredHub does **not** host the map. Do **not** invent an enter URL. Not “enter from CredHub.” Not play from here.
+
+- NFTs become agents, agents become identity, they can play games.
+- **Normies Arena:** autonomous agents dropped onto a **640×640** pixel continent. **No human players. No script.** Fully autonomous — they decide what to do.
+- Type, level, and on-chain history matter.
+- Five camps: **Human, Cat, Alien, Agent, Zombie** — each wakes in its own camp.
+- A day lasts **six minutes**.
+- They fish, chop timber, cook over fires they built, hunt monsters, clear dungeons, buy swords and lasers from town markets, upgrade them, and pick fights over **PX**.
+- In-round death = grave + loot. **No mid-round respawn.** A fallen agent leaves a grave; whatever it carried drops for whoever finds it first.
+- Reply (death): once an agent dies, it **waits until the next Arena round and respawns**. The NFT is **not** burned.
+- Reply (teams): they play **individually**; they **can** group if they are from the **same wallet or related wallet history**. Not automatic. Not guaranteed. Zulo does **not** form the team.
+- Survivors earn **#PIXEL**. In-world PX / survivor PIXEL ≠ a shop. This post does **not** open Pixel Market.
+- Same post names **on-chain:** Canvas, Pixel Market, Arena, Hive. **Off-chain:** murals, IRL events, physicals, limited edition artworks.
+- Pixel Market stays **Coming Soon** / **not** live full rules — naming it on-chain does not open a book.
+- Hive is still not a CredHub page. Never invent a Hive URL.
+- Zombies **21/21 sealed** ≠ join Arena from CredHub. Nothing to claim here.
+- CredHub stays read-only. No keys, burns, fight buttons, invite/rent.
+- Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
+
+**Answer pattern — “Is Arena live / can I play?”**
+Official design is public (this post). Playable enter-now only if an official @normiesART page already says so. CredHub does not host the map. Not “enter from CredHub.” Not play from here.
+
+**Answer pattern — “If my agent dies is the NFT gone?”**
+In-round death (grave + loot; no mid-round respawn). The agent waits for the **next Arena round** and respawns then. Not an NFT burn.
+
+**Answer pattern — “Will my two Normies team?”**
+They can group if same wallet or related wallet history. Not guaranteed. Not automatic. Zulo does not form the team.
+
+**Answer pattern — “Where do I sell Arena PIXEL?”**
+Survivors earn #PIXEL. Pixel Market is **not** opened by this post. Coming Soon / not live full rules. In-world PX / survivor PIXEL ≠ a shop.
+
+Sources: https://x.com/serc1n/status/2100884284659667175 · https://x.com/serc1n/status/2100905337645633893 · https://x.com/serc1n/status/2100885283017302309
+
 ### #PIXEL is not a token
 
 - **#PIXEL = Action Points (AP)** — Canvas edit budget earned by burns. **Not** a tradable \`$PIXEL\` token.
@@ -1344,7 +1379,7 @@ Zulo may say **“I hold #7141.”** Never assign #7141 to the visitor unless Ac
 
 - Yacht Club Anchor Points ≠ Normies PIXEL / Action Points. Different burn, different ledger, different spend. Chandlery pts are not AP and not a Zulo paycheck.
 - Yacht 6551 TBA / Purser key ≠ live Zulo / Normie spend rail. x402 still not enabled. Human approval still required for any Zulo transfer. Do not run their standing orders from CredHub.
-- Yacht Club marina / Agent Islands / Trade Wind Quay ≠ official Hive, Pixel Market, or Arena. Official surfaces stay Coming Soon / link-only-after-@normiesART.
+- Yacht Club marina / Agent Islands / Trade Wind Quay ≠ official Hive, Pixel Market, or Arena. Pixel Market stays Coming Soon. Arena 2026-09-18 design is public; playable enter still gated / not from CredHub. Hive still link-only-after-@normiesART.
 - Brokers’ Atoll ≠ StonkBrokers. Same word family, different project. Club says it sells nothing there and takes no fee.
 - Warm replies from Serc (“see you on the boat”, trying NYC) are community acknowledgment, not an official pairing post. Do not write “official Normies Yacht Club” until @normiesART or @serc1n names it as product.
 
@@ -1440,6 +1475,13 @@ COLLAB / RAILS ENFORCEMENT:
 - Pairing language is public (OFFICIAL @serc1n 2026-08-31). Autonomous launch/buy/sell on Stonk/RH = direction, TBA until @normiesART posts live. Zulo does not place the trade.
 - A Normie agent is NOT a StonkBroker and does not earn Stonk distributions.
 - #PIXEL = Action Points, NOT a token. Pixel Market = Coming Soon / not live full rules.
+- Arena 2026-09-18 (@serc1n/2100884284659667175): official design public. Autonomous 640×640 continent. No human players. No script. Not playable on CredHub. Do not invent an enter URL. Not enter-from-CredHub. Not play from here.
+- In-round death = grave + loot; next-round respawn; NFT is not burned.
+- Agents play individually; can group if same/related wallets; not automatic; Zulo does not form the team.
+- Survivors earn #PIXEL. In-world PX / survivor PIXEL ≠ a shop. Pixel Market still Coming Soon / not opened by this post.
+- Five camps: Human, Cat, Alien, Agent, Zombie. A day lasts six minutes. Type / level / on-chain history matter.
+- Zombies 21/21 sealed ≠ join Arena from CredHub.
+- Prefer 2026-09-18 official Arena description over older deck-building / commit-reveal copy.
 - x402 industry-live: yes. 6551 = wallet shape in the wild. Not a live Zulo spend rail. Normies/Zulo pay enablement of either = TBA.
 - Never: "Normies agents can pay/earn via x402." No pay/tip/unlock UI. No Stonk AMM/clock-in/RH-chain yield.
 - PUBLIC Hive is not a CredHub feature and not the operator desk. Never invent a Hive URL. Stay Pulse → Paths → Act.
@@ -1507,7 +1549,12 @@ export function queryNeedsCollabRailsKnowledge(userQuery: string): boolean {
     /brokers.?\s*atoll/.test(q) ||
     /trade\s*wind\s*quay/.test(q) ||
     /agent\s*passport/.test(q) ||
-    /reckon(ing)?\s*regatta/.test(q)
+    /reckon(ing)?\s*regatta/.test(q) ||
+    /\barena\b/.test(q) ||
+    /if my agent dies/.test(q) ||
+    /is the nft gone/.test(q) ||
+    /two normies team/.test(q) ||
+    /sell\s+arena/.test(q)
   )
 }
 
@@ -1531,6 +1578,10 @@ export function getCollabRailsContextSummary(): {
     ],
     rails: [
       "#PIXEL = Action Points, NOT a token; Pixel Market = Coming Soon / not live full rules",
+      "Arena 2026-09-18: official design public; 640×640 autonomous continent; not playable on CredHub; no enter URL invented",
+      "Arena death = in-round grave + loot; next-round respawn; NFT is not burned",
+      "Arena grouping = same/related wallets possible, not automatic; Zulo does not form the team",
+      "Arena survivors earn #PIXEL; in-world PX ≠ a shop; Pixel Market not opened by that post",
       "6551 = wallet shape in the wild; not a live Zulo spend rail; x402 is industry-live",
       "Normies has NOT enabled 6551 or x402 for agent/pixel pay → TBA",
       "Never: Normies agents can pay/earn via x402. No CredHub pay UI",

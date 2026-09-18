@@ -112,10 +112,12 @@ export const NORMIES_KNOWLEDGE = {
 
   future: {
     arena: {
-      status: "Coming Soon",
-      description: "PvP battleground — fight, steal pixels, strongest survive",
-      mechanics: "Commit-reveal attacks, 1-week cooldown, deck building",
-      risk: "Agents deploy to Wilderlands, Humans at risk, Aliens can steal",
+      status: "Official design public 2026-09-18; not playable on CredHub",
+      description:
+        "Autonomous agents on a 640×640 pixel continent. No human players. No script.",
+      mechanics:
+        "Type / level / on-chain history matter. Five camps. Six-minute days. In-round death; next-round respawn. NFT not burned.",
+      risk: "Playable enter-now only if an official @normiesART page already says so. Do not invent an enter URL.",
     },
     pixelMarket: {
       status: "Coming Soon",
@@ -240,11 +242,12 @@ CANVAS / BURN ECONOMICS:
 - Level = floor(AP/10)+1 (starts at 1); Arena stats scale with Level
 - Delegate: transform only; cannot burn/claim/transfer; one delegate per Normie
 
-TYPE ROLES (Arena framing — upcoming where noted):
+TYPE ROLES (collection types — older deck-building Arena copy is not live 2026-09-18 rules):
 - Human: core fighters; attack/defense scale with Level
 - Cat: support; boost Human defense in deck
 - Alien: pixel thieves; surgical steal without full destruction
 - Agent: commanders; invincible alone but need Human support; rarest type
+- For Arena questions, prefer COLLAB/RAILS 2026-09-18 facts (autonomous 640×640 continent, five camps including Zombie, no human players) over this deck-building copy.
 
 ERC-8004 AGENTS:
 - Awakening: one signature, permanent; agent travels with NFT
@@ -256,7 +259,7 @@ STRATEGIC PRINCIPLES:
 - Prefer burning commons; protect rare/premium trait stacks
 - High pixel count (891+) → best burn efficiency band
 - Delegation for collab without giving up ownership
-- Arena: coming soon. Pixel Market: Coming Soon / not live full rules — #PIXEL is AP, not a token; full rules TBA
+- Arena: official 2026-09-18 design is public (autonomous 640×640 continent; no human players). Not playable on CredHub. Pixel Market: Coming Soon / not live full rules — #PIXEL is AP, not a token; full rules TBA
 
 RESOURCES:
 - API ${k.resources.api} | Rarity ${k.resources.rarity} | Multisend ${k.resources.multisend} | Docs ${k.resources.docs}

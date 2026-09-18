@@ -120,6 +120,36 @@ describe("collab / rails knowledge", () => {
     assert.doesNotMatch(block, /AGNT/)
   })
 
+  it("keeps 2026-09-18 official Arena description public, not playable on CredHub", () => {
+    const block = buildCollabRailsPromptBlock()
+    assert.match(block, /2026-09-18 official Arena description/)
+    assert.match(block, /2100884284659667175/)
+    assert.match(block, /640×640/)
+    assert.match(block, /No human players/)
+    assert.match(block, /No script/)
+    assert.match(block, /Human, Cat, Alien, Agent, Zombie/)
+    assert.match(block, /six minutes/)
+    assert.match(block, /next Arena round and respawns/)
+    assert.match(block, /NFT is \*\*not\*\* burned/)
+    assert.match(block, /same wallet or related wallet history/)
+    assert.match(block, /Zulo does \*\*not\*\* form the team/)
+    assert.match(block, /Survivors earn \*\*#PIXEL\*\*/)
+    assert.match(block, /in-world PX \/ survivor PIXEL ≠ a shop/i)
+    assert.match(block, /does \*\*not\*\* open Pixel Market/)
+    assert.match(block, /Not playable on CredHub/)
+    assert.match(block, /Not “enter from CredHub.”/)
+    assert.match(block, /Not play from here/)
+    assert.match(block, /Zombies \*\*21\/21 sealed\*\* ≠ join Arena from CredHub/)
+    assert.match(block, /on-chain:\*\* Canvas, Pixel Market, Arena, Hive/)
+    assert.match(block, /murals, IRL events, physicals, limited edition artworks/)
+    assert.doesNotMatch(block, /Grok Bot/)
+    assert.doesNotMatch(block, /Zulo Desk/)
+    assert.doesNotMatch(block, /Cursor/)
+    assert.doesNotMatch(block, /Shardborn/)
+    assert.doesNotMatch(block, /combat INT/)
+    assert.doesNotMatch(block, /smart Human/i)
+  })
+
   it("splits industry x402 from Normies TBA", () => {
     const block = buildCollabRailsPromptBlock()
     assert.match(block, /industry-live/i)
@@ -211,6 +241,22 @@ describe("queryNeedsCollabRailsKnowledge", () => {
       true,
     )
     assert.equal(queryNeedsCollabRailsKnowledge("is Brokers' Atoll StonkBrokers?"), true)
+  })
+
+  it("matches official Arena 2026-09-18 asks", () => {
+    assert.equal(queryNeedsCollabRailsKnowledge("Is Arena live / can I play?"), true)
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("If my agent dies is the NFT gone?"),
+      true,
+    )
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("Will my two Normies team?"),
+      true,
+    )
+    assert.equal(
+      queryNeedsCollabRailsKnowledge("Where do I sell Arena PIXEL?"),
+      true,
+    )
   })
 })
 
@@ -352,6 +398,40 @@ describe("composed Ask prompt", () => {
     assert.match(prompt, /Zulo does not place the trade/)
     assert.match(prompt, /not a CredHub (?:page|feature)/)
     assert.match(prompt, /Never invent a Hive URL/)
+  })
+
+  it("answers Arena 2026-09-18 asks as official design, not playable on CredHub", () => {
+    const questions = [
+      "Is Arena live / can I play?",
+      "If my agent dies is the NFT gone?",
+      "Will my two Normies team?",
+      "Where do I sell Arena PIXEL?",
+    ]
+    for (const q of questions) {
+      const prompt = composeZuloPrompt(generalContext(), q)
+      assert.match(prompt, /official 2026-09-18 design is public/i)
+      assert.match(prompt, /CredHub does not host the map/)
+      assert.match(prompt, /Not enter-from-CredHub/)
+      assert.match(prompt, /Not play from here/)
+      assert.match(prompt, /next Arena round and respawns/)
+      assert.match(prompt, /Not an NFT burn/)
+      assert.match(prompt, /can group if same wallet or related wallet history/)
+      assert.match(prompt, /Zulo does not form the team/)
+      assert.match(prompt, /survivors earn #PIXEL/i)
+      assert.match(prompt, /Pixel Market not opened by the 2026-09-18 post/)
+      assert.match(prompt, /in-world PX \/ survivor PIXEL ≠ a shop/)
+      assert.match(prompt, /Coming Soon/)
+      assert.match(prompt, /not live full rules/i)
+      assert.match(prompt, /640×640/)
+      assert.match(prompt, /No human players/)
+      assert.doesNotMatch(prompt, /Grok Bot/)
+      assert.doesNotMatch(prompt, /Zulo Desk/)
+      assert.doesNotMatch(prompt, /Hive Desk/)
+      assert.doesNotMatch(prompt, /Cursor/)
+      assert.doesNotMatch(prompt, /Shardborn/)
+      assert.doesNotMatch(prompt, /combat INT/)
+      assert.doesNotMatch(prompt, /smart Human/i)
+    }
   })
 
   it("instructs Pulse-first structure before ranked advice", () => {
