@@ -38,3 +38,5 @@ next-env.d.ts
 # package manager lockfile conflicts (we use pnpm)
 package-lock.json
 yarn.lock
+# indexer error log
+index-errors.json
