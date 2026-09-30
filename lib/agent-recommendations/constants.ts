@@ -54,7 +54,7 @@ export const ECOSYSTEM_LINKS = {
   docsTechnical: "https://www.normies.art/docs/technical",
   api: "https://api.normies.art/",
   rarity: "https://rarity.normies.art/",
-  rarityApi: "https://rarity.normies.art/api",
+  rarityApi: "https://api.normies.art/rarity",
   multisend: "https://multisend.normies.art/",
   normifier: "https://normifier.vercel.app/",
   opensea: "https://opensea.io/collection/normies",
