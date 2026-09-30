@@ -3,12 +3,14 @@
  * Index every Normie's owner + action points into public.normie_index.
  *
  * Deliberately slow and polite: api.normies.art is someone else's bill.
- * Default 2 requests/sec total. Resumable — re-running skips tokens
- * indexed within FRESH_HOURS.
+ * Their documented limit is 60 requests/minute per IP (sliding window), so the
+ * default is 0.7 requests/sec (42/min) across BOTH endpoints, and --rps is capped
+ * at 0.9 (54/min). The old default of 2/sec was 120/min and caused the 429s.
+ * Resumable — re-running skips tokens indexed within FRESH_HOURS.
  *
- *   node scripts/index-normies.mjs              # full run
+ *   node scripts/index-normies.mjs              # full run (~2 hours)
  *   node scripts/index-normies.mjs --limit 50   # small test batch
- *   node scripts/index-normies.mjs --rps 1      # even slower
+ *   node scripts/index-normies.mjs --rps 0.5    # even slower
  */
 import { createClient } from "@supabase/supabase-js"
 import fs from "fs"
@@ -22,8 +24,13 @@ const arg = (k, d) => {
   return i > -1 ? process.argv[i + 1] : d
 }
 const LIMIT = Number(arg("--limit", TOTAL))
-const RPS = Number(arg("--rps", 2))           // requests/sec across BOTH endpoints
+const MAX_RPS = 0.9                           // 54/min, under the documented 60/min per IP
+const asked = Number(arg("--rps", 0.7))       // requests/sec across BOTH endpoints
+if (!(asked > 0)) { console.error("--rps must be a positive number"); process.exit(1) }
+const RPS = Math.min(asked, MAX_RPS)
+if (asked > MAX_RPS) console.warn(`--rps ${asked} is over the API limit; using ${MAX_RPS}`)
 const DELAY = Math.ceil(2000 / RPS)           // 2 requests per token
+console.log(`rate: ${RPS} req/s = ${Math.round(RPS * 60)}/min (API limit 60/min per IP)`)
 
 // env from .env.local without extra deps
 for (const line of fs.readFileSync(".env.local", "utf8").split("\n")) {
@@ -53,6 +60,11 @@ async function getJson(path) {
         try { return JSON.parse(text) } catch { return { error: "bad json" } }
       }
       last = `HTTP ${res.status}`
+      if (res.status === 429) {
+        // Honour the server's own Retry-After (seconds); default 10s. Never hammer through a 429.
+        const wait = Math.max(5, Number(res.headers.get("retry-after")) || 10)
+        if (attempt < MAX_TRIES) { await sleep(wait * 1000); continue }
+      }
     } catch (e) { last = String(e).slice(0, 60) }
     if (attempt < MAX_TRIES) await sleep(1000 * 2 ** attempt)
   }
