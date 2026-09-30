@@ -17,7 +17,6 @@ import {
 export const TOP_RANK_PERCENT = 5
 export const COLLECTIBLE_MAX_PIXELS = 300 // doctrine: "<300 on-pixels ... very small supply"
 export const COLLECTIBLE_MAX_SUPPLY = 20 // doctrine: "single-digit or low double-digit"
-export const VERY_SCARCE_SUPPLY = 5
 
 export interface HeldToken {
   tokenId: number
@@ -71,10 +70,11 @@ export function keepReasons(
   const out: string[] = []
   if (t.awakenedAgent) out.push("awakened agent: an on-chain identity, not fodder")
   if (t.type && t.type.toLowerCase() !== "human") out.push(`rarer type (${t.type}); Humans are about 97% of living Normies`)
+  // Doctrine: the collectible frame is EXTREME LOW pixel + tiny supply. High-pixel tokens are the efficiency frame,
+  // and their exact pixel counts are rare by construction (only 17 living tokens exceed 890 px), so a small
+  // pixel-count supply on a dense token says nothing about scarcity and must not suppress good fodder.
   if (t.originalPixels < COLLECTIBLE_MAX_PIXELS && t.pixelSupply <= COLLECTIBLE_MAX_SUPPLY) {
     out.push(`possible collectible: ${t.originalPixels} px with only ${t.pixelSupply} like it alive`)
-  } else if (t.pixelSupply <= VERY_SCARCE_SUPPLY) {
-    out.push(`very scarce: only ${t.pixelSupply} living Normies share ${t.originalPixels} original pixels`)
   }
   const topRank = Math.floor((ctx.livingSupply * TOP_RANK_PERCENT) / 100) // strictly within the top 5%
   if (t.rank !== null && t.rank <= topRank) out.push(`top ${TOP_RANK_PERCENT}% by rarity rank (#${t.rank})`)

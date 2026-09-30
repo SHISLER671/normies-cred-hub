@@ -30,6 +30,11 @@ describe("keepReasons (doctrine)", () => {
   it("the doctrine's own example: ~280 px with ~11 in supply is a possible collectible", () => {
     assert.match(keepReasons(tok({ tokenId: 1, originalPixels: 280, pixelSupply: 11 }), ctx)[0], /possible collectible/)
   })
+  it("a DENSE token with a unique pixel count is NOT scarce: it is the efficient fodder (regression)", () => {
+    // 26 of 341 live listings were wrongly excluded by a 'very scarce pixel supply' rule; all were 800-919 px plain Humans.
+    assert.deepEqual(keepReasons(tok({ tokenId: 1, originalPixels: 919, pixelSupply: 1, rank: 579 }), ctx), [])
+    assert.deepEqual(keepReasons(tok({ tokenId: 1, originalPixels: 500, pixelSupply: 2, rank: 3000 }), ctx), [])
+  })
   it("280 px but common (supply 400) is NOT flagged", () => {
     assert.deepEqual(keepReasons(tok({ tokenId: 1, originalPixels: 280, pixelSupply: 400 }), ctx), [])
   })
