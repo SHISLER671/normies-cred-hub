@@ -252,6 +252,47 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
   }
 }
 
+export interface FodderPick {
+  tokenId: number
+  priceEth: number
+  actionPoints: number
+  originalPixels: number
+  yieldTotal: number
+  fromPixels: number
+  yieldPerEth: number
+  url?: string
+}
+
+/**
+ * Listings ranked by #PIXEL awarded per ETH if burned (promo rate). Anything the doctrine says to keep
+ * (awakened agents, rarer types, collectibles, top-ranked) is excluded: we never present those as fodder.
+ * `withAp` picks listings that carry AP (the AP moves to the receiver); otherwise pure pixel fodder.
+ */
+export function rankFodder(
+  listings: Listing[],
+  ctx: Pick<Context, "livingSupply">,
+  opts: { withAp: boolean; limit?: number },
+): FodderPick[] {
+  return listings
+    .filter((l) => l.priceEth > 0 && (l.actionPoints > 0) === opts.withAp && keepReasons(l, ctx).length === 0)
+    .map((l) => {
+      const y = promoBurnYield(l.originalPixels, l.actionPoints)
+      return {
+        tokenId: l.tokenId,
+        priceEth: l.priceEth,
+        actionPoints: l.actionPoints,
+        originalPixels: l.originalPixels,
+        yieldTotal: y.total,
+        fromPixels: y.fromPixels,
+        yieldPerEth: round(y.total / l.priceEth, 1),
+        url: l.url,
+      }
+    })
+    .filter((f) => f.yieldTotal > 0)
+    .sort((a, b) => b.yieldPerEth - a.yieldPerEth)
+    .slice(0, opts.limit ?? 10)
+}
+
 /** Historical illustration only: what a share of the pool would have paid in the article's window. */
 export const ARTICLE_WINDOW = {
   poolEth: 81.09,

@@ -1,7 +1,7 @@
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
-import { adviseToken, adviseWallet, historicalPayoutEth, keepReasons, type HeldToken, type Listing } from "./advise"
+import { adviseToken, adviseWallet, historicalPayoutEth, keepReasons, rankFodder, type HeldToken, type Listing } from "./advise"
 
 const ctx = { livingSupply: 7226, censusTotal: 25873 }
 const close = (a: number, b: number, eps = 0.02) => assert.ok(Math.abs(a - b) <= eps, `${a} vs ${b}`)
@@ -131,5 +131,29 @@ describe("adviseWallet: buying fodder", () => {
 describe("historical illustration", () => {
   it("0.717% of the article's 81.09 ETH pool is about 0.58 ETH (article: 0.582)", () => {
     close(historicalPayoutEth(0.717), 0.5814, 0.005)
+  })
+})
+
+describe("rankFodder", () => {
+  const ls = [
+    listing({ tokenId: 1, priceEth: 0.30, originalPixels: 900 }),                       // 36 / 0.30 = 120
+    listing({ tokenId: 2, priceEth: 0.29, originalPixels: 500 }),                       // 20 / 0.29 = 69
+    listing({ tokenId: 3, priceEth: 0.10, originalPixels: 280, pixelSupply: 3 }),       // collectible: excluded
+    listing({ tokenId: 4, priceEth: 0.25, originalPixels: 800, awakenedAgent: true }),  // identity: excluded
+    listing({ tokenId: 5, priceEth: 0.35, originalPixels: 600, actionPoints: 100 }),    // 24 + 100 = 124 / 0.35 = 354
+  ]
+  it("pure pixel fodder is ranked by #PIXEL per ETH and never includes keep-worthy tokens", () => {
+    const r = rankFodder(ls, ctx, { withAp: false })
+    assert.deepEqual(r.map((x) => x.tokenId), [1, 2])
+    assert.equal(r[0].yieldTotal, 36)
+    assert.equal(r[0].yieldPerEth, 120)
+  })
+  it("AP-carrying listings are a separate list; their AP is added to the yield", () => {
+    const r = rankFodder(ls, ctx, { withAp: true })
+    assert.deepEqual(r.map((x) => x.tokenId), [5])
+    assert.equal(r[0].yieldTotal, 124)
+  })
+  it("respects the limit", () => {
+    assert.equal(rankFodder(ls, ctx, { withAp: false, limit: 1 }).length, 1)
   })
 })
