@@ -60,6 +60,8 @@ export interface Deps {
   fetchTokens(ids: number[]): Promise<RarityToken[]>
   fetchListings(): Promise<{ items: RawListing[]; floorEth: number | null; total: number }>
   loadSnapshot(): Promise<MarketSnapshot>
+  /** Tokens this address is the Canvas delegate for (it can edit pixels but cannot burn). Optional. */
+  findDelegations?(address: string): Promise<Array<{ tokenId: number; owner: string }>>
   now(): Date
 }
 
@@ -75,6 +77,8 @@ export interface BurnBuyResult {
   wallet: null | {
     address: string
     ens: string | null
+    /** Set when the wallet owns nothing but is a Canvas delegate: burn advice needs the owner wallet. */
+    delegateOf: Array<{ tokenId: number; owner: string }>
     advice: WalletAdvice & { holdings: Array<{ tokenId: number; originalPixels: number; actionPoints: number; rank: number | null; type: string | null }> }
     historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: number; source: string }
   }
@@ -213,12 +217,33 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     const indexScore = snap.walletScores.get(holder.address.toLowerCase()) ?? 0
     const walletCtx = { ...ctx, censusTotal: Math.max(0, snap.censusTotal - indexScore) + liveScore }
     const advice = adviseWallet(held, listings.filter((l) => !own.has(l.tokenId)), walletCtx)
+    let delegateOf: Array<{ tokenId: number; owner: string }> = []
     if (held.length === 0) {
-      advice.notes.push("If you typed an ENS name, it may point to a different wallet than the one that holds your Normie.")
+      if (deps.findDelegations) {
+        try {
+          delegateOf = await deps.findDelegations(holder.address)
+        } catch (e) {
+          caveats.push(`Could not check whether this wallet is a Canvas delegate: ${e instanceof Error ? e.message : e}`)
+        }
+      }
+      if (delegateOf.length > 0) {
+        const ids = delegateOf.map((d) => `#${d.tokenId}`).join(", ")
+        const owners = [...new Set(delegateOf.map((d) => d.owner))].join(", ")
+        advice.notes.push(
+          `This wallet owns no Normies, but it is the Canvas delegate for ${ids}. A delegate can edit pixels but cannot burn, ` +
+            `claim AP or transfer, so burn and buy advice needs the OWNER wallet: ${owners}.`,
+        )
+      } else {
+        advice.notes.push(
+          `${holder.ens ? `${holder.ens} resolves to ${holder.address}, which` : `${holder.address}`} owns no Normies and is not a Canvas delegate for any. ` +
+            "If your Normie sits in another wallet, enter that wallet's address instead.",
+        )
+      }
     }
     wallet = {
       address: holder.address,
       ens: holder.ens,
+      delegateOf,
       advice: {
         ...advice,
         holdings: held.map((h) => ({ tokenId: h.tokenId, originalPixels: h.originalPixels, actionPoints: h.actionPoints, rank: h.rank, type: h.type })),

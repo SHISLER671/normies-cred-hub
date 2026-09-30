@@ -59,7 +59,7 @@ describe("buildBurnBuy", () => {
     const r = await buildBurnBuy({ wallet: "shisler671.eth" }, deps({ resolveHolder: async () => ({ address: "0xae34", ens: "shisler671.eth", tokenIds: [] }) }))
     assert.equal(r.wallet!.advice.held, 0)
     assert.equal(r.wallet!.advice.score, 0)
-    assert.ok(r.wallet!.advice.notes.some((n) => /different wallet/.test(n)))
+    assert.ok(r.wallet!.advice.notes.some((n) => /shisler671\.eth resolves to 0xae34/.test(n) && /another wallet/.test(n)))
     assert.equal(r.sources.rarity.note, "wallet holds no Normies")
   })
 
@@ -147,5 +147,58 @@ describe("buildBurnBuy", () => {
   it("adds a visible staleness caveat about the index", async () => {
     const r = await buildBurnBuy({}, deps())
     assert.ok(r.caveats.some((c) => /2026-09-29 20:00 UTC/.test(c)))
+  })
+
+  it("empty wallet that is a Canvas delegate: names the tokens, the limit, and the OWNER wallet to use", async () => {
+    const r = await buildBurnBuy(
+      { wallet: "32626.eth" },
+      deps({
+        resolveHolder: async () => ({ address: "0xb879", ens: "32626.eth", tokenIds: [] }),
+        findDelegations: async () => [{ tokenId: 7141, owner: "0xfafd" }],
+      }),
+    )
+    const w = r.wallet!
+    assert.equal(w.advice.held, 0)
+    assert.deepEqual(w.delegateOf, [{ tokenId: 7141, owner: "0xfafd" }])
+    const note = w.advice.notes.join(" ")
+    assert.match(note, /Canvas delegate for #7141/)
+    assert.match(note, /cannot burn/)
+    assert.match(note, /OWNER wallet: 0xfafd/)
+  })
+
+  it("empty wallet, not a delegate: says the ENS resolved to this address and to try another", async () => {
+    const r = await buildBurnBuy(
+      { wallet: "shisler671.eth" },
+      deps({
+        resolveHolder: async () => ({ address: "0xae34", ens: "shisler671.eth", tokenIds: [] }),
+        findDelegations: async () => [],
+      }),
+    )
+    const note = r.wallet!.advice.notes.join(" ")
+    assert.match(note, /shisler671\.eth resolves to 0xae34/)
+    assert.match(note, /not a Canvas delegate/)
+    assert.deepEqual(r.wallet!.delegateOf, [])
+  })
+
+  it("delegate lookup failing is stated as a caveat, never silent, and the answer still comes back", async () => {
+    const r = await buildBurnBuy(
+      { wallet: "0xabc" },
+      deps({ resolveHolder: async () => ({ address: "0xabc", ens: null, tokenIds: [] }), findDelegations: async () => { throw new Error("db down") } }),
+    )
+    assert.ok(r.caveats.some((c) => /Could not check whether this wallet is a Canvas delegate: db down/.test(c)))
+    assert.equal(r.wallet!.advice.held, 0)
+  })
+
+  it("does not look up delegations for a wallet that owns Normies", async () => {
+    let called = 0
+    await buildBurnBuy(
+      { wallet: "0xabc" },
+      deps({
+        resolveHolder: async () => ({ address: "0xabc", ens: null, tokenIds: [7141] }),
+        fetchTokens: async () => [tk(7141, { awakenedAgent: true })],
+        findDelegations: async () => { called++; return [] },
+      }),
+    )
+    assert.equal(called, 0)
   })
 })

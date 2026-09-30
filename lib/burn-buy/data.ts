@@ -156,10 +156,26 @@ const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
   return { livingSupply: originalPixels.size, wallets: wallets.size, censusTotal, originalPixels, pixelSupply, oldestIndexedAt: oldest, walletScores }
 })
 
+/** Tokens for which `address` is the Canvas delegate, from the index. Only ever called with a validated 0x address. */
+async function findDelegations(address: string): Promise<Array<{ tokenId: number; owner: string }>> {
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return []
+  const db = getSupabase()
+  if (!db) throw new Error("database is not configured")
+  const { data, error } = await db
+    .from("normie_index")
+    .select("token_id,owner")
+    .eq("burned", false)
+    .eq("delegate", address.toLowerCase())
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((r) => ({ tokenId: r.token_id, owner: r.owner }))
+}
+
 export const realDeps: Deps = {
+
   resolveHolder,
   fetchTokens,
   fetchListings: listingsCached,
   loadSnapshot: snapshotCached,
+  findDelegations,
   now: () => new Date(),
 }
