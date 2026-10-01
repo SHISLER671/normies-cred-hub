@@ -5,6 +5,8 @@ import { enrichOwnedNormiesServer } from "@/lib/normies-server"
 import {
   DELEGATE_REGISTRY,
   DELEGATE_REGISTRY_ABI,
+  DELEGATE_REGISTRY_V2,
+  DELEGATE_REGISTRY_V2_ABI,
   NORMIES_NFT,
   NORMIES_API_BASE,
 } from "@/constants/contracts"
@@ -75,17 +77,78 @@ async function fetchDelegateXyzTokenIds(address: `0x${string}`): Promise<number[
   return delegatedIds
 }
 
-/** All token IDs the wallet controls: owner, Delegate.xyz, or Canvas delegate. */
+export type DelegationV2 = {
+  type_: number
+  from: string
+  contract_: string
+  tokenId: bigint
+}
+
+const V2_ALL = 1
+const V2_CONTRACT = 2
+const V2_ERC721 = 3
+
+/**
+ * Turn Delegate.xyz v2 delegations into token IDs. ALL and CONTRACT delegations cover every Normie the
+ * vault holds (looked up via `holdersOf`); ERC721 covers only its own token. Like v1, `rights` is not
+ * checked: a scoped delegation still counts as control for read-only advice.
+ */
+export async function tokenIdsFromV2Delegations(
+  delegations: readonly DelegationV2[],
+  holdersOf: (vault: `0x${string}`) => Promise<number[]>,
+): Promise<number[]> {
+  const ids: number[] = []
+  const vaults = new Set<string>()
+
+  for (const d of delegations) {
+    if (d.type_ === V2_ALL) {
+      vaults.add(d.from)
+    } else if (d.type_ === V2_CONTRACT && d.contract_.toLowerCase() === NORMIES_NFT.toLowerCase()) {
+      vaults.add(d.from)
+    } else if (d.type_ === V2_ERC721 && d.contract_.toLowerCase() === NORMIES_NFT.toLowerCase()) {
+      ids.push(Number(d.tokenId))
+    }
+  }
+
+  for (const vault of vaults) {
+    try {
+      ids.push(...(await holdersOf(getAddress(vault) as `0x${string}`)))
+    } catch {
+      // Vault enumeration may fail on stale RPC/indexer data
+    }
+  }
+  return ids
+}
+
+async function fetchDelegateXyzV2TokenIds(address: `0x${string}`): Promise<number[]> {
+  try {
+    const delegations = await publicClient.readContract({
+      address: DELEGATE_REGISTRY_V2,
+      abi: DELEGATE_REGISTRY_V2_ABI,
+      functionName: "getIncomingDelegations",
+      args: [address],
+    })
+    return await tokenIdsFromV2Delegations(delegations, fetchDirectHolderIds)
+  } catch {
+    // Delegation registry failures are common on public RPCs
+    return []
+  }
+}
+
+/** All token IDs the wallet controls: owner, Delegate.xyz (v1 or v2), or Canvas delegate. */
 export async function fetchControlledTokenIds(address: string): Promise<number[]> {
   const normalized = getAddress(address) as `0x${string}`
 
-  const [directIds, delegateXyzIds, canvasDelegateIds] = await Promise.all([
+  const [directIds, delegateXyzIds, delegateXyzV2Ids, canvasDelegateIds] = await Promise.all([
     fetchDirectHolderIds(normalized),
     fetchDelegateXyzTokenIds(normalized),
+    fetchDelegateXyzV2TokenIds(normalized),
     scanAllCanvasDelegatedTokenIds(normalized).catch(() => [] as number[]),
   ])
 
-  const uniqueIds = Array.from(new Set([...directIds, ...delegateXyzIds, ...canvasDelegateIds]))
+  const uniqueIds = Array.from(
+    new Set([...directIds, ...delegateXyzIds, ...delegateXyzV2Ids, ...canvasDelegateIds]),
+  )
   return uniqueIds.sort((a, b) => a - b)
 }
 

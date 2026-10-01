@@ -116,6 +116,37 @@ export const DELEGATE_REGISTRY_ABI = [
 ] as const
 
 /**
+ * Delegate.xyz v2 registry (same address on every chain). Verified on mainnet 2026-10-01:
+ * getIncomingDelegations(0xb879…8767) returns one ERC721 delegation for Normies #7141 from 0xfafd…1031.
+ * type_: 0 NONE, 1 ALL, 2 CONTRACT, 3 ERC721, 4 ERC20, 5 ERC1155.
+ */
+export const DELEGATE_REGISTRY_V2 = "0x00000000000000447e69651d841bD8D104Bed493" as const
+
+export const DELEGATE_REGISTRY_V2_ABI = [
+  {
+    inputs: [{ name: "to", type: "address" }],
+    name: "getIncomingDelegations",
+    outputs: [
+      {
+        components: [
+          { name: "type_", type: "uint8" },
+          { name: "to", type: "address" },
+          { name: "from", type: "address" },
+          { name: "rights", type: "bytes32" },
+          { name: "contract_", type: "address" },
+          { name: "tokenId", type: "uint256" },
+          { name: "amount", type: "uint256" },
+        ],
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const
+
+/**
  * AgentCheck — ERC-8257 Tool #13 (trust layer / reputation signal)
  * API: https://agentcheck-bice.vercel.app/api/check?wallet=...
  * On-chain cert registry (Base): isCertified(address) for pure on-chain verification
