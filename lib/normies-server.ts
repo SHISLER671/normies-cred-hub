@@ -1,5 +1,5 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { fetchWithRetry } from "@/lib/fetch-with-retry"
 import type { OwnedNormie } from "@/lib/types"
 
 type AgentIdentityResponse = {
@@ -17,7 +17,7 @@ type NormieTraits = {
 }
 
 async function fetchUpstreamJson<T>(path: string): Promise<T> {
-  const res = await fetchWithTimeout(`${NORMIES_API_BASE}${path}`, {}, 10_000)
+  const res = await fetchWithRetry(`${NORMIES_API_BASE}${path}`, {}, 10_000)
   if (!res.ok) {
     throw new Error(`Normies API error (${res.status}) for ${path}`)
   }
@@ -29,7 +29,7 @@ async function fetchBindingsBatchServer(
 ): Promise<BindingBatchResponse["bindings"]> {
   if (tokenIds.length === 0) return {}
 
-  const res = await fetchWithTimeout(
+  const res = await fetchWithRetry(
     `${NORMIES_API_BASE}/agents/binding/batch`,
     {
       method: "POST",
