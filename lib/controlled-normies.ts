@@ -10,26 +10,22 @@ import {
   NORMIES_NFT,
   NORMIES_API_BASE,
 } from "@/constants/contracts"
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { fetchWithRetry } from "@/lib/fetch-with-retry"
 import { publicClient } from "@/lib/viem-client"
 import type { OwnedNormie } from "@/lib/types"
 
+/**
+ * Token IDs the Normies API says `address` holds. An empty wallet is a 200 with `[]`, so any failure
+ * here (after retries) throws instead of returning `[]`: "could not look it up" must never read as "holds nothing".
+ */
 async function fetchDirectHolderIds(address: `0x${string}`): Promise<number[]> {
-  try {
-    const res = await fetchWithTimeout(
-      `${NORMIES_API_BASE}/holders/${address}`,
-      {},
-      10_000,
-    )
-    if (!res.ok) return []
+  const res = await fetchWithRetry(`${NORMIES_API_BASE}/holders/${address}`, {}, 10_000)
+  if (!res.ok) throw new Error(`Normies holders lookup failed (${res.status}) for ${address}`)
 
-    const data = (await res.json()) as { tokenIds?: Array<number | string> }
-    return (data.tokenIds ?? [])
-      .map((id) => Number(id))
-      .filter((id) => Number.isFinite(id))
-  } catch {
-    return []
-  }
+  const data = (await res.json()) as { tokenIds?: Array<number | string> }
+  return (data.tokenIds ?? [])
+    .map((id) => Number(id))
+    .filter((id) => Number.isFinite(id))
 }
 
 async function fetchDelegateXyzTokenIds(address: `0x${string}`): Promise<number[]> {
@@ -139,12 +135,14 @@ async function fetchDelegateXyzV2TokenIds(address: `0x${string}`): Promise<numbe
 export async function fetchControlledTokenIds(address: string): Promise<number[]> {
   const normalized = getAddress(address) as `0x${string}`
 
-  const [directIds, delegateXyzIds, delegateXyzV2Ids, canvasDelegateIds] = await Promise.all([
+  // The cheap lookups go first and the Canvas scan after: the scan fires hundreds of requests, and run in
+  // parallel it used up the Normies API rate limit (60/min) before the holders lookup got its turn.
+  const [directIds, delegateXyzIds, delegateXyzV2Ids] = await Promise.all([
     fetchDirectHolderIds(normalized),
     fetchDelegateXyzTokenIds(normalized),
     fetchDelegateXyzV2TokenIds(normalized),
-    scanAllCanvasDelegatedTokenIds(normalized).catch(() => [] as number[]),
   ])
+  const canvasDelegateIds = await scanAllCanvasDelegatedTokenIds(normalized).catch(() => [] as number[])
 
   const uniqueIds = Array.from(
     new Set([...directIds, ...delegateXyzIds, ...delegateXyzV2Ids, ...canvasDelegateIds]),
