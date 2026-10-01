@@ -9,6 +9,7 @@
     "lint": "next lint",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
+    "test:delegates": "tsx --test lib/delegate-refresh.test.ts",
     "test:controlled": "tsx --test lib/controlled-normies.test.ts",
     "test:security": "tsx --test lib/security/security.test.ts",
     "test:erc6551": "tsx --test lib/erc6551/erc6551.test.ts",
