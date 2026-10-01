@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-import { fetchControlledNormies } from "@/lib/controlled-normies"
+import { fetchControlledNormiesWithMeta } from "@/lib/controlled-normies"
 
-/** Canvas delegate scan is paginated client-side; this route only serves fast paths. */
+/** Fast path only: Canvas delegates are read from the index; the live scan is paginated client-side via /api/canvas-delegates. */
 export const maxDuration = 10
 
 /**
@@ -17,9 +17,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const normies = await fetchControlledNormies(address)
+    const { normies, canvas } = await fetchControlledNormiesWithMeta(address)
     return NextResponse.json(
-      { normies },
+      {
+        normies,
+        // Canvas delegates come from the index, so they can lag. asOf = oldest index row; checked=false means
+        // the index could not be read and Canvas delegations are UNKNOWN for this wallet.
+        canvasDelegates: { asOf: canvas.asOf, checked: canvas.checked },
+      },
       {
         headers: {
           "Cache-Control": "private, max-age=30, stale-while-revalidate=120",
