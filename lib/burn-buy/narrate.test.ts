@@ -2,7 +2,7 @@ import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
 import type { Move, TokenAdvice } from "./advise"
-import { buildPageModel, describeMove, safeUrl } from "./narrate"
+import { buildPageModel, describeMove, levelOf, parseGoal, safeUrl } from "./narrate"
 import type { BurnBuyResult } from "./service"
 
 const move = (over: Partial<Move> = {}): Move => ({
@@ -86,9 +86,11 @@ describe("buildPageModel", () => {
     assert.match(m.lines.join(" "), /at most 2 of these 3 can go/)
   })
 
-  it("a single burn candidate warns that burning it ends membership", () => {
-    const m = buildPageModel(withAdvice({ held: 1, tokens: [tok(1, "burn", ["pays"])], holdings: [] }))
-    assert.match(m.lines.join(" "), /only Normie: burning it would leave you nothing to burn into/)
+  it("your ONLY Normie is shown as KEEP even when the rules would call it a burn candidate", () => {
+    const m = buildPageModel(withAdvice({ held: 1, tokens: [tok(1, "burn", ["pays"])], holdings: [{ tokenId: 1, originalPixels: 700, actionPoints: 0, rank: 9000, type: "Human" }] }))
+    assert.equal(m.rows[0].label, "KEEP")
+    assert.match(m.rows[0].reasons[0], /your only Normie/)
+    assert.match(m.lines.join(" "), /Nothing here is a burn candidate/)
   })
 
   it("does not add that warning when something is kept", () => {
@@ -130,5 +132,82 @@ describe("safeUrl", () => {
     const m = buildPageModel(result(null))
     assert.equal(m.fodder[1].url, null)
     assert.equal(m.fodder[0].url, "https://example.com/1")
+  })
+})
+
+const hold = (tokenId: number, type: string, actionPoints = 0, originalPixels = 600) => ({ tokenId, originalPixels, actionPoints, rank: 5000, type })
+
+describe("goals", () => {
+  it("parseGoal only accepts the three goals", () => {
+    assert.equal(parseGoal("arena"), "arena")
+    assert.equal(parseGoal("art"), "art")
+    assert.equal(parseGoal("share"), "share")
+    assert.equal(parseGoal("burn-everything"), "share")
+    assert.equal(parseGoal(undefined), "share")
+  })
+
+  it("levelOf is the official formula", () => {
+    assert.equal(levelOf(0), 1)
+    assert.equal(levelOf(9), 1)
+    assert.equal(levelOf(10), 2)
+    assert.equal(levelOf(12), 2)
+    assert.equal(levelOf(40), 5)
+  })
+
+  it("ARENA with a lone Cat: keep it, say it is your only Cat, never suggest burning it", () => {
+    const m = buildPageModel(withAdvice({ held: 1, tokens: [tok(7, "keep", ["rarer type (Cat); Humans are about 97% of living Normies"])], holdings: [hold(7, "Cat", 12)] }), "arena")
+    assert.match(m.headline, /^Keep it\. It is your only Normie, so it is your only player/)
+    assert.match(m.rows[0].reasons.join(" "), /only Cat/)
+    assert.equal(m.rows[0].level, 2)
+    assert.doesNotMatch(m.headline + m.lines.join(" "), /Best move/)
+  })
+
+  it("ARENA shows exact Level math when there is exactly one keeper", () => {
+    const m = buildPageModel(withAdvice({ held: 1, tokens: [tok(7, "keep", ["x"])], holdings: [hold(7, "Cat", 12)] }), "arena")
+    assert.match(m.moves[0].detail, /Adds 28 AP to it\. Level 2 → 5\./)
+    assert.doesNotMatch(m.moves[0].title, /\.$/)
+  })
+
+  it("ARENA with a Cat and two spare Humans: keep the Cat, spare ones are for AP", () => {
+    const m = buildPageModel(
+      withAdvice({ held: 3, tokens: [tok(7, "keep", ["rarer type (Cat)"]), tok(8, "burn", ["pays"], 20, 20), tok(9, "burn", ["pays"], 10, 10)], holdings: [hold(7, "Cat", 5), hold(8, "Human"), hold(9, "Human")] }),
+      "arena",
+    )
+    assert.match(m.headline, /^Arena plan: keep 1 fighter\. 2 spare Normies could be burned for \+30 AP, only if you want the Level\./)
+    assert.match(m.rows[0].reasons[0], /only Cat/)
+    assert.match(m.rows[1].reasons[0], /adds 20 AP to a Normie you keep \(10 AP = 1 Level\)/)
+  })
+
+  it("ARENA notes say the rules are unpublished and nothing can be entered from here", () => {
+    const m = buildPageModel(result({}), "arena")
+    const notes = m.goalNotes.join(" ")
+    assert.match(notes, /NOT been published/)
+    assert.match(notes, /cannot enter you into anything/)
+    assert.match(notes, /Death is not a burn/)
+  })
+
+  it("ART: spare Normies become pixels of edit budget, and the warning about lost art is there", () => {
+    const m = buildPageModel(
+      withAdvice({ held: 3, tokens: [tok(7, "keep", ["top 5%"]), tok(8, "burn", ["pays"], 20, 20), tok(9, "burn", ["pays"], 10, 10)], holdings: [hold(7, "Human"), hold(8, "Human"), hold(9, "Human")] }),
+      "art",
+    )
+    assert.match(m.headline, /^Art plan: burning your 2 spare Normies gives 30 pixels to draw with/)
+    assert.match(m.rows[1].reasons[0], /pixels of edit budget.*that art is lost/)
+    assert.match(m.goalNotes.join(" "), /erases that art for good/)
+    assert.match(m.moves[0].detail, /pixels of edit budget/)
+  })
+
+  it("SHARE has no goal notes and keeps the old best-move headline", () => {
+    const m = buildPageModel(result({}), "share")
+    assert.equal(m.goalNotes.length, 0)
+    assert.match(m.headline, /^Best move right now/)
+  })
+
+  it("empty and delegate-only wallets answer the same in every goal", () => {
+    for (const g of ["share", "arena", "art"] as const) {
+      const m = buildPageModel(withAdvice({ held: 0, pixel: 0, tokens: [], holdings: [], moves: [] }), g)
+      assert.equal(m.state, "empty")
+      assert.equal(m.goal, g)
+    }
   })
 })
