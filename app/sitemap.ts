@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 
 import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
 
-const PATHS = ["/", "/ask", "/paths", "/dashboard", "/privacy", "/terms"] as const
+const PATHS = ["/", "/ask", "/paths", "/burn", "/dashboard", "/privacy", "/terms"] as const
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return PATHS.map((path) => ({
