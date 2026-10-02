@@ -15,7 +15,8 @@ export type DelegatePlan = {
   notInIndex: number[]
 }
 
-const norm = (a: string | null | undefined) => (a ? a.toLowerCase() : null)
+/** The zero address means "no delegate" (the API and some older index rows both use it), so it counts as none. */
+const norm = (a: string | null | undefined) => (a && !/^0x0+$/i.test(a) ? a.toLowerCase() : null)
 
 /**
  * Compare live Canvas delegates with the index. `observed` maps tokenId -> delegate, or `undefined` when the live
