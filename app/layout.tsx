@@ -1,26 +1,20 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Space_Grotesk, Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
 import { DEFAULT_SITE_ORIGIN } from '@/lib/site-origin'
 import './globals.css'
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'], weight: ['400', '500', '600', '700'] })
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'], weight: ['400', '500', '700'] })
+// Fonts are self-hosted (variable woff2, latin subset, OFL-1.1; see app/fonts/LICENSE-*.txt) so the build never
+// downloads anything from Google: a failed download there broke a production deploy on 2026-10-02.
+const geistSans = localFont({ src: './fonts/geist-latin-wght-normal.woff2', variable: '--font-geist-sans', weight: '100 900', display: 'swap' })
+const geistMono = localFont({ src: './fonts/geist-mono-latin-wght-normal.woff2', variable: '--font-geist-mono', weight: '100 900', display: 'swap' })
 
 // Premium, slightly artistic headings — Space Grotesk
-const spaceGrotesk = Space_Grotesk({ 
-  variable: '--font-space-grotesk', 
-  subsets: ['latin'], 
-  weight: ['500', '600', '700'] 
-})
+const spaceGrotesk = localFont({ src: './fonts/space-grotesk-latin-wght-normal.woff2', variable: '--font-space-grotesk', weight: '300 700', display: 'swap' })
 
 // Clean, highly legible body — Inter
-const inter = Inter({ 
-  variable: '--font-inter', 
-  subsets: ['latin'], 
-  weight: ['400', '500', '600'] 
-})
+const inter = localFont({ src: './fonts/inter-latin-wght-normal.woff2', variable: '--font-inter', weight: '100 900', display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'Normies CredHub — Verifiable Reputation for Awakened Agents',
