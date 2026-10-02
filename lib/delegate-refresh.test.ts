@@ -34,4 +34,11 @@ describe("planDelegateChanges", () => {
     assert.deepEqual(plan.notInIndex, [9])
     assert.equal(plan.changes.length, 0)
   })
+
+  it("treats the zero address as no delegate, so it is not a change", () => {
+    const ZERO = "0x0000000000000000000000000000000000000000"
+    const plan = planDelegateChanges(new Map<number, string | null | undefined>([[2, null], [3, ZERO]]), new Map<number, string | null>([[2, ZERO], [3, null]]))
+    assert.equal(plan.changes.length, 0)
+    assert.equal(plan.unchanged, 2)
+  })
 })
