@@ -1,0 +1,43 @@
+/* /burn page. Scoped under .burn-page, built on the .zulo-chrome tokens (monochrome, square, mono type). */
+.burn-page .burn-main { max-width: 860px; margin: 0 auto; padding: var(--space-md) var(--space-sm) var(--space-xl); }
+.burn-page .burn-title { font-size: clamp(32px, 7vw, 64px); margin-bottom: var(--space-sm); }
+.burn-page .burn-lede { font-size: 18px; max-width: 60ch; margin-bottom: var(--space-md); }
+.burn-page .burn-form { margin-bottom: var(--space-md); }
+.burn-page .burn-form-row { display: flex; gap: var(--space-xs); flex-wrap: wrap; margin-top: 6px; }
+.burn-page .burn-input {
+  flex: 1 1 320px; min-height: 48px; padding: 0 12px; font-size: 16px;
+  background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 0;
+}
+.burn-page .burn-button {
+  min-height: 48px; padding: 0 20px; font: inherit; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  background: var(--bg-dark); color: var(--text-inverse); border: 1px solid var(--border); border-radius: 0; cursor: pointer;
+}
+.burn-page .burn-button:hover { opacity: 0.88; }
+.burn-page .burn-input:focus-visible, .burn-page .burn-button:focus-visible, .burn-page a:focus-visible {
+  outline: 2px solid var(--zulo-accent); outline-offset: 2px;
+}
+.burn-page .burn-help, .burn-page .burn-example { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+.burn-page .burn-card { border: 1px solid var(--border); padding: var(--space-md); margin-bottom: var(--space-md); background: var(--bg-primary); }
+.burn-page .burn-answer { border-width: 2px; }
+.burn-page .burn-h2 { font-size: 18px; margin-bottom: var(--space-sm); }
+.burn-page .burn-headline { font-size: clamp(20px, 3.4vw, 28px); line-height: 1.3; color: var(--text-primary); font-weight: 700; margin-bottom: var(--space-sm); }
+.burn-page .burn-line { margin-bottom: 8px; }
+.burn-page .burn-list { padding-left: 1.2em; display: grid; gap: 10px; }
+.burn-page .burn-list li { color: var(--text-secondary); }
+.burn-page .burn-error { border-color: var(--text-primary); }
+.burn-page .burn-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.burn-page .burn-table th, .burn-page .burn-table td { text-align: left; vertical-align: top; padding: 10px 8px; border-top: 1px solid var(--border-light); }
+.burn-page .burn-table thead th { border-top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+.burn-page .burn-sub { color: var(--text-muted); font-weight: 400; }
+.burn-page .burn-verdict { letter-spacing: 0.05em; padding: 2px 6px; border: 1px solid var(--border); white-space: nowrap; }
+.burn-page .burn-verdict-keep { background: var(--bg-dark); color: var(--text-inverse); }
+.burn-page .burn-verdict-burn { background: transparent; }
+.burn-page .burn-verdict-neutral { border-style: dashed; }
+.burn-page .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (max-width: 640px) {
+  .burn-page .burn-card { padding: var(--space-sm); }
+  .burn-page .burn-table, .burn-page .burn-table tbody, .burn-page .burn-table tr, .burn-page .burn-table th, .burn-page .burn-table td { display: block; }
+  .burn-page .burn-table thead { position: absolute; left: -9999px; }
+  .burn-page .burn-table tr { border-top: 1px solid var(--border-light); padding: 8px 0; }
+  .burn-page .burn-table th, .burn-page .burn-table td { border: 0; padding: 2px 0; }
+}
