@@ -11,6 +11,7 @@ import { CopyLink } from "@/components/burn-copy"
 import { buildPageModel, GOALS, MAX_ROWS, parseGoal, type Goal, type PageModel } from "@/lib/burn-buy/narrate"
 import { buildBurnBuy, SourceError, type BurnBuyResult } from "@/lib/burn-buy/service"
 import { checkRateLimitById } from "@/lib/ratelimit"
+import { burnJsonLd, jsonLdScript } from "@/lib/burn-buy/jsonld"
 import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
 
 import "../zulo/styles.css"
@@ -20,6 +21,7 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 20
 
 export const metadata: Metadata = {
+  alternates: { types: { "application/json": "/api/burn-buy" } },
   title: "Burn or keep? — Normies CredHub",
   description:
     "Paste a wallet. Get a plain answer: which Normies to burn for #PIXEL, which to keep, and what to buy. Read-only; nothing here can sign or move anything.",
@@ -75,6 +77,7 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
       <ZuloChromeHeader active="burn" showActiveNormie={false} />
       <div className="header-spacer" aria-hidden />
       <main className="burn-main" id="main">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(burnJsonLd(DEFAULT_SITE_ORIGIN)) }} />
         <header className="burn-hero">
           <span className="burn-face" aria-hidden="true" />
           <h1 className="burn-title">Burn or keep?</h1>

@@ -1,0 +1,737 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "Normies CredHub: Burn or keep",
+  "version": "1.0.0",
+  "description": "Look-only advice for Normies holders: which Normies to burn for #PIXEL, which to keep, and what to buy.\n\nThis API reads public chain and market data. It never asks for keys, seed phrases or signatures, and nothing it returns moves anything. Not financial advice. A burn is permanent. Independent community tool, not made or endorsed by the Normies team.\n\nRate limit: 12 requests per minute per IP. Wallets holding more than 1000 Normies are refused."
+ },
+ "servers": [
+  {
+   "url": "https://normiescredhub.vercel.app"
+  }
+ ],
+ "paths": {
+  "/api/burn-buy": {
+   "get": {
+    "operationId": "burnBuy",
+    "summary": "Burn / keep / buy advice for a wallet, or the market alone",
+    "description": "With `wallet`: a verdict for every Normie held, ranked moves by exact score change, and the market. Without it: only the market (cheapest #PIXEL per ETH) and the census. `yieldMode` says how a burn pays (`promo` = fixed 4%, ends Monday Oct 5 per Serc; `normal` = a roll inside a range). `marketState` says whether Pixel Market is open.",
+    "parameters": [
+     {
+      "name": "wallet",
+      "in": "query",
+      "required": false,
+      "description": "A 0x address (42 characters) or a name ending in .eth. Use the wallet that OWNS the Normies, not a delegate.",
+      "schema": {
+       "type": "string",
+       "pattern": "^(0x[a-fA-F0-9]{40}|([a-z0-9-]+\\.)+eth)$"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "The advice.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "required": [
+          "asOf",
+          "yieldMode",
+          "marketState",
+          "promo",
+          "wallet",
+          "market",
+          "census",
+          "sources",
+          "caveats"
+         ],
+         "properties": {
+          "asOf": {
+           "type": "string",
+           "format": "date-time"
+          },
+          "yieldMode": {
+           "type": "string",
+           "enum": [
+            "promo",
+            "normal"
+           ]
+          },
+          "marketState": {
+           "type": "string",
+           "enum": [
+            "pending",
+            "live"
+           ]
+          },
+          "promo": {
+           "type": "object",
+           "required": [
+            "ratePercent",
+            "basis",
+            "ends"
+           ],
+           "properties": {
+            "ratePercent": {
+             "type": [
+              "number",
+              "null"
+             ],
+             "description": "4 in promo mode; null in normal mode (the rate is a roll)."
+            },
+            "basis": {
+             "type": "string"
+            },
+            "ends": {
+             "type": "string"
+            }
+           }
+          },
+          "wallet": {
+           "type": [
+            "object",
+            "null"
+           ],
+           "description": "Null when no `wallet` was given.",
+           "required": [
+            "address",
+            "ens",
+            "delegateOf",
+            "advice",
+            "historicalIllustration"
+           ],
+           "properties": {
+            "address": {
+             "type": "string"
+            },
+            "ens": {
+             "type": [
+              "string",
+              "null"
+             ]
+            },
+            "delegateOf": {
+             "type": "array",
+             "items": {
+              "type": "object",
+              "properties": {
+               "tokenId": {
+                "type": "integer"
+               },
+               "owner": {
+                "type": "string"
+               }
+              }
+             },
+             "description": "Set when the wallet owns nothing but is a Canvas delegate: it can edit pixels but cannot burn; use the owner wallet."
+            },
+            "advice": {
+             "type": "object",
+             "required": [
+              "held",
+              "pixel",
+              "score",
+              "sharePct",
+              "tokens",
+              "nextBracket",
+              "nextBoost",
+              "moves",
+              "notes",
+              "holdings"
+             ],
+             "properties": {
+              "held": {
+               "type": "integer"
+              },
+              "pixel": {
+               "type": "integer",
+               "description": "Total AP (#PIXEL) the wallet's Normies carry."
+              },
+              "score": {
+               "type": "number"
+              },
+              "sharePct": {
+               "type": "number",
+               "description": "Share of the holder pool, in percent."
+              },
+              "tokens": {
+               "type": "array",
+               "items": {
+                "type": "object",
+                "required": [
+                 "tokenId",
+                 "verdict",
+                 "reasons",
+                 "yield"
+                ],
+                "properties": {
+                 "tokenId": {
+                  "type": "integer"
+                 },
+                 "verdict": {
+                  "type": "string",
+                  "enum": [
+                   "keep",
+                   "burn",
+                   "neutral"
+                  ],
+                  "description": "`burn` means only 'nothing says keep and it pays something': a candidate, not an order."
+                 },
+                 "reasons": {
+                  "type": "array",
+                  "items": {
+                   "type": "string"
+                  }
+                 },
+                 "yield": {
+                  "type": "object",
+                  "required": [
+                   "fromPixels",
+                   "transferred",
+                   "total"
+                  ],
+                  "properties": {
+                   "fromPixels": {
+                    "type": "integer",
+                    "description": "Pixel part of the burn yield. In `normal` mode this is the MIDDLE of the range (an even roll is assumed), not a promise."
+                   },
+                   "transferred": {
+                    "type": "integer",
+                    "description": "The burned Normie's own AP, which moves to the receiver whole."
+                   },
+                   "total": {
+                    "type": "integer"
+                   },
+                   "range": {
+                    "type": "object",
+                    "properties": {
+                     "min": {
+                      "type": "integer"
+                     },
+                     "max": {
+                      "type": "integer"
+                     }
+                    },
+                    "description": "Only in `normal` mode: the pixel part can land anywhere in this range."
+                   }
+                  }
+                 }
+                }
+               }
+              },
+              "nextBracket": {
+               "type": [
+                "object",
+                "null"
+               ],
+               "properties": {
+                "atHeld": {
+                 "type": "integer"
+                },
+                "needMore": {
+                 "type": "integer"
+                }
+               }
+              },
+              "nextBoost": {
+               "type": [
+                "object",
+                "null"
+               ],
+               "properties": {
+                "atPixel": {
+                 "type": "integer"
+                },
+                "needMore": {
+                 "type": "integer"
+                }
+               }
+              },
+              "moves": {
+               "type": "array",
+               "items": {
+                "type": "object",
+                "required": [
+                 "kind",
+                 "tokenIds",
+                 "costEth",
+                 "scoreBefore",
+                 "scoreAfter",
+                 "scoreGain"
+                ],
+                "properties": {
+                 "kind": {
+                  "type": "string",
+                  "enum": [
+                   "burn-own",
+                   "buy-and-burn",
+                   "buy-and-hold"
+                  ]
+                 },
+                 "tokenIds": {
+                  "type": "array",
+                  "items": {
+                   "type": "integer"
+                  }
+                 },
+                 "costEth": {
+                  "type": "number"
+                 },
+                 "heldAfter": {
+                  "type": "integer"
+                 },
+                 "pixelAfter": {
+                  "type": "integer"
+                 },
+                 "scoreBefore": {
+                  "type": "number"
+                 },
+                 "scoreAfter": {
+                  "type": "number"
+                 },
+                 "scoreGain": {
+                  "type": "number"
+                 },
+                 "gainPerEth": {
+                  "type": [
+                   "number",
+                   "null"
+                  ]
+                 },
+                 "shareBeforePct": {
+                  "type": "number"
+                 },
+                 "shareAfterPct": {
+                  "type": "number"
+                 },
+                 "note": {
+                  "type": "string"
+                 }
+                }
+               }
+              },
+              "notes": {
+               "type": "array",
+               "items": {
+                "type": "string"
+               }
+              },
+              "holdings": {
+               "type": "array",
+               "items": {
+                "type": "object",
+                "properties": {
+                 "tokenId": {
+                  "type": "integer"
+                 },
+                 "originalPixels": {
+                  "type": "integer"
+                 },
+                 "actionPoints": {
+                  "type": "integer"
+                 },
+                 "rank": {
+                  "type": [
+                   "integer",
+                   "null"
+                  ]
+                 },
+                 "type": {
+                  "type": [
+                   "string",
+                   "null"
+                  ]
+                 }
+                }
+               }
+              }
+             }
+            },
+            "historicalIllustration": {
+             "type": "object",
+             "properties": {
+              "payoutEthIfSharePaidLikeArticleWindow": {
+               "type": "number"
+              },
+              "source": {
+               "type": "string"
+              }
+             },
+             "description": "Illustration only: what this share would have paid in the Sep 23 article's window. Not a forecast."
+            },
+            "jev": {
+             "type": "object",
+             "additionalProperties": {
+              "type": "object",
+              "properties": {
+               "pRegret": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+               },
+               "verdict": {
+                "type": "string",
+                "enum": [
+                 "double-check",
+                 "unsure",
+                 "agrees"
+                ]
+               }
+              },
+              "description": "Jev's second opinion. It can only add caution; it never changes a verdict."
+             },
+             "description": "Only when the market is live and Jev is on. Keyed by token id."
+            }
+           }
+          },
+          "market": {
+           "type": [
+            "object",
+            "null"
+           ],
+           "required": [
+            "floorEth",
+            "listedCount",
+            "bestPixelFodder",
+            "bestApCarriers",
+            "skippedListings"
+           ],
+           "properties": {
+            "floorEth": {
+             "type": [
+              "number",
+              "null"
+             ]
+            },
+            "listedCount": {
+             "type": "integer"
+            },
+            "bestPixelFodder": {
+             "type": "array",
+             "items": {
+              "type": "object",
+              "required": [
+               "tokenId",
+               "priceEth",
+               "actionPoints",
+               "originalPixels",
+               "yieldTotal",
+               "fromPixels",
+               "yieldPerEth"
+              ],
+              "properties": {
+               "tokenId": {
+                "type": "integer"
+               },
+               "priceEth": {
+                "type": "number"
+               },
+               "actionPoints": {
+                "type": "integer"
+               },
+               "originalPixels": {
+                "type": "integer"
+               },
+               "yieldTotal": {
+                "type": "integer"
+               },
+               "fromPixels": {
+                "type": "integer"
+               },
+               "yieldPerEth": {
+                "type": "number"
+               },
+               "yieldMin": {
+                "type": "integer",
+                "description": "Normal mode only."
+               },
+               "yieldMax": {
+                "type": "integer",
+                "description": "Normal mode only."
+               },
+               "url": {
+                "type": "string"
+               }
+              }
+             }
+            },
+            "bestApCarriers": {
+             "type": "array",
+             "items": {
+              "type": "object",
+              "required": [
+               "tokenId",
+               "priceEth",
+               "actionPoints",
+               "originalPixels",
+               "yieldTotal",
+               "fromPixels",
+               "yieldPerEth"
+              ],
+              "properties": {
+               "tokenId": {
+                "type": "integer"
+               },
+               "priceEth": {
+                "type": "number"
+               },
+               "actionPoints": {
+                "type": "integer"
+               },
+               "originalPixels": {
+                "type": "integer"
+               },
+               "yieldTotal": {
+                "type": "integer"
+               },
+               "fromPixels": {
+                "type": "integer"
+               },
+               "yieldPerEth": {
+                "type": "number"
+               },
+               "yieldMin": {
+                "type": "integer",
+                "description": "Normal mode only."
+               },
+               "yieldMax": {
+                "type": "integer",
+                "description": "Normal mode only."
+               },
+               "url": {
+                "type": "string"
+               }
+              }
+             }
+            },
+            "skippedListings": {
+             "type": "integer"
+            }
+           }
+          },
+          "census": {
+           "type": "object",
+           "required": [
+            "wallets",
+            "totalScore",
+            "livingSupply",
+            "indexOldestIndexedAt"
+           ],
+           "properties": {
+            "wallets": {
+             "type": "integer"
+            },
+            "totalScore": {
+             "type": "number"
+            },
+            "livingSupply": {
+             "type": "integer"
+            },
+            "indexOldestIndexedAt": {
+             "type": [
+              "string",
+              "null"
+             ],
+             "description": "Census figures come from an index that can lag; this is its oldest row. Holdings of the wallet asked about are read live."
+            }
+           }
+          },
+          "sources": {
+           "type": "object",
+           "required": [
+            "holder",
+            "rarity",
+            "listings",
+            "index",
+            "jev"
+           ],
+           "properties": {
+            "holder": {
+             "type": "object",
+             "required": [
+              "ok"
+             ],
+             "properties": {
+              "ok": {
+               "type": "boolean"
+              },
+              "error": {
+               "type": "string"
+              },
+              "note": {
+               "type": "string"
+              }
+             },
+             "description": "Whether one data source worked. Check `ok` before trusting what depends on it."
+            },
+            "rarity": {
+             "type": "object",
+             "required": [
+              "ok"
+             ],
+             "properties": {
+              "ok": {
+               "type": "boolean"
+              },
+              "error": {
+               "type": "string"
+              },
+              "note": {
+               "type": "string"
+              }
+             },
+             "description": "Whether one data source worked. Check `ok` before trusting what depends on it."
+            },
+            "listings": {
+             "type": "object",
+             "required": [
+              "ok"
+             ],
+             "properties": {
+              "ok": {
+               "type": "boolean"
+              },
+              "error": {
+               "type": "string"
+              },
+              "note": {
+               "type": "string"
+              }
+             },
+             "description": "Whether one data source worked. Check `ok` before trusting what depends on it."
+            },
+            "index": {
+             "type": "object",
+             "required": [
+              "ok"
+             ],
+             "properties": {
+              "ok": {
+               "type": "boolean"
+              },
+              "error": {
+               "type": "string"
+              },
+              "note": {
+               "type": "string"
+              }
+             },
+             "description": "Whether one data source worked. Check `ok` before trusting what depends on it."
+            },
+            "jev": {
+             "type": "object",
+             "required": [
+              "ok"
+             ],
+             "properties": {
+              "ok": {
+               "type": "boolean"
+              },
+              "error": {
+               "type": "string"
+              },
+              "note": {
+               "type": "string"
+              }
+             },
+             "description": "Whether one data source worked. Check `ok` before trusting what depends on it."
+            }
+           }
+          },
+          "caveats": {
+           "type": "array",
+           "items": {
+            "type": "string"
+           },
+           "description": "Plain-language limits that apply to this answer. Show them."
+          }
+         }
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Invalid wallet.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Rate limited. Honour the Retry-After header.",
+      "headers": {
+       "Retry-After": {
+        "schema": {
+         "type": "integer"
+        }
+       }
+      },
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "500": {
+      "description": "Unexpected failure.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     },
+     "502": {
+      "description": "An upstream data source is unavailable. Retryable.",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Error"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "Error": {
+    "type": "object",
+    "required": [
+     "error",
+     "code"
+    ],
+    "properties": {
+     "error": {
+      "type": "string"
+     },
+     "code": {
+      "type": "string",
+      "enum": [
+       "invalid_wallet",
+       "rate_limit",
+       "upstream_unavailable",
+       "internal",
+       "not_found"
+      ]
+     },
+     "retryable": {
+      "type": "boolean"
+     },
+     "source": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ }
+}
