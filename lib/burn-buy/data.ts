@@ -3,6 +3,7 @@
 // (Next data cache plus a short in-process cache) and listings are shared across visitors.
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { getSupabase } from "@/lib/db/supabase"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
@@ -99,55 +100,80 @@ async function fetchTokens(ids: number[]): Promise<RarityToken[]> {
   return out
 }
 
-const listingsCached = ttl(60_000, async () => {
+type ListingsPage = { items?: RawItem[]; total?: number; totalPages?: number; floorPrice?: number }
+
+/** Pages 2..N are independent of each other, so they are fetched together; page order (cheapest first) is kept. */
+export async function loadListings(getPage: (page: number) => Promise<ListingsPage>) {
+  const first = await getPage(1)
+  const lastPage = Math.min(Math.max(first.totalPages ?? 1, 1), 8)
+  const rest = await Promise.all(Array.from({ length: lastPage - 1 }, (_, i) => getPage(i + 2)))
   const items: RawListing[] = []
-  let total = 0
-  let floorEth: number | null = null
-  for (let page = 1; page <= 8; page++) {
-    const d = await getJson<{ items?: RawItem[]; total?: number; totalPages?: number; floorPrice?: number }>(
-      `${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`,
-      "listings",
-      60,
-    )
-    if (page === 1) { total = d.total ?? 0; floorEth = num(d.floorPrice) }
+  for (const d of [first, ...rest]) {
     for (const it of d.items ?? []) {
       const price = num(it.listing?.priceEth)
       if (price && price > 0) items.push({ ...toToken(it), priceEth: price, url: it.listing?.url })
     }
-    if (page >= (d.totalPages ?? 1)) break
   }
-  return { items, floorEth, total }
-})
+  return { items, floorEth: num(first.floorPrice), total: first.total ?? 0 }
+}
 
-/** Every living token's original pixels, plus the census. Reads the public, read-only normie_index. */
-const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
-  const db = getSupabase()
-  if (!db) throw new Error("database is not configured")
+const listingsCached = ttl(60_000, () =>
+  loadListings((page) =>
+    getJson<ListingsPage>(`${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`, "listings", 60),
+  ),
+)
+
+export interface IndexRow {
+  token_id: number
+  owner: string | null
+  action_points: number | null
+  on_pixels: number | null
+  indexed_at: string | null
+}
+
+/** Token ids run 0..9999. The index is read in this many equal id-ranges, all at once. */
+export const INDEX_TOKEN_SPAN = 10_000
+export const INDEX_CHUNK = 1_000
+
+/**
+ * Every living token's row, read as 10 id-ranges IN PARALLEL (it used to be ~8 pages one after another, about 4 s cold).
+ * A range of 1,000 ids can never return more than 1,000 rows, so the database's per-request row cap cannot truncate it.
+ */
+export async function fetchIndexRows(db: Pick<SupabaseClient, "from">): Promise<IndexRow[]> {
+  const ranges = Array.from({ length: INDEX_TOKEN_SPAN / INDEX_CHUNK }, (_, i) => i * INDEX_CHUNK)
+  const chunks = await Promise.all(
+    ranges.map(async (from) => {
+      const { data, error } = await db
+        .from("normie_index")
+        .select("token_id,owner,action_points,on_pixels,indexed_at")
+        .eq("burned", false)
+        .gte("token_id", from)
+        .lt("token_id", from + INDEX_CHUNK)
+        .order("token_id")
+      if (error) throw new Error(error.message)
+      return (data ?? []) as IndexRow[]
+    }),
+  )
+  return chunks.flat()
+}
+
+/** Pure: turns index rows into the snapshot the advice needs. */
+export function snapshotFromRows(rows: IndexRow[]): MarketSnapshot {
   const originalPixels = new Map<number, number>()
   const pixelSupply = new Map<number, number>()
   const wallets = new Map<string, { n: number; ap: number }>()
   let oldest: string | null = null
-  for (let from = 0; ; from += 1000) {
-    const { data, error } = await db
-      .from("normie_index")
-      .select("token_id,owner,action_points,on_pixels,indexed_at")
-      .eq("burned", false)
-      .order("token_id")
-      .range(from, from + 999)
-    if (error) throw new Error(error.message)
-    for (const r of data ?? []) {
-      if (r.on_pixels === null || r.on_pixels === undefined) continue
-      originalPixels.set(r.token_id, r.on_pixels)
-      pixelSupply.set(r.on_pixels, (pixelSupply.get(r.on_pixels) ?? 0) + 1)
-      if (r.owner) {
-        const w = wallets.get(r.owner) ?? { n: 0, ap: 0 }
-        w.n += 1
-        w.ap += r.action_points ?? 0
-        wallets.set(r.owner, w)
-      }
-      if (r.indexed_at && (oldest === null || r.indexed_at < oldest)) oldest = r.indexed_at
+  for (const r of rows) {
+    if (r.on_pixels === null || r.on_pixels === undefined) continue
+    originalPixels.set(r.token_id, r.on_pixels)
+    pixelSupply.set(r.on_pixels, (pixelSupply.get(r.on_pixels) ?? 0) + 1)
+    if (r.owner) {
+      const w = wallets.get(r.owner) ?? { n: 0, ap: 0 }
+      w.n += 1
+      w.ap += r.action_points ?? 0
+      wallets.set(r.owner, w)
     }
-    if ((data?.length ?? 0) < 1000) break
+    if (r.indexed_at && (oldest === null || r.indexed_at < oldest)) oldest = r.indexed_at
   }
   if (originalPixels.size === 0) throw new Error("index returned no living tokens")
   let censusTotal = 0
@@ -158,6 +184,13 @@ const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
     censusTotal += sc
   }
   return { livingSupply: originalPixels.size, wallets: wallets.size, censusTotal, originalPixels, pixelSupply, oldestIndexedAt: oldest, walletScores }
+}
+
+/** Every living token's original pixels, plus the census. Reads the public, read-only normie_index. */
+const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
+  const db = getSupabase()
+  if (!db) throw new Error("database is not configured")
+  return snapshotFromRows(await fetchIndexRows(db))
 })
 
 /** Tokens for which `address` is the Canvas delegate, from the index. Only ever called with a validated 0x address. */
