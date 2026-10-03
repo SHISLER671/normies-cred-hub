@@ -123,7 +123,7 @@
 .burn-page .burn-tile { border: 1px solid var(--border-light); background: var(--bg-primary); transition: border-color 140ms var(--motion-ease), transform 140ms var(--motion-ease); }
 .burn-page .burn-tile:hover { border-color: var(--text-primary); transform: translateY(-2px); }
 .burn-page .burn-tile[open] { border-color: var(--text-primary); }
-.burn-page .burn-tile > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "pill yield" "id id" "sub sub"; gap: 2px 8px; padding: 12px 14px; min-height: 44px; }
+.burn-page .burn-tile > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "pill yield" "id id" "sub sub" "jev jev"; gap: 2px 8px; padding: 12px 14px; min-height: 44px; }
 .burn-page .burn-tile > summary::-webkit-details-marker { display: none }
 .burn-page .burn-pill { grid-area: pill; justify-self: start; padding: 3px 8px; font: 700 11px/1 var(--font-mono); letter-spacing: 0.14em; border: 1px solid var(--text-primary); color: var(--text-primary); }
 .burn-page .burn-pill[data-verdict="keep"] { background: var(--text-primary); color: var(--bg-primary); }
@@ -197,3 +197,6 @@
   .burn-page .burn-tiles { grid-template-columns: 1fr 1fr; }
   .burn-page .burn-move .burn-body { padding-left: 14px; }
 }
+
+.burn-page .burn-jev { grid-area: jev; justify-self: start; margin-top: 8px; padding: 2px 8px; border: 1px dashed var(--accent); font: 700 11px/1.4 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-primary); }
+.burn-page .burn-jevtext { border-left: 3px solid var(--accent); padding-left: 10px; }

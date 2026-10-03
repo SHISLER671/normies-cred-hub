@@ -2,6 +2,7 @@
 // Rule: every number shown here is copied from the result, never recomputed, so the page cannot disagree with the API.
 
 import type { Move, Verdict } from "./advise"
+import type { JevVerdict } from "./jev"
 import { BOOSTS, BRACKETS, type MarketState, type YieldMode } from "./score"
 import type { BurnBuyResult } from "./service"
 
@@ -29,6 +30,8 @@ export interface TokenRow {
   pays: string
   /** Short version for a tile: "+30 #PIXEL", "+30 AP" or "+30 px". */
   yieldText: string
+  /** Jev's second opinion (only once the market is live and Jev is on). It never changes `verdict`; it can only add caution. */
+  jev?: { verdict: JevVerdict; pRegret: number; text: string }
   originalPixels: number | null
   actionPoints: number | null
   type: string | null
@@ -83,6 +86,18 @@ export function safeUrl(u: string | undefined | null): string | null {
   } catch {
     return null
   }
+}
+
+/** Plain words for Jev's opinion. Never says burn: Jev can only add caution. */
+export function jevView(op: { verdict: JevVerdict; pRegret: number }) {
+  const pct = Math.round(op.pRegret * 100)
+  const text =
+    op.verdict === "double-check"
+      ? `Jev leans keep: about ${pct}% that you would regret this burn. Double-check before burning.`
+      : op.verdict === "agrees"
+        ? "Jev agrees: nothing about this one stands out."
+        : `Jev is unsure (about ${pct}% regret). Your call.`
+  return { verdict: op.verdict, pRegret: op.pRegret, text }
 }
 
 export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine {
@@ -224,6 +239,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
       verdict,
       label: LABEL[verdict],
       reasons,
+      ...(w.jev?.[t.tokenId] ? { jev: jevView(w.jev[t.tokenId]) } : {}),
       yieldText: t.yield.total > 0 ? `+${t.yield.range ? "~" : ""}${t.yield.total} ${goal === "art" ? "px" : goal === "arena" ? "AP" : "#PIXEL"}` : "+0",
       pays: t.yield.total > 0
         ? goal === "art"
