@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 
 import { realDeps } from "./data"
 import {
-  buildJevRequest, fetchJevOpinions, JEV_ENDPOINT, JEV_MAX_TOKENS, JEV_MODEL, JevError, parseJevResponse, REGRET_AGREES_BELOW,
+  buildJevRequest, fetchJevOpinions, JEV_ENDPOINT, jevEndpoint, JEV_MAX_TOKENS, JEV_MODEL, JevError, parseJevResponse, REGRET_AGREES_BELOW,
   REGRET_DOUBLE_CHECK, verdictFor, type JevOpinion, type JevToken,
 } from "./jev"
 import { buildPageModel, jevView } from "./narrate"
@@ -213,5 +213,24 @@ describe("the real adapter is dark until it has a key", () => {
     process.env.TYPESAFE_API_KEY = "K"
     process.env.JEV_DISABLE = "1"
     assert.equal(await realDeps.jevOpinions!([tok(1)]), null)
+  })
+})
+
+describe("the API address (TYPESAFE_BASE_URL, the name TypeSafe's own SDK uses)", () => {
+  const saved = process.env.TYPESAFE_BASE_URL
+  afterEach(() => { if (saved === undefined) delete process.env.TYPESAFE_BASE_URL; else process.env.TYPESAFE_BASE_URL = saved })
+
+  it("unset: the official endpoint", () => {
+    delete process.env.TYPESAFE_BASE_URL
+    assert.equal(jevEndpoint(), "https://api.typesafe.ai/v1/systemone")
+    assert.equal(jevEndpoint(), JEV_ENDPOINT)
+  })
+  it("set: that root plus /v1/systemone, trailing slashes tolerated", () => {
+    process.env.TYPESAFE_BASE_URL = "https://gateway.example/typesafe///"
+    assert.equal(jevEndpoint(), "https://gateway.example/typesafe/v1/systemone")
+  })
+  it("blank or whitespace: the official endpoint", () => {
+    process.env.TYPESAFE_BASE_URL = "   "
+    assert.equal(jevEndpoint(), JEV_ENDPOINT)
   })
 })

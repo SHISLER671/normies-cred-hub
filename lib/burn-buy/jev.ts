@@ -15,8 +15,14 @@
 import { fetchWithRetry } from "@/lib/fetch-with-retry"
 
 export const JEV_ENDPOINT = "https://api.typesafe.ai/v1/systemone"
-/** Optional TYPESAFE_API_URL overrides the address (for a proxy or a local stand-in when testing). Unset = the official API. */
-export const jevEndpoint = () => process.env.TYPESAFE_API_URL?.trim() || JEV_ENDPOINT
+/**
+ * Optional TYPESAFE_BASE_URL (the name TypeSafe's own SDK uses) overrides the API root, for an AI gateway, a proxy or a local
+ * stand-in when testing. It must follow the TypeSafe API spec (same /v1/systemone path). Unset = the official API.
+ */
+export const jevEndpoint = () => {
+  const base = process.env.TYPESAFE_BASE_URL?.trim().replace(/\/+$/, "")
+  return base ? `${base}/v1/systemone` : JEV_ENDPOINT
+}
 export const JEV_MODEL = "jev-latest"
 /** One request, at most this many Normies: keeps cost, latency and request size small. */
 export const JEV_MAX_TOKENS = 8
