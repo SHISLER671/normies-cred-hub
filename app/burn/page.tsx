@@ -145,7 +145,7 @@ function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyR
           </ul>
         )}
 
-        <p className="burn-cap">For {who} · as of <time dateTime={result.asOf}>{utc(result.asOf)}</time></p>
+        <p className="burn-cap">For {who} · as of <time dateTime={result.asOf}>{utc(result.asOf)}</time>{model.marketState === "live" && " · Pixel Market live"}</p>
 
         {holds && detail.length > 0 && (
           <details className="burn-more">
@@ -215,12 +215,13 @@ function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyR
                 <tr key={f.tokenId}>
                   <th scope="row">{f.url ? <a href={f.url} target="_blank" rel="noopener noreferrer">#{f.tokenId}</a> : <>#{f.tokenId}</>}</th>
                   <td>{f.priceEth} ETH</td>
-                  <td>{f.pays}</td>
+                  <td>{f.range ? "~" : ""}{f.pays}</td>
                   <td>{f.perEth}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {model.yieldMode === "normal" && <p className="burn-small">~ is the middle of a range. A burn is a roll, so the real result can land anywhere in it.</p>}
         </details>
       )}
     </>
@@ -253,9 +254,17 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
           <li><strong>A burn is permanent.</strong> It cannot be undone. Double-check on normies.art before you burn.</li>
           <li><strong>This page is look-only.</strong> It reads public blockchain data. It cannot sign, spend, approve or move anything. We will never ask for your seed phrase. If any site or person asks you to sign something to &quot;verify&quot; or &quot;claim&quot;, walk away.</li>
           <li><strong>This is not financial advice.</strong> Nothing here is a promise of profit. The revenue-share pool changes, and past payouts do not predict future ones.</li>
-          <li><strong>#PIXEL has no market price yet.</strong> The prices in the official Pixel Market demo (for example 0.016 ETH per #PIXEL) are labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them. Moves here are ranked by score, not by value.</li>
+          {result.marketState === "live" ? (
+            <li><strong>This page does not read live #PIXEL prices yet.</strong> Pixel Market is open, but moves here are ranked by score, not by value. The prices in the official demo (for example 0.016 ETH per #PIXEL) were labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them.</li>
+          ) : (
+            <li><strong>#PIXEL has no market price yet.</strong> Pixel Market has not opened: it is planned for October 5, audits permitting, and that is not guaranteed. The prices in the official Pixel Market demo (for example 0.016 ETH per #PIXEL) are labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them. Moves here are ranked by score, not by value.</li>
+          )}
           <li><strong>How a burn works</strong> (official video): 1) Commit: the Normies you chose are burned and gone for good. 2) Wait about a minute while the chain produces the randomness for your roll. 3) Reveal: your pixels arrive. Bigger faces earn more.</li>
-          <li><strong>The 4% burn rate is a promo.</strong> It is planned to end when Pixel Market launches, planned for October 5, audits permitting. That date is not guaranteed. Check @normiesART before you act.</li>
+          {result.yieldMode === "normal" ? (
+            <li><strong>The fixed 4% promo has ended.</strong> A burn is now a roll inside a range set by the Normie&apos;s original pixel count: 0 to 490 px pays 1 to 4%, 491 to 890 px pays 2 to 4%, 891 px and up pays 3 to 4% (@normiesART article, Sep 23). This page shows the middle of the range, marked ~, with the range beside it. Real burns can land anywhere in it (the average over the first 2,718 burns was 2.74%).</li>
+          ) : (
+            <li><strong>The 4% burn rate is a promo.</strong> Serc said in the community chat that it ends on Monday, October 5, and that burns go back to the normal 1 to 4% range. Burning itself stays open. Check @normiesART before you act.</li>
+          )}
           <li>Burn yield is paid on a Normie&apos;s ORIGINAL pixel count (what the contract pays on), not on its edited art.</li>
           <li><strong>We can be wrong.</strong> This is an independent community tool, not made or endorsed by the Normies team. Their site and @normiesART are the source of truth.</li>
           {result.census.indexOldestIndexedAt && (

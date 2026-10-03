@@ -2,7 +2,7 @@
 // so every success and failure path can be tested with fakes. Rule: no silent fallbacks. If a source fails,
 // the response says so, per source, instead of quietly guessing.
 
-import { walletScore } from "./score"
+import { type YieldMode, type MarketState, walletScore } from "./score"
 import {
   adviseWallet,
   ARTICLE_WINDOW,
@@ -62,6 +62,10 @@ export interface Deps {
   loadSnapshot(): Promise<MarketSnapshot>
   /** Tokens this address is the Canvas delegate for (it can edit pixels but cannot burn). Optional. */
   findDelegations?(address: string): Promise<Array<{ tokenId: number; owner: string }>>
+  /** How a burn pays. Optional; missing means "promo" (today). Real deps read BURN_YIELD_MODE. */
+  yieldMode?(): YieldMode
+  /** Whether Pixel Market is open. Optional; missing means "pending" (today). Real deps read PIXEL_MARKET. */
+  marketState?(): MarketState
   now(): Date
 }
 
@@ -73,7 +77,12 @@ export interface SourceStatus {
 
 export interface BurnBuyResult {
   asOf: string
-  promo: { ratePercent: number; basis: string; ends: string }
+  /** How a burn pays: the fixed 4% "promo" (until Monday) or a "normal" roll inside a tier range. */
+  yieldMode: YieldMode
+  /** Whether Pixel Market (the #PIXEL exchange) is open. */
+  marketState: MarketState
+  /** In normal mode `ratePercent` is null: the rate is a roll inside a tier range, described in `basis`. */
+  promo: { ratePercent: number | null; basis: string; ends: string }
   wallet: null | {
     address: string
     ens: string | null
@@ -94,10 +103,16 @@ export interface BurnBuyResult {
   caveats: string[]
 }
 
+export const NORMAL_INFO = {
+  ratePercent: null,
+  basis: "a roll inside a range set by the burned Normie's original pixel count (0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%, per the Sep 23 article), plus the burned token's own AP",
+  ends: "The fixed 4% promo has ended; burns are back to the normal rolls",
+} as const
+
 export const PROMO_INFO = {
   ratePercent: 4,
   basis: "4% of the burned Normie's original (base) pixel count, plus the burned token's own AP",
-  ends: "Pixel Market launch, planned for October 5 (audits permitting); not guaranteed",
+  ends: "Monday, October 5, per Serc in the community chat (not independently verified, so not guaranteed); burns then return to the normal 1-4% range",
 } as const
 
 /** Largest holder today has 432. Above this we refuse rather than show a wrong (truncated) score. */
@@ -114,10 +129,17 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     listings: { ok: true },
     index: { ok: true },
   }
+  const yieldMode: YieldMode = deps.yieldMode ? deps.yieldMode() : "promo"
+  const marketState: MarketState = deps.marketState ? deps.marketState() : "pending"
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
-    "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value.",
+    marketState === "live"
+      ? "Not financial advice. This tool does not read live #PIXEL prices yet, so moves are compared by score, not value."
+      : "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value.",
     "Yield uses each token's ORIGINAL pixel count (what the contract pays on), not its current edited art.",
+    ...(yieldMode === "normal"
+      ? ["A burn is now a roll inside a range, so figures here are the middle of the range with the full range beside them. Real burns can land anywhere in it. The tiers come from the Sep 23 @normiesART article."]
+      : []),
   ]
 
   // The index snapshot is mandatory: without original pixels and the census nothing can be computed honestly.
@@ -128,7 +150,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   } catch (e) {
     throw new SourceError("index", `index unavailable: ${e instanceof Error ? e.message : e}`)
   }
-  const ctx = { livingSupply: snap.livingSupply, censusTotal: snap.censusTotal }
+  const ctx = { livingSupply: snap.livingSupply, censusTotal: snap.censusTotal, yieldMode }
   if (snap.oldestIndexedAt) {
     caveats.push(`The census and original pixel counts come from an index whose oldest row is from ${snap.oldestIndexedAt.slice(0, 16).replace("T", " ")} UTC; ownership may have changed since. Your own tokens are read live.`)
   }
@@ -257,7 +279,9 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
 
   return {
     asOf: deps.now().toISOString(),
-    promo: { ...PROMO_INFO },
+    yieldMode,
+    marketState,
+    promo: yieldMode === "normal" ? { ...NORMAL_INFO } : { ...PROMO_INFO },
     wallet,
     market,
     census: {
