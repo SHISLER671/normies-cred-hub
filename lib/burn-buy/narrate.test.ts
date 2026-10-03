@@ -173,7 +173,7 @@ describe("goals", () => {
       withAdvice({ held: 3, tokens: [tok(7, "keep", ["rarer type (Cat)"]), tok(8, "burn", ["pays"], 20, 20), tok(9, "burn", ["pays"], 10, 10)], holdings: [hold(7, "Cat", 5), hold(8, "Human"), hold(9, "Human")] }),
       "arena",
     )
-    assert.match(m.headline, /^Arena plan: keep 1 fighter\. 2 spare Normies could be burned for \+30 AP, only if you want the Level\./)
+    assert.match(m.headline, /^Arena plan: keep 1 fighter\. 2 spare could go for \+30 AP, if you want the Level\./)
     assert.match(m.rows[0].reasons[0], /only Cat/)
     assert.match(m.rows[1].reasons[0], /adds 20 AP to a Normie you keep \(10 AP = 1 Level\)/)
   })
@@ -191,7 +191,7 @@ describe("goals", () => {
       withAdvice({ held: 3, tokens: [tok(7, "keep", ["top 5%"]), tok(8, "burn", ["pays"], 20, 20), tok(9, "burn", ["pays"], 10, 10)], holdings: [hold(7, "Human"), hold(8, "Human"), hold(9, "Human")] }),
       "art",
     )
-    assert.match(m.headline, /^Art plan: burning your 2 spare Normies adds 30 pixels to the ones you keep/)
+    assert.match(m.headline, /^Art plan: burning your 2 spare adds 30 pixels to the ones you keep/)
     assert.match(m.rows[1].reasons[0], /adds 20 pixels to a Normie you keep\. If you have drawn on this one, that art is lost/)
     const notes = m.goalNotes.join(" ")
     assert.match(notes, /paint budget/)
@@ -206,7 +206,7 @@ describe("goals", () => {
       withAdvice({ held: 3, tokens: [tok(1, "burn", ["pays"], 20, 20), tok(2, "burn", ["pays"], 15, 15), tok(3, "burn", ["pays"], 10, 10)], holdings: [hold(1, "Human"), hold(2, "Human"), hold(3, "Human")] }),
       "arena",
     )
-    assert.match(m.headline, /^Arena plan: choose at least 1 of your 3 Normies to keep as your fighter\. Up to 2 of the others could be burned for up to \+35 AP/)
+    assert.match(m.headline, /^Arena plan: keep at least 1 as your fighter\. Up to 2 of the others could go for up to \+35 AP/)
     assert.doesNotMatch(m.headline, /keep 0/)
   })
 
@@ -215,7 +215,7 @@ describe("goals", () => {
       withAdvice({ held: 3, tokens: [tok(1, "burn", ["pays"], 20, 20), tok(2, "burn", ["pays"], 15, 15), tok(3, "burn", ["pays"], 10, 10)], holdings: [hold(1, "Human"), hold(2, "Human"), hold(3, "Human")] }),
       "art",
     )
-    assert.match(m.headline, /^Art plan: choose at least 1 of your 3 Normies to keep and paint\. Burning up to 2 of the others adds up to 35 pixels to it\./)
+    assert.match(m.headline, /^Art plan: keep at least 1 to paint\. Burning up to 2 of the others adds up to 35 pixels\./)
   })
 
   it("SHARE explains where the pool comes from and keeps the old best-move headline", () => {
@@ -247,5 +247,43 @@ describe("goals", () => {
       assert.equal(m.state, "empty")
       assert.equal(m.goal, g)
     }
+  })
+})
+
+describe("card data for the compact layout", () => {
+  it("moves carry a short before/after stat", () => {
+    assert.equal(describeMove(move()).stat, "Score 3.4 → 9.66")
+  })
+
+  it("arena and art fodder cards carry their own short stat", () => {
+    const lone = buildPageModel(withAdvice({ held: 1, tokens: [tok(7, "keep", ["x"])], holdings: [hold(7, "Cat", 12)] }), "arena")
+    assert.equal(lone.moves[0].stat, "Level 2 → 5")
+    const art = buildPageModel(withAdvice({ held: 1, tokens: [tok(7, "keep", ["x"])], holdings: [hold(7, "Human", 0)] }), "art")
+    assert.equal(art.moves[0].stat, "+28 px")
+  })
+
+  it("tiles get a short yield in the unit that goal uses", () => {
+    const tokens = [tok(1, "burn", ["pays"], 20, 20), tok(2, "keep", ["x"], 5, 5)]
+    const holdings = [hold(1, "Human"), hold(2, "Human")]
+    assert.equal(buildPageModel(withAdvice({ held: 2, tokens, holdings }), "share").rows[0].yieldText, "+20 #PIXEL")
+    assert.equal(buildPageModel(withAdvice({ held: 2, tokens, holdings }), "arena").rows[0].yieldText, "+20 AP")
+    assert.equal(buildPageModel(withAdvice({ held: 2, tokens, holdings }), "art").rows[0].yieldText, "+20 px")
+  })
+
+  it("the cannot-burn-them-all warning is a visible notice; ordinary wallets have none", () => {
+    const all = buildPageModel(withAdvice({ held: 3, tokens: [tok(1, "burn", ["p"]), tok(2, "burn", ["p"]), tok(3, "burn", ["p"])], holdings: [] }))
+    assert.equal(all.notices.length, 1)
+    assert.match(all.notices[0], /at most 2 of these 3 can go/)
+    assert.ok(all.lines.includes(all.notices[0]))
+    assert.equal(buildPageModel(result({})).notices.length, 0)
+    assert.equal(buildPageModel(null).notices.length, 0)
+  })
+
+  it("ARENA notes include the official trailer lines", () => {
+    const notes = buildPageModel(result({}), "arena").goalNotes.join(" ")
+    assert.match(notes, /They play\. You watch\./)
+    assert.match(notes, /You do not steer it/)
+    assert.match(notes, /The Maw/)
+    assert.match(notes, /gives no numbers/)
   })
 })
