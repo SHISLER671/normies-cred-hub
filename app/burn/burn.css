@@ -1,127 +1,199 @@
-/* /burn page. Scoped under .burn-page, built on the .zulo-chrome tokens (monochrome, square, mono type). */
-.burn-page .burn-main { max-width: 860px; margin: 0 auto; padding: var(--space-md) var(--space-sm) var(--space-xl); }
-.burn-page .burn-title { font-size: clamp(32px, 7vw, 64px); margin-bottom: var(--space-sm); }
-.burn-page .burn-lede { font-size: 18px; max-width: 60ch; margin-bottom: var(--space-md); }
-.burn-page .burn-form { margin-bottom: var(--space-md); }
-.burn-page .burn-form-row { display: flex; gap: var(--space-xs); flex-wrap: wrap; margin-top: 6px; }
-.burn-page .burn-input {
-  flex: 1 1 320px; min-height: 48px; padding: 0 12px; font-size: 16px;
-  background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 0;
-}
-.burn-page .burn-button {
-  min-height: 48px; padding: 0 20px; font: inherit; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-  background: var(--bg-dark); color: var(--text-inverse); border: 1px solid var(--border); border-radius: 0; cursor: pointer;
-}
-.burn-page .burn-button:hover { opacity: 0.88; }
-.burn-page .burn-input:focus-visible, .burn-page .burn-button:focus-visible, .burn-page a:focus-visible {
-  outline: 2px solid var(--zulo-accent); outline-offset: 2px;
-}
-.burn-page .burn-help, .burn-page .burn-example { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
-.burn-page .burn-card { border: 1px solid var(--border); padding: var(--space-md); margin-bottom: var(--space-md); background: var(--bg-primary); }
-.burn-page .burn-answer { border-width: 2px; }
-.burn-page .burn-h2 { font-size: 18px; margin-bottom: var(--space-sm); }
-.burn-page .burn-headline { font-size: clamp(20px, 3.4vw, 28px); line-height: 1.3; color: var(--text-primary); font-weight: 700; margin-bottom: var(--space-sm); }
-.burn-page .burn-line { margin-bottom: 8px; }
-.burn-page .burn-list { padding-left: 1.2em; display: grid; gap: 10px; }
-.burn-page .burn-list li { color: var(--text-secondary); }
-.burn-page .burn-error { border-color: var(--text-primary); }
-.burn-page .burn-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.burn-page .burn-table th, .burn-page .burn-table td { text-align: left; vertical-align: top; padding: 10px 8px; border-top: 1px solid var(--border-light); }
-.burn-page .burn-table thead th { border-top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
-.burn-page .burn-sub { color: var(--text-muted); font-weight: 400; }
-.burn-page .burn-verdict { letter-spacing: 0.05em; padding: 2px 6px; border: 1px solid var(--border); white-space: nowrap; }
-.burn-page .burn-verdict-keep { background: var(--bg-dark); color: var(--text-inverse); }
-.burn-page .burn-verdict-burn { background: transparent; }
-.burn-page .burn-verdict-neutral { border-style: dashed; }
-.burn-page .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-@media (max-width: 640px) {
-  .burn-page .burn-card { padding: var(--space-sm); }
-  .burn-page .burn-table, .burn-page .burn-table tbody, .burn-page .burn-table tr, .burn-page .burn-table th, .burn-page .burn-table td { display: block; }
-  .burn-page .burn-table thead { position: absolute; left: -9999px; }
-  .burn-page .burn-table tr { border-top: 1px solid var(--border-light); padding: 8px 0; }
-  .burn-page .burn-table th, .burn-page .burn-table td { border: 0; padding: 2px 0; }
-}
+/* /burn: the Normies look. Built on the .zulo-chrome tokens (mono type, square boxes, tags notched into the border,
+   cyan accent on the active thing). Mobile first. Everything wordy folds away; nothing here changes the answer. */
+.burn-page { --body: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif; --accent: var(--zulo-accent); --gap: 18px;
+  /* captions: lighter than the site's muted grey so they stay readable (about 7:1 on dark, 6:1 on light) */
+  --mute: color-mix(in srgb, var(--text-primary) 72%, var(--bg-primary)); }
+.burn-page .burn-main { max-width: 720px; margin: 0 auto; padding: 8px 16px 72px; overflow-wrap: anywhere; }
+.burn-page .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.burn-page .burn-mono { font-family: var(--font-mono); font-size: 0.92em; }
 
-
-/* ---- v2: bigger, clearer, friendlier ---- */
-.burn-page { --burn-body: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif; }
-.burn-page p, .burn-page li, .burn-page td, .burn-page th, .burn-page label, .burn-page summary { font-family: var(--burn-body); font-size: 18px; line-height: 1.6; }
-.burn-page p, .burn-page li, .burn-page td { color: var(--text-primary); }
-.burn-page .burn-sub { color: var(--text-secondary); font-size: 15px; }
-.burn-page .burn-hero { display: flex; align-items: center; gap: 20px; margin-bottom: var(--space-sm); }
-.burn-page .burn-face { flex: none; width: 6px; height: 6px; margin: 0 48px 48px 0; color: var(--text-primary); box-shadow:
-    6px 0px 0 0 currentColor,
-    12px 0px 0 0 currentColor,
-    18px 0px 0 0 currentColor,
-    24px 0px 0 0 currentColor,
+/* hero */
+.burn-page .burn-hero { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 34px 0 24px; }
+.burn-page .burn-face { width: 5px; height: 5px; margin: 0 40px 40px 0; color: var(--text-primary); box-shadow:
+    5px 0px 0 0 currentColor,
+    10px 0px 0 0 currentColor,
+    15px 0px 0 0 currentColor,
+    20px 0px 0 0 currentColor,
+    25px 0px 0 0 currentColor,
     30px 0px 0 0 currentColor,
-    36px 0px 0 0 currentColor,
-    42px 0px 0 0 currentColor,
-    0px 6px 0 0 currentColor,
-    48px 6px 0 0 currentColor,
-    0px 12px 0 0 currentColor,
-    12px 12px 0 0 currentColor,
-    36px 12px 0 0 currentColor,
-    48px 12px 0 0 currentColor,
-    0px 18px 0 0 currentColor,
-    48px 18px 0 0 currentColor,
-    0px 24px 0 0 currentColor,
-    48px 24px 0 0 currentColor,
+    35px 0px 0 0 currentColor,
+    0px 5px 0 0 currentColor,
+    40px 5px 0 0 currentColor,
+    0px 10px 0 0 currentColor,
+    10px 10px 0 0 currentColor,
+    30px 10px 0 0 currentColor,
+    40px 10px 0 0 currentColor,
+    0px 15px 0 0 currentColor,
+    40px 15px 0 0 currentColor,
+    0px 20px 0 0 currentColor,
+    40px 20px 0 0 currentColor,
+    0px 25px 0 0 currentColor,
+    10px 25px 0 0 currentColor,
+    30px 25px 0 0 currentColor,
+    40px 25px 0 0 currentColor,
     0px 30px 0 0 currentColor,
-    12px 30px 0 0 currentColor,
-    36px 30px 0 0 currentColor,
-    48px 30px 0 0 currentColor,
-    0px 36px 0 0 currentColor,
-    18px 36px 0 0 currentColor,
-    24px 36px 0 0 currentColor,
-    30px 36px 0 0 currentColor,
-    48px 36px 0 0 currentColor,
-    0px 42px 0 0 currentColor,
-    48px 42px 0 0 currentColor,
-    6px 48px 0 0 currentColor,
-    12px 48px 0 0 currentColor,
-    18px 48px 0 0 currentColor,
-    24px 48px 0 0 currentColor,
-    30px 48px 0 0 currentColor,
-    36px 48px 0 0 currentColor,
-    42px 48px 0 0 currentColor; }
-.burn-page .burn-tagline { font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.04em; color: var(--text-secondary); margin-top: 6px; }
-.burn-page .burn-lede { font-size: 20px; max-width: 56ch; }
-.burn-page .burn-step { margin-bottom: var(--space-md); border: 0; padding: 0; min-width: 0; }
-.burn-page .burn-label { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; padding: 0; }
-.burn-page .burn-num { display: inline-grid; place-items: center; width: 30px; height: 30px; background: var(--bg-dark); color: var(--text-inverse); font-size: 16px; }
-.burn-page .burn-safe { margin-top: 10px; padding: 10px 12px; border-left: 4px solid var(--text-primary); background: var(--bg-secondary); font-size: 17px; }
-.burn-page .burn-input { min-height: 56px; font-size: 18px; width: 100%; }
-.burn-page .burn-goal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.burn-page .burn-goal { display: flex; gap: 12px; align-items: flex-start; border: 2px solid var(--border-light); padding: 14px; cursor: pointer; background: var(--bg-primary); }
-.burn-page .burn-goal input { width: 24px; height: 24px; margin-top: 3px; flex: none; accent-color: var(--text-primary); }
-.burn-page .burn-goal-body { display: grid; gap: 4px; }
-.burn-page .burn-goal-body strong { font-size: 19px; }
-.burn-page .burn-goal-body span { font-size: 16px; color: var(--text-secondary); }
-.burn-page .burn-goal:has(input:checked) { border-color: var(--text-primary); background: var(--bg-secondary); box-shadow: var(--shadow-card); }
-.burn-page .burn-goal:has(input:focus-visible) { outline: 3px solid var(--zulo-accent); outline-offset: 2px; }
-.burn-page .burn-button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; min-height: 56px; font-size: 17px; }
-.burn-page .burn-button-big { width: 100%; font-size: 20px; min-height: 64px; }
+    15px 30px 0 0 currentColor,
+    20px 30px 0 0 currentColor,
+    25px 30px 0 0 currentColor,
+    40px 30px 0 0 currentColor,
+    0px 35px 0 0 currentColor,
+    40px 35px 0 0 currentColor,
+    5px 40px 0 0 currentColor,
+    10px 40px 0 0 currentColor,
+    15px 40px 0 0 currentColor,
+    20px 40px 0 0 currentColor,
+    25px 40px 0 0 currentColor,
+    30px 40px 0 0 currentColor,
+    35px 40px 0 0 currentColor; }
+.burn-page .burn-title { font-size: clamp(30px, 8vw, 52px); letter-spacing: 0.04em; margin: 4px 0 0; }
+.burn-page .burn-tagline { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--mute); margin: 0; }
+
+/* progress while the server thinks */
+.burn-page .burn-progress { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60; background: var(--accent); transform: scaleX(0); transform-origin: left; opacity: 0; }
+.burn-page .burn-progress[data-on="true"] { opacity: 1; animation: burn-load 1.4s var(--motion-ease) infinite; }
+@keyframes burn-load { 0% { transform: scaleX(0.05); } 60% { transform: scaleX(0.85); } 100% { transform: scaleX(1); opacity: 0.2; } }
+.burn-page .burn-results { transition: opacity 160ms var(--motion-ease); }
+.burn-page .burn-results[data-pending="true"] { opacity: 0.4; pointer-events: none; }
+
+/* boxes with a tag notched into the top border, like the LIVE / COMING SOON tags on the homepage */
+.burn-page .burn-box { position: relative; border: 1px solid var(--border); padding: 26px 18px 18px; margin: 0 0 var(--gap); background: var(--bg-primary); }
+.burn-page .burn-box[data-tag]::before {
+  content: attr(data-tag); position: absolute; top: -10px; left: 14px; padding: 3px 10px; background: var(--bg-primary);
+  border: 1px solid var(--border); font: 600 11px/1 var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-primary);
+}
+.burn-page .burn-answer { border-color: var(--accent); }
+.burn-page .burn-answer[data-tag]::before { border-color: var(--accent); }
+
+/* form */
+.burn-page .burn-inputrow { display: flex; gap: 0; }
+.burn-page .burn-input {
+  flex: 1 1 auto; min-width: 0; height: 56px; padding: 0 14px; font: 500 16px var(--font-mono); letter-spacing: 0.02em;
+  color: var(--text-primary); background: transparent; border: 1px solid var(--border); border-right: 0; border-radius: 0;
+}
+.burn-page .burn-go {
+  display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px; cursor: pointer; border-radius: 0;
+  font: 700 14px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase;
+  background: var(--text-primary); color: var(--bg-primary); border: 1px solid var(--text-primary);
+}
+.burn-page .burn-go:hover { background: var(--accent); border-color: var(--accent); color: #0a0a0a; }
+.burn-page .burn-safeline { margin: 10px 0 18px; font: 12px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.burn-page .burn-tabs { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; padding: 0; border: 1px solid var(--border); min-width: 0; }
+.burn-page .burn-tab { position: relative; display: grid; place-items: center; text-align: center; min-height: 52px; padding: 6px 4px; cursor: pointer;
+  font: 700 12px/1.2 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
+.burn-page .burn-tab + .burn-tab { border-left: 1px solid var(--border); }
+.burn-page .burn-tab input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.burn-page .burn-tab:has(input:checked) { background: var(--text-primary); color: var(--bg-primary); box-shadow: inset 0 -3px 0 var(--accent); }
+.burn-page .burn-tab:has(input:focus-visible), .burn-page .burn-input:focus-visible, .burn-page .burn-go:focus-visible, .burn-page a:focus-visible, .burn-page summary:focus-visible, .burn-page .burn-mini:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.burn-page .burn-hint { margin: 12px 0 0; font: 13px var(--font-mono); color: var(--mute); text-align: center; min-height: 1.4em; }
+
+/* small helpers */
+.burn-page .burn-link { margin: -4px 0 var(--gap); text-align: center; }
+.burn-page .burn-link summary { display: inline-block; cursor: pointer; font: 11px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); list-style: none; padding: 8px; }
+.burn-page .burn-link summary::-webkit-details-marker { display: none }
+.burn-page .burn-link summary span { opacity: 0.7 }
+.burn-page .burn-link[open] { border: 1px dashed var(--border-light); padding: 12px 16px 16px; }
+.burn-page .burn-link p { font: 400 15px/1.55 var(--body); color: var(--text-secondary); margin: 0 0 12px; text-align: left; }
+.burn-page .burn-example { text-align: center; font: 12px var(--font-mono); letter-spacing: 0.1em; color: var(--mute); margin: 0 0 var(--gap); }
+.burn-page .burn-cap { margin: 0; font: 12px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.burn-page .burn-small { font: 400 15px/1.55 var(--body); color: var(--text-secondary); margin: 8px 0 0; }
+.burn-page .burn-plain { margin: 10px 0 0; padding-left: 1.1em; display: grid; gap: 10px; font: 400 15px/1.55 var(--body); color: var(--text-secondary); }
+.burn-page .burn-plain strong { color: var(--text-primary); }
+
+/* answer */
+.burn-page .burn-headline { font: 600 clamp(20px, 4.4vw, 26px)/1.3 var(--body); color: var(--text-primary); margin: 0 0 14px; }
+.burn-page .burn-note { margin: 0 0 14px; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--bg-secondary); font: 400 15px/1.5 var(--body); color: var(--text-primary); }
+.burn-page .burn-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 8px 0 18px; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); }
+.burn-page .burn-stats > div { display: flex; flex-direction: column-reverse; align-items: center; gap: 4px; padding: 14px 4px; }
+.burn-page .burn-stats > div + div { border-left: 1px solid var(--border-light); }
+.burn-page .burn-stats dd { margin: 0; font: 300 clamp(24px, 5vw, 32px)/1 var(--font-mono); color: var(--text-primary); white-space: nowrap; }
+.burn-page .burn-stats dt { font: 11px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.burn-page .burn-more { margin-top: 12px; }
+.burn-page .burn-more summary, .burn-page .burn-fold > summary { cursor: pointer; list-style: none; }
+.burn-page .burn-more summary::-webkit-details-marker, .burn-page .burn-fold > summary::-webkit-details-marker { display: none }
+.burn-page .burn-more summary { font: 11px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); padding: 6px 0; }
+.burn-page .burn-more summary::after { content: " ▾"; }
+.burn-page .burn-more[open] summary::after { content: " ▴"; }
+
+/* sections */
+.burn-page .burn-sec { margin: 0 0 var(--gap); }
+.burn-page .burn-sec > .burn-cap { margin: 0 0 10px; }
+
+/* Normie tiles */
+.burn-page .burn-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; align-items: start; }
+.burn-page .burn-tile { border: 1px solid var(--border-light); background: var(--bg-primary); transition: border-color 140ms var(--motion-ease), transform 140ms var(--motion-ease); }
+.burn-page .burn-tile:hover { border-color: var(--text-primary); transform: translateY(-2px); }
+.burn-page .burn-tile[open] { border-color: var(--text-primary); }
+.burn-page .burn-tile > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "pill yield" "id id" "sub sub"; gap: 2px 8px; padding: 12px 14px; min-height: 44px; }
+.burn-page .burn-tile > summary::-webkit-details-marker { display: none }
+.burn-page .burn-pill { grid-area: pill; justify-self: start; padding: 3px 8px; font: 700 11px/1 var(--font-mono); letter-spacing: 0.14em; border: 1px solid var(--text-primary); color: var(--text-primary); }
+.burn-page .burn-pill[data-verdict="keep"] { background: var(--text-primary); color: var(--bg-primary); }
+.burn-page .burn-pill[data-verdict="burn"] { border-color: var(--accent); border-width: 2px; padding: 2px 7px; color: var(--text-primary); }
+.burn-page .burn-pill[data-verdict="neutral"] { border-style: dashed; color: var(--text-secondary); border-color: var(--text-secondary); }
+.burn-page .burn-id { grid-area: id; margin-top: 8px; font: 300 28px/1 var(--font-mono); color: var(--text-primary); }
+.burn-page .burn-sub { grid-area: sub; font: 13px var(--font-mono); letter-spacing: 0.06em; color: var(--mute); }
+.burn-page .burn-yield { grid-area: yield; align-self: center; font: 600 12px var(--font-mono); letter-spacing: 0.06em; color: var(--text-secondary); }
+.burn-page .burn-body { padding: 0 14px 14px; }
+.burn-page .burn-body p { margin: 0; font: 400 15px/1.5 var(--body); color: var(--text-primary); }
+.burn-page .burn-body .burn-small { margin-top: 6px; color: var(--text-secondary); }
+
+/* moves */
+.burn-page .burn-moves { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.burn-page .burn-move { border: 1px solid var(--border-light); }
+.burn-page .burn-move[open] { border-color: var(--text-primary); }
+.burn-page .burn-move > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto 1fr; grid-template-areas: "n t" "n c"; gap: 6px 14px; padding: 14px; min-height: 44px; }
+.burn-page .burn-move > summary::-webkit-details-marker { display: none }
+.burn-page .burn-num2 { grid-area: n; font: 300 28px/1 var(--font-mono); color: var(--mute); }
+.burn-page .burn-movetitle { grid-area: t; font: 500 16px/1.4 var(--body); color: var(--text-primary); }
+.burn-page .burn-chip { grid-area: c; justify-self: start; padding: 3px 8px; border: 1px solid var(--accent); font: 600 12px/1 var(--font-mono); letter-spacing: 0.06em; color: var(--text-primary); }
+.burn-page .burn-move .burn-body { padding: 0 14px 14px 58px; }
+
+/* fold boxes (like FUTURE PLANS on the homepage) */
+.burn-page .burn-fold { padding: 18px 16px 6px; }
+.burn-page .burn-fold > summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding-bottom: 12px; font: 600 13px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-primary); }
+.burn-page .burn-fold > summary::after { content: "▾"; font-size: 14px; transition: transform 160ms var(--motion-ease); }
+.burn-page .burn-fold[open] > summary::after { transform: rotate(180deg); }
+.burn-page .burn-fold > summary .burn-sub { margin-left: auto; font-weight: 400; letter-spacing: 0.06em; text-transform: none; }
+.burn-page .burn-fold > :not(summary) { margin-bottom: 14px; }
+.burn-page .burn-table { width: 100%; border-collapse: collapse; font: 13px var(--font-mono); }
+.burn-page .burn-table th, .burn-page .burn-table td { text-align: left; padding: 9px 6px; border-top: 1px solid var(--border-light); font-weight: 400; color: var(--text-primary); }
+.burn-page .burn-table thead th { border-top: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.burn-page .burn-table tbody th { font-weight: 700; }
+
+/* safety strip + share */
+.burn-page .burn-chips { list-style: none; margin: 8px 0 var(--gap); padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.burn-page .burn-chips li { padding: 6px 10px; border: 1px solid var(--border-light); font: 11px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); }
+.burn-page .burn-sharebar { display: grid; gap: 8px; margin-top: 8px; }
+.burn-page .burn-copy { display: flex; }
+.burn-page .burn-copy-input { flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 10px; font: 12px var(--font-mono); color: var(--text-secondary); background: transparent; border: 1px solid var(--border-light); border-right: 0; border-radius: 0; }
+.burn-page .burn-mini { height: 44px; padding: 0 16px; cursor: pointer; border-radius: 0; font: 700 12px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--text-primary); border: 1px solid var(--text-primary); }
+.burn-page .burn-mini:hover { background: var(--text-primary); color: var(--bg-primary); }
+
+/* the connect button inside the optional section */
+.burn-page .burn-button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border-radius: 0; cursor: pointer; text-decoration: none; font: 700 12px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; background: var(--text-primary); color: var(--bg-primary); border: 1px solid var(--text-primary); }
 .burn-page .burn-button-ghost { background: transparent; color: var(--text-primary); }
 .burn-page .burn-button:disabled { opacity: 0.5; cursor: wait; }
-.burn-page .burn-connect summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
-.burn-page .burn-connect[open] summary { margin-bottom: 10px; }
-.burn-page .burn-stamp { display: inline-block; vertical-align: middle; margin-left: 10px; padding: 3px 10px; border: 2px solid var(--text-primary); font-size: 13px; letter-spacing: 0.15em; transform: rotate(-2deg); }
-.burn-page .burn-headline { font-family: var(--burn-body); font-size: clamp(22px, 3.6vw, 30px); line-height: 1.3; }
-.burn-page .burn-notes { border-style: dashed; }
-.burn-page .burn-share .burn-input { font-size: 15px; }
-@media (max-width: 760px) {
-  .burn-page .burn-goal-grid { grid-template-columns: 1fr; }
-  .burn-page .burn-hero { flex-direction: column; align-items: flex-start; }
-}
+
+/* entrance: quiet, staggered, off for reduced motion */
 @media (prefers-reduced-motion: no-preference) {
-  .burn-page .burn-goal { transition: box-shadow 160ms var(--motion-ease), border-color 160ms var(--motion-ease); }
-  .burn-page .burn-button { transition: opacity 120ms var(--motion-ease), transform 120ms var(--motion-ease); }
-  .burn-page .burn-button:active { transform: translateY(1px); }
+  .burn-page .burn-results > * { animation: burn-in 380ms var(--motion-ease-out) both; }
+  .burn-page .burn-results > *:nth-child(2) { animation-delay: 40ms; }
+  .burn-page .burn-results > *:nth-child(3) { animation-delay: 80ms; }
+  .burn-page .burn-results > *:nth-child(4) { animation-delay: 120ms; }
+  .burn-page .burn-results > *:nth-child(5) { animation-delay: 160ms; }
+  .burn-page .burn-results > *:nth-child(n+6) { animation-delay: 200ms; }
+  .burn-page .burn-tab, .burn-page .burn-go { transition: background 140ms var(--motion-ease), color 140ms var(--motion-ease); }
 }
+@keyframes burn-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-.burn-page .burn-table th[scope="row"] .burn-sub { display: block; }
-.burn-page .burn-table th[scope="row"] { min-width: 96px; }
-.burn-page .burn-main { overflow-wrap: anywhere; }
-
-.burn-page .burn-connect summary { gap: 8px; flex-wrap: wrap; }
+@media (max-width: 520px) {
+  .burn-page .burn-stats { grid-template-columns: 1fr 1fr; }
+  .burn-page .burn-stats > div:nth-child(3) { border-left: 0; }
+  .burn-page .burn-stats > div:nth-child(n+3) { border-top: 1px solid var(--border-light); }
+  .burn-page .burn-main { padding-left: 12px; padding-right: 12px; }
+  .burn-page .burn-stats dd { font-size: 28px; }
+  .burn-page .burn-tab { font-size: 11px; letter-spacing: 0.06em; }
+  .burn-page .burn-go span:first-child { display: none; }
+  .burn-page .burn-go { padding: 0 18px; }
+  .burn-page .burn-tiles { grid-template-columns: 1fr 1fr; }
+  .burn-page .burn-move .burn-body { padding-left: 14px; }
+}
