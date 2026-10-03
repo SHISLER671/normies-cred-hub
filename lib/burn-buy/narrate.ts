@@ -2,6 +2,7 @@
 // Rule: every number shown here is copied from the result, never recomputed, so the page cannot disagree with the API.
 
 import type { Move, Verdict } from "./advise"
+import { BOOSTS, BRACKETS } from "./score"
 import type { BurnBuyResult } from "./service"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
@@ -95,18 +96,26 @@ export function describeMove(m: Move): MoveLine {
 }
 
 const ARENA_NOTES = [
-  "Arena is not open from this page, and this page cannot enter you into anything.",
+  "Arena is not open from this page, and this page cannot enter you into anything. The official Lab overview lists Arena as COMING SOON.",
   "Official design (@serc1n, Sep 18): autonomous agents on a 640×640 continent, no human players. Five camps: Human, Cat, Alien, Agent, Zombie. Type, Level and on-chain history matter.",
-  "Level = floor(AP ÷ 10) + 1. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
+  "Level: every 10 pixels is one level, and it is a permanent trait (official Pixel Market video). In numbers, Level = floor(AP ÷ 10) + 1. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
   "The combat rules have NOT been published. Nobody can honestly tell you how many Normies to keep or what Level wins. Anyone who says they can is guessing, and so would we.",
   "If an agent dies in a round it waits for the next round and respawns. Death is not a burn. A burn is permanent.",
   "Whether a Normie must be awakened to enter, and when entry opens, is not published here. Check @normiesART.",
 ]
 
 const ART_NOTES = [
-  "In the official editor, every #PIXEL is one pixel you can add or remove on a Normie you keep. Edits are written on-chain and stay.",
+  "Pixels on a Normie are its paint budget (official Pixel Market video). They set how many pixels of its face you may change. Painting never spends them, so you can repaint as often as you like.",
+  "Every edit is saved on-chain forever, with the full history of versions. Pixels can also buy a bigger canvas (up to 80 wide) or wipe the face blank.",
   "If you have already drawn on a Normie, burning it erases that art for good. Burn yield is paid on the ORIGINAL pixel count, not your edited art.",
   "Pixel counts of rare Normies are a style choice as much as a number. If one means something to you, keep it.",
+]
+
+const fmtX = (n: number) => `${n}×`
+const SHARE_NOTES = [
+  "Where the pool comes from (official): half of every Pixel Market fee (taken from the seller) and half of the royalties on Normie resales go to the holder pool. It is paid out in rounds and claimed on chain. Buyers pay the listed price and nothing extra.",
+  `Your share follows your score: (Normies × bracket + #PIXEL ÷ 5) × (1 + boost). Brackets: ${[...BRACKETS].reverse().map((b) => `${b.min}${b.min === 1 ? "" : " or more"} = ${fmtX(b.mult)}`).join(", ")}.`,
+  `Boost, by #PIXEL held (on Normies, in your wallet, or listed): ${[...BOOSTS].reverse().map((b) => `${b.min.toLocaleString("en-US")} or more = +${Math.round(b.boost * 100)}%`).join(", ")}.`,
 ]
 
 function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number | null): MoveLine {
@@ -117,11 +126,11 @@ function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number
       : `Level ${levelOf(keeperAp)} → ${levelOf(keeperAp + f.pays)}.`
     return { title: base, detail: `Adds ${f.pays} AP to it. ${lvl}` }
   }
-  return { title: base, detail: `Gives you ${f.pays} pixels of edit budget (${f.perEth} per ETH).` }
+  return { title: base, detail: `Adds ${f.pays} pixels to it, so you can repaint more of its face (${f.perEth} per ETH).` }
 }
 
 export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share"): PageModel {
-  const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : []
+  const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : SHARE_NOTES
   const base: PageModel = { state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], goal, goalNotes }
   if (!result) return base
 
@@ -186,7 +195,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
       if (verdict === "burn") reasons = [`burning adds ${t.yield.total} AP to a Normie you keep (10 AP = 1 Level)`]
     }
     if (goal === "art" && verdict === "burn") {
-      reasons = [`burning gives you ${t.yield.total} pixels of edit budget for a Normie you keep. If you have drawn on it, that art is lost`]
+      reasons = [`burning adds ${t.yield.total} pixels to a Normie you keep. If you have drawn on this one, that art is lost`]
     }
     return {
       tokenId: t.tokenId,
@@ -195,7 +204,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
       reasons,
       pays: t.yield.total > 0
         ? goal === "art"
-          ? `Burning would give ${t.yield.total} pixels of edit budget.`
+          ? `Burning would add ${t.yield.total} pixels to a Normie you keep.`
           : `Burning would pay ${t.yield.total} #PIXEL (${t.yield.fromPixels} from pixels${t.yield.transferred > 0 ? `, ${t.yield.transferred} AP carried over` : ""}).`
         : "Burning would pay nothing.",
       originalPixels: h?.originalPixels ?? null,
@@ -210,7 +219,13 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   const keepRows = rows.filter((r) => r.verdict === "keep")
   const keepN = keepRows.length
   const eitherN = rows.length - burnN - keepN
-  const spareYield = advice.tokens.filter((t) => burnRows.some((r) => r.tokenId === t.tokenId)).reduce((s, t) => s + t.yield.total, 0)
+  // Burning needs a Normie left to receive it: with nothing kept, at most held-1 can go. Count only what is possible.
+  const cap = keepN > 0 ? burnN : Math.max(0, advice.held - 1)
+  const burnYields = advice.tokens
+    .filter((t) => burnRows.some((r) => r.tokenId === t.tokenId))
+    .map((t) => t.yield.total)
+    .sort((a, b) => b - a)
+  const spareYield = burnYields.slice(0, cap).reduce((sum, y) => sum + y, 0)
   const lone = keepN === 1 ? holdings.get(keepRows[0].tokenId) : undefined
   const keeperAp = lone ? lone.actionPoints : null
 
@@ -230,7 +245,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     if (lone) lines.push(`Your Arena Normie is #${lone.tokenId}${lone.type ? ` (${lone.type})` : ""}: Level ${levelOf(lone.actionPoints)} with ${lone.actionPoints} AP.`)
     else if (keepN > 1) lines.push(`Your fighters: ${keepRows.map((r) => `#${r.tokenId}${r.type ? ` ${r.type}` : ""} (Level ${r.level})`).join(", ")}.`)
   } else {
-    lines.push("Every #PIXEL you receive is one pixel you can add or remove on a Normie you keep.")
+    lines.push("Pixels on a Normie are its paint budget: they set how many pixels of its face you can change. Painting never uses them up.")
   }
 
   let headline: string
@@ -247,13 +262,17 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
         ? "Keep it. It is your only Normie, so it is your only player."
         : burnN === 0
           ? "Arena plan: keep everything you hold. Nothing here is spare."
-          : `Arena plan: keep ${keepN} fighter${keepN === 1 ? "" : "s"}. ${burnN} spare Normie${burnN === 1 ? "" : "s"} could be burned for +${spareYield} AP, only if you want the Level.`
+          : keepN === 0
+            ? `Arena plan: choose at least 1 of your ${advice.held} Normies to keep as your fighter. Up to ${cap} of the others could be burned for up to +${spareYield} AP, only if you want the Level.`
+            : `Arena plan: keep ${keepN} fighter${keepN === 1 ? "" : "s"}. ${burnN} spare Normie${burnN === 1 ? "" : "s"} could be burned for +${spareYield} AP, only if you want the Level.`
     } else {
       headline = advice.held === 1
-        ? "Keep it. To get pixels to draw with, you burn another Normie into it, for example one you buy (see below)."
+        ? "Keep it. To raise how much of its face you can repaint, burn another Normie into it, for example one you buy (see below)."
         : burnN === 0
           ? "Art plan: keep what you hold. Nothing here is spare to burn."
-          : `Art plan: burning your ${burnN} spare Normie${burnN === 1 ? "" : "s"} gives ${spareYield} pixels to draw with on the ones you keep.`
+          : keepN === 0
+            ? `Art plan: choose at least 1 of your ${advice.held} Normies to keep and paint. Burning up to ${cap} of the others adds up to ${spareYield} pixels to it.`
+            : `Art plan: burning your ${burnN} spare Normie${burnN === 1 ? "" : "s"} adds ${spareYield} pixels to the ones you keep, so you can repaint more of their faces.`
     }
   }
 

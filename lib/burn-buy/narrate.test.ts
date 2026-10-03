@@ -186,21 +186,59 @@ describe("goals", () => {
     assert.match(notes, /Death is not a burn/)
   })
 
-  it("ART: spare Normies become pixels of edit budget, and the warning about lost art is there", () => {
+  it("ART: spare Normies add paint budget, painting never spends it, and the lost-art warning is there", () => {
     const m = buildPageModel(
       withAdvice({ held: 3, tokens: [tok(7, "keep", ["top 5%"]), tok(8, "burn", ["pays"], 20, 20), tok(9, "burn", ["pays"], 10, 10)], holdings: [hold(7, "Human"), hold(8, "Human"), hold(9, "Human")] }),
       "art",
     )
-    assert.match(m.headline, /^Art plan: burning your 2 spare Normies gives 30 pixels to draw with/)
-    assert.match(m.rows[1].reasons[0], /pixels of edit budget.*that art is lost/)
-    assert.match(m.goalNotes.join(" "), /erases that art for good/)
-    assert.match(m.moves[0].detail, /pixels of edit budget/)
+    assert.match(m.headline, /^Art plan: burning your 2 spare Normies adds 30 pixels to the ones you keep/)
+    assert.match(m.rows[1].reasons[0], /adds 20 pixels to a Normie you keep\. If you have drawn on this one, that art is lost/)
+    const notes = m.goalNotes.join(" ")
+    assert.match(notes, /paint budget/)
+    assert.match(notes, /Painting never spends them/)
+    assert.match(notes, /erases that art for good/)
+    assert.match(m.moves[0].detail, /Adds \d+ pixels to it, so you can repaint more of its face/)
+    assert.doesNotMatch(m.headline + notes, /pixels to draw with|edit budget/)
   })
 
-  it("SHARE has no goal notes and keeps the old best-move headline", () => {
+  it("ARENA with ALL burn candidates never says 'keep 0' and only counts what can actually be burned", () => {
+    const m = buildPageModel(
+      withAdvice({ held: 3, tokens: [tok(1, "burn", ["pays"], 20, 20), tok(2, "burn", ["pays"], 15, 15), tok(3, "burn", ["pays"], 10, 10)], holdings: [hold(1, "Human"), hold(2, "Human"), hold(3, "Human")] }),
+      "arena",
+    )
+    assert.match(m.headline, /^Arena plan: choose at least 1 of your 3 Normies to keep as your fighter\. Up to 2 of the others could be burned for up to \+35 AP/)
+    assert.doesNotMatch(m.headline, /keep 0/)
+  })
+
+  it("ART with ALL burn candidates counts only the best held-1 yields", () => {
+    const m = buildPageModel(
+      withAdvice({ held: 3, tokens: [tok(1, "burn", ["pays"], 20, 20), tok(2, "burn", ["pays"], 15, 15), tok(3, "burn", ["pays"], 10, 10)], holdings: [hold(1, "Human"), hold(2, "Human"), hold(3, "Human")] }),
+      "art",
+    )
+    assert.match(m.headline, /^Art plan: choose at least 1 of your 3 Normies to keep and paint\. Burning up to 2 of the others adds up to 35 pixels to it\./)
+  })
+
+  it("SHARE explains where the pool comes from and keeps the old best-move headline", () => {
     const m = buildPageModel(result({}), "share")
-    assert.equal(m.goalNotes.length, 0)
     assert.match(m.headline, /^Best move right now/)
+    const notes = m.goalNotes.join(" ")
+    assert.match(notes, /half of every Pixel Market fee/)
+    assert.match(notes, /half of the royalties on Normie resales/)
+    assert.match(notes, /paid out in rounds and claimed on chain/)
+  })
+
+  it("SHARE notes carry exactly the OFFICIAL figures (pinned from the official Pixel Market video, 2026-10-03)", () => {
+    const notes = buildPageModel(result({}), "share").goalNotes.join(" ")
+    for (const x of ["1 = 1×", "2 or more = 1.15×", "5 or more = 1.3×", "10 or more = 1.45×", "25 or more = 1.6×", "50 or more = 1.75×"]) assert.ok(notes.includes(x), x)
+    for (const x of ["15 or more = +15%", "100 or more = +35%", "500 or more = +60%", "1,500 or more = +100%"]) assert.ok(notes.includes(x), x)
+    assert.ok(notes.includes("(Normies × bracket + #PIXEL ÷ 5) × (1 + boost)"))
+  })
+
+  it("ARENA notes carry the official status and permanent Level", () => {
+    const notes = buildPageModel(result({}), "arena").goalNotes.join(" ")
+    assert.match(notes, /COMING SOON/)
+    assert.match(notes, /every 10 pixels is one level/)
+    assert.match(notes, /permanent trait/)
   })
 
   it("empty and delegate-only wallets answer the same in every goal", () => {
