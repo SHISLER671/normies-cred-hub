@@ -152,10 +152,18 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
       : []),
   ]
 
+  // Start the three independent lookups together (cold, they used to run one after another: about 7 s). They are awaited
+  // below in the ORIGINAL order, so which error wins when several fail is unchanged. The no-op catches only stop a
+  // rejected promise from being reported as unhandled before it is awaited; the real handling is below.
+  const snapshotP = deps.loadSnapshot()
+  const listingsP = deps.fetchListings()
+  const holderP = input.wallet ? deps.resolveHolder(input.wallet) : null
+  for (const p of [snapshotP, listingsP, holderP]) p?.catch(() => undefined)
+
   // The index snapshot is mandatory: without original pixels and the census nothing can be computed honestly.
   let snap: MarketSnapshot
   try {
-    snap = await deps.loadSnapshot()
+    snap = await snapshotP
     sources.index = { ok: true, note: snap.oldestIndexedAt ? `oldest row indexed ${snap.oldestIndexedAt}` : undefined }
   } catch (e) {
     throw new SourceError("index", `index unavailable: ${e instanceof Error ? e.message : e}`)
@@ -169,7 +177,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   let listings: Listing[] = []
   let market: BurnBuyResult["market"] = null
   try {
-    const raw = await deps.fetchListings()
+    const raw = await listingsP
     let skipped = 0
     for (const r of raw.items) {
       const px = snap.originalPixels.get(r.id)
@@ -204,7 +212,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   if (input.wallet) {
     let holder: { address: string; ens: string | null; tokenIds: number[] }
     try {
-      holder = await deps.resolveHolder(input.wallet)
+      holder = await (holderP as NonNullable<typeof holderP>)
       sources.holder = { ok: true }
     } catch (e) {
       if (e instanceof SourceError) throw e
