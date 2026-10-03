@@ -2,7 +2,7 @@
 // so every success and failure path can be tested with fakes. Rule: no silent fallbacks. If a source fails,
 // the response says so, per source, instead of quietly guessing.
 
-import { walletScore } from "./score"
+import { type Phase, walletScore } from "./score"
 import {
   adviseWallet,
   ARTICLE_WINDOW,
@@ -62,6 +62,8 @@ export interface Deps {
   loadSnapshot(): Promise<MarketSnapshot>
   /** Tokens this address is the Canvas delegate for (it can edit pixels but cannot burn). Optional. */
   findDelegations?(address: string): Promise<Array<{ tokenId: number; owner: string }>>
+  /** Which phase the market is in. Optional; missing means "promo" (today). Real deps read PIXEL_MARKET_PHASE. */
+  phase?(): Phase
   now(): Date
 }
 
@@ -73,7 +75,10 @@ export interface SourceStatus {
 
 export interface BurnBuyResult {
   asOf: string
-  promo: { ratePercent: number; basis: string; ends: string }
+  /** "promo" until Pixel Market launches; "launched" after the switch is flipped. */
+  phase: Phase
+  /** In the launched phase `ratePercent` is null: the rate is a roll inside a tier range, described in `basis`. */
+  promo: { ratePercent: number | null; basis: string; ends: string }
   wallet: null | {
     address: string
     ens: string | null
@@ -93,6 +98,12 @@ export interface BurnBuyResult {
   sources: Record<SourceName, SourceStatus>
   caveats: string[]
 }
+
+export const LAUNCHED_INFO = {
+  ratePercent: null,
+  basis: "a roll inside a range set by the burned Normie's original pixel count (0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%, per the Sep 23 article), plus the burned token's own AP",
+  ends: "The fixed 4% promo ended when Pixel Market launched",
+} as const
 
 export const PROMO_INFO = {
   ratePercent: 4,
@@ -114,10 +125,16 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     listings: { ok: true },
     index: { ok: true },
   }
+  const phase: Phase = deps.phase ? deps.phase() : "promo"
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
-    "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value.",
+    phase === "launched"
+      ? "Not financial advice. This tool does not read live #PIXEL prices yet, so moves are compared by score, not value."
+      : "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value.",
     "Yield uses each token's ORIGINAL pixel count (what the contract pays on), not its current edited art.",
+    ...(phase === "launched"
+      ? ["A burn is now a roll inside a range, so figures here are the middle of the range with the full range beside them. Real burns can land anywhere in it. The tiers come from the Sep 23 @normiesART article."]
+      : []),
   ]
 
   // The index snapshot is mandatory: without original pixels and the census nothing can be computed honestly.
@@ -128,7 +145,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   } catch (e) {
     throw new SourceError("index", `index unavailable: ${e instanceof Error ? e.message : e}`)
   }
-  const ctx = { livingSupply: snap.livingSupply, censusTotal: snap.censusTotal }
+  const ctx = { livingSupply: snap.livingSupply, censusTotal: snap.censusTotal, phase }
   if (snap.oldestIndexedAt) {
     caveats.push(`The census and original pixel counts come from an index whose oldest row is from ${snap.oldestIndexedAt.slice(0, 16).replace("T", " ")} UTC; ownership may have changed since. Your own tokens are read live.`)
   }
@@ -257,7 +274,8 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
 
   return {
     asOf: deps.now().toISOString(),
-    promo: { ...PROMO_INFO },
+    phase,
+    promo: phase === "launched" ? { ...LAUNCHED_INFO } : { ...PROMO_INFO },
     wallet,
     market,
     census: {

@@ -2,7 +2,7 @@
 // Rule: every number shown here is copied from the result, never recomputed, so the page cannot disagree with the API.
 
 import type { Move, Verdict } from "./advise"
-import { BOOSTS, BRACKETS } from "./score"
+import { BOOSTS, BRACKETS, type Phase } from "./score"
 import type { BurnBuyResult } from "./service"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
@@ -54,7 +54,9 @@ export interface PageModel {
   lines: string[]
   rows: TokenRow[]
   moves: MoveLine[]
-  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; url: string | null }>
+  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; url: string | null; /** Launched phase only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
+  /** Which phase the figures belong to ("launched" means rolled, so shown as about / ~ with a range). */
+  phase: Phase
   /** Where to go if this wallet is only a Canvas delegate. */
   delegateOf: Array<{ tokenId: number; owner: string }>
   /** Warnings that must stay visible (for example: you cannot burn them all). Also present in `lines`. */
@@ -81,20 +83,21 @@ export function safeUrl(u: string | undefined | null): string | null {
   }
 }
 
-export function describeMove(m: Move): MoveLine {
+export function describeMove(m: Move, phase: Phase = "promo"): MoveLine {
+  const roll = phase === "launched" ? " The burn itself is a roll, so this is a typical result." : ""
   const score = `Your score goes ${num(m.scoreBefore)} → ${num(m.scoreAfter)} (+${num(m.scoreGain)}). Your share of the pool: ${m.shareBeforePct}% → ${m.shareAfterPct}%.`
   const stat = `Score ${num(m.scoreBefore)} → ${num(m.scoreAfter)}`
   if (m.kind === "burn-own") {
     return {
       title: `Burn ${ids(m.tokenIds)} into the one(s) you keep`,
-      detail: `Permanent. You give up about ${eth(m.costEth)} of sale value. ${score}`,
+      detail: `Permanent. You give up about ${eth(m.costEth)} of sale value. ${score}${roll}`,
       stat,
     }
   }
   if (m.kind === "buy-and-burn") {
     return {
       title: `Buy ${ids(m.tokenIds)} for ${eth(m.costEth)}, then burn ${m.tokenIds.length > 1 ? "them" : "it"} into a Normie you hold`,
-      detail: `Its #PIXEL and any AP it carries move to you. ${score}`,
+      detail: `Its #PIXEL and any AP it carries move to you. ${score}${roll}`,
       stat,
     }
   }
@@ -108,7 +111,7 @@ export function describeMove(m: Move): MoveLine {
 const ARENA_NOTES = [
   "Arena is not open from this page, and this page cannot enter you into anything. The official Lab overview lists Arena as COMING SOON.",
   "Official design (@serc1n, Sep 18): autonomous agents on a 640×640 continent, no human players. Five camps: Human, Cat, Alien, Agent, Zombie. Type, Level and on-chain history matter.",
-  "Level: every 10 pixels is one level, and it is a permanent trait (official Pixel Market video). In numbers, Level = floor(AP ÷ 10) + 1. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
+  "Level: every 10 pixels is one level, and the official Pixel Market video calls it a permanent trait. (The Sep 23 article said withdrawing #PIXEL strips a level, so check before you move pixels off a Normie.) In numbers, Level = floor(AP ÷ 10) + 1. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
   "The combat rules have NOT been published. Nobody can honestly tell you how many Normies to keep or what Level wins. Anyone who says they can is guessing, and so would we.",
   "If an agent dies in a round it waits for the next round and respawns. Death is not a burn. A burn is permanent.",
   "Official trailer (\"They play. You watch.\"): each agent decides for itself, using a decision model. You do not steer it, so your choice is which Normies you own and keep.",
@@ -136,14 +139,17 @@ function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number
     const lvl = keeperAp === null
       ? `That is about +${num(f.pays / 10)} Levels (10 AP per Level).`
       : `Level ${levelOf(keeperAp)} → ${levelOf(keeperAp + f.pays)}.`
-    return { title: base, detail: `Adds ${f.pays} AP to it. ${lvl}`, stat: keeperAp === null ? `+${num(f.pays / 10)} Levels` : `Level ${levelOf(keeperAp)} → ${levelOf(keeperAp + f.pays)}` }
+    const about = f.range ? "about " : ""
+    const span = f.range ? ` (${f.range.min} to ${f.range.max}, it is a roll)` : ""
+    return { title: base, detail: `Adds ${about}${f.pays} AP to it${span}. ${lvl}`, stat: keeperAp === null ? `${f.range ? "~" : ""}+${num(f.pays / 10)} Levels` : `Level ${levelOf(keeperAp)} → ${f.range ? "~" : ""}${levelOf(keeperAp + f.pays)}` }
   }
-  return { title: base, detail: `Adds ${f.pays} pixels to it, so you can repaint more of its face (${f.perEth} per ETH).`, stat: `+${f.pays} px` }
+  return { title: base, detail: `Adds ${f.range ? "about " : ""}${f.pays} pixels to it${f.range ? ` (${f.range.min} to ${f.range.max}, it is a roll)` : ""}, so you can repaint more of its face (${f.perEth} per ETH).`, stat: `${f.range ? "~" : ""}+${f.pays} px` }
 }
 
 export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share"): PageModel {
   const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : SHARE_NOTES
-  const base: PageModel = { state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes }
+  const phase: Phase = result?.phase ?? "promo"
+  const base: PageModel = { phase, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes }
   if (!result) return base
 
   const fodder = (result.market?.bestPixelFodder ?? []).slice(0, 5).map((f) => ({
@@ -152,6 +158,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     pays: f.yieldTotal,
     perEth: f.yieldPerEth,
     url: safeUrl(f.url),
+    range: f.yieldMin !== undefined && f.yieldMax !== undefined ? { min: f.yieldMin, max: f.yieldMax } : null,
   }))
 
   const w = result.wallet
@@ -180,7 +187,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
         "A wallet with no Normies scores zero, whatever #PIXEL it has: your first Normie is the membership.",
         "Check the spelling, or paste the wallet that actually owns them (not a delegate or a different address).",
       ],
-      moves: goal === "share" ? advice.moves.slice(0, 3).map(describeMove) : [],
+      moves: goal === "share" ? advice.moves.slice(0, 3).map((m) => describeMove(m, phase)) : [],
       fodder,
     }
   }
@@ -204,21 +211,23 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
         const n = typeCount.get(type) ?? 1
         reasons = [`${type}: one of the five Arena camps. ${n === 1 ? `It is your only ${type}, so burning it removes your ${type} from the Arena.` : `You hold ${n} of them.`}`, ...reasons]
       }
-      if (verdict === "burn") reasons = [`burning adds ${t.yield.total} AP to a Normie you keep (10 AP = 1 Level)`]
+      if (verdict === "burn") reasons = [`burning adds ${t.yield.range ? "about " : ""}${t.yield.total} AP to a Normie you keep (10 AP = 1 Level)`]
     }
     if (goal === "art" && verdict === "burn") {
-      reasons = [`burning adds ${t.yield.total} pixels to a Normie you keep. If you have drawn on this one, that art is lost`]
+      reasons = [`burning adds ${t.yield.range ? "about " : ""}${t.yield.total} pixels to a Normie you keep. If you have drawn on this one, that art is lost`]
     }
     return {
       tokenId: t.tokenId,
       verdict,
       label: LABEL[verdict],
       reasons,
-      yieldText: t.yield.total > 0 ? `+${t.yield.total} ${goal === "art" ? "px" : goal === "arena" ? "AP" : "#PIXEL"}` : "+0",
+      yieldText: t.yield.total > 0 ? `+${t.yield.range ? "~" : ""}${t.yield.total} ${goal === "art" ? "px" : goal === "arena" ? "AP" : "#PIXEL"}` : "+0",
       pays: t.yield.total > 0
         ? goal === "art"
-          ? `Burning would add ${t.yield.total} pixels to a Normie you keep.`
-          : `Burning would pay ${t.yield.total} #PIXEL (${t.yield.fromPixels} from pixels${t.yield.transferred > 0 ? `, ${t.yield.transferred} AP carried over` : ""}).`
+          ? `Burning would add ${t.yield.range ? "about " : ""}${t.yield.total} pixels to a Normie you keep${t.yield.range ? ` (${t.yield.range.min + t.yield.transferred} to ${t.yield.range.max + t.yield.transferred})` : ""}.`
+          : t.yield.range
+            ? `Burning would pay about ${t.yield.total} #PIXEL (${t.yield.range.min + t.yield.transferred} to ${t.yield.range.max + t.yield.transferred}; it is a roll${t.yield.transferred > 0 ? `, includes ${t.yield.transferred} AP carried over` : ""}).`
+            : `Burning would pay ${t.yield.total} #PIXEL (${t.yield.fromPixels} from pixels${t.yield.transferred > 0 ? `, ${t.yield.transferred} AP carried over` : ""}).`
         : "Burning would pay nothing.",
       originalPixels: h?.originalPixels ?? null,
       actionPoints: h?.actionPoints ?? null,
@@ -268,8 +277,8 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   let moves: MoveLine[]
   if (goal === "share") {
     const best = advice.moves[0]
-    headline = best ? `Best move right now: ${describeMove(best).title}.` : "Nothing to do right now: no move improves your score."
-    moves = advice.moves.slice(0, 3).map(describeMove)
+    headline = best ? `Best move right now: ${describeMove(best, phase).title}.` : "Nothing to do right now: no move improves your score."
+    moves = advice.moves.slice(0, 3).map((m) => describeMove(m, phase))
   } else {
     const picks = fodder.slice(0, 3).map((f) => fodderLine(f, goal, keeperAp))
     moves = picks
@@ -292,5 +301,5 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     }
   }
 
-  return { state: "holds", headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes }
+  return { state: "holds", phase, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes }
 }

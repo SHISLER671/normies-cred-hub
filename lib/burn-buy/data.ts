@@ -6,6 +6,7 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getSupabase } from "@/lib/db/supabase"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
+import { currentPhase } from "./phase"
 import { walletScore } from "./score"
 import { SourceError, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
 
@@ -177,5 +178,6 @@ export const realDeps: Deps = {
   fetchListings: listingsCached,
   loadSnapshot: snapshotCached,
   findDelegations,
+  phase: currentPhase,
   now: () => new Date(),
 }

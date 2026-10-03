@@ -35,6 +35,25 @@ export const PIXEL_PER_POINT = 5
 /** Burn yield promo: fixed 4% of the burned Normie's ORIGINAL pixel count, until Pixel Market launches. */
 export const PROMO_RATE_PERCENT = 4
 
+/** "promo" = today (fixed 4%). "launched" = Pixel Market is open and burns roll inside a tier range. Flipped by one env var. */
+export type Phase = "promo" | "launched"
+
+/**
+ * After launch a burn rolls a random rate inside a range set by the burned Normie's ORIGINAL pixel count
+ * (@normiesART article "Pixel Market: The Currency of the Canvas", Sep 23, 2026). Realized average over the first
+ * 2,718 burns was 2.74%. These tiers come from that article and are not yet confirmed by a launch-day source.
+ */
+export const LAUNCH_TIERS: ReadonlyArray<{ maxPixels: number; minPct: number; maxPct: number }> = [
+  { maxPixels: 490, minPct: 1, maxPct: 4 },
+  { maxPixels: 890, minPct: 2, maxPct: 4 },
+  { maxPixels: Number.POSITIVE_INFINITY, minPct: 3, maxPct: 4 },
+]
+
+export function launchTier(originalPixels: number) {
+  const px = Math.max(0, Math.trunc(originalPixels))
+  return LAUNCH_TIERS.find((t) => px <= t.maxPixels) ?? LAUNCH_TIERS[LAUNCH_TIERS.length - 1]
+}
+
 export function bracketMultiplier(held: number): number {
   if (!Number.isFinite(held) || held < 1) return 0
   for (const b of BRACKETS) if (held >= b.min) return b.mult
@@ -71,9 +90,36 @@ export function shareIfAdded(score: number, censusScore: number): number {
  * Integer math on purpose: no float rounding at whole-number boundaries.
  * Verified against on-chain burn records (see tests).
  */
-export function promoBurnYield(originalPixels: number, burnedTokenAp: number) {
+export interface BurnYield {
+  fromPixels: number
+  transferred: number
+  total: number
+  /** Launched phase only: the pixel part can land anywhere in this range; `fromPixels` is the middle (a planning figure). */
+  range?: { min: number; max: number }
+}
+
+export function promoBurnYield(originalPixels: number, burnedTokenAp: number): BurnYield {
   const px = Math.max(0, Math.trunc(originalPixels))
   const transferred = Math.max(0, Math.trunc(burnedTokenAp))
   const fromPixels = Math.trunc((px * PROMO_RATE_PERCENT) / 100)
   return { fromPixels, transferred, total: fromPixels + transferred }
+}
+
+/**
+ * #PIXEL a burn awards after launch: a roll inside the tier range, plus the burned token's ENTIRE AP balance.
+ * `fromPixels` is the MIDDLE of the range (an assumption: an even roll), used only to rank and compare. The real
+ * result can be anywhere in `range`.
+ */
+export function launchedBurnYield(originalPixels: number, burnedTokenAp: number): BurnYield {
+  const px = Math.max(0, Math.trunc(originalPixels))
+  const transferred = Math.max(0, Math.trunc(burnedTokenAp))
+  const tier = launchTier(px)
+  const min = Math.trunc((px * tier.minPct) / 100)
+  const max = Math.trunc((px * tier.maxPct) / 100)
+  const fromPixels = Math.round((px * (tier.minPct + tier.maxPct)) / 200)
+  return { fromPixels, transferred, total: fromPixels + transferred, range: { min, max } }
+}
+
+export function burnYield(phase: Phase, originalPixels: number, burnedTokenAp: number): BurnYield {
+  return phase === "launched" ? launchedBurnYield(originalPixels, burnedTokenAp) : promoBurnYield(originalPixels, burnedTokenAp)
 }

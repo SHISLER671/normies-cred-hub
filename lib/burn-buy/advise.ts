@@ -8,7 +8,8 @@
 import {
   BOOST_CLIFFS,
   BRACKET_CLIFFS,
-  promoBurnYield,
+  burnYield,
+  type Phase,
   shareIfAdded,
   walletScore,
 } from "./score"
@@ -53,10 +54,12 @@ export interface TokenAdvice {
   verdict: Verdict
   reasons: string[]
   /** What burning it would award to the receiver (pixel yield + its own AP). */
-  yield: { fromPixels: number; transferred: number; total: number }
+  yield: { fromPixels: number; transferred: number; total: number; range?: { min: number; max: number } }
 }
 
 export interface Context {
+  /** "promo" (default) or "launched"; decides how a burn's yield is computed. */
+  phase?: Phase
   livingSupply: number
   /** Sum of every wallet's score, INCLUDING this wallet's current score if it holds Normies. */
   censusTotal: number
@@ -81,12 +84,14 @@ export function keepReasons(
   return out
 }
 
-export function adviseToken(t: HeldToken, ctx: Pick<Context, "livingSupply">): TokenAdvice {
-  const y = promoBurnYield(t.originalPixels, t.actionPoints)
+export function adviseToken(t: HeldToken, ctx: Pick<Context, "livingSupply" | "phase">): TokenAdvice {
+  const y = burnYield(ctx.phase ?? "promo", t.originalPixels, t.actionPoints)
   const keep = keepReasons(t, ctx)
   if (keep.length) return { tokenId: t.tokenId, verdict: "keep", reasons: keep, yield: y }
   if (y.total < 1) return { tokenId: t.tokenId, verdict: "neutral", reasons: ["burning would award nothing"], yield: y }
-  const reasons = [`burning pays ${y.fromPixels} #PIXEL (4% of ${t.originalPixels} original px)`]
+  const reasons = y.range
+    ? [`burning pays about ${y.fromPixels} #PIXEL (${y.range.min} to ${y.range.max}: it is a roll, based on ${t.originalPixels} original px)`]
+    : [`burning pays ${y.fromPixels} #PIXEL (4% of ${t.originalPixels} original px)`]
   if (y.transferred > 0) reasons.push(`plus its ${y.transferred} AP move to the receiver`)
   return { tokenId: t.tokenId, verdict: "burn", reasons, yield: y }
 }
@@ -200,7 +205,7 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
   // 2) Buy a listing and burn it into your own token: held unchanged, you gain its pixel yield AND its AP.
   const fodder = listings
     .filter((l) => l.priceEth > 0 && keepReasons(l, ctx).length === 0)
-    .map((l) => ({ l, y: promoBurnYield(l.originalPixels, l.actionPoints).total }))
+    .map((l) => ({ l, y: burnYield(ctx.phase ?? "promo", l.originalPixels, l.actionPoints).total }))
     .filter((x) => x.y > 0)
     .sort((a, b) => b.y / b.l.priceEth - a.y / a.l.priceEth)
     .slice(0, 12)
@@ -260,6 +265,9 @@ export interface FodderPick {
   yieldTotal: number
   fromPixels: number
   yieldPerEth: number
+  /** Launched phase: the whole range this listing's burn could pay (pixel roll + the AP it carries). */
+  yieldMin?: number
+  yieldMax?: number
   url?: string
 }
 
@@ -270,13 +278,13 @@ export interface FodderPick {
  */
 export function rankFodder(
   listings: Listing[],
-  ctx: Pick<Context, "livingSupply">,
+  ctx: Pick<Context, "livingSupply" | "phase">,
   opts: { withAp: boolean; limit?: number },
 ): FodderPick[] {
   return listings
     .filter((l) => l.priceEth > 0 && (l.actionPoints > 0) === opts.withAp && keepReasons(l, ctx).length === 0)
     .map((l) => {
-      const y = promoBurnYield(l.originalPixels, l.actionPoints)
+      const y = burnYield(ctx.phase ?? "promo", l.originalPixels, l.actionPoints)
       return {
         tokenId: l.tokenId,
         priceEth: l.priceEth,
@@ -285,6 +293,7 @@ export function rankFodder(
         yieldTotal: y.total,
         fromPixels: y.fromPixels,
         yieldPerEth: round(y.total / l.priceEth, 1),
+        ...(y.range ? { yieldMin: y.range.min + y.transferred, yieldMax: y.range.max + y.transferred } : {}),
         url: l.url,
       }
     })
