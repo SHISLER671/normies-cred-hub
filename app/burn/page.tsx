@@ -169,10 +169,12 @@ function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyR
                       {[r.type, model.goal === "arena" && r.level !== null ? `Level ${r.level}` : r.originalPixels !== null ? `${r.originalPixels} px` : null].filter(Boolean).join(" · ")}
                     </span>
                     <span className="burn-yield">{r.yieldText}</span>
+                    {r.jev?.verdict === "double-check" && <span className="burn-jev">Jev: check</span>}
                   </summary>
                   <div className="burn-body">
                     <p>{r.reasons.join("; ")}.</p>
                     <p className="burn-small">{r.pays}</p>
+                    {r.jev && <p className="burn-small burn-jevtext"><strong>Second opinion.</strong> {r.jev.text}</p>}
                   </div>
                 </details>
               </li>
@@ -252,6 +254,9 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
         <summary><span>Read before you burn anything</span></summary>
         <ul className="burn-plain">
           <li><strong>A burn is permanent.</strong> It cannot be undone. Double-check on normies.art before you burn.</li>
+          {result.wallet?.jev && (
+            <li><strong>Second opinions from Jev.</strong> For burn candidates only, this page asks Jev, an AI model from TypeSafe, whether you would plausibly regret the burn. It can only add caution: it never turns a keep into a burn. We send public facts about each Normie (its traits, pixel counts and rarity) and never your wallet address. Jev can be wrong.</li>
+          )}
           <li><strong>This page is look-only.</strong> It reads public blockchain data. It cannot sign, spend, approve or move anything. We will never ask for your seed phrase. If any site or person asks you to sign something to &quot;verify&quot; or &quot;claim&quot;, walk away.</li>
           <li><strong>This is not financial advice.</strong> Nothing here is a promise of profit. The revenue-share pool changes, and past payouts do not predict future ones.</li>
           {result.marketState === "live" ? (

@@ -6,6 +6,7 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getSupabase } from "@/lib/db/supabase"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
+import { fetchJevOpinions } from "./jev"
 import { currentMarket, currentYieldMode } from "./switches"
 import { walletScore } from "./score"
 import { SourceError, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
@@ -49,6 +50,8 @@ function toToken(it: RawItem): RarityToken {
     actionPoints: num(attr(it, "Action Points")) ?? 0,
     awakenedAgent: Boolean(it.awake),
     fairValueEth: num(it.fairValue),
+    traits: Object.fromEntries((it.attributes ?? []).map((a) => [a.trait_type, a.value])),
+    customized: attr(it, "Customized") === "Yes",
   }
 }
 
@@ -178,6 +181,13 @@ export const realDeps: Deps = {
   fetchListings: listingsCached,
   loadSnapshot: snapshotCached,
   findDelegations,
+  // Jev stays OFF (returns null) until a TYPESAFE_API_KEY exists; the service only calls this once PIXEL_MARKET=live.
+  // JEV_DISABLE=1 is a kill switch.
+  jevOpinions: async (tokens) => {
+    const apiKey = process.env.TYPESAFE_API_KEY?.trim()
+    if (!apiKey || process.env.JEV_DISABLE === "1") return null
+    return fetchJevOpinions(tokens, { apiKey })
+  },
   yieldMode: currentYieldMode,
   marketState: currentMarket,
   now: () => new Date(),

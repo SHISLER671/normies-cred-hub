@@ -1,6 +1,6 @@
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
-const RETRY_STATUSES = new Set([429, 500, 502, 503, 504])
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504, 529])
 const MAX_RETRY_WAIT_MS = 2_000
 
 type Options = {

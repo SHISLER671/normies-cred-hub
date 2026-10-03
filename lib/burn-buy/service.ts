@@ -13,8 +13,9 @@ import {
   type Listing,
   type WalletAdvice,
 } from "./advise"
+import { JEV_MAX_TOKENS, type JevOpinion, type JevToken } from "./jev"
 
-export type SourceName = "holder" | "rarity" | "listings" | "index"
+export type SourceName = "holder" | "rarity" | "listings" | "index" | "jev"
 
 export class SourceError extends Error {
   constructor(
@@ -34,6 +35,10 @@ export interface RarityToken {
   actionPoints: number
   awakenedAgent: boolean
   fairValueEth: number | null
+  /** All the Normie's traits as the rarity API lists them (Type, Gender, Age, Hair Style, ...). Optional. */
+  traits?: Record<string, string | number>
+  /** True when the owner has edited the art (burning it would erase that art). Optional. */
+  customized?: boolean
 }
 
 export interface RawListing extends RarityToken {
@@ -62,6 +67,8 @@ export interface Deps {
   loadSnapshot(): Promise<MarketSnapshot>
   /** Tokens this address is the Canvas delegate for (it can edit pixels but cannot burn). Optional. */
   findDelegations?(address: string): Promise<Array<{ tokenId: number; owner: string }>>
+  /** Jev's second opinion on burn candidates. Optional. Returns null when Jev is off (no key / kill switch). Only called when the market is live. */
+  jevOpinions?(tokens: JevToken[]): Promise<{ opinions: Record<number, JevOpinion> } | null>
   /** How a burn pays. Optional; missing means "promo" (today). Real deps read BURN_YIELD_MODE. */
   yieldMode?(): YieldMode
   /** Whether Pixel Market is open. Optional; missing means "pending" (today). Real deps read PIXEL_MARKET. */
@@ -90,6 +97,8 @@ export interface BurnBuyResult {
     delegateOf: Array<{ tokenId: number; owner: string }>
     advice: WalletAdvice & { holdings: Array<{ tokenId: number; originalPixels: number; actionPoints: number; rank: number | null; type: string | null }> }
     historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: number; source: string }
+    /** Jev's second opinion per burn candidate (only when the market is live and Jev is on). It never changes a verdict. */
+    jev?: Record<number, JevOpinion>
   }
   market: null | {
     floorEth: number | null
@@ -128,6 +137,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     rarity: { ok: true, note: "not requested" },
     listings: { ok: true },
     index: { ok: true },
+    jev: { ok: true, note: "off" },
   }
   const yieldMode: YieldMode = deps.yieldMode ? deps.yieldMode() : "promo"
   const marketState: MarketState = deps.marketState ? deps.marketState() : "pending"
@@ -239,6 +249,35 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     const indexScore = snap.walletScores.get(holder.address.toLowerCase()) ?? 0
     const walletCtx = { ...ctx, censusTotal: Math.max(0, snap.censusTotal - indexScore) + liveScore }
     const advice = adviseWallet(held, listings.filter((l) => !own.has(l.tokenId)), walletCtx)
+    // Jev: a cautious second opinion on burn candidates only, only once the market is live and a key exists. Fail-safe:
+    // any problem means no opinion and an honest note; the verdicts above are never touched.
+    let jev: Record<number, JevOpinion> | undefined
+    if (marketState === "live" && deps.jevOpinions) {
+      const rarityById = new Map(tokens.map((t) => [t.id, t]))
+      const candidates: JevToken[] = []
+      for (const a of advice.tokens) {
+        if (a.verdict !== "burn" || candidates.length >= JEV_MAX_TOKENS) continue
+        const h = held.find((x) => x.tokenId === a.tokenId)
+        const r = rarityById.get(a.tokenId)
+        if (!h || !r) continue
+        candidates.push({
+          tokenId: h.tokenId, traits: r.traits ?? {}, originalPixels: h.originalPixels, pixelSupply: h.pixelSupply,
+          actionPoints: h.actionPoints, level: Math.floor(h.actionPoints / 10) + 1, rank: h.rank, awakenedAgent: h.awakenedAgent,
+          customized: r.customized ?? false,
+        })
+      }
+      if (candidates.length > 0) {
+        try {
+          const res = await deps.jevOpinions(candidates)
+          if (res) {
+            jev = res.opinions
+            sources.jev = { ok: true, note: `second opinion for ${Object.keys(res.opinions).length} of ${candidates.length} burn candidates` }
+          }
+        } catch (e) {
+          sources.jev = { ok: false, error: `Jev second opinion unavailable: ${e instanceof Error ? e.message : e}` }
+        }
+      }
+    }
     let delegateOf: Array<{ tokenId: number; owner: string }> = []
     if (held.length === 0) {
       if (deps.findDelegations) {
@@ -274,6 +313,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
         payoutEthIfSharePaidLikeArticleWindow: historicalPayoutEth(advice.sharePct),
         source: ARTICLE_WINDOW.source,
       },
+      ...(jev ? { jev } : {}),
     }
   }
 

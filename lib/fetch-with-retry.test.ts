@@ -57,4 +57,10 @@ describe("fetchWithRetry", () => {
     const t = run([res(429), res(429), new Error("down")])
     await assert.rejects(t.p, /down/)
   })
+
+  it("retries a 529 (service overloaded), as the TypeSafe docs advise", async () => {
+    const t = run([res(529), res(200)])
+    assert.equal((await t.p).status, 200)
+    assert.equal(t.calls(), 2)
+  })
 })
