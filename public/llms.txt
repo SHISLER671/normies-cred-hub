@@ -29,7 +29,19 @@ OpenSea:
 https://opensea.io/tools/erc8257/ethereum/53
 https://opensea.io/tools/erc8257/ethereum/215
 
+Burn or keep (read-only advice, no signing):
+Human page: /burn?wallet=<0x address or name.eth>&goal=share|arena|art   (plain HTML, works without JavaScript)
+JSON: GET /api/burn-buy?wallet=<0x address or name.eth>
+Without wallet you get the market only (cheapest #PIXEL per ETH) and the census.
+Spec: /openapi/burn-buy.json
+Per Normie held: keep, burn candidate or either, with the reason; ranked moves by exact score change.
+yieldMode is "promo" (fixed 4%, ends Monday Oct 5 per Serc in the community chat) or "normal" (a roll inside a range; figures are the middle of the range with the range beside them). marketState is "pending" or "live".
+Look-only: reads public chain data. It never asks for keys, seeds or signatures. Not financial advice. A burn is permanent.
+Independent community tool, not made or endorsed by the Normies team.
+Limits: 12 requests per minute per IP; wallets holding more than 1000 Normies are refused.
+Errors are JSON: {error, code, retryable}. Unknown /api and /.well-known paths also answer JSON 404.
+
 Human UI:
-/  /ask  /paths  /dashboard
+/  /ask  /paths  /burn  /dashboard
 
 Do not ask for keys, seeds, signatures.
