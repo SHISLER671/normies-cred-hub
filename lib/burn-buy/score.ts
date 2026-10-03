@@ -35,11 +35,17 @@ export const PIXEL_PER_POINT = 5
 /** Burn yield promo: fixed 4% of the burned Normie's ORIGINAL pixel count, until Pixel Market launches. */
 export const PROMO_RATE_PERCENT = 4
 
-/** "promo" = today (fixed 4%). "launched" = Pixel Market is open and burns roll inside a tier range. Flipped by one env var. */
-export type Phase = "promo" | "launched"
+/**
+ * How a burn pays. "promo" = the fixed 4% (ends Monday Oct 5 per Serc). "normal" = a roll inside a tier range.
+ * Flipped by BURN_YIELD_MODE. Independent of whether the marketplace is open (see MarketState).
+ */
+export type YieldMode = "promo" | "normal"
+
+/** Whether Pixel Market (the #PIXEL exchange) is open. Flipped by PIXEL_MARKET. Independent of the burn yield. */
+export type MarketState = "pending" | "live"
 
 /**
- * After launch a burn rolls a random rate inside a range set by the burned Normie's ORIGINAL pixel count
+ * In normal mode a burn rolls a random rate inside a range set by the burned Normie's ORIGINAL pixel count
  * (@normiesART article "Pixel Market: The Currency of the Canvas", Sep 23, 2026). Realized average over the first
  * 2,718 burns was 2.74%. These tiers come from that article and are not yet confirmed by a launch-day source.
  */
@@ -94,7 +100,7 @@ export interface BurnYield {
   fromPixels: number
   transferred: number
   total: number
-  /** Launched phase only: the pixel part can land anywhere in this range; `fromPixels` is the middle (a planning figure). */
+  /** Normal mode only: the pixel part can land anywhere in this range; `fromPixels` is the middle (a planning figure). */
   range?: { min: number; max: number }
 }
 
@@ -106,7 +112,7 @@ export function promoBurnYield(originalPixels: number, burnedTokenAp: number): B
 }
 
 /**
- * #PIXEL a burn awards after launch: a roll inside the tier range, plus the burned token's ENTIRE AP balance.
+ * #PIXEL a burn awards in normal mode: a roll inside the tier range, plus the burned token's ENTIRE AP balance.
  * `fromPixels` is the MIDDLE of the range (an assumption: an even roll), used only to rank and compare. The real
  * result can be anywhere in `range`.
  */
@@ -120,6 +126,6 @@ export function launchedBurnYield(originalPixels: number, burnedTokenAp: number)
   return { fromPixels, transferred, total: fromPixels + transferred, range: { min, max } }
 }
 
-export function burnYield(phase: Phase, originalPixels: number, burnedTokenAp: number): BurnYield {
-  return phase === "launched" ? launchedBurnYield(originalPixels, burnedTokenAp) : promoBurnYield(originalPixels, burnedTokenAp)
+export function burnYield(mode: YieldMode, originalPixels: number, burnedTokenAp: number): BurnYield {
+  return mode === "normal" ? launchedBurnYield(originalPixels, burnedTokenAp) : promoBurnYield(originalPixels, burnedTokenAp)
 }

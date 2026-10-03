@@ -20,7 +20,8 @@ function result(over: Partial<NonNullable<BurnBuyResult["wallet"]>> | null, extr
   }
   return {
     asOf: "2026-10-03T00:00:00Z",
-    phase: "promo",
+    yieldMode: "promo",
+    marketState: "pending",
     promo: { ratePercent: 4, basis: "", ends: "" },
     wallet: over === null ? null : { address: "0xabc", ens: null, delegateOf: [], advice, historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: 0, source: "" }, ...over },
     market: { floorEth: 0.286, listedCount: 3, bestPixelFodder: [{ tokenId: 1, priceEth: 0.29, actionPoints: 0, originalPixels: 700, yieldTotal: 28, fromPixels: 28, yieldPerEth: 96.55, url: "https://example.com/1" }, { tokenId: 2, priceEth: 0.3, actionPoints: 0, originalPixels: 650, yieldTotal: 26, fromPixels: 26, yieldPerEth: 86.6, url: "javascript:alert(1)" }], bestApCarriers: [], skippedListings: 0 },

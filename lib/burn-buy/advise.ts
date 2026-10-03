@@ -9,7 +9,7 @@ import {
   BOOST_CLIFFS,
   BRACKET_CLIFFS,
   burnYield,
-  type Phase,
+  type YieldMode,
   shareIfAdded,
   walletScore,
 } from "./score"
@@ -58,8 +58,8 @@ export interface TokenAdvice {
 }
 
 export interface Context {
-  /** "promo" (default) or "launched"; decides how a burn's yield is computed. */
-  phase?: Phase
+  /** "promo" (default) or "normal"; decides how a burn's yield is computed. */
+  yieldMode?: YieldMode
   livingSupply: number
   /** Sum of every wallet's score, INCLUDING this wallet's current score if it holds Normies. */
   censusTotal: number
@@ -84,8 +84,8 @@ export function keepReasons(
   return out
 }
 
-export function adviseToken(t: HeldToken, ctx: Pick<Context, "livingSupply" | "phase">): TokenAdvice {
-  const y = burnYield(ctx.phase ?? "promo", t.originalPixels, t.actionPoints)
+export function adviseToken(t: HeldToken, ctx: Pick<Context, "livingSupply" | "yieldMode">): TokenAdvice {
+  const y = burnYield(ctx.yieldMode ?? "promo", t.originalPixels, t.actionPoints)
   const keep = keepReasons(t, ctx)
   if (keep.length) return { tokenId: t.tokenId, verdict: "keep", reasons: keep, yield: y }
   if (y.total < 1) return { tokenId: t.tokenId, verdict: "neutral", reasons: ["burning would award nothing"], yield: y }
@@ -205,7 +205,7 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
   // 2) Buy a listing and burn it into your own token: held unchanged, you gain its pixel yield AND its AP.
   const fodder = listings
     .filter((l) => l.priceEth > 0 && keepReasons(l, ctx).length === 0)
-    .map((l) => ({ l, y: burnYield(ctx.phase ?? "promo", l.originalPixels, l.actionPoints).total }))
+    .map((l) => ({ l, y: burnYield(ctx.yieldMode ?? "promo", l.originalPixels, l.actionPoints).total }))
     .filter((x) => x.y > 0)
     .sort((a, b) => b.y / b.l.priceEth - a.y / a.l.priceEth)
     .slice(0, 12)
@@ -265,7 +265,7 @@ export interface FodderPick {
   yieldTotal: number
   fromPixels: number
   yieldPerEth: number
-  /** Launched phase: the whole range this listing's burn could pay (pixel roll + the AP it carries). */
+  /** Normal mode: the whole range this listing's burn could pay (pixel roll + the AP it carries). */
   yieldMin?: number
   yieldMax?: number
   url?: string
@@ -278,13 +278,13 @@ export interface FodderPick {
  */
 export function rankFodder(
   listings: Listing[],
-  ctx: Pick<Context, "livingSupply" | "phase">,
+  ctx: Pick<Context, "livingSupply" | "yieldMode">,
   opts: { withAp: boolean; limit?: number },
 ): FodderPick[] {
   return listings
     .filter((l) => l.priceEth > 0 && (l.actionPoints > 0) === opts.withAp && keepReasons(l, ctx).length === 0)
     .map((l) => {
-      const y = burnYield(ctx.phase ?? "promo", l.originalPixels, l.actionPoints)
+      const y = burnYield(ctx.yieldMode ?? "promo", l.originalPixels, l.actionPoints)
       return {
         tokenId: l.tokenId,
         priceEth: l.priceEth,

@@ -2,7 +2,7 @@
 // Rule: every number shown here is copied from the result, never recomputed, so the page cannot disagree with the API.
 
 import type { Move, Verdict } from "./advise"
-import { BOOSTS, BRACKETS, type Phase } from "./score"
+import { BOOSTS, BRACKETS, type MarketState, type YieldMode } from "./score"
 import type { BurnBuyResult } from "./service"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
@@ -54,9 +54,11 @@ export interface PageModel {
   lines: string[]
   rows: TokenRow[]
   moves: MoveLine[]
-  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; url: string | null; /** Launched phase only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
-  /** Which phase the figures belong to ("launched" means rolled, so shown as about / ~ with a range). */
-  phase: Phase
+  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; url: string | null; /** Normal burn mode only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
+  /** How a burn pays ("normal" means a roll, so figures are shown as about / ~ with a range). */
+  yieldMode: YieldMode
+  /** Whether Pixel Market is open. */
+  marketState: MarketState
   /** Where to go if this wallet is only a Canvas delegate. */
   delegateOf: Array<{ tokenId: number; owner: string }>
   /** Warnings that must stay visible (for example: you cannot burn them all). Also present in `lines`. */
@@ -83,8 +85,8 @@ export function safeUrl(u: string | undefined | null): string | null {
   }
 }
 
-export function describeMove(m: Move, phase: Phase = "promo"): MoveLine {
-  const roll = phase === "launched" ? " The burn itself is a roll, so this is a typical result." : ""
+export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine {
+  const roll = yieldMode === "normal" ? " The burn itself is a roll, so this is a typical result." : ""
   const score = `Your score goes ${num(m.scoreBefore)} → ${num(m.scoreAfter)} (+${num(m.scoreGain)}). Your share of the pool: ${m.shareBeforePct}% → ${m.shareAfterPct}%.`
   const stat = `Score ${num(m.scoreBefore)} → ${num(m.scoreAfter)}`
   if (m.kind === "burn-own") {
@@ -148,8 +150,9 @@ function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number
 
 export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share"): PageModel {
   const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : SHARE_NOTES
-  const phase: Phase = result?.phase ?? "promo"
-  const base: PageModel = { phase, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes }
+  const yieldMode: YieldMode = result?.yieldMode ?? "promo"
+  const marketState: MarketState = result?.marketState ?? "pending"
+  const base: PageModel = { yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes }
   if (!result) return base
 
   const fodder = (result.market?.bestPixelFodder ?? []).slice(0, 5).map((f) => ({
@@ -187,7 +190,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
         "A wallet with no Normies scores zero, whatever #PIXEL it has: your first Normie is the membership.",
         "Check the spelling, or paste the wallet that actually owns them (not a delegate or a different address).",
       ],
-      moves: goal === "share" ? advice.moves.slice(0, 3).map((m) => describeMove(m, phase)) : [],
+      moves: goal === "share" ? advice.moves.slice(0, 3).map((m) => describeMove(m, yieldMode)) : [],
       fodder,
     }
   }
@@ -277,8 +280,8 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   let moves: MoveLine[]
   if (goal === "share") {
     const best = advice.moves[0]
-    headline = best ? `Best move right now: ${describeMove(best, phase).title}.` : "Nothing to do right now: no move improves your score."
-    moves = advice.moves.slice(0, 3).map((m) => describeMove(m, phase))
+    headline = best ? `Best move right now: ${describeMove(best, yieldMode).title}.` : "Nothing to do right now: no move improves your score."
+    moves = advice.moves.slice(0, 3).map((m) => describeMove(m, yieldMode))
   } else {
     const picks = fodder.slice(0, 3).map((f) => fodderLine(f, goal, keeperAp))
     moves = picks
@@ -301,5 +304,5 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     }
   }
 
-  return { state: "holds", phase, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes }
+  return { state: "holds", yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes }
 }
