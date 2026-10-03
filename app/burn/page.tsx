@@ -157,7 +157,7 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
 }
 
 function GoalNotes({ model }: { model: PageModel }) {
-  const title = model.goal === "arena" ? "About Arena: what is known, and what is not" : "About burning for art"
+  const title = model.goal === "arena" ? "About Arena: what is known, and what is not" : model.goal === "art" ? "About painting and burning for art" : "How the revenue share works"
   return (
     <section className="burn-card burn-notes" aria-labelledby="goal-h">
       <h2 id="goal-h" className="burn-h2">{title}</h2>
@@ -224,7 +224,7 @@ function Answer({ model, result, wallet }: { model: PageModel; result: BurnBuyRe
 
       {model.moves.length > 0 && (
         <section className="burn-card" aria-labelledby="moves-h">
-          <h2 id="moves-h" className="burn-h2">{model.goal === "share" ? "Best moves, ranked by score gained per ETH" : model.goal === "arena" ? "If you want more Level on a Normie you keep" : "If you want more pixels to draw with"}</h2>
+          <h2 id="moves-h" className="burn-h2">{model.goal === "share" ? "Best moves, ranked by score gained per ETH" : model.goal === "arena" ? "If you want more Level on a Normie you keep" : "If you want a bigger paint budget"}</h2>
           <ol className="burn-list">
             {model.moves.map((m, i) => (
               <li key={i}><strong>{m.title}.</strong> <span>{m.detail}</span></li>
@@ -265,7 +265,9 @@ function Facts({ result }: { result: BurnBuyResult }) {
       <ul className="burn-list">
         <li><strong>A burn is permanent.</strong> It cannot be undone. Double-check on normies.art before you burn.</li>
         <li><strong>This page is look-only.</strong> It reads public blockchain data. It cannot sign, spend, approve or move anything. We will never ask for your seed phrase. If any site or person asks you to sign something to &quot;verify&quot; or &quot;claim&quot;, walk away.</li>
-        <li><strong>This is not financial advice.</strong> Nothing here is a promise of profit. The revenue-share pool changes, and past payouts do not predict future ones. #PIXEL has no market price yet, so moves are ranked by score, not by value.</li>
+        <li><strong>This is not financial advice.</strong> Nothing here is a promise of profit. The revenue-share pool changes, and past payouts do not predict future ones.</li>
+        <li><strong>#PIXEL has no market price yet.</strong> The prices in the official Pixel Market demo (for example 0.016 ETH per #PIXEL) are labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them. Moves here are ranked by score, not by value.</li>
+        <li><strong>How a burn works</strong> (official video): 1) Commit: the Normies you chose are burned and gone for good. 2) Wait about a minute while the chain produces the randomness for your roll. 3) Reveal: your pixels arrive. Bigger faces earn more.</li>
         <li>
           <strong>The 4% burn rate is a promo.</strong> It is planned to end when Pixel Market launches, planned for October 5, audits permitting. That date is not guaranteed. Check @normiesART before you act.
         </li>

@@ -7,7 +7,7 @@
 // so callers must not treat the promo end date as fixed.
 
 /** Bracket multiplier applies to the WHOLE stack, by how many Normies a wallet holds. */
-const BRACKETS: ReadonlyArray<{ min: number; mult: number }> = [
+export const BRACKETS: ReadonlyArray<{ min: number; mult: number }> = [
   { min: 50, mult: 1.75 },
   { min: 25, mult: 1.6 },
   { min: 10, mult: 1.45 },
@@ -17,7 +17,7 @@ const BRACKETS: ReadonlyArray<{ min: number; mult: number }> = [
 ]
 
 /** Boost cliffs by #PIXEL held (whole score jumps at each line). */
-const BOOSTS: ReadonlyArray<{ min: number; boost: number }> = [
+export const BOOSTS: ReadonlyArray<{ min: number; boost: number }> = [
   { min: 1500, boost: 1.0 },
   { min: 500, boost: 0.6 },
   { min: 100, boost: 0.35 },
