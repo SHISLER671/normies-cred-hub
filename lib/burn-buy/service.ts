@@ -112,7 +112,7 @@ export const NORMAL_INFO = {
 export const PROMO_INFO = {
   ratePercent: 4,
   basis: "4% of the burned Normie's original (base) pixel count, plus the burned token's own AP",
-  ends: "Monday, October 5, per Serc in the community chat (not independently verified); burns then return to the normal 1-4% range",
+  ends: "Monday, October 5, per Serc in the community chat (not independently verified, so not guaranteed); burns then return to the normal 1-4% range",
 } as const
 
 /** Largest holder today has 432. Above this we refuse rather than show a wrong (truncated) score. */
