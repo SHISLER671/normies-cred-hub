@@ -1,7 +1,8 @@
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
-import { fetchIndexRows, INDEX_CHUNK, INDEX_TOKEN_SPAN, loadListings, snapshotFromRows, type IndexRow } from "./data"
+import { fetchIndexRows, fetchSyncStamps, INDEX_CHUNK, INDEX_TOKEN_SPAN, loadListings, snapshotFromRows, type IndexRow } from "./data"
+import { isStale } from "./service"
 import { buildBurnBuy, SourceError, type Deps, type MarketSnapshot } from "./service"
 
 const row = (token_id: number, over: Partial<IndexRow> = {}): IndexRow => ({ token_id, owner: "0xA", action_points: 0, on_pixels: 500, indexed_at: "2026-10-04T00:00:00Z", ...over })
@@ -163,5 +164,32 @@ describe("buildBurnBuy overlaps its independent lookups without changing behavio
       await new Promise((r) => setTimeout(r, 30))
     } finally { process.off("unhandledRejection", on) }
     assert.equal(seen.length, 0)
+  })
+})
+
+describe("freshness stamps: the honest as-of", () => {
+  const rows: IndexRow[] = [row(1), row(2)]
+  it("uses the older of the two refresh stamps once both jobs have run", () => {
+    const s = snapshotFromRows(rows, { census: "2026-10-05T03:00:00Z", owners: "2026-10-05T03:30:00Z" })
+    assert.equal(s.oldestIndexedAt, "2026-10-05T03:00:00Z")
+  })
+  it("falls back to the oldest row when a job has not run yet or stamps are missing", () => {
+    const old = snapshotFromRows(rows).oldestIndexedAt
+    assert.equal(snapshotFromRows(rows, { census: "2026-10-05T03:00:00Z", owners: null }).oldestIndexedAt, old)
+    assert.equal(snapshotFromRows(rows, { census: null, owners: null }).oldestIndexedAt, old)
+  })
+  it("fetchSyncStamps reads both jobs, treats the 1970 placeholder as no stamp, and never throws", async () => {
+    const make = (result: unknown) => ({ from: () => ({ select: async () => result }) }) as unknown as Parameters<typeof fetchSyncStamps>[0]
+    assert.deepEqual(await fetchSyncStamps(make({ data: [{ job: "census", synced_at: "2026-10-05T03:00:00Z" }, { job: "owners", synced_at: "1970-01-01T00:00:00Z" }], error: null })), { census: "2026-10-05T03:00:00Z", owners: null })
+    assert.deepEqual(await fetchSyncStamps(make({ data: null, error: { message: "x" } })), { census: null, owners: null })
+    const boom = { from: () => { throw new Error("down") } } as unknown as Parameters<typeof fetchSyncStamps>[0]
+    assert.deepEqual(await fetchSyncStamps(boom), { census: null, owners: null })
+  })
+})
+
+describe("isStale", () => {
+  it("flips after 36 hours", () => {
+    assert.equal(isStale("2026-10-05T00:00:00Z", "2026-10-06T11:59:00Z"), false)
+    assert.equal(isStale("2026-10-05T00:00:00Z", "2026-10-06T12:01:00Z"), true)
   })
 })

@@ -173,7 +173,8 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   }
   const ctx = { livingSupply: snap.livingSupply, censusTotal: snap.censusTotal, yieldMode }
   if (snap.oldestIndexedAt) {
-    caveats.push(`The census and original pixel counts come from an index whose oldest row is from ${snap.oldestIndexedAt.slice(0, 16).replace("T", " ")} UTC; ownership may have changed since. Your own tokens are read live.`)
+    caveats.push(`The census and original pixel counts come from an index last refreshed ${snap.oldestIndexedAt.slice(0, 16).replace("T", " ")} UTC; ownership may have changed since. Your own tokens are read live.`)
+    if (isStale(snap.oldestIndexedAt, deps.now().toISOString())) caveats.push(`That index is more than ${STALE_HOURS} hours old, so the pool share and "everyone else" figures are approximate until it refreshes.`)
   }
 
   // Market listings: optional. If it fails we say so and still answer the wallet question.
@@ -347,3 +348,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     caveats,
   }
 }
+
+/** The index is refreshed daily by scheduled jobs; older than this means a job has been failing and the census is approximate. */
+export const STALE_HOURS = 36
+export const isStale = (refreshedIso: string, nowIso: string) => Date.parse(nowIso) - Date.parse(refreshedIso) > STALE_HOURS * 3_600_000
