@@ -573,7 +573,7 @@
               "string",
               "null"
              ],
-             "description": "Census figures come from an index that can lag; this is its oldest row. Holdings of the wallet asked about are read live."
+             "description": "Census figures come from an index that is refreshed daily by scheduled jobs; this is when it was last refreshed (the older of the census and owners refreshes), or the oldest row's time if the jobs have not run yet. More than 36 hours old means a job has been failing and the figures are approximate. Holdings of the wallet asked about are read live."
             }
            }
           },

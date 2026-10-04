@@ -157,8 +157,33 @@ export async function fetchIndexRows(db: Pick<SupabaseClient, "from">): Promise<
   return chunks.flat()
 }
 
+/** When each scheduled refresh last SUCCEEDED (public.census_sync). Null for a job that has not run yet. */
+export interface SyncStamps { census: string | null; owners: string | null }
+
+/** Reads the freshness stamps. Never throws: if they cannot be read the caller falls back to the oldest row's time. */
+export async function fetchSyncStamps(db: Pick<SupabaseClient, "from">): Promise<SyncStamps> {
+  const none: SyncStamps = { census: null, owners: null }
+  try {
+    const { data, error } = await db.from("census_sync").select("job,synced_at")
+    if (error || !data) return none
+    const at = (job: string) => {
+      const v = (data as Array<{ job: string; synced_at: string }>).find((r) => r.job === job)?.synced_at ?? null
+      return v && v >= "2020-01-01" ? v : null // the placeholder row of a job that never succeeded reads as "no stamp"
+    }
+    return { census: at("census"), owners: at("owners") }
+  } catch {
+    return none
+  }
+}
+
+/** The honest "as of": the OLDER of the two refresh stamps once both jobs have run, otherwise the oldest row's time. */
+export function freshnessOf(stamps: SyncStamps | undefined, oldestRow: string | null): string | null {
+  if (stamps?.census && stamps?.owners) return stamps.census < stamps.owners ? stamps.census : stamps.owners
+  return oldestRow
+}
+
 /** Pure: turns index rows into the snapshot the advice needs. */
-export function snapshotFromRows(rows: IndexRow[]): MarketSnapshot {
+export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps): MarketSnapshot {
   const originalPixels = new Map<number, number>()
   const pixelSupply = new Map<number, number>()
   const wallets = new Map<string, { n: number; ap: number }>()
@@ -183,14 +208,15 @@ export function snapshotFromRows(rows: IndexRow[]): MarketSnapshot {
     walletScores.set(owner.toLowerCase(), sc)
     censusTotal += sc
   }
-  return { livingSupply: originalPixels.size, wallets: wallets.size, censusTotal, originalPixels, pixelSupply, oldestIndexedAt: oldest, walletScores }
+  return { livingSupply: originalPixels.size, wallets: wallets.size, censusTotal, originalPixels, pixelSupply, oldestIndexedAt: freshnessOf(stamps, oldest), walletScores }
 }
 
 /** Every living token's original pixels, plus the census. Reads the public, read-only normie_index. */
 const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
   const db = getSupabase()
   if (!db) throw new Error("database is not configured")
-  return snapshotFromRows(await fetchIndexRows(db))
+  const [rows, stamps] = await Promise.all([fetchIndexRows(db), fetchSyncStamps(db)])
+  return snapshotFromRows(rows, stamps)
 })
 
 /** Tokens for which `address` is the Canvas delegate, from the index. Only ever called with a validated 0x address. */
