@@ -53,9 +53,14 @@ export function getRateLimiter(bucket: string, limit: number, windowSec: number)
 
 /** Best-effort client identifier from proxy headers, falling back to a constant. */
 export function getClientId(req: NextRequest): string {
-  const fwd = req.headers.get("x-forwarded-for")
+  return clientIdFromHeaders(req.headers)
+}
+
+/** Same as getClientId, for server components that only have `headers()` (no request object). */
+export function clientIdFromHeaders(h: Pick<Headers, "get">): string {
+  const fwd = h.get("x-forwarded-for")
   if (fwd) return fwd.split(",")[0]!.trim()
-  return req.headers.get("x-real-ip") || "anonymous"
+  return h.get("x-real-ip") || "anonymous"
 }
 
 /**
@@ -82,12 +87,31 @@ export async function checkRateLimitById(
   const limiter = getRateLimiter(bucket, limit, windowSec)
   if (!limiter) return checkMemoryRateLimit(id, bucket, limit, windowSec)
 
-  const { success, reset } = await limiter.limit(id)
-  if (success) return { ok: true }
+  // Fail OPEN on a limiter error (Upstash auth, DNS, 5xx, timeout). A limiter outage must never take the page down:
+  // we fall back to the in-process limit for this instance instead of throwing a 500.
+  let result: { success: boolean; reset: number }
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    result = await Promise.race([
+      limiter.limit(id),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("rate limiter timed out")), LIMITER_TIMEOUT_MS)
+      }),
+    ])
+  } catch (err) {
+    console.warn(`[ratelimit] ${bucket}: limiter unavailable, using in-process fallback`, err instanceof Error ? err.message : err)
+    return checkMemoryRateLimit(id, bucket, limit, windowSec)
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+  if (result.success) return { ok: true }
 
-  const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000))
+  const retryAfter = Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))
   return { ok: false, retryAfter }
 }
+
+/** How long we wait for Upstash before giving up on it for this request. */
+const LIMITER_TIMEOUT_MS = 1_500
 
 // In-process fallback when Upstash isn't configured (dev / edge cases).
 const memoryBuckets = new Map<string, number[]>()

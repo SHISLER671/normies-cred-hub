@@ -70,10 +70,10 @@ export interface Deps {
   findDelegations?(address: string): Promise<Array<DelegatedToken>>
   /** Jev's second opinion on burn candidates. Optional. Returns null when Jev is off (no key / kill switch). Only called when the market is live. */
   jevOpinions?(tokens: JevToken[]): Promise<{ opinions: Record<number, JevOpinion> } | null>
-  /** How a burn pays. Optional; missing means "promo" (today). Real deps read BURN_YIELD_MODE. */
-  yieldMode?(): YieldMode
+  /** How a burn pays. Optional; missing means "promo" (today). Real deps read BURN_YIELD_MODE. `now` is the request's one clock reading. */
+  yieldMode?(now?: Date): YieldMode
   /** True when the site owner pinned the yield mode (BURN_YIELD_MODE) instead of letting the clock decide. Optional; missing means false. */
-  yieldPinned?(): boolean
+  yieldPinned?(now?: Date): boolean
   /** Whether Pixel Market is open. Optional; missing means "pending" (today). Real deps read PIXEL_MARKET. */
   marketState?(): MarketState
   now(): Date
@@ -118,7 +118,7 @@ export interface BurnBuyResult {
 export const NORMAL_INFO = {
   ratePercent: null,
   basis: "a roll inside a range set by the burned Normie's original pixel count (0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%, per the Sep 23 article), plus the burned token's own AP",
-  ends: "The fixed 4% promo has ended; burns are back to the normal rolls",
+  ends: "The fixed 4% promo has ended, or closes by 18:00 UTC at the latest; this page uses the normal rolls from 16:00 UTC",
 } as const
 
 export const PROMO_INFO = {
@@ -130,11 +130,21 @@ export const PROMO_INFO = {
 /** Largest holder today has 432. Above this we refuse rather than show a wrong (truncated) score. */
 const MAX_TOKENS = 1000
 
+/**
+ * The page and the API have 20 s in total (maxDuration). Jev is optional, so it is only asked when there is clearly
+ * time left; otherwise the answer goes out without a second opinion and says so.
+ */
+export const JEV_START_BUDGET_MS = 10_000
+
 function fail(source: SourceName, e: unknown): SourceStatus {
   return { ok: false, error: e instanceof Error ? e.message : String(e) }
 }
 
 export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Promise<BurnBuyResult> {
+  // ONE clock reading per answer. Yield mode, the promo window, staleness and asOf all use it, so a request that
+  // spans 16:00:00 UTC can never come back half promo, half normal.
+  const now = deps.now()
+  const startedAt = Date.now() // real elapsed time, for the Jev budget (deps.now may be a fixed test clock)
   const sources: BurnBuyResult["sources"] = {
     holder: { ok: true, note: "not requested" },
     rarity: { ok: true, note: "not requested" },
@@ -142,7 +152,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     index: { ok: true },
     jev: { ok: true, note: "off" },
   }
-  const yieldMode: YieldMode = deps.yieldMode ? deps.yieldMode() : "promo"
+  const yieldMode: YieldMode = deps.yieldMode ? deps.yieldMode(now) : "promo"
   const marketState: MarketState = deps.marketState ? deps.marketState() : "pending"
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
@@ -171,10 +181,10 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   } catch (e) {
     throw new SourceError("index", `index unavailable: ${e instanceof Error ? e.message : e}`)
   }
-  const ctx = { livingSupply: snap.livingSupply, censusTotal: snap.censusTotal, yieldMode }
+  const ctx = { livingSupply: snap.livingSupply, censusTotal: snap.censusTotal, yieldMode, marketState }
   if (snap.oldestIndexedAt) {
     caveats.push(`The census and original pixel counts come from an index last refreshed ${snap.oldestIndexedAt.slice(0, 16).replace("T", " ")} UTC; ownership may have changed since. Your own tokens are read live.`)
-    if (isStale(snap.oldestIndexedAt, deps.now().toISOString())) caveats.push(`That index is more than ${STALE_HOURS} hours old, so the pool share and "everyone else" figures are approximate until it refreshes.`)
+    if (isStale(snap.oldestIndexedAt, now.toISOString())) caveats.push(`That index is more than ${STALE_HOURS} hours old, so the pool share and "everyone else" figures are approximate until it refreshes.`)
   }
 
   // Market listings: optional. If it fails we say so and still answer the wallet question.
@@ -206,7 +216,12 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
       bestApCarriers: rankFodder(listings, ctx, { withAp: true, limit: 10 }),
       skippedListings: skipped,
     }
-    if (skipped > 0) sources.listings = { ok: true, note: `${skipped} listings skipped: not in the index yet` }
+    if (raw.items.length > 0 && listings.length === 0) {
+      // Every listing was skipped: the moves and the fodder table would silently vanish. Say so instead.
+      sources.listings = { ok: false, error: `all ${skipped} listings were skipped: none are in the index yet` }
+    } else if (skipped > 0) {
+      sources.listings = { ok: true, note: `${skipped} listings skipped: not in the index yet` }
+    }
   } catch (e) {
     sources.listings = fail("listings", e)
     listings = []
@@ -246,7 +261,9 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
       sources.rarity = { ok: true, note: "wallet holds no Normies" }
     }
 
-    const floor = market?.floorEth ?? 0
+    // No fair value and no floor means the sale value is UNKNOWN (null), never 0: a 0 made "burn your own" look free
+    // and pushed it to the top of the moves whenever the listings source was down.
+    const floor = market?.floorEth ?? null
     const held: HeldToken[] = []
     for (const t of tokens) {
       const px = snap.originalPixels.get(t.id)
@@ -287,7 +304,9 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
           customized: r.customized ?? false,
         })
       }
-      if (candidates.length > 0) {
+      if (candidates.length > 0 && Date.now() - startedAt > JEV_START_BUDGET_MS) {
+        sources.jev = { ok: false, error: "Jev second opinion skipped: the other lookups were slow, so there was no time left to ask" }
+      } else if (candidates.length > 0) {
         try {
           const res = await deps.jevOpinions(candidates)
           if (res) {
@@ -358,10 +377,10 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   }
 
   return {
-    asOf: deps.now().toISOString(),
+    asOf: now.toISOString(),
     yieldMode,
     marketState,
-    promo: { ...(yieldMode === "normal" ? NORMAL_INFO : PROMO_INFO), window: promoWindow(deps.now(), deps.yieldPinned ? deps.yieldPinned() : false) },
+    promo: { ...(yieldMode === "normal" ? NORMAL_INFO : PROMO_INFO), window: promoWindow(now, deps.yieldPinned ? deps.yieldPinned(now) : false) },
     wallet,
     market,
     census: {

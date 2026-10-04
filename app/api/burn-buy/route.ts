@@ -38,7 +38,8 @@ export async function GET(req: NextRequest) {
     const result = await buildBurnBuy({ wallet: raw || undefined }, realDeps)
     return NextResponse.json(result, {
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+        // Short on purpose: around the 16:00 UTC promo cutoff a long stale window kept serving 4% figures for ~90 s.
+        "Cache-Control": "public, s-maxage=15, stale-while-revalidate=15",
         // Points API clients at the machine-readable description of this endpoint.
         Link: '</openapi/burn-buy.json>; rel="service-desc"; type="application/json"',
       },

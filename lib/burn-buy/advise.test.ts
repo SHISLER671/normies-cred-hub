@@ -122,9 +122,28 @@ describe("adviseWallet: buying fodder", () => {
     close(m!.scoreAfter, 9.43)
     close(m!.costEth, 0.3, 0.0001)
   })
-  it("moves are ranked best score-per-ETH first", () => {
-    const g = w.moves.map((m) => m.gainPerEth ?? Infinity)
+  it("moves are ranked best score-per-ETH first; unpriced moves come last", () => {
+    const g = w.moves.map((m) => m.gainPerEth ?? -Infinity)
     assert.deepEqual(g, [...g].sort((a, b) => b - a))
+  })
+})
+
+describe("unknown sale value is never 'free' (bug fix 2026-10-05)", () => {
+  // Two burnable Normies with NO fair value and NO floor (the listings source was down), plus one priced listing.
+  const w = adviseWallet(
+    [tok({ tokenId: 1, forgoneValueEth: null }), tok({ tokenId: 2, forgoneValueEth: null }), anchor(3)],
+    [listing({ tokenId: 10, priceEth: 0.3, originalPixels: 900 })],
+    ctx,
+  )
+  it("an own burn with no price data is marked costKnown=false, with no per-ETH figure", () => {
+    const own = w.moves.filter((m) => m.kind === "burn-own")
+    assert.ok(own.length > 0)
+    assert.ok(own.every((m) => m.costKnown === false && m.gainPerEth === null && m.costEth === 0))
+  })
+  it("a priced move is ranked above any unpriced one", () => {
+    const firstUnpriced = w.moves.findIndex((m) => m.gainPerEth === null)
+    const lastPriced = w.moves.map((m) => m.gainPerEth !== null).lastIndexOf(true)
+    if (firstUnpriced !== -1 && lastPriced !== -1) assert.ok(lastPriced < firstUnpriced)
   })
 })
 

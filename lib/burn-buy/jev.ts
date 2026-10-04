@@ -26,7 +26,12 @@ export const jevEndpoint = () => {
 export const JEV_MODEL = "jev-latest"
 /** One request, at most this many Normies: keeps cost, latency and request size small. */
 export const JEV_MAX_TOKENS = 8
-export const JEV_TIMEOUT_MS = 8_000
+/**
+ * One try, 4 s. Jev is optional and the page has 20 s in total: 8 s x 2 tries plus a retry wait (about 18 s) could
+ * outlast the page after slow holder and token lookups. A missed second opinion costs nothing; a timed-out page costs the answer.
+ */
+export const JEV_TIMEOUT_MS = 4_000
+export const JEV_ATTEMPTS = 1
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000
 
 /**
@@ -162,7 +167,7 @@ export async function fetchJevOpinions(
       jevEndpoint(),
       { method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, body: JSON.stringify(buildJevRequest(missing)) },
       JEV_TIMEOUT_MS,
-      { attempts: 2 },
+      { attempts: JEV_ATTEMPTS },
     )
   } catch (e) {
     throw new JevError("network", `Jev could not be reached: ${e instanceof Error ? e.message : e}`)

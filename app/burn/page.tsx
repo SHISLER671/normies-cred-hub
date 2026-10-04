@@ -11,7 +11,7 @@ import { BurnForm } from "@/components/burn-form"
 import { CopyLink } from "@/components/burn-copy"
 import { buildPageModel, GOALS, MAX_ROWS, parseGoal, type Goal, type PageModel } from "@/lib/burn-buy/narrate"
 import { buildBurnBuy, isStale, SourceError, STALE_HOURS, type BurnBuyResult } from "@/lib/burn-buy/service"
-import { checkRateLimitById } from "@/lib/ratelimit"
+import { checkRateLimitById, clientIdFromHeaders } from "@/lib/ratelimit"
 import { burnJsonLd, jsonLdScript } from "@/lib/burn-buy/jsonld"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
@@ -44,14 +44,20 @@ type Outcome =
   | { kind: "ok"; result: BurnBuyResult; model: PageModel }
   | { kind: "error"; message: string }
 
-async function answer(wallet: string, goal: Goal): Promise<Outcome> {
+/**
+ * 20 lookups a minute per IP. Many people on Guam (and other island and carrier networks) share one public IP, so 12 was
+ * tight for a group chat all clicking the same link. The example wallet is not counted: its data is cached and shared.
+ */
+const PAGE_LIMIT_PER_MIN = 20
+
+async function answer(wallet: string, goal: Goal, isExample: boolean): Promise<Outcome> {
   if (!(ADDRESS.test(wallet) || ENS.test(wallet))) {
     return { kind: "error", message: "That is not a wallet. Paste a 0x address (42 characters) or a name ending in .eth." }
   }
-  const h = await headers()
-  const ip = (h.get("x-forwarded-for") ?? "unknown").split(",")[0].trim()
-  const rl = await checkRateLimitById(ip, "burn-page", 12, 60)
-  if (!rl.ok) return { kind: "error", message: `Too many lookups. Try again in ${rl.retryAfter} seconds.` }
+  if (!isExample) {
+    const rl = await checkRateLimitById(clientIdFromHeaders(await headers()), "burn-page", PAGE_LIMIT_PER_MIN, 60)
+    if (!rl.ok) return { kind: "error", message: `Too many lookups from your network. Try again in ${rl.retryAfter} seconds.` }
+  }
   try {
     const result = await buildBurnBuy({ wallet }, realDeps)
     return { kind: "ok", result, model: buildPageModel(result, goal) }
@@ -78,7 +84,7 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
   const goal = parseGoal(first(sp.goal))
   const isExample = !raw
   const wallet = raw || EXAMPLE_WALLET
-  const outcome = await answer(wallet, goal)
+  const outcome = await answer(wallet, goal, isExample)
   const shareUrl = `${DEFAULT_SITE_ORIGIN}/burn?wallet=${encodeURIComponent(wallet)}&goal=${goal}`
 
   return (
@@ -100,14 +106,20 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
           <p className="burn-tagline">Look twice. Burn once.</p>
         </header>
 
-        <BurnForm key={`${wallet}|${goal}`} wallet={wallet} goal={goal}>
+        {/* The box starts EMPTY (with a placeholder) when we are showing the example, so nobody has to delete someone else's address first. */}
+        <BurnForm key={`${isExample ? "" : wallet}|${goal}`} wallet={isExample ? "" : wallet} goal={goal}>
+          {/* Right under the box, so it cannot be missed: the answer below is NOT about your wallet. */}
+          {isExample && outcome.kind === "ok" && (
+            <p className="burn-example" role="note">
+              Showing an <strong>example wallet</strong> ({short(EXAMPLE_WALLET)}). Paste your own address above to see your answer.
+            </p>
+          )}
+
           <details className="burn-link">
             <summary>or connect a wallet <span>(optional)</span></summary>
             <p>Connecting only shares your public address so we can fill the box. This page never asks you to sign anything. Anywhere on this site, the most we ever ask is one free message that proves you own a wallet: it costs no gas and cannot move anything. We never ask for a transaction, an approval or a transfer. If a popup asks you to sign, approve or pay for something, close it. That is not us.</p>
             <BurnConnect goal={goal} />
           </details>
-
-          {isExample && outcome.kind === "ok" && <p className="burn-example" role="note">Example wallet. Type your own address above.</p>}
 
           {outcome.kind === "error" ? (
             <section className="burn-box burn-error" data-tag="Oops" role="alert">
@@ -115,16 +127,19 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
               <p className="burn-small">{outcome.message}</p>
             </section>
           ) : (
-            <Results model={outcome.model} result={outcome.result} wallet={wallet} />
+            <Results model={outcome.model} result={outcome.result} wallet={wallet} isExample={isExample} />
           )}
 
           {outcome.kind === "ok" && outcome.model.goalNotes.length > 0 && <GoalNotes model={outcome.model} />}
           {outcome.kind === "ok" && <FinePrint result={outcome.result} />}
 
-          <section className="burn-sharebar" aria-label="Share this answer">
-            <span className="burn-cap">Send this answer to the group chat</span>
-            <CopyLink url={shareUrl} />
-          </section>
+          {/* Only a real answer is worth sending to the group chat; the example link would just be our own wallet. */}
+          {!isExample && (
+            <section className="burn-sharebar" aria-label="Share this answer">
+              <span className="burn-cap">Send this answer to the group chat</span>
+              <CopyLink url={shareUrl} />
+            </section>
+          )}
         </BurnForm>
       </main>
       <SiteFooter />
@@ -132,16 +147,18 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
   )
 }
 
-function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyResult; wallet: string }) {
+function Results({ model, result, wallet, isExample }: { model: PageModel; result: BurnBuyResult; wallet: string; isExample: boolean }) {
   const w = result.wallet
   const holds = model.state === "holds" && w
   const detail = model.lines.slice(holds ? 1 : 0).filter((l) => !model.notices.includes(l))
   const who = w?.ens ?? (w ? short(w.address) : short(wallet))
   return (
     <>
-      <section className="burn-box burn-answer" data-tag={`Your answer · ${GOAL_NAME[model.goal]}`} aria-labelledby="answer-h">
-        <h2 id="answer-h" className="sr-only">Your answer</h2>
-        <p className="burn-headline">{model.headline}</p>
+      <section className="burn-box burn-answer" data-tag={`${isExample ? "Example answer" : "Your answer"} · ${GOAL_NAME[model.goal]}`} aria-labelledby="answer-h">
+        <h2 id="answer-h" className="sr-only">{isExample ? "Example answer" : "Your answer"}</h2>
+        {/* For the example, a gentle headline: the first thing a visitor reads should not be "buy this NFT" for someone else's wallet. */}
+        <p className="burn-headline">{isExample ? "Here is what an answer looks like. Paste your wallet to get yours." : model.headline}</p>
+        {isExample && <p className="burn-small">For this example wallet: {model.headline}</p>}
         {model.notices.map((n) => <p key={n} className="burn-note" role="note">{n}</p>)}
 
         {holds && (
@@ -303,18 +320,18 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
         <ul className="burn-plain">
           <li><strong>A burn is permanent.</strong> It cannot be undone. Double-check on normies.art before you burn.</li>
           {result.wallet?.jev && (
-            <li><strong>Second opinions from Jev.</strong> For burn candidates only, this page asks Jev, an AI model from TypeSafe, whether you would plausibly regret the burn. It can only add caution: it never turns a keep into a burn. We send public facts about each Normie (its traits, pixel counts and rarity) and never your wallet address. Jev can be wrong.</li>
+            <li><strong>Second opinions from Jev.</strong> For burn candidates only, this page asks Jev, an AI model from TypeSafe, whether you would plausibly regret the burn. It can only add caution: it never turns a keep into a burn. We send public facts about up to 8 of your Normies (token number, traits, pixel counts and rarity). We do not send your wallet address, but token numbers are public on chain, so someone could look up who owns them. Jev can be wrong.</li>
           )}
           <li><strong>This page is look-only.</strong> It reads public blockchain data. It cannot sign, spend, approve or move anything. We will never ask for your seed phrase. If any site or person asks you to sign something to &quot;verify&quot; or &quot;claim&quot;, walk away.</li>
           <li><strong>This is not financial advice.</strong> Nothing here is a promise of profit. The revenue-share pool changes, and past payouts do not predict future ones.</li>
           {result.marketState === "live" ? (
             <li><strong>This page does not read live #PIXEL prices yet.</strong> Pixel Market is open, but moves here are ranked by score, not by value. The prices in the official demo (for example 0.016 ETH per #PIXEL) were labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them.</li>
           ) : (
-            <li><strong>#PIXEL has no market price yet.</strong> Pixel Market has not opened: it is planned for October 5, audits permitting, and that is not guaranteed. The prices in the official Pixel Market demo (for example 0.016 ETH per #PIXEL) are labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them. Moves here are ranked by score, not by value.</li>
+            <li><strong>#PIXEL has no market price yet.</strong> This page has not seen Pixel Market open yet. It was planned for October 5, audits permitting, and that was never guaranteed: check @normiesART for the real status. The prices in the official Pixel Market demo (for example 0.016 ETH per #PIXEL) are labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them. Moves here are ranked by score, not by value.</li>
           )}
           <li><strong>How a burn works</strong> (official video): 1) Commit: the Normies you chose are burned and gone for good. 2) Wait about a minute while the chain produces the randomness for your roll. 3) Reveal: your pixels arrive. Bigger faces earn more.</li>
           {result.yieldMode === "normal" ? (
-            <li><strong>The fixed 4% promo has ended.</strong> It was announced to close between about 6 and 8 PM Central European time (16:00 to 18:00 UTC) on Monday, October 5, so this page switches to the normal rates by itself from 16:00 UTC. A burn is now a roll inside a range set by the Normie&apos;s original pixel count: 0 to 490 px pays 1 to 4%, 491 to 890 px pays 2 to 4%, 891 px and up pays 3 to 4% (@normiesART article, Sep 23). This page shows the middle of the range, marked ~, with the range beside it. Real burns can land anywhere in it (the average over the first 2,718 burns was 2.74%).</li>
+            <li><strong>The fixed 4% promo has ended, or is closing.</strong> It was announced to close between about 6 and 8 PM Central European time (16:00 to 18:00 UTC) on Monday, October 5, so this page switches to the normal rates by itself from 16:00 UTC. A burn is now a roll inside a range set by the Normie&apos;s original pixel count: 0 to 490 px pays 1 to 4%, 491 to 890 px pays 2 to 4%, 891 px and up pays 3 to 4% (@normiesART article, Sep 23). This page shows the middle of the range, marked ~, with the range beside it. Real burns can land anywhere in it (the average over the first 2,718 burns was 2.74%).</li>
           ) : (
             <li><strong>The 4% burn rate is a promo with a short window.</strong> Serc said in the community chat that it runs until 8 PM Central European time on Monday, October 5 (18:00 UTC), and that it may be closed 1 to 2 hours earlier, so this page stops showing 4% by itself from 16:00 UTC. After that, burns go back to the normal 1 to 4% range. Burning itself stays open. Check @normiesART before you act.</li>
           )}
