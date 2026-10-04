@@ -227,3 +227,18 @@
 }
 .burn-page .burn-more summary { display: flex; align-items: center; min-height: 44px; }
 .burn-page .burn-link summary { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+
+/* page system: same header as Pulse and Moves (left aligned, light display title), same panel look */
+.burn-page .burn-main { max-width: var(--page-w); }
+.burn-page .burn-hero { justify-items: start; text-align: left; gap: 0; padding: 40px 0 28px; }
+.burn-page .burn-face { margin: 0 40px 52px 0; }
+.burn-page .burn-title {
+  font-family: var(--font-display); font-weight: 400; text-transform: none;
+  font-size: clamp(28px, 4.4vw, 36px); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 10px;
+}
+.burn-page .burn-tagline { font-size: 12px; letter-spacing: 0.16em; color: var(--text-secondary); }
+.burn-page .burn-box { background: var(--panel-bg); border-color: var(--panel-line); }
+.burn-page .burn-box[data-tag]::before { background: var(--bg-primary); border-color: var(--panel-line); }
+.burn-page .burn-answer { border-color: var(--accent); }
+.burn-page .burn-answer[data-tag]::before { border-color: var(--accent); }
+.burn-page .burn-link, .burn-page .burn-example, .burn-page .burn-hint { text-align: left; }

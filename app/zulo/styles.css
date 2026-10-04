@@ -4351,3 +4351,65 @@
   letter-spacing: 0.04em;
   text-transform: none;
 }
+
+/* ========== PAGE SYSTEM: the shared tone for every page ==========
+   Appearance only. One display font for titles, one reading width, one panel look, one page header
+   (small label, light title, grey intro, left aligned). Pulse and Moves share the .moves-* header classes,
+   /burn reuses them through .burn-hero, so changing the tone here changes all of them together. */
+.zulo-chrome {
+  --font-display: var(--font-space-grotesk), var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --page-w: 720px;
+  --panel-bg: color-mix(in srgb, var(--text-primary) 5%, var(--bg-primary));
+  --panel-line: color-mix(in srgb, var(--text-primary) 26%, var(--bg-primary));
+}
+
+.zulo-chrome .moves-board,
+.zulo-chrome .dash-main { max-width: var(--page-w); }
+
+.zulo-chrome .moves-kicker {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--text-secondary);
+  opacity: 1;
+  margin: 0 0 10px;
+}
+
+.zulo-chrome .moves-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(28px, 4.4vw, 36px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+
+.zulo-chrome .moves-lede {
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 36rem;
+  letter-spacing: 0;
+}
+
+.zulo-chrome .dash-hero { padding: 48px 0 var(--space-lg); border-bottom-color: var(--panel-line); }
+.zulo-chrome .dash-hero .moves-lede,
+.zulo-chrome .dash-hero .caption { max-width: 36rem; }
+.zulo-chrome .moves-form { border-top-color: var(--panel-line); }
+
+/* panels: flat, thin, a touch lighter than the page (like the revenue share simulator) */
+.zulo-chrome .card,
+.zulo-chrome .dash-section,
+.zulo-chrome .moves-primary {
+  border-color: var(--panel-line);
+  background: var(--panel-bg);
+}
+
+/* footer and the agent-tools line sit in the same column as the page content */
+.zulo-chrome .site-footer { border-top-color: var(--panel-line); }
+.zulo-chrome .site-footer-inner { max-width: var(--page-w); padding: 0 var(--space-md); }
+.zulo-chrome .agent-tools-foot { padding: 0 var(--space-md); }
+.zulo-chrome.ask-page-wrap .agent-tools-foot { padding: 8px 20px 12px; }
+.zulo-chrome.ask-page-wrap .site-footer-inner { max-width: 1200px; }
+
+/* small uppercase captions were too faint on dark; keep them quiet but readable (about 5.5:1) */
+.zulo-chrome { --text-quiet: color-mix(in srgb, var(--text-primary) 62%, var(--bg-primary)); }
+.zulo-chrome .caption { color: var(--text-quiet); }
