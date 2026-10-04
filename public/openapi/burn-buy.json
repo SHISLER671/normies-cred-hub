@@ -168,6 +168,7 @@
               "pixel",
               "score",
               "sharePct",
+              "othersScore",
               "tokens",
               "nextBracket",
               "nextBoost",
@@ -189,6 +190,10 @@
               "sharePct": {
                "type": "number",
                "description": "Share of the holder pool, in percent, at TODAY's holdings. Actual payouts are paid monthly and weighted by what a wallet holds during the month (holdings are checked at four random blocks a day), so this is a snapshot, not a payout. Census totals come from an index that can lag, so this can read a few percent high."
+              },
+              "othersScore": {
+               "type": "number",
+               "description": "Everyone else's combined score (the census minus this wallet). A share can be checked by hand: score / (othersScore + score)."
               },
               "tokens": {
                "type": "array",

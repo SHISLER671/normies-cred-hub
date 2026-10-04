@@ -3,7 +3,7 @@
 
 import type { Move, Verdict } from "./advise"
 import type { JevVerdict } from "./jev"
-import { BOOSTS, BRACKETS, type MarketState, type YieldMode } from "./score"
+import { BOOSTS, BRACKETS, boostFor, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
 import type { BurnBuyResult } from "./service"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
@@ -49,6 +49,19 @@ export interface MoveLine {
   stat: string
 }
 
+export interface LedgerRow {
+  label: string
+  value: string
+  /** The two totals (your score, your share) are shown heavier. */
+  strong?: boolean
+}
+
+export interface NextStep {
+  title: string
+  /** Score and share before and after, in one plain sentence. */
+  detail: string
+}
+
 export interface PageModel {
   state: PageState
   /** The one-sentence answer. */
@@ -69,6 +82,10 @@ export interface PageModel {
   /** Warnings that must stay visible (for example: you cannot burn them all). Also present in `lines`. */
   notices: string[]
   goal: Goal
+  /** "How your score adds up", line by line. Revenue share goal with Normies only; otherwise empty. */
+  ledger: LedgerRow[]
+  /** What the nearest multiplier or boost step would do to the score. Revenue share goal only; otherwise empty. */
+  nextSteps: NextStep[]
   /** Extra plain-language facts and limits for the chosen goal (shown in the disclaimer box). */
   goalNotes: string[]
 }
@@ -193,7 +210,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : SHARE_NOTES
   const yieldMode: YieldMode = result?.yieldMode ?? "promo"
   const marketState: MarketState = result?.marketState ?? "pending"
-  const base: PageModel = { simulatorUrl: null, yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes }
+  const base: PageModel = { simulatorUrl: null, yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes, ledger: [], nextSteps: [] }
   if (!result) return base
 
   const fodder = (result.market?.bestPixelFodder ?? []).slice(0, 5).map((f) => ({
@@ -348,5 +365,43 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     }
   }
 
-  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes }
+  const { ledger, nextSteps } = goal === "share" ? scoreBreakdown(advice) : { ledger: [], nextSteps: [] }
+  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes, ledger, nextSteps }
+}
+
+const pctText = (n: number) => String(Number(n.toFixed(4)))
+
+/**
+ * "How your score adds up" and the nearest step up, from the same numbers the advice used.
+ * A step up assumes the extra Normies or #PIXEL arrive with no other change, so real gains can only be higher
+ * (new Normies usually carry some #PIXEL of their own).
+ */
+export function scoreBreakdown(advice: { held: number; pixel: number; score: number; othersScore: number; sharePct: number; nextBracket: { atHeld: number; needMore: number } | null; nextBoost: { atPixel: number; needMore: number } | null }): { ledger: LedgerRow[]; nextSteps: NextStep[] } {
+  const { held, pixel, score, othersScore } = advice
+  if (held < 1) return { ledger: [], nextSteps: [] }
+  const mult = bracketMultiplier(held)
+  const boost = boostFor(pixel)
+  const ledger: LedgerRow[] = [
+    { label: `Normies (${held} at ${num(mult)}x)`, value: num(held * mult) },
+    { label: `#PIXEL (${pixel}, 5 counts as 1 Normie)`, value: num(pixel / 5) },
+    { label: "Boost from #PIXEL", value: `+${Math.round(boost * 100)}%` },
+    { label: "Your score", value: num(score), strong: true },
+    { label: "Everyone else", value: Math.round(othersScore).toLocaleString("en-US") },
+    { label: "Your share", value: `${advice.sharePct}%`, strong: true },
+  ]
+  const shareOf = (s: number) => (s / Math.max(1e-9, othersScore + s)) * 100
+  const step = (title: string, after: number): NextStep => ({
+    title,
+    detail: `Score ${num(score)} to ${num(after)} (+${num(after - score)}), share ${advice.sharePct}% to ${pctText(shareOf(after))}. At least this much: anything you add usually brings #PIXEL of its own.`,
+  })
+  const nextSteps: NextStep[] = []
+  if (advice.nextBracket) {
+    const { atHeld, needMore } = advice.nextBracket
+    nextSteps.push(step(`${needMore} more Normie${needMore === 1 ? "" : "s"} (${atHeld} in all) for a ${num(bracketMultiplier(atHeld))}x multiplier`, walletScore(atHeld, pixel)))
+  }
+  if (advice.nextBoost) {
+    const { atPixel, needMore } = advice.nextBoost
+    nextSteps.push(step(`${needMore} more #PIXEL (${atPixel} in all) for a +${Math.round(boostFor(atPixel) * 100)}% boost`, walletScore(held, atPixel)))
+  }
+  return { ledger, nextSteps }
 }
