@@ -9,7 +9,7 @@ import { BurnConnect } from "@/components/burn-connect"
 import { BurnForm } from "@/components/burn-form"
 import { CopyLink } from "@/components/burn-copy"
 import { buildPageModel, GOALS, MAX_ROWS, parseGoal, type Goal, type PageModel } from "@/lib/burn-buy/narrate"
-import { buildBurnBuy, SourceError, type BurnBuyResult } from "@/lib/burn-buy/service"
+import { buildBurnBuy, isStale, SourceError, STALE_HOURS, type BurnBuyResult } from "@/lib/burn-buy/service"
 import { checkRateLimitById } from "@/lib/ratelimit"
 import { burnJsonLd, jsonLdScript } from "@/lib/burn-buy/jsonld"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
@@ -315,7 +315,7 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
           <li>Burn yield is paid on a Normie&apos;s ORIGINAL pixel count (what the contract pays on), not on its edited art.</li>
           <li><strong>We can be wrong.</strong> This is an independent community tool, not made or endorsed by the Normies team. Their site and @normiesART are the source of truth.</li>
           {result.census.indexOldestIndexedAt && (
-            <li>Census and rarity data come from an index last refreshed <time dateTime={result.census.indexOldestIndexedAt}>{utc(result.census.indexOldestIndexedAt)}</time>. Your own Normies are read live.</li>
+            <li>Census and rarity data come from an index last refreshed <time dateTime={result.census.indexOldestIndexedAt}>{utc(result.census.indexOldestIndexedAt)}</time>. Your own Normies are read live.{isStale(result.census.indexOldestIndexedAt, result.asOf) && ` That is more than ${STALE_HOURS} hours ago, so the pool share is approximate until the next refresh.`}</li>
           )}
           {bad.map(([name, s]) => <li key={name} role="alert"><strong>Data source down: {name}.</strong> {s.error}</li>)}
         </ul>
