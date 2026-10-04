@@ -3,6 +3,8 @@
 // (Next data cache plus a short in-process cache) and listings are shared across visitors.
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
+import { delegationCheckIncomplete, findDelegateXyz, registryReaders } from "@/lib/delegations"
+import { publicClient } from "@/lib/viem-client"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getSupabase } from "@/lib/db/supabase"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
@@ -220,8 +222,7 @@ const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
 })
 
 /** Tokens for which `address` is the Canvas delegate, from the index. Only ever called with a validated 0x address. */
-async function findDelegations(address: string): Promise<Array<{ tokenId: number; owner: string }>> {
-  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return []
+async function canvasDelegations(address: string): Promise<Array<{ tokenId: number; owner: string }>> {
   const db = getSupabase()
   if (!db) throw new Error("database is not configured")
   const { data, error } = await db
@@ -231,6 +232,39 @@ async function findDelegations(address: string): Promise<Array<{ tokenId: number
     .eq("delegate", address.toLowerCase())
   if (error) throw new Error(error.message)
   return (data ?? []).map((r) => ({ tokenId: r.token_id, owner: r.owner }))
+}
+
+/** Token ids a vault holds, from the Normies API. Ids come back as numbers or numeric strings. */
+async function vaultHoldings(vault: string): Promise<Array<number | string>> {
+  const d = await getJson<{ tokenIds?: Array<number | string> }>(`${NORMIES_API_BASE}/holders/${vault}`, "holder", 30)
+  return d.tokenIds ?? []
+}
+
+/**
+ * Every Normie this wallet is a DELEGATE for, from both places a delegation can live: Canvas (the index) and Delegate.xyz
+ * (both registries, read from the chain; see lib/delegations.ts). The answer is the union. If a check could not be completed AND
+ * nothing was found, this throws, because "not a delegate" would not be a fact; if something was found it is returned.
+ */
+export async function findDelegations(address: string): Promise<Array<{ tokenId: number; owner: string; via?: "canvas" | "delegate.xyz" | "both" }>> {
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return []
+  const [canvas, dx] = await Promise.allSettled([
+    canvasDelegations(address),
+    findDelegateXyz(address, { ...registryReaders(publicClient), holdersOf: vaultHoldings }),
+  ])
+  const merged = new Map<number, { tokenId: number; owner: string; via?: "canvas" | "delegate.xyz" | "both" }>()
+  let incomplete = false
+  if (canvas.status === "fulfilled") for (const c of canvas.value) merged.set(c.tokenId, { tokenId: c.tokenId, owner: c.owner })
+  else incomplete = true
+  if (dx.status === "fulfilled") {
+    for (const e of dx.value.entries) {
+      const have = merged.get(e.tokenId)
+      merged.set(e.tokenId, have ? { ...have, via: "both" } : { tokenId: e.tokenId, owner: e.vault, via: "delegate.xyz" })
+    }
+    if (delegationCheckIncomplete(dx.value)) incomplete = true
+  } else incomplete = true
+  const out = [...merged.values()].sort((a, b) => a.tokenId - b.tokenId)
+  if (out.length === 0 && incomplete) throw new Error("a delegation check (Canvas index or Delegate.xyz) could not be completed")
+  return out
 }
 
 export const realDeps: Deps = {

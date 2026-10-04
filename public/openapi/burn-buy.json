@@ -155,11 +155,21 @@
                 "type": "integer"
                },
                "owner": {
-                "type": "string"
+                "type": "string",
+                "description": "The wallet that owns the token: use it to get the burn advice."
+               },
+               "via": {
+                "type": "string",
+                "enum": [
+                 "canvas",
+                 "delegate.xyz",
+                 "both"
+                ],
+                "description": "Where the delegation lives. Absent means Canvas. Delegate.xyz covers both registries (v1 and v2)."
                }
               }
              },
-             "description": "Set when the wallet owns nothing but is a Canvas delegate: it can edit pixels but cannot burn; use the owner wallet."
+             "description": "Normies this wallet is only a DELEGATE for (Canvas or Delegate.xyz): a delegate is not the owner and cannot burn them; use the owner wallet. Set for any wallet that is a delegate, including one that also owns some Normies of its own (those are never listed here)."
             },
             "advice": {
              "type": "object",

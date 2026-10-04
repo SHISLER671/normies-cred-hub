@@ -35,7 +35,20 @@ function RainbowThemeProvider({ children }: { children: React.ReactNode }) {
       })
 
   return (
-    <RainbowKitProvider theme={rainbowTheme} modalSize="compact">
+    <RainbowKitProvider
+      theme={rainbowTheme}
+      modalSize="compact"
+      appInfo={{
+        appName: "Normies CredHub",
+        // Shown inside the connect window, at the moment people decide whether to connect.
+        disclaimer: ({ Text }) => (
+          <Text>
+            Connecting only shares your public address. We never ask for a transaction, an approval or a transfer. The most we ever ask is one free
+            message that proves you own the wallet: it costs no gas and cannot move anything.
+          </Text>
+        ),
+      }}
+    >
       {children}
     </RainbowKitProvider>
   )

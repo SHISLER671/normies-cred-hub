@@ -93,20 +93,26 @@ export const IDENTITY_REGISTRY_READ_ABI = [
  */
 export const DELEGATE_REGISTRY = "0x00000000000076A84feF008CDAbe6409d2FE638B" as const
 
+/**
+ * v1 returns `DelegationInfo { DelegationType type_; address vault; address delegate; address contract_; uint256 tokenId; }`.
+ * Verified on mainnet 2026-10-05 against a real delegate of vaults 0x9388…0d732 and 0x5b1C…7467 (type_ 1 = ALL, contract_ = zero address).
+ * The previous ABI here (vault/delegate/contract_/tokenId/rights) had the wrong fields and decoded every v1 delegation into garbage.
+ * type_: 0 NONE, 1 ALL (every contract), 2 CONTRACT, 3 TOKEN.
+ */
 export const DELEGATE_REGISTRY_ABI = [
   {
-    inputs: [{ name: "to", type: "address" }],
+    inputs: [{ name: "delegate", type: "address" }],
     name: "getDelegationsByDelegate",
     outputs: [
       {
         components: [
+          { name: "type_", type: "uint8" },
           { name: "vault", type: "address" },
           { name: "delegate", type: "address" },
           { name: "contract_", type: "address" },
           { name: "tokenId", type: "uint256" },
-          { name: "rights", type: "bytes32" },
         ],
-        name: "",
+        name: "info",
         type: "tuple[]",
       },
     ],

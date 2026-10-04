@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { realDeps } from "@/lib/burn-buy/data"
 import { BurnConnect } from "@/components/burn-connect"
+import { ConnectWallet } from "@/components/connect-wallet"
 import { BurnForm } from "@/components/burn-form"
 import { CopyLink } from "@/components/burn-copy"
 import { buildPageModel, GOALS, MAX_ROWS, parseGoal, type Goal, type PageModel } from "@/lib/burn-buy/narrate"
@@ -82,7 +83,14 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="zulo-chrome min-h-screen burn-page">
-      <ZuloChromeHeader active="burn" showActiveNormie={false} />
+      <ZuloChromeHeader
+        active="burn"
+        trailing={
+          <span style={{ display: "inline-flex", alignItems: "center" }}>
+            <ConnectWallet />
+          </span>
+        }
+      />
       <div className="header-spacer" aria-hidden />
       <main className="burn-main" id="main">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(burnJsonLd(DEFAULT_SITE_ORIGIN)) }} />
@@ -95,7 +103,7 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
         <BurnForm key={`${wallet}|${goal}`} wallet={wallet} goal={goal}>
           <details className="burn-link">
             <summary>or connect a wallet <span>(optional)</span></summary>
-            <p>Connecting only shares your public address so we can fill the box. It never asks you to sign or approve anything. If a popup ever asks you to sign, approve or pay, close it. That is not us.</p>
+            <p>Connecting only shares your public address so we can fill the box. This page never asks you to sign anything. Anywhere on this site, the most we ever ask is one free message that proves you own a wallet: it costs no gas and cannot move anything. We never ask for a transaction, an approval or a transfer. If a popup asks you to sign, approve or pay for something, close it. That is not us.</p>
             <BurnConnect goal={goal} />
           </details>
 
@@ -164,15 +172,7 @@ function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyR
         )}
 
         {!holds && detail.map((l, i) => <p key={i} className="burn-small">{l}</p>)}
-        {model.delegateOf.length > 0 && (
-          <ul className="burn-plain">
-            {model.delegateOf.map((d) => (
-              <li key={d.tokenId}>
-                #{d.tokenId} is owned by <span className="burn-mono">{short(d.owner)}</span>. <Link href={`/burn?wallet=${d.owner}&goal=${model.goal}`}>Use the owner wallet →</Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        {model.delegateOf.length > 0 && <DelegateOwners list={model.delegateOf} goal={model.goal} />}
 
         <p className="burn-cap">For {who} · as of <time dateTime={result.asOf}>{utc(result.asOf)}</time>{model.marketState === "live" && " · Pixel Market live"}</p>
 
@@ -328,5 +328,21 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
         <p className="burn-cap">For developers and bots: <code className="burn-mono">/api/burn-buy?wallet=…</code></p>
       </details>
     </section>
+  )
+}
+
+/** Who actually owns what this wallet is only a delegate for, grouped by owner, each with a link that opens the owner's answer. */
+function DelegateOwners({ list, goal }: { list: PageModel["delegateOf"]; goal: Goal }) {
+  const byOwner = new Map<string, number[]>()
+  for (const d of list) byOwner.set(d.owner, [...(byOwner.get(d.owner) ?? []), d.tokenId])
+  return (
+    <ul className="burn-plain burn-delegates">
+      {[...byOwner].map(([owner, tokenIds]) => (
+        <li key={owner}>
+          {tokenIds.length <= 6 ? tokenIds.map((i) => `#${i}`).join(", ") : `${tokenIds.length} Normies (#${tokenIds.slice(0, 3).join(", #")}…)`} owned by <span className="burn-mono">{short(owner)}</span>.{" "}
+          <Link href={`/burn?wallet=${owner}&goal=${goal}`}>Use the owner wallet →</Link>
+        </li>
+      ))}
+    </ul>
   )
 }
