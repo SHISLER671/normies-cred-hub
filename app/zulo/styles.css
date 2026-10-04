@@ -4413,3 +4413,61 @@
 /* small uppercase captions were too faint on dark; keep them quiet but readable (about 5.5:1) */
 .zulo-chrome { --text-quiet: color-mix(in srgb, var(--text-primary) 62%, var(--bg-primary)); }
 .zulo-chrome .caption { color: var(--text-quiet); }
+
+/* ========== PAGE SYSTEM, step 2: landing, Pulse cards, Ask ==========
+   Same tone as the page header: display font for titles (light, sentence case), Inter for reading text,
+   Courier kept for labels, tags and data. Appearance only. */
+
+/* landing: the front door stays centered, but speaks in the same voice */
+.zulo-chrome.zulo-home .hero-title-hub {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: none;
+  font-size: clamp(40px, 7vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.zulo-chrome.zulo-home .hero-hub .hero-subtitle {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1.55;
+  letter-spacing: 0;
+  max-width: 34rem;
+}
+.zulo-chrome.zulo-home .home-product h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: none;
+  font-size: clamp(26px, 4vw, 34px);
+  letter-spacing: -0.02em;
+}
+.zulo-chrome.zulo-home .home-surface-card h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: none;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+.zulo-chrome.zulo-home .home-orient-line { font-family: var(--font-inter), system-ui, sans-serif; font-size: 15px; }
+
+/* Pulse: the agent card's name uses the display font like every other title */
+.zulo-chrome .dash-main h2.font-heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: -0.02em;
+}
+
+/* Ask: same panel lines, and the conversation reads in Inter */
+.zulo-chrome .ask-banner,
+.zulo-chrome .ask-chat { border-color: var(--panel-line); }
+.zulo-chrome .ask-chat { background: var(--panel-bg); }
+.zulo-chrome .chat-bubble:not(.ask-inflight-status) { border-color: var(--panel-line); }
+.zulo-chrome .ask-chat .chat-bubble {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.zulo-chrome .ask-skills-summary { font-size: 12px; opacity: 1; color: var(--text-quiet); }
+.zulo-chrome.ask-page-wrap .site-footer { padding: 12px 20px; }
+.zulo-chrome.ask-page-wrap .site-footer-inner { max-width: none; padding: 0; }
