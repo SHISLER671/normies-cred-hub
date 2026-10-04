@@ -61,7 +61,8 @@ function toToken(it: RawItem): RarityToken {
 async function getJson<T>(url: string, source: SourceError["source"], revalidate: number): Promise<T> {
   let res: Response
   try {
-    res = await fetchWithTimeout(url, { headers: HEADERS, next: { revalidate } }, 10_000)
+    // revalidate 0 means "fresh": skip Next's data cache (used for the one retry, so a bad cached answer cannot be served twice).
+    res = await fetchWithTimeout(url, { headers: HEADERS, ...(revalidate === 0 ? { cache: "no-store" as const } : { next: { revalidate } }) }, 10_000)
   } catch (e) {
     throw new SourceError(source, `${source} request failed: ${e instanceof Error ? e.message : e}`)
   }
@@ -150,11 +151,26 @@ export async function requireListings<T extends { items: unknown[]; total: numbe
   return r
 }
 
+/**
+ * One automatic retry. Live 2026-10-05: the listings source sometimes answers empty for a single request (then fine on the next),
+ * and the first visitor after a quiet moment saw "listings did not load". The retry is short, skips the data cache, and only runs after a failure.
+ */
+export async function withOneRetry<T>(attempt: (fresh: boolean) => Promise<T>, pauseMs = 300): Promise<T> {
+  try {
+    return await attempt(false)
+  } catch {
+    await new Promise((r) => setTimeout(r, pauseMs))
+    return attempt(true)
+  }
+}
+
 const listingsCached = ttl(60_000, () =>
   withTimeout(
-    requireListings(() =>
-      loadListings((page) =>
-        getJson<ListingsPage>(`${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`, "listings", 60),
+    withOneRetry((fresh) =>
+      requireListings(() =>
+        loadListings((page) =>
+          getJson<ListingsPage>(`${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`, "listings", fresh ? 0 : 60),
+        ),
       ),
     ),
     LISTINGS_BUDGET_MS,
