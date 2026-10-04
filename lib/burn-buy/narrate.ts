@@ -102,6 +102,22 @@ export function jevView(op: { verdict: JevVerdict; pRegret: number }) {
   return { verdict: op.verdict, pRegret: op.pRegret, text }
 }
 
+const NOTICE_OPEN = "The 4% rate ends by 8 PM Central European time on Monday, October 5 (18:00 UTC), and may close 1 to 2 hours earlier. After that, burns go back to the normal 1 to 4% range."
+const NOTICE_MAYBE_CLOSED = "The 4% rate may already have ended: it was announced to close between about 6 and 8 PM Central European time (16:00 to 18:00 UTC) on Monday. Figures here use the normal roll. Check normies.art before you burn."
+const NOTICE_PINNED_PAST = "This page is still showing the 4% rate because the site owner has pinned it, but the announced end has passed. Check normies.art before you burn."
+const NOTICE_ENDED = "The 4% rate has ended (it was announced to close on Monday, October 5). Figures here use the normal roll."
+const ENDED_NOTICE_MS = 72 * 3600 * 1000
+
+/** The one sentence about the 4% window that fits the moment, or null. Uses the result's own clock. */
+export function promoNotice(r: Pick<BurnBuyResult, "yieldMode" | "asOf"> & { promo: { window?: { state: string; latestEnd: string } } }): string | null {
+  const w = r.promo.window
+  if (!w) return null
+  if (r.yieldMode === "promo") return w.state === "open" ? NOTICE_OPEN : NOTICE_PINNED_PAST
+  if (w.state === "may-have-closed") return NOTICE_MAYBE_CLOSED
+  if (w.state === "closed" && Date.parse(r.asOf) < Date.parse(w.latestEnd) + ENDED_NOTICE_MS) return NOTICE_ENDED
+  return null
+}
+
 export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine {
   const roll = yieldMode === "normal" ? " The burn itself is a roll, so this is a typical result." : ""
   const score = `Your score goes ${num(m.scoreBefore)} → ${num(m.scoreAfter)} (+${num(m.scoreGain)}). Your share of the pool: ${m.shareBeforePct}% → ${m.shareAfterPct}%.`
@@ -286,6 +302,8 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   if (burnN === 0) lines.push(`Nothing here is a burn candidate: ${keepN} to keep${eitherN > 0 ? `, ${eitherN} either way` : ""}.`)
   else lines.push(`${burnN} burn candidate${burnN === 1 ? "" : "s"}, ${keepN} to keep${eitherN > 0 ? `, ${eitherN} either way` : ""}. A candidate is only "nothing says keep and it pays something", not an order.`)
   const notices: string[] = []
+  const windowNotice = promoNotice(result)
+  if (windowNotice) notices.push(windowNotice)
   if (burnN > 0 && burnN >= advice.held && advice.held > 1) {
     const cap = `Burning needs a Normie left to receive it, so at most ${advice.held - 1} of these ${advice.held} can go.`
     lines.push(cap)

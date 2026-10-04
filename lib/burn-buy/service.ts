@@ -13,6 +13,7 @@ import {
   type Listing,
   type WalletAdvice,
 } from "./advise"
+import { promoWindow, type PromoWindow } from "./promo-window"
 import { JEV_MAX_TOKENS, type JevOpinion, type JevToken } from "./jev"
 
 export type SourceName = "holder" | "rarity" | "listings" | "index" | "jev"
@@ -71,6 +72,8 @@ export interface Deps {
   jevOpinions?(tokens: JevToken[]): Promise<{ opinions: Record<number, JevOpinion> } | null>
   /** How a burn pays. Optional; missing means "promo" (today). Real deps read BURN_YIELD_MODE. */
   yieldMode?(): YieldMode
+  /** True when the site owner pinned the yield mode (BURN_YIELD_MODE) instead of letting the clock decide. Optional; missing means false. */
+  yieldPinned?(): boolean
   /** Whether Pixel Market is open. Optional; missing means "pending" (today). Real deps read PIXEL_MARKET. */
   marketState?(): MarketState
   now(): Date
@@ -89,7 +92,7 @@ export interface BurnBuyResult {
   /** Whether Pixel Market (the #PIXEL exchange) is open. */
   marketState: MarketState
   /** In normal mode `ratePercent` is null: the rate is a roll inside a tier range, described in `basis`. */
-  promo: { ratePercent: number | null; basis: string; ends: string }
+  promo: { ratePercent: number | null; basis: string; ends: string; window: PromoWindow }
   wallet: null | {
     address: string
     ens: string | null
@@ -121,7 +124,7 @@ export const NORMAL_INFO = {
 export const PROMO_INFO = {
   ratePercent: 4,
   basis: "4% of the burned Normie's original (base) pixel count, plus the burned token's own AP",
-  ends: "Monday, October 5, per Serc in the community chat (not independently verified, so not guaranteed); burns then return to the normal 1-4% range",
+  ends: "Until 8 PM Central European time on Monday, October 5 (18:00 UTC), and possibly closed 1 to 2 hours earlier, per Serc in the community chat (not independently verified, so not guaranteed); burns then return to the normal 1-4% range",
 } as const
 
 /** Largest holder today has 432. Above this we refuse rather than show a wrong (truncated) score. */
@@ -331,7 +334,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     asOf: deps.now().toISOString(),
     yieldMode,
     marketState,
-    promo: yieldMode === "normal" ? { ...NORMAL_INFO } : { ...PROMO_INFO },
+    promo: { ...(yieldMode === "normal" ? NORMAL_INFO : PROMO_INFO), window: promoWindow(deps.now(), deps.yieldPinned ? deps.yieldPinned() : false) },
     wallet,
     market,
     census: {

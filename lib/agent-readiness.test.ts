@@ -40,7 +40,7 @@ describe("machine-readable 404s", () => {
 describe("llms.txt", () => {
   const txt = read("public/llms.txt")
   it("describes the burn page and API, with the safety statements", () => {
-    for (const s of ["/burn?wallet=", "GET /api/burn-buy?wallet=", "/openapi/burn-buy.json", "Look-only", "never asks for keys, seeds or signatures", "Not financial advice", "A burn is permanent", "not made or endorsed by the Normies team", "12 requests per minute", "yieldMode", "marketState"]) {
+    for (const s of ["/burn?wallet=", "GET /api/burn-buy?wallet=", "/openapi/burn-buy.json", "Look-only", "never asks for keys, seeds or signatures", "Not financial advice", "A burn is permanent", "not made or endorsed by the Normies team", "12 requests per minute", "yieldMode", "marketState", "promo.window", "16:00 UTC"]) {
       assert.ok(txt.includes(s), s)
     }
   })
