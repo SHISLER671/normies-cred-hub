@@ -188,7 +188,7 @@
               },
               "sharePct": {
                "type": "number",
-               "description": "Share of the holder pool, in percent."
+               "description": "Share of the holder pool, in percent, at TODAY's holdings. Actual payouts are paid monthly and weighted by what a wallet holds during the month (holdings are checked at four random blocks a day), so this is a snapshot, not a payout. Census totals come from an index that can lag, so this can read a few percent high."
               },
               "tokens": {
                "type": "array",

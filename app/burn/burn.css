@@ -200,3 +200,7 @@
 
 .burn-page .burn-jev { grid-area: jev; justify-self: start; margin-top: 8px; padding: 2px 8px; border: 1px dashed var(--accent); font: 700 11px/1.4 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-primary); }
 .burn-page .burn-jevtext { border-left: 3px solid var(--accent); padding-left: 10px; }
+
+.burn-page .burn-sim { margin: 0 0 12px; }
+.burn-page .burn-sim a { color: var(--text-primary); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; font-weight: 600; }
+.burn-page .burn-sim span { color: var(--mute); font-size: 14px; }

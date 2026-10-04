@@ -58,6 +58,8 @@ export interface PageModel {
   rows: TokenRow[]
   moves: MoveLine[]
   fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; url: string | null; /** Normal burn mode only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
+  /** A link to the normies.art revenue share simulator, pre-filled with this wallet's Normies and #PIXEL. Share goal only. */
+  simulatorUrl: string | null
   /** How a burn pays ("normal" means a roll, so figures are shown as about / ~ with a range). */
   yieldMode: YieldMode
   /** Whether Pixel Market is open. */
@@ -159,9 +161,17 @@ const ART_NOTES = [
   "Pixel counts of rare Normies are a style choice as much as a number. If one means something to you, keep it.",
 ]
 
+export const SIMULATOR_BASE = "https://simulator.normies.art/"
+/** Opens the simulator with these holdings already typed in (it reads ?normies= and ?pixels=). No wallet address is put in the link. */
+export function simulatorUrl(held: number, pixel: number): string {
+  const n = Math.max(0, Math.trunc(held)), p = Math.max(0, Math.trunc(pixel))
+  return `${SIMULATOR_BASE}?normies=${n}&pixels=${p}`
+}
+
 const fmtX = (n: number) => `${n}×`
 const SHARE_NOTES = [
-  "Where the pool comes from (official): half of every Pixel Market fee (taken from the seller) and half of the royalties on Normie resales go to the holder pool. It is paid out in rounds and claimed on chain. Buyers pay the listed price and nothing extra.",
+  "Where the pool comes from (official): half of every Pixel Market fee (taken from the seller) and half of the royalties on Normie resales go to the holder pool. It is paid out monthly, in rounds, and claimed on chain. Buyers pay the listed price and nothing extra.",
+  "Holdings are checked at four random blocks a day, so what you hold DURING the month is what counts: half the month earns half. The share shown on this page is your points at today's holdings, not what you will be paid (the normies.art simulator says the same).",
   `Your share follows your score: (Normies × bracket + #PIXEL ÷ 5) × (1 + boost). Brackets: ${[...BRACKETS].reverse().map((b) => `${b.min}${b.min === 1 ? "" : " or more"} = ${fmtX(b.mult)}`).join(", ")}.`,
   `Boost, by #PIXEL held (on Normies, in your wallet, or listed): ${[...BOOSTS].reverse().map((b) => `${b.min.toLocaleString("en-US")} or more = +${Math.round(b.boost * 100)}%`).join(", ")}.`,
 ]
@@ -183,7 +193,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : SHARE_NOTES
   const yieldMode: YieldMode = result?.yieldMode ?? "promo"
   const marketState: MarketState = result?.marketState ?? "pending"
-  const base: PageModel = { yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes }
+  const base: PageModel = { simulatorUrl: null, yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes }
   if (!result) return base
 
   const fodder = (result.market?.bestPixelFodder ?? []).slice(0, 5).map((f) => ({
@@ -287,7 +297,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   const keeperAp = lone ? lone.actionPoints : null
 
   const lines: string[] = [
-    `You hold ${advice.held} Normie${advice.held === 1 ? "" : "s"} and ${advice.pixel} #PIXEL. Score ${num(advice.score)}, ${advice.sharePct}% of the pool.`,
+    `You hold ${advice.held} Normie${advice.held === 1 ? "" : "s"} and ${advice.pixel} #PIXEL. Score ${num(advice.score)}, about ${advice.sharePct}% of the pool at today's holdings.`,
   ]
   if (burnN === 0) lines.push(`Nothing here is a burn candidate: ${keepN} to keep${eitherN > 0 ? `, ${eitherN} either way` : ""}.`)
   else lines.push(`${burnN} burn candidate${burnN === 1 ? "" : "s"}, ${keepN} to keep${eitherN > 0 ? `, ${eitherN} either way` : ""}. A candidate is only "nothing says keep and it pays something", not an order.`)
@@ -338,5 +348,5 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     }
   }
 
-  return { state: "holds", yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes }
+  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes }
 }
