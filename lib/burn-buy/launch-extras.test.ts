@@ -2,7 +2,7 @@ import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
 import { adviseWallet, type HeldToken, type Listing } from "./advise"
-import { keyedTtl } from "./data"
+import { keyedTtl, withOneRetry } from "./data"
 
 const ctx = { livingSupply: 7226, censusTotal: 25873 }
 const tok = (over: Partial<HeldToken> & { tokenId: number }): HeldToken => ({
@@ -62,5 +62,24 @@ describe("keyedTtl", () => {
     await get("a"); await get("b"); await get("c")
     await get("a")
     assert.equal(loads, 4)
+  })
+})
+
+describe("withOneRetry (listings answered empty once, then fine)", () => {
+  it("a good first answer is used as is, without a second call", async () => {
+    const seen: boolean[] = []
+    assert.equal(await withOneRetry(async (fresh) => { seen.push(fresh); return "ok" }, 0), "ok")
+    assert.deepEqual(seen, [false])
+  })
+  it("a failed first answer is retried once, FRESH (data cache skipped), and the second answer is used", async () => {
+    const seen: boolean[] = []
+    const r = await withOneRetry(async (fresh) => { seen.push(fresh); if (!fresh) throw new Error("no listings came back"); return "ok" }, 0)
+    assert.equal(r, "ok")
+    assert.deepEqual(seen, [false, true])
+  })
+  it("two failures still fail (so the page can say so), after exactly two tries", async () => {
+    let calls = 0
+    await assert.rejects(withOneRetry(async () => { calls++; throw new Error("still empty") }, 0), /still empty/)
+    assert.equal(calls, 2)
   })
 })
