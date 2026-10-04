@@ -3,6 +3,11 @@
 .burn-page { --body: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif; --accent: var(--zulo-accent); --gap: 18px;
   /* captions: lighter than the site's muted grey so they stay readable (about 7:1 on dark, 6:1 on light) */
   --mute: color-mix(in srgb, var(--text-primary) 72%, var(--bg-primary)); }
+/* CYAN ACCENT FIX (2026-10-05). In dark mode `.dark .zulo-chrome` (two classes) set --accent to #e5e5e5 and beat the
+   one-class `.burn-page` rule above, so the cyan never showed: every "accent" was plain grey. These selectors are
+   stronger in both themes. Light mode uses a deeper cyan so borders and arrows stay visible on white. */
+.dark .zulo-chrome.burn-page { --accent: var(--zulo-accent); }
+html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-main { max-width: 720px; margin: 0 auto; padding: 8px 16px 72px; overflow-wrap: anywhere; }
 .burn-page .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .burn-page .burn-mono { font-family: var(--font-mono); font-size: 0.92em; }
@@ -93,7 +98,8 @@
 .burn-page .burn-link summary span { opacity: 0.7 }
 .burn-page .burn-link[open] { border: 1px dashed var(--border-light); padding: 12px 16px 16px; }
 .burn-page .burn-link p { font: 400 15px/1.55 var(--body); color: var(--text-secondary); margin: 0 0 12px; text-align: left; }
-.burn-page .burn-example { text-align: center; font: 12px var(--font-mono); letter-spacing: 0.1em; color: var(--mute); margin: 0 0 var(--gap); }
+.burn-page .burn-example { text-align: center; font: 13px/1.5 var(--font-mono); letter-spacing: 0.04em; color: var(--text-primary); margin: 0 0 var(--gap); padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--bg-secondary); }
+.burn-page .burn-example strong { color: var(--accent); font-weight: 700; }
 .burn-page .burn-cap { margin: 0; font: 12px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
 .burn-page .burn-small { font: 400 15px/1.55 var(--body); color: var(--text-secondary); margin: 8px 0 0; }
 .burn-page .burn-plain { margin: 10px 0 0; padding-left: 1.1em; display: grid; gap: 10px; font: 400 15px/1.55 var(--body); color: var(--text-secondary); }

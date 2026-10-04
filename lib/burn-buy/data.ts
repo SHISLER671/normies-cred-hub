@@ -119,9 +119,46 @@ export async function loadListings(getPage: (page: number) => Promise<ListingsPa
   return { items, floorEth: num(first.floorPrice), total: first.total ?? 0 }
 }
 
+/** Rejects with `message` if `p` has not settled within `ms`. The caller decides what a timeout means. */
+export function withTimeout<T>(p: Promise<T>, ms: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms)
+  })
+  return Promise.race([p, timeout]).finally(() => { if (timer) clearTimeout(timer) })
+}
+
+/**
+ * Listings are OPTIONAL, so they get a hard time cap well inside the page's 20 s budget. A slow listings source then
+ * costs a warning, not the whole page.
+ */
+export const LISTINGS_BUDGET_MS = 6_000
+/** The index snapshot is REQUIRED; cap it so a hung database gives our friendly error, not a platform 504. */
+export const SNAPSHOT_BUDGET_MS = 8_000
+
+/**
+ * A listings answer with no usable priced listing is treated as a FAILURE, not as "the market is empty".
+ * Throwing here does two things: the TTL cache does not keep the empty answer for a minute, and the service marks
+ * listings as down so the page says so (live bug seen 2026-10-04 21:55 UTC: moves and the fodder table vanished
+ * for one load with no warning, then came back).
+ */
+export async function requireListings<T extends { items: unknown[]; total: number }>(load: () => Promise<T>): Promise<T> {
+  const r = await load()
+  if (r.items.length === 0) {
+    throw new SourceError("listings", r.total > 0 ? "listings came back without usable prices" : "no listings came back")
+  }
+  return r
+}
+
 const listingsCached = ttl(60_000, () =>
-  loadListings((page) =>
-    getJson<ListingsPage>(`${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`, "listings", 60),
+  withTimeout(
+    requireListings(() =>
+      loadListings((page) =>
+        getJson<ListingsPage>(`${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`, "listings", 60),
+      ),
+    ),
+    LISTINGS_BUDGET_MS,
+    `listings took longer than ${LISTINGS_BUDGET_MS / 1000} s`,
   ),
 )
 
@@ -217,7 +254,11 @@ export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps): MarketS
 const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
   const db = getSupabase()
   if (!db) throw new Error("database is not configured")
-  const [rows, stamps] = await Promise.all([fetchIndexRows(db), fetchSyncStamps(db)])
+  const [rows, stamps] = await withTimeout(
+    Promise.all([fetchIndexRows(db), fetchSyncStamps(db)]),
+    SNAPSHOT_BUDGET_MS,
+    `the index took longer than ${SNAPSHOT_BUDGET_MS / 1000} s`,
+  )
   return snapshotFromRows(rows, stamps)
 })
 
@@ -245,7 +286,35 @@ async function vaultHoldings(vault: string): Promise<Array<number | string>> {
  * (both registries, read from the chain; see lib/delegations.ts). The answer is the union. If a check could not be completed AND
  * nothing was found, this throws, because "not a delegate" would not be a fact; if something was found it is returned.
  */
-export async function findDelegations(address: string): Promise<Array<{ tokenId: number; owner: string; via?: "canvas" | "delegate.xyz" | "both" }>> {
+export function findDelegations(address: string) {
+  return delegationsCached(address)
+}
+
+type Delegation = { tokenId: number; owner: string; via?: "canvas" | "delegate.xyz" | "both" }
+
+/**
+ * One shared answer per key for `ms`, including concurrent callers; a FAILED load is dropped at once (never kept), and the map is
+ * emptied when it reaches `max` entries. Used so the same address (the example wallet above all, which is not rate limited)
+ * does not cost two chain reads and a holder lookup on every page view.
+ */
+export function keyedTtl<T>(ms: number, max: number, load: (key: string) => Promise<T>, now: () => number = Date.now): (key: string) => Promise<T> {
+  const cache = new Map<string, { at: number; value: Promise<T> }>()
+  return (key) => {
+    const hit = cache.get(key)
+    if (hit && now() - hit.at < ms) return hit.value
+    if (cache.size >= max) cache.clear()
+    const value = load(key)
+    const entry = { at: now(), value }
+    cache.set(key, entry)
+    value.catch(() => { if (cache.get(key) === entry) cache.delete(key) })
+    return value
+  }
+}
+
+const delegationsByAddress = keyedTtl(60_000, 500, (key) => lookupDelegations(key))
+const delegationsCached = (address: string): Promise<Delegation[]> => delegationsByAddress(address.toLowerCase())
+
+async function lookupDelegations(address: string): Promise<Delegation[]> {
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return []
   const [canvas, dx] = await Promise.allSettled([
     canvasDelegations(address),
@@ -281,8 +350,9 @@ export const realDeps: Deps = {
     if (!apiKey || process.env.JEV_DISABLE === "1") return null
     return fetchJevOpinions(tokens, { apiKey })
   },
-  yieldMode: () => currentYieldMode(),
-  yieldPinned: () => currentYieldPinned(),
+  // Both read the SAME clock the service passes in, so one request can never be half promo, half normal at 16:00 UTC.
+  yieldMode: (now) => currentYieldMode(now),
+  yieldPinned: (now) => currentYieldPinned(now),
   marketState: currentMarket,
   now: () => new Date(),
 }

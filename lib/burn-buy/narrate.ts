@@ -140,9 +140,12 @@ export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine 
   const score = `Your score goes ${num(m.scoreBefore)} → ${num(m.scoreAfter)} (+${num(m.scoreGain)}). Your share of the pool: ${m.shareBeforePct}% → ${m.shareAfterPct}%.`
   const stat = `Score ${num(m.scoreBefore)} → ${num(m.scoreAfter)}`
   if (m.kind === "burn-own") {
+    const cost = m.costKnown === false
+      ? "Its sale value is unknown right now (no price data came back), so check what it would sell for before you burn."
+      : `You give up about ${eth(m.costEth)} of sale value.`
     return {
       title: `Burn ${ids(m.tokenIds)} into the one(s) you keep`,
-      detail: `Permanent. You give up about ${eth(m.costEth)} of sale value. ${score}${roll}`,
+      detail: `Permanent. ${cost} ${score}${roll}`,
       stat,
     }
   }
@@ -222,8 +225,15 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     range: f.yieldMin !== undefined && f.yieldMax !== undefined ? { min: f.yieldMin, max: f.yieldMax } : null,
   }))
 
+  // Listings down: say so ON the answer, not only in the folded fine print. Without this the moves and the fodder table
+  // silently vanished and the headline read "Nothing to do right now" (live, 2026-10-04 21:55 UTC).
+  const listingsDown = result.sources?.listings?.ok === false
+  const marketNotice = listingsDown
+    ? "Market listings did not load this time, so buy moves and the cheapest #PIXEL table are missing. Try again in a minute."
+    : null
+
   const w = result.wallet
-  if (!w) return { ...base, fodder }
+  if (!w) return { ...base, fodder, notices: marketNotice ? [marketNotice] : [] }
 
   const { advice } = w
   if (advice.held === 0) {
@@ -250,6 +260,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
       ],
       moves: goal === "share" ? advice.moves.slice(0, 3).map((m) => describeMove(m, yieldMode)) : [],
       fodder,
+      notices: marketNotice ? [marketNotice] : [],
     }
   }
 
@@ -319,6 +330,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   if (burnN === 0) lines.push(`Nothing here is a burn candidate: ${keepN} to keep${eitherN > 0 ? `, ${eitherN} either way` : ""}.`)
   else lines.push(`${burnN} burn candidate${burnN === 1 ? "" : "s"}, ${keepN} to keep${eitherN > 0 ? `, ${eitherN} either way` : ""}. A candidate is only "nothing says keep and it pays something", not an order.`)
   const notices: string[] = []
+  if (marketNotice) notices.push(marketNotice)
   const windowNotice = promoNotice(result)
   if (windowNotice) notices.push(windowNotice)
   if (w.delegateOf.length > 0) {
@@ -346,7 +358,11 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   let moves: MoveLine[]
   if (goal === "share") {
     const best = advice.moves[0]
-    headline = best ? `Best move right now: ${describeMove(best, yieldMode).title}.` : "Nothing to do right now: no move improves your score."
+    headline = best
+      ? `Best move right now: ${describeMove(best, yieldMode).title}.`
+      : listingsDown
+        ? "Market data did not load, so we cannot rank moves right now. Try again in a minute."
+        : "Nothing to do right now: no move improves your score."
     moves = advice.moves.slice(0, 3).map((m) => describeMove(m, yieldMode))
   } else {
     const picks = fodder.slice(0, 3).map((f) => fodderLine(f, goal, keeperAp))

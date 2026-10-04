@@ -39,6 +39,9 @@ export function BurnForm({ wallet, goal, children }: { wallet: string; goal: Goa
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
+            placeholder="0x… or yourname.eth"
+            inputMode="text"
+            enterKeyHint="go"
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"

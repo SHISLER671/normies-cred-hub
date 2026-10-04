@@ -9,6 +9,7 @@ import {
   BOOST_CLIFFS,
   BRACKET_CLIFFS,
   burnYield,
+  type MarketState,
   type YieldMode,
   shareIfAdded,
   walletScore,
@@ -31,8 +32,8 @@ export interface HeldToken {
   awakenedAgent: boolean
   /** Living tokens sharing this exact original pixel count (including this one). */
   pixelSupply: number
-  /** Value the owner would forgo by burning, in ETH (own fair value, else the floor). */
-  forgoneValueEth: number
+  /** Value the owner would forgo by burning, in ETH (own fair value, else the floor). Null = unknown (no price data). */
+  forgoneValueEth: number | null
   /** The owner has edited this Normie's art (Canvas). Burning it erases that art for good, so it is a KEEP reason. */
   customized?: boolean
 }
@@ -64,6 +65,8 @@ export interface TokenAdvice {
 export interface Context {
   /** "promo" (default) or "normal"; decides how a burn's yield is computed. */
   yieldMode?: YieldMode
+  /** Whether Pixel Market is open. Only changes wording; missing means "pending". */
+  marketState?: MarketState
   livingSupply: number
   /** Sum of every wallet's score, INCLUDING this wallet's current score if it holds Normies. */
   censusTotal: number
@@ -108,8 +111,10 @@ export interface Move {
   kind: MoveKind
   /** Tokens involved: own tokens burned, or the listing(s) bought. */
   tokenIds: number[]
-  /** ETH out of pocket (buys) or forgone sale value (own burns). */
+  /** ETH out of pocket (buys) or forgone sale value (own burns). 0 with costKnown=false means "unknown", not "free". */
   costEth: number
+  /** False when the cost could not be priced (own burn with no fair value and no floor). Missing means known. */
+  costKnown?: boolean
   heldAfter: number
   pixelAfter: number
   scoreBefore: number
@@ -133,19 +138,21 @@ function makeMove(
   pixelAfter: number,
   ctx: Context,
   note: string,
+  costKnown = true,
 ): Move {
   const after = walletScore(heldAfter, pixelAfter)
   const others = Math.max(0, ctx.censusTotal - wallet.score)
   return {
     kind,
     tokenIds,
-    costEth: round(costEth),
+    costEth: costKnown ? round(costEth) : 0,
+    costKnown,
     heldAfter,
     pixelAfter,
     scoreBefore: round(wallet.score, 2),
     scoreAfter: round(after, 2),
     scoreGain: round(after - wallet.score, 2),
-    gainPerEth: costEth > 0 ? round((after - wallet.score) / costEth, 2) : null,
+    gainPerEth: costKnown && costEth > 0 ? round((after - wallet.score) / costEth, 2) : null,
     shareBeforePct: pct(wallet.score / Math.max(1e-9, others + wallet.score)),
     shareAfterPct: pct(after / Math.max(1e-9, others + after)),
     note,
@@ -202,10 +209,13 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
     for (const set of subsets(burnable, Math.min(4, held - 1))) {
       // AP on the burned tokens already counts in the wallet total and stays in the wallet; only the pixel yield is new.
       const gained = set.reduce((s, a) => s + a.yield.fromPixels, 0)
-      const cost = set.reduce((s, a) => s + (byId.get(a.tokenId)?.forgoneValueEth ?? 0), 0)
+      const values = set.map((a) => byId.get(a.tokenId)?.forgoneValueEth ?? null)
+      const costKnown = values.every((v) => v !== null)
+      const cost = values.reduce<number>((s, v) => s + (v ?? 0), 0)
       moves.push(
         makeMove("burn-own", set.map((a) => a.tokenId), cost, wallet, held - set.length, pixel + gained, ctx,
-          "permanent; the cost shown is the sale value you would give up"),
+          costKnown ? "permanent; the cost shown is the sale value you would give up" : "permanent; its sale value is unknown right now (no price data)",
+          costKnown),
       )
     }
   }
@@ -236,10 +246,13 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
     )
   }
 
+  // Priced moves first, best score per ETH first. A move with no ETH figure (unknown cost) is NEVER ranked above a priced
+  // one: before 2026-10-05 a null counted as +Infinity, so an unpriced "burn your own" became the headline when the
+  // listings source was down. Unpriced moves follow, by raw score gain.
   const useful = moves.filter((m) => m.scoreGain > 0.005)
-  useful.sort((a, b) =>
-    (b.gainPerEth ?? Number.POSITIVE_INFINITY) - (a.gainPerEth ?? Number.POSITIVE_INFINITY) || b.scoreGain - a.scoreGain,
-  )
+  // gainPerEth is null for two different reasons: the cost is genuinely 0 (free: best) or unknown (costKnown=false: last).
+  const rankKey = (m: Move) => (m.costKnown === false ? Number.NEGATIVE_INFINITY : (m.gainPerEth ?? Number.POSITIVE_INFINITY))
+  useful.sort((a, b) => rankKey(b) - rankKey(a) || b.scoreGain - a.scoreGain)
 
   const nb = BRACKET_CLIFFS.find((c) => c > held)
   const nx = BOOST_CLIFFS.find((c) => c > pixel)
@@ -251,7 +264,11 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
         "the moves below all add to it instead.",
     )
   }
-  notes.push("Scores use the published formula. #PIXEL has no market price yet, so moves are compared by score, not value.")
+  notes.push(
+    ctx.marketState === "live"
+      ? "Scores use the published formula. This page does not read live #PIXEL prices yet, so moves are compared by score, not value."
+      : "Scores use the published formula. #PIXEL has no market price yet, so moves are compared by score, not value.",
+  )
   return {
     held,
     pixel,

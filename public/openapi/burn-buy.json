@@ -326,7 +326,12 @@
                   }
                  },
                  "costEth": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "ETH out of pocket (buys) or the sale value you would give up (own burns). 0 together with costKnown=false means UNKNOWN, not free."
+                 },
+                 "costKnown": {
+                  "type": "boolean",
+                  "description": "False when the cost could not be priced (an own burn with no fair value and no floor price, for example when the market listings did not load). Missing means known. Moves with an unknown cost are always ranked after priced ones."
                  },
                  "heldAfter": {
                   "type": "integer"
