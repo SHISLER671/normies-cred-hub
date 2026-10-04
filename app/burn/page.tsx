@@ -21,11 +21,17 @@ import "./burn.css"
 export const dynamic = "force-dynamic"
 export const maxDuration = 20
 
+const TITLE = "Burn or keep? — Normies CredHub"
+const DESCRIPTION =
+  "Paste a wallet. Get a plain answer: which Normies to burn for #PIXEL, which to keep, and what to buy. Read-only; nothing here can sign or move anything."
+
 export const metadata: Metadata = {
   alternates: { types: { "application/json": "/api/burn-buy" } },
-  title: "Burn or keep? — Normies CredHub",
-  description:
-    "Paste a wallet. Get a plain answer: which Normies to burn for #PIXEL, which to keep, and what to buy. Read-only; nothing here can sign or move anything.",
+  title: TITLE,
+  description: DESCRIPTION,
+  // Link previews: say what this page does (the site-wide card is about Pulse, Ask and Moves). The card image comes from opengraph-image.tsx.
+  openGraph: { title: "Burn or keep? Paste a wallet, get a straight answer", description: "Read-only: no connecting, no signing. For Normies revenue share, Arena and art. Independent community tool.", url: "/burn", siteName: "Normies CredHub", type: "website" },
+  twitter: { card: "summary_large_image", title: "Burn or keep? Paste a wallet, get a straight answer", description: "Read-only: no connecting, no signing. For Normies revenue share, Arena and art. Independent community tool." },
 }
 
 /** Ryan's OWNER wallet (not 32626.eth, which is only a delegate). Shown as the example until you paste your own. */
