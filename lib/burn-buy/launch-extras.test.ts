@@ -2,7 +2,7 @@ import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
 import { adviseWallet, type HeldToken, type Listing } from "./advise"
-import { keyedTtl, withOneRetry } from "./data"
+import { findDelegations, keyedTtl, withOneRetry } from "./data"
 
 const ctx = { livingSupply: 7226, censusTotal: 25873 }
 const tok = (over: Partial<HeldToken> & { tokenId: number }): HeldToken => ({
@@ -81,5 +81,11 @@ describe("withOneRetry (listings answered empty once, then fine)", () => {
     let calls = 0
     await assert.rejects(withOneRetry(async () => { calls++; throw new Error("still empty") }, 0), /still empty/)
     assert.equal(calls, 2)
+  })
+})
+
+describe("the zero address is never a delegate", () => {
+  it("/burn: pasting 0x000...0 finds nothing, without touching the database or the chain", async () => {
+    assert.deepEqual(await findDelegations("0x0000000000000000000000000000000000000000"), [])
   })
 })

@@ -332,6 +332,9 @@ const delegationsCached = (address: string): Promise<Delegation[]> => delegation
 
 async function lookupDelegations(address: string): Promise<Delegation[]> {
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return []
+  // The zero address is how "no delegate" is stored (18 index rows hold it), so it is never a real delegate. Without this, pasting it
+  // claimed "this wallet is the Canvas delegate for 17 Normies".
+  if (/^0x0+$/i.test(address)) return []
   const [canvas, dx] = await Promise.allSettled([
     canvasDelegations(address),
     findDelegateXyz(address, { ...registryReaders(publicClient), holdersOf: vaultHoldings }),
