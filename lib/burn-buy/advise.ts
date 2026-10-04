@@ -33,6 +33,8 @@ export interface HeldToken {
   pixelSupply: number
   /** Value the owner would forgo by burning, in ETH (own fair value, else the floor). */
   forgoneValueEth: number
+  /** The owner has edited this Normie's art (Canvas). Burning it erases that art for good, so it is a KEEP reason. */
+  customized?: boolean
 }
 
 export interface Listing {
@@ -44,6 +46,8 @@ export interface Listing {
   type: string | null
   awakenedAgent: boolean
   pixelSupply: number
+  /** Its art has been edited: never offered as burn fodder. */
+  customized?: boolean
   url?: string
 }
 
@@ -67,11 +71,13 @@ export interface Context {
 
 /** Why a token should be kept. Empty array = no reason to keep it. */
 export function keepReasons(
-  t: Pick<HeldToken, "originalPixels" | "rank" | "type" | "awakenedAgent" | "pixelSupply">,
+  t: Pick<HeldToken, "originalPixels" | "rank" | "type" | "awakenedAgent" | "pixelSupply" | "customized">,
   ctx: Pick<Context, "livingSupply">,
 ): string[] {
   const out: string[] = []
   if (t.awakenedAgent) out.push("awakened agent: an on-chain identity, not fodder")
+  // Decided with Ryan 2026-10-04: edited art is a keep reason. 324 of 7,226 living Normies carry hand-made edits, and a burn erases them.
+  if (t.customized) out.push("edited art: burning it erases the art that was drawn on it, for good")
   if (t.type && t.type.toLowerCase() !== "human") out.push(`rarer type (${t.type}); Humans are about 97% of living Normies`)
   // Doctrine: the collectible frame is EXTREME LOW pixel + tiny supply. High-pixel tokens are the efficiency frame,
   // and their exact pixel counts are rare by construction (only 17 living tokens exceed 890 px), so a small

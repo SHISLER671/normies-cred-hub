@@ -139,7 +139,7 @@ const ARENA_NOTES = [
 const ART_NOTES = [
   "Pixels on a Normie are its paint budget (official Pixel Market video). They set how many pixels of its face you may change. Painting never spends them, so you can repaint as often as you like.",
   "Every edit is saved on-chain forever, with the full history of versions. Pixels can also buy a bigger canvas (up to 80 wide) or wipe the face blank.",
-  "If you have already drawn on a Normie, burning it erases that art for good. Burn yield is paid on the ORIGINAL pixel count, not your edited art.",
+  "If you have already drawn on a Normie, burning it erases that art for good, so this page marks every edited Normie KEEP. Burn yield is paid on the ORIGINAL pixel count, not your edited art.",
   "Pixel counts of rare Normies are a style choice as much as a number. If one means something to you, keep it.",
 ]
 

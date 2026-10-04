@@ -191,6 +191,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
         type: r.type,
         awakenedAgent: r.awakenedAgent,
         pixelSupply: snap.pixelSupply.get(px) ?? 0,
+        customized: r.customized ?? false,
         url: r.url,
       })
     }
@@ -248,6 +249,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
         awakenedAgent: t.awakenedAgent,
         pixelSupply: snap.pixelSupply.get(px) ?? 0,
         forgoneValueEth: t.fairValueEth ?? floor,
+        customized: t.customized ?? false,
       })
     }
     const own = new Set(held.map((h) => h.tokenId))
