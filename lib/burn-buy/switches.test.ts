@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 
 import { adviseToken, rankFodder, type HeldToken, type Listing } from "./advise"
 import { buildPageModel } from "./narrate"
-import { parseMarket, parseYieldMode } from "./switches"
+import { parseMarket, resolveYieldMode } from "./switches"
 import { burnYield, launchedBurnYield, launchTier, promoBurnYield } from "./score"
 import { buildBurnBuy, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
 
@@ -37,10 +37,20 @@ describe("normal burn yield (tiers from the Sep 23 article)", () => {
 })
 
 describe("the two switches parse strictly and independently", () => {
-  it("BURN_YIELD_MODE: only the exact word 'normal' turns normal rates on", () => {
-    assert.equal(parseYieldMode("normal"), "normal")
-    assert.equal(parseYieldMode(" Normal "), "normal")
-    for (const v of [undefined, null, "", "promo", "launched", "true", "1", "norm", "normall"]) assert.equal(parseYieldMode(v), "promo", String(v))
+  it("BURN_YIELD_MODE: the exact words 'normal' and 'promo' PIN the mode, whatever the clock says", () => {
+    const before = new Date("2026-10-05T10:00:00Z"), after = new Date("2026-10-06T10:00:00Z")
+    for (const now of [before, after]) {
+      assert.deepEqual(resolveYieldMode("normal", now), { mode: "normal", pinned: true })
+      assert.deepEqual(resolveYieldMode(" Normal ", now), { mode: "normal", pinned: true })
+      assert.deepEqual(resolveYieldMode("promo", now), { mode: "promo", pinned: true })
+    }
+  })
+
+  it("BURN_YIELD_MODE unset, empty or a typo: the CLOCK decides (promo before 16:00 UTC Oct 5, normal from then)", () => {
+    for (const v of [undefined, null, "", "launched", "true", "1", "norm", "normall"]) {
+      assert.deepEqual(resolveYieldMode(v, new Date("2026-10-05T15:59:59Z")), { mode: "promo", pinned: false }, String(v))
+      assert.deepEqual(resolveYieldMode(v, new Date("2026-10-05T16:00:00Z")), { mode: "normal", pinned: false }, String(v))
+    }
   })
 
   it("PIXEL_MARKET: only the exact word 'live' says the market is open", () => {
