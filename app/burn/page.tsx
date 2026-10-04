@@ -133,8 +133,15 @@ function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyR
             <div><dt>{w.advice.held === 1 ? "Normie" : "Normies"}</dt><dd>{w.advice.held}</dd></div>
             <div><dt>#PIXEL</dt><dd>{w.advice.pixel}</dd></div>
             <div><dt>Score</dt><dd>{w.advice.score}</dd></div>
-            <div><dt>Of the pool</dt><dd>{w.advice.sharePct}%</dd></div>
+            <div><dt>Pool share now</dt><dd>{w.advice.sharePct}%</dd></div>
           </dl>
+        )}
+
+        {model.simulatorUrl && (
+          <p className="burn-small burn-sim">
+            <a href={model.simulatorUrl} target="_blank" rel="noopener noreferrer">What could that pay? Try the revenue share simulator ↗</a>
+            <span> (normies.art, opens with your numbers filled in)</span>
+          </p>
         )}
 
         {!holds && detail.map((l, i) => <p key={i} className="burn-small">{l}</p>)}

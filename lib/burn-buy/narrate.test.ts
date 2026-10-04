@@ -226,7 +226,7 @@ describe("goals", () => {
     const notes = m.goalNotes.join(" ")
     assert.match(notes, /half of every Pixel Market fee/)
     assert.match(notes, /half of the royalties on Normie resales/)
-    assert.match(notes, /paid out in rounds and claimed on chain/)
+    assert.match(notes, /paid out monthly, in rounds, and claimed on chain/)
   })
 
   it("SHARE notes carry exactly the OFFICIAL figures (pinned from the official Pixel Market video, 2026-10-03)", () => {
