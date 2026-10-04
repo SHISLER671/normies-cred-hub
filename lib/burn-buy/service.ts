@@ -67,7 +67,7 @@ export interface Deps {
   fetchListings(): Promise<{ items: RawListing[]; floorEth: number | null; total: number }>
   loadSnapshot(): Promise<MarketSnapshot>
   /** Tokens this address is the Canvas delegate for (it can edit pixels but cannot burn). Optional. */
-  findDelegations?(address: string): Promise<Array<{ tokenId: number; owner: string }>>
+  findDelegations?(address: string): Promise<Array<DelegatedToken>>
   /** Jev's second opinion on burn candidates. Optional. Returns null when Jev is off (no key / kill switch). Only called when the market is live. */
   jevOpinions?(tokens: JevToken[]): Promise<{ opinions: Record<number, JevOpinion> } | null>
   /** How a burn pays. Optional; missing means "promo" (today). Real deps read BURN_YIELD_MODE. */
@@ -97,7 +97,7 @@ export interface BurnBuyResult {
     address: string
     ens: string | null
     /** Set when the wallet owns nothing but is a Canvas delegate: burn advice needs the owner wallet. */
-    delegateOf: Array<{ tokenId: number; owner: string }>
+    delegateOf: Array<DelegatedToken>
     advice: WalletAdvice & { holdings: Array<{ tokenId: number; originalPixels: number; actionPoints: number; rank: number | null; type: string | null }> }
     historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: number; source: string }
     /** Jev's second opinion per burn candidate (only when the market is live and Jev is on). It never changes a verdict. */
@@ -227,6 +227,13 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
       throw new SourceError("holder", `This wallet holds more than ${MAX_TOKENS} Normies; that is too many to analyse here.`, "invalid-input")
     }
     const ids = holder.tokenIds
+    // Delegations are looked up in parallel with the work below, for EVERY wallet: a hot wallet can own a few Normies and still act for a vault.
+    const delegationsP = deps.findDelegations
+      ? deps.findDelegations(holder.address).then(
+          (list) => ({ ok: true as const, list }),
+          (e: unknown) => ({ ok: false as const, error: e instanceof Error ? e.message : String(e) }),
+        )
+      : null
     let tokens: RarityToken[] = []
     if (ids.length) {
       try {
@@ -292,28 +299,47 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
         }
       }
     }
-    let delegateOf: Array<{ tokenId: number; owner: string }> = []
-    if (held.length === 0) {
-      if (deps.findDelegations) {
-        try {
-          delegateOf = await deps.findDelegations(holder.address)
-        } catch (e) {
-          caveats.push(`Could not check whether this wallet is a Canvas delegate: ${e instanceof Error ? e.message : e}`)
-        }
+    let delegateOf: Array<DelegatedToken> = []
+    let checkFailed = false
+    if (delegationsP) {
+      const r = await delegationsP
+      if (r.ok) {
+        const own = new Set(held.map((h) => h.tokenId))
+        delegateOf = r.list.filter((d) => !own.has(d.tokenId))
+      } else {
+        checkFailed = true
+        // Only worth a caveat when it matters: a wallet that owns Normies gets its own answer either way.
+        if (held.length === 0) caveats.push(`Could not check whether this wallet is a delegate (Canvas or Delegate.xyz): ${r.error}`)
       }
+    }
+    if (held.length === 0) {
       if (delegateOf.length > 0) {
-        const ids = delegateOf.map((d) => `#${d.tokenId}`).join(", ")
-        const owners = [...new Set(delegateOf.map((d) => d.owner))].join(", ")
+        const owners = ownerList(delegateOf)
+        const kinds = delegateKinds(delegateOf)
         advice.notes.push(
-          `This wallet owns no Normies, but it is the Canvas delegate for ${ids}. A delegate can edit pixels but cannot burn, ` +
-            `claim AP or transfer, so burn and buy advice needs the OWNER wallet: ${owners}.`,
+          kinds === "Canvas"
+            ? `This wallet owns no Normies, but it is the Canvas delegate for ${idSummary(delegateOf)}. A delegate can edit pixels but cannot burn, ` +
+                `claim AP or transfer, so burn and buy advice needs the OWNER wallet: ${owners}.`
+            : `This wallet owns no Normies, but it is a ${kinds} delegate for ${idSummary(delegateOf)}. A delegate is not the owner and cannot burn ` +
+                `on the owner's behalf, so burn and buy advice needs the OWNER wallet: ${owners}.`,
+        )
+      } else if (checkFailed) {
+        advice.notes.push(
+          `${holder.address} owns no Normies, and we could not check whether it is a delegate, so we cannot say it is not one. ` +
+            "If your Normie sits in another wallet, enter that wallet's address instead, or try again in a minute.",
         )
       } else {
         advice.notes.push(
-          `${holder.ens ? `${holder.ens} resolves to ${holder.address}, which` : `${holder.address}`} owns no Normies and is not a Canvas delegate for any. ` +
+          `${holder.ens ? `${holder.ens} resolves to ${holder.address}, which` : `${holder.address}`} owns no Normies and is not a Canvas or Delegate.xyz delegate for any. ` +
             "If your Normie sits in another wallet, enter that wallet's address instead.",
         )
       }
+    } else if (delegateOf.length > 0) {
+      const owners = ownerList(delegateOf)
+      advice.notes.push(
+        `This wallet also acts as a ${delegateKinds(delegateOf)} delegate for ${idSummary(delegateOf)}, which it does not own. ` +
+          `The advice above covers only what this wallet owns; burn advice for those needs the OWNER wallet: ${owners}.`,
+      )
     }
     wallet = {
       address: holder.address,
@@ -352,3 +378,26 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
 /** The index is refreshed daily by scheduled jobs; older than this means a job has been failing and the census is approximate. */
 export const STALE_HOURS = 36
 export const isStale = (refreshedIso: string, nowIso: string) => Date.parse(nowIso) - Date.parse(refreshedIso) > STALE_HOURS * 3_600_000
+
+/** A Normie this wallet is only a DELEGATE for: who owns it, and where the delegation lives (missing means Canvas). */
+export interface DelegatedToken { tokenId: number; owner: string; via?: "canvas" | "delegate.xyz" | "both" }
+
+/** "Canvas", "Delegate.xyz" or "Canvas and Delegate.xyz", from where the delegations live. */
+export function delegateKinds(list: readonly DelegatedToken[]): string {
+  const canvas = list.some((d) => d.via === undefined || d.via === "canvas" || d.via === "both")
+  const dx = list.some((d) => d.via === "delegate.xyz" || d.via === "both")
+  return canvas && dx ? "Canvas and Delegate.xyz" : dx ? "Delegate.xyz" : "Canvas"
+}
+
+/** "#7141", "#9 and #30", or for a big vault "378 Normies (including #30, #38, #61)". */
+export function idSummary(list: readonly DelegatedToken[]): string {
+  const ids = list.map((d) => d.tokenId)
+  if (ids.length <= 4) return ids.length === 1 ? `#${ids[0]}` : ids.slice(0, -1).map((i) => `#${i}`).join(", ") + ` and #${ids[ids.length - 1]}`
+  return `${ids.length} Normies (including ${ids.slice(0, 3).map((i) => `#${i}`).join(", ")})`
+}
+
+/** Distinct owners, in full for up to three, then "and 5 more": a hot wallet can act for hundreds of vaults. */
+export function ownerList(list: readonly DelegatedToken[]): string {
+  const owners = [...new Set(list.map((d) => d.owner))]
+  return owners.length <= 3 ? owners.join(", ") : `${owners.slice(0, 3).join(", ")} and ${owners.length - 3} more`
+}

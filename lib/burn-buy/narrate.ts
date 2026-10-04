@@ -4,7 +4,7 @@
 import type { Move, Verdict } from "./advise"
 import type { JevVerdict } from "./jev"
 import { BOOSTS, BRACKETS, boostFor, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
-import type { BurnBuyResult } from "./service"
+import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } from "./service"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
 
@@ -78,7 +78,7 @@ export interface PageModel {
   /** Whether Pixel Market is open. */
   marketState: MarketState
   /** Where to go if this wallet is only a Canvas delegate. */
-  delegateOf: Array<{ tokenId: number; owner: string }>
+  delegateOf: Array<DelegatedToken>
   /** Warnings that must stay visible (for example: you cannot burn them all). Also present in `lines`. */
   notices: string[]
   goal: Goal
@@ -231,10 +231,10 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
       return {
         ...base,
         state: "delegate-only",
-        headline: "This wallet can edit pixels on a Normie, but it cannot burn it.",
+        headline: delegateKinds(w.delegateOf) === "Canvas" ? "This wallet can edit pixels on a Normie, but it cannot burn it." : "This wallet is a delegate, not the owner, so it cannot burn these Normies.",
         lines: [
-          `It is a Canvas delegate for ${ids(w.delegateOf.map((d) => d.tokenId))}. Burn advice needs the OWNER wallet.`,
-          "Paste the owner wallet below to see what to burn and what to keep.",
+          `It is a ${delegateKinds(w.delegateOf)} delegate for ${idSummary(w.delegateOf)}. Burn advice needs the OWNER wallet.`,
+          "Use the owner wallet below to see what to burn and what to keep.",
         ],
         delegateOf: w.delegateOf,
         fodder,
@@ -321,6 +321,11 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   const notices: string[] = []
   const windowNotice = promoNotice(result)
   if (windowNotice) notices.push(windowNotice)
+  if (w.delegateOf.length > 0) {
+    const also = `This wallet also acts as a ${delegateKinds(w.delegateOf)} delegate for ${idSummary(w.delegateOf)}, which it does not own. The answer below covers only what it owns; use the owner wallet (listed under the answer) for the rest.`
+    lines.push(also)
+    notices.push(also)
+  }
   if (burnN > 0 && burnN >= advice.held && advice.held > 1) {
     const cap = `Burning needs a Normie left to receive it, so at most ${advice.held - 1} of these ${advice.held} can go.`
     lines.push(cap)
@@ -366,7 +371,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   }
 
   const { ledger, nextSteps } = goal === "share" ? scoreBreakdown(advice) : { ledger: [], nextSteps: [] }
-  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: [], notices, goal, goalNotes, ledger, nextSteps }
+  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: w.delegateOf, notices, goal, goalNotes, ledger, nextSteps }
 }
 
 const pctText = (n: number) => String(Number(n.toFixed(4)))

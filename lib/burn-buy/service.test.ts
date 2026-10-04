@@ -1,7 +1,7 @@
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
-import { buildBurnBuy, SourceError, type Deps, type MarketSnapshot, type RawListing, type RarityToken } from "./service"
+import { buildBurnBuy, ownerList, SourceError, type Deps, type MarketSnapshot, type RawListing, type RarityToken } from "./service"
 
 const NOW = new Date("2026-10-01T00:00:00.000Z")
 
@@ -176,7 +176,7 @@ describe("buildBurnBuy", () => {
     )
     const note = r.wallet!.advice.notes.join(" ")
     assert.match(note, /shisler671\.eth resolves to 0xae34/)
-    assert.match(note, /not a Canvas delegate/)
+    assert.match(note, /not a Canvas or Delegate\.xyz delegate/)
     assert.deepEqual(r.wallet!.delegateOf, [])
   })
 
@@ -185,20 +185,70 @@ describe("buildBurnBuy", () => {
       { wallet: "0xabc" },
       deps({ resolveHolder: async () => ({ address: "0xabc", ens: null, tokenIds: [] }), findDelegations: async () => { throw new Error("db down") } }),
     )
-    assert.ok(r.caveats.some((c) => /Could not check whether this wallet is a Canvas delegate: db down/.test(c)))
+    assert.ok(r.caveats.some((c) => /Could not check whether this wallet is a delegate \(Canvas or Delegate\.xyz\): db down/.test(c)))
     assert.equal(r.wallet!.advice.held, 0)
   })
 
-  it("does not look up delegations for a wallet that owns Normies", async () => {
-    let called = 0
-    await buildBurnBuy(
+  it("a wallet that is a Delegate.xyz delegate (a whole vault) is told so, with the owner, and is NOT told it is not a delegate", async () => {
+    const many = Array.from({ length: 30 }, (_, i) => ({ tokenId: 100 + i, owner: "0xVAULT", via: "delegate.xyz" as const }))
+    const r = await buildBurnBuy(
+      { wallet: "0xhot" },
+      deps({ resolveHolder: async () => ({ address: "0xhot", ens: null, tokenIds: [] }), findDelegations: async () => many }),
+    )
+    const note = r.wallet!.advice.notes.join(" ")
+    assert.match(note, /Delegate\.xyz delegate for 30 Normies \(including #100, #101, #102\)/)
+    assert.match(note, /OWNER wallet: 0xVAULT/)
+    assert.doesNotMatch(note, /is not a/)
+    assert.equal(r.wallet!.delegateOf.length, 30)
+    assert.equal(r.wallet!.delegateOf[0].via, "delegate.xyz")
+  })
+
+  it("when the delegation check failed it never claims 'not a delegate': it says it could not check", async () => {
+    const r = await buildBurnBuy(
+      { wallet: "0xabc" },
+      deps({ resolveHolder: async () => ({ address: "0xabc", ens: null, tokenIds: [] }), findDelegations: async () => { throw new Error("rpc down") } }),
+    )
+    const note = r.wallet!.advice.notes.join(" ")
+    assert.match(note, /could not check whether it is a delegate/)
+    assert.doesNotMatch(note, /is not a Canvas/)
+  })
+
+  it("a wallet that owns Normies and is ALSO a delegate gets its own answer plus a note about the rest (never including tokens it owns)", async () => {
+    const r = await buildBurnBuy(
       { wallet: "0xabc" },
       deps({
         resolveHolder: async () => ({ address: "0xabc", ens: null, tokenIds: [7141] }),
         fetchTokens: async () => [tk(7141, { awakenedAgent: true })],
-        findDelegations: async () => { called++; return [] },
+        findDelegations: async () => [
+          { tokenId: 7141, owner: "0xabc" }, // its own token: not a delegation worth reporting
+          { tokenId: 30, owner: "0xVAULT", via: "delegate.xyz" as const },
+          { tokenId: 38, owner: "0xVAULT", via: "delegate.xyz" as const },
+        ],
       }),
     )
-    assert.equal(called, 0)
+    assert.equal(r.wallet!.advice.held, 1)
+    assert.deepEqual(r.wallet!.delegateOf.map((d) => d.tokenId), [30, 38])
+    assert.match(r.wallet!.advice.notes.join(" "), /also acts as a Delegate\.xyz delegate for #30 and #38/)
+  })
+
+  it("a delegation lookup failure for a wallet that owns Normies is silent: it still gets its answer, no scary caveat", async () => {
+    const r = await buildBurnBuy(
+      { wallet: "0xabc" },
+      deps({
+        resolveHolder: async () => ({ address: "0xabc", ens: null, tokenIds: [7141] }),
+        fetchTokens: async () => [tk(7141, { awakenedAgent: true })],
+        findDelegations: async () => { throw new Error("rpc down") },
+      }),
+    )
+    assert.equal(r.wallet!.advice.held, 1)
+    assert.ok(!r.caveats.some((c) => /delegate/i.test(c)))
+  })
+})
+
+describe("ownerList", () => {
+  it("lists up to three owners in full and summarises the rest", () => {
+    const d = (owner: string) => ({ tokenId: 1, owner })
+    assert.equal(ownerList([d("a"), d("b"), d("a")]), "a, b")
+    assert.equal(ownerList(["a", "b", "c", "d", "e"].map(d)), "a, b, c and 2 more")
   })
 })

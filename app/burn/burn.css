@@ -242,3 +242,4 @@
 .burn-page .burn-answer { border-color: var(--accent); }
 .burn-page .burn-answer[data-tag]::before { border-color: var(--accent); }
 .burn-page .burn-link, .burn-page .burn-example, .burn-page .burn-hint { text-align: left; }
+.burn-page .burn-delegates { margin: 4px 0 14px; }

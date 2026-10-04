@@ -317,3 +317,28 @@ describe("scoreBreakdown: how your score adds up", () => {
     assert.equal(scoreBreakdown({ ...base, score, nextBracket: null, nextBoost: null }).nextSteps.length, 0)
   })
 })
+
+describe("delegate-only wording", () => {
+  const empty = () => withAdvice({ held: 0, pixel: 0, tokens: [], holdings: [], moves: [] })
+  it("a Delegate.xyz delegate is not described as a Canvas delegate, and still gets the owner", () => {
+    const r = empty()
+    r.wallet!.delegateOf = [{ tokenId: 7141, owner: "0xfafd", via: "delegate.xyz" }]
+    const m = buildPageModel(r)
+    assert.equal(m.state, "delegate-only")
+    assert.match(m.lines.join(" "), /Delegate\.xyz delegate for #7141/)
+    assert.doesNotMatch(m.headline, /edit pixels/)
+    assert.deepEqual(m.delegateOf, [{ tokenId: 7141, owner: "0xfafd", via: "delegate.xyz" }])
+  })
+  it("a Canvas delegate keeps the pixel-editing wording", () => {
+    const r = empty()
+    r.wallet!.delegateOf = [{ tokenId: 7141, owner: "0xfafd" }]
+    assert.match(buildPageModel(r).headline, /edit pixels/)
+  })
+  it("a big vault is summarised, not listed 378 times", () => {
+    const r = empty()
+    r.wallet!.delegateOf = Array.from({ length: 378 }, (_, i) => ({ tokenId: 30 + i, owner: "0xvault", via: "delegate.xyz" as const }))
+    const line = buildPageModel(r).lines.join(" ")
+    assert.match(line, /378 Normies \(including #30, #31, #32\)/)
+    assert.ok(line.length < 300)
+  })
+})

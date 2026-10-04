@@ -3,63 +3,20 @@
 import { useQuery } from "@tanstack/react-query"
 import { getAddress } from "viem"
 
-import {
-  DELEGATE_REGISTRY,
-  DELEGATE_REGISTRY_ABI,
-  NORMIES_NFT,
-} from "@/constants/contracts"
 import { enrichOwnedNormies, normiesApi } from "@/lib/api/normies"
+import { findDelegateXyz, registryReaders } from "@/lib/delegations"
 import { publicClient } from "@/lib/viem-client"
 import type { OwnedNormie } from "@/lib/types"
 
 const CANVAS_DELEGATE_CACHE_MS = 10 * 60 * 1000
 
+/** Delegate.xyz v1 + v2 through the shared, tested module (lib/delegations.ts). Never throws: a failed read just yields no ids here. */
 async function fetchDelegateXyzTokenIds(wallet: `0x${string}`): Promise<number[]> {
-  const delegatedIds: number[] = []
-
-  try {
-    const delegations = (await publicClient.readContract({
-      address: DELEGATE_REGISTRY,
-      abi: DELEGATE_REGISTRY_ABI,
-      functionName: "getDelegationsByDelegate",
-      args: [wallet],
-    })) as Array<{
-      vault: string
-      delegate: string
-      contract_: string
-      tokenId: bigint
-      rights: string
-    }>
-
-    const fullCollectionVaults: string[] = []
-
-    for (const d of delegations) {
-      if (d.contract_?.toLowerCase() !== NORMIES_NFT.toLowerCase()) continue
-
-      if (d.tokenId === BigInt(0)) {
-        fullCollectionVaults.push(d.vault)
-      } else {
-        delegatedIds.push(Number(d.tokenId))
-      }
-    }
-
-    for (const vault of fullCollectionVaults) {
-      try {
-        const vaultAddr = getAddress(vault) as `0x${string}`
-        const holders = await normiesApi.holders(vaultAddr)
-        for (const id of holders.tokenIds ?? []) {
-          const parsed = Number(id)
-          if (Number.isFinite(parsed)) delegatedIds.push(parsed)
-        }
-      } catch {
-        // Vault enumeration may fail on stale RPC/indexer data
-      }
-    }
-  } catch {
-    // Delegation registry failures are common on public RPCs
-  }
-
-  return delegatedIds
+  const { entries } = await findDelegateXyz(wallet, {
+    ...registryReaders(publicClient),
+    holdersOf: async (vault) => ((await normiesApi.holders(vault)).tokenIds ?? []).map((id) => Number(id)).filter((n) => Number.isFinite(n)),
+  })
+  return entries.map((e) => e.tokenId)
 }
 
 function readCanvasDelegateCache(address: string): number[] | null {

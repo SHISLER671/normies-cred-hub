@@ -4471,3 +4471,13 @@
 .zulo-chrome .ask-skills-summary { font-size: 12px; opacity: 1; color: var(--text-quiet); }
 .zulo-chrome.ask-page-wrap .site-footer { padding: 12px 20px; }
 .zulo-chrome.ask-page-wrap .site-footer-inner { max-width: none; padding: 0; }
+
+/* the one-line promise about signing, in every footer */
+.zulo-chrome .site-footer-note {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--text-quiet);
+}
