@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { useState, useTransition, type FormEvent, type ReactNode } from "react"
 
 import { GOALS, type Goal } from "@/lib/burn-buy/narrate"
+import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 
 /**
  * The wallet box and the goal tabs for /burn.
@@ -19,7 +20,7 @@ export function BurnForm({ wallet, goal, children }: { wallet: string; goal: Goa
   const [current, setCurrent] = useState<Goal>(goal)
 
   const go = (w: string, g: Goal) =>
-    start(() => router.push(`/burn?wallet=${encodeURIComponent(w.trim())}&goal=${g}`, { scroll: false }))
+    start(() => router.push(`/burn?wallet=${encodeURIComponent(normalizeWalletInput(w))}&goal=${g}`, { scroll: false }))
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()

@@ -173,6 +173,8 @@ export interface WalletAdvice {
   pixel: number
   score: number
   sharePct: number
+  /** Everyone else's combined score (the census minus this wallet), so a share can be checked by hand: score / (othersScore + score). */
+  othersScore: number
   tokens: TokenAdvice[]
   nextBracket: { atHeld: number; needMore: number } | null
   nextBoost: { atPixel: number; needMore: number } | null
@@ -255,6 +257,7 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
     pixel,
     score: round(score, 2),
     sharePct: pct(score / Math.max(1e-9, others + score)),
+    othersScore: round(others, 1),
     tokens: advice,
     nextBracket: nb ? { atHeld: nb, needMore: nb - held } : null,
     nextBoost: nx ? { atPixel: nx, needMore: nx - pixel } : null,

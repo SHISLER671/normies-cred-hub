@@ -204,3 +204,26 @@
 .burn-page .burn-sim { margin: 0 0 12px; }
 .burn-page .burn-sim a { color: var(--text-primary); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; font-weight: 600; }
 .burn-page .burn-sim span { color: var(--mute); font-size: 14px; }
+
+/* clarity pass: next-step card, score ledger, the four-step loop, and bigger tap targets (44px minimum) */
+.burn-page .burn-next { margin: 0 0 14px; padding: 12px 14px; border: 1px dashed var(--accent); }
+.burn-page .burn-next .burn-cap { margin: 0 0 8px; }
+.burn-page .burn-next ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.burn-page .burn-next li { display: grid; gap: 2px; font: 400 15px/1.5 var(--body); color: var(--text-secondary); }
+.burn-page .burn-next strong { font-weight: 600; color: var(--text-primary); }
+.burn-page .burn-ledger { margin: 4px 0 14px; }
+.burn-page .burn-ledger .burn-cap { margin: 8px 0; }
+.burn-page .burn-ledger dl { margin: 0; border-top: 1px solid var(--border-light); }
+.burn-page .burn-ledger dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-light); font: 400 15px/1.4 var(--body); color: var(--text-secondary); }
+.burn-page .burn-ledger dd { margin: 0; font-family: var(--font-mono); color: var(--text-primary); white-space: nowrap; }
+.burn-page .burn-ledger dl > div[data-strong="true"] { color: var(--text-primary); font-weight: 600; }
+.burn-page .burn-loop { list-style: none; margin: 4px 0 16px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; counter-reset: loop; }
+.burn-page .burn-loop li { position: relative; display: grid; gap: 4px; align-content: start; padding: 10px; border: 1px solid var(--border-light); font: 400 13px/1.4 var(--body); color: var(--text-secondary); }
+.burn-page .burn-loop li strong { font: 700 11px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-primary); }
+.burn-page .burn-loop li:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); background: var(--bg-primary); color: var(--accent); font: 700 14px var(--font-mono); line-height: 1; z-index: 1; }
+@media (max-width: 560px) {
+  .burn-page .burn-loop { grid-template-columns: 1fr; }
+  .burn-page .burn-loop li:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -11px; transform: translateX(-50%); }
+}
+.burn-page .burn-more summary { display: flex; align-items: center; min-height: 44px; }
+.burn-page .burn-link summary { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }

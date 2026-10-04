@@ -12,6 +12,7 @@ import { buildPageModel, GOALS, MAX_ROWS, parseGoal, type Goal, type PageModel }
 import { buildBurnBuy, SourceError, type BurnBuyResult } from "@/lib/burn-buy/service"
 import { checkRateLimitById } from "@/lib/ratelimit"
 import { burnJsonLd, jsonLdScript } from "@/lib/burn-buy/jsonld"
+import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
 
 import "../zulo/styles.css"
@@ -65,7 +66,8 @@ const GOAL_NAME = { share: "Revenue share", arena: "Arena", art: "Art" } as cons
 export default async function BurnPage({ searchParams }: { searchParams: Promise<{ wallet?: string | string[]; goal?: string | string[] }> }) {
   const sp = await searchParams
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim()
-  const raw = first(sp.wallet)
+  const typed = first(sp.wallet)
+  const raw = typed ? normalizeWalletInput(typed) : typed
   const goal = parseGoal(first(sp.goal))
   const isExample = !raw
   const wallet = raw || EXAMPLE_WALLET
@@ -137,6 +139,17 @@ function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyR
           </dl>
         )}
 
+        {model.nextSteps.length > 0 && (
+          <section className="burn-next" aria-labelledby="next-h">
+            <h3 id="next-h" className="burn-cap">Next step</h3>
+            <ul>
+              {model.nextSteps.map((n) => (
+                <li key={n.title}><strong>{n.title}</strong><span>{n.detail}</span></li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {model.simulatorUrl && (
           <p className="burn-small burn-sim">
             <a href={model.simulatorUrl} target="_blank" rel="noopener noreferrer">What could that pay? Try the revenue share simulator ↗</a>
@@ -157,10 +170,21 @@ function Results({ model, result, wallet }: { model: PageModel; result: BurnBuyR
 
         <p className="burn-cap">For {who} · as of <time dateTime={result.asOf}>{utc(result.asOf)}</time>{model.marketState === "live" && " · Pixel Market live"}</p>
 
-        {holds && detail.length > 0 && (
+        {holds && (detail.length > 0 || model.ledger.length > 0) && (
           <details className="burn-more">
             <summary>More detail</summary>
-            <ul className="burn-plain">{detail.map((l, i) => <li key={i}>{l}</li>)}</ul>
+            {model.ledger.length > 0 && (
+              <div className="burn-ledger">
+                <h3 className="burn-cap">How your score adds up</h3>
+                <dl>
+                  {model.ledger.map((r) => (
+                    <div key={r.label} data-strong={r.strong ? "true" : undefined}><dt>{r.label}</dt><dd>{r.value}</dd></div>
+                  ))}
+                </dl>
+                <p className="burn-small">Score = (Normies x multiplier + #PIXEL ÷ 5) x (1 + boost). Your share = your score ÷ (everyone else + your score).</p>
+              </div>
+            )}
+            {detail.length > 0 && <ul className="burn-plain">{detail.map((l, i) => <li key={i}>{l}</li>)}</ul>}
           </details>
         )}
       </section>
@@ -245,6 +269,14 @@ function GoalNotes({ model }: { model: PageModel }) {
   return (
     <details className="burn-box burn-fold" data-tag="Good to know">
       <summary><span>{title}</span></summary>
+      {model.goal === "share" && (
+        <ol className="burn-loop" aria-label="The loop, in four steps">
+          <li><strong>Hold</strong><span>Normies and #PIXEL in one wallet</span></li>
+          <li><strong>Pool</strong><span>half of Pixel Market fees and royalties</span></li>
+          <li><strong>Paid monthly</strong><span>split by your share, claimed on chain</span></li>
+          <li><strong>Grow</strong><span>burn or hold for a bigger score, repeat</span></li>
+        </ol>
+      )}
       <ul className="burn-plain">{model.goalNotes.map((n, i) => <li key={i}>{n}</li>)}</ul>
     </details>
   )

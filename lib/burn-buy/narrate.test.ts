@@ -2,7 +2,8 @@ import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
 import type { Move, TokenAdvice } from "./advise"
-import { buildPageModel, describeMove, levelOf, parseGoal, safeUrl } from "./narrate"
+import { buildPageModel, describeMove, levelOf, parseGoal, safeUrl, scoreBreakdown } from "./narrate"
+import { walletScore } from "./score"
 import type { BurnBuyResult } from "./service"
 
 const move = (over: Partial<Move> = {}): Move => ({
@@ -14,7 +15,7 @@ const tok = (tokenId: number, verdict: TokenAdvice["verdict"], reasons: string[]
 
 function result(over: Partial<NonNullable<BurnBuyResult["wallet"]>> | null, extra: Partial<BurnBuyResult> = {}): BurnBuyResult {
   const advice = {
-    held: 1, pixel: 12, score: 3.4, sharePct: 0.0131, tokens: [tok(7141, "keep", ["awakened agent: an on-chain identity, not fodder"], 30, 18, 12)],
+    held: 1, pixel: 12, score: 3.4, sharePct: 0.0131, othersScore: 25873, tokens: [tok(7141, "keep", ["awakened agent: an on-chain identity, not fodder"], 30, 18, 12)],
     nextBracket: { atHeld: 2, needMore: 1 }, nextBoost: { atPixel: 15, needMore: 3 }, moves: [move()], notes: ["Scores use the published formula."],
     holdings: [{ tokenId: 7141, originalPixels: 454, actionPoints: 12, rank: 3874, type: "Human" }],
   }
@@ -288,5 +289,31 @@ describe("card data for the compact layout", () => {
     assert.match(notes, /You do not steer it/)
     assert.match(notes, /The Maw/)
     assert.match(notes, /gives no numbers/)
+  })
+})
+
+describe("scoreBreakdown: how your score adds up", () => {
+  const base = { held: 3, pixel: 100, sharePct: 0.11, othersScore: 27990, nextBracket: { atHeld: 5, needMore: 2 }, nextBoost: { atPixel: 500, needMore: 400 } }
+  const score = walletScore(3, 100)
+  const out = scoreBreakdown({ ...base, score })
+
+  it("reproduces the simulator's worked example (3 Normies, 100 #PIXEL)", () => {
+    const v = Object.fromEntries(out.ledger.map((r) => [r.label.split(" (")[0], r.value]))
+    assert.equal(v["Normies"], "3.45")
+    assert.equal(v["#PIXEL"], "20")
+    assert.equal(v["Boost from #PIXEL"], "+35%")
+    assert.equal(v["Your score"], "31.66")
+    assert.equal(v["Everyone else"], "27,990")
+  })
+  it("the next steps use the exact formula and say they are a minimum", () => {
+    assert.equal(out.nextSteps.length, 2)
+    assert.match(out.nextSteps[0].title, /^2 more Normies \(5 in all\) for a 1\.3x multiplier$/)
+    assert.match(out.nextSteps[0].detail, new RegExp(`to ${String(Number(walletScore(5, 100).toFixed(2)))} `))
+    assert.match(out.nextSteps[1].title, /^400 more #PIXEL \(500 in all\) for a \+60% boost$/)
+    assert.ok(out.nextSteps.every((s) => /At least/.test(s.detail)))
+  })
+  it("is empty for a wallet with no Normies and has no step when already at the top", () => {
+    assert.deepEqual(scoreBreakdown({ ...base, held: 0, pixel: 0, score: 0 }), { ledger: [], nextSteps: [] })
+    assert.equal(scoreBreakdown({ ...base, score, nextBracket: null, nextBoost: null }).nextSteps.length, 0)
   })
 })
