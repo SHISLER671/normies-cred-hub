@@ -35,7 +35,7 @@ JSON: GET /api/burn-buy?wallet=<0x address or name.eth>
 Without wallet you get the market only (cheapest #PIXEL per ETH) and the census.
 Spec: /openapi/burn-buy.json
 Per Normie held: keep, burn candidate or either, with the reason; ranked moves by exact score change.
-yieldMode is "promo" (fixed 4%, ends Monday Oct 5 per Serc in the community chat) or "normal" (a roll inside a range; figures are the middle of the range with the range beside them). marketState is "pending" or "live".
+yieldMode is "promo" (fixed 4%) or "normal" (a roll inside a range; figures are the middle of the range with the range beside them). The 4% was announced (Serc, community chat, not independently verified) to end by 8 PM Central European time = 18:00 UTC on Monday Oct 5, possibly 1 to 2 hours earlier; this API flips to "normal" by itself from 16:00 UTC Oct 5 unless the site owner pinned it. See promo.window in the response. marketState is "pending" or "live".
 Look-only: reads public chain data. It never asks for keys, seeds or signatures. Not financial advice. A burn is permanent.
 Independent community tool, not made or endorsed by the Normies team.
 Limits: 12 requests per minute per IP; wallets holding more than 1000 Normies are refused.

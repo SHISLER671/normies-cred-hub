@@ -8,7 +8,7 @@ import { getSupabase } from "@/lib/db/supabase"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
 import { fetchJevOpinions } from "./jev"
-import { currentMarket, currentYieldMode } from "./switches"
+import { currentMarket, currentYieldMode, currentYieldPinned } from "./switches"
 import { walletScore } from "./score"
 import { SourceError, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
 
@@ -221,7 +221,8 @@ export const realDeps: Deps = {
     if (!apiKey || process.env.JEV_DISABLE === "1") return null
     return fetchJevOpinions(tokens, { apiKey })
   },
-  yieldMode: currentYieldMode,
+  yieldMode: () => currentYieldMode(),
+  yieldPinned: () => currentYieldPinned(),
   marketState: currentMarket,
   now: () => new Date(),
 }

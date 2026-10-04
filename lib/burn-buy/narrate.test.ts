@@ -22,7 +22,7 @@ function result(over: Partial<NonNullable<BurnBuyResult["wallet"]>> | null, extr
     asOf: "2026-10-03T00:00:00Z",
     yieldMode: "promo",
     marketState: "pending",
-    promo: { ratePercent: 4, basis: "", ends: "" },
+    promo: { ratePercent: 4, basis: "", ends: "", window: { state: "open", earliestEnd: "2026-10-05T16:00:00Z", latestEnd: "2026-10-05T18:00:00Z", pinned: false } },
     wallet: over === null ? null : { address: "0xabc", ens: null, delegateOf: [], advice, historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: 0, source: "" }, ...over },
     market: { floorEth: 0.286, listedCount: 3, bestPixelFodder: [{ tokenId: 1, priceEth: 0.29, actionPoints: 0, originalPixels: 700, yieldTotal: 28, fromPixels: 28, yieldPerEth: 96.55, url: "https://example.com/1" }, { tokenId: 2, priceEth: 0.3, actionPoints: 0, originalPixels: 650, yieldTotal: 26, fromPixels: 26, yieldPerEth: 86.6, url: "javascript:alert(1)" }], bestApCarriers: [], skippedListings: 0 },
     census: { wallets: 1723, totalScore: 25872.7, livingSupply: 7226, indexOldestIndexedAt: null },
@@ -274,10 +274,11 @@ describe("card data for the compact layout", () => {
 
   it("the cannot-burn-them-all warning is a visible notice; ordinary wallets have none", () => {
     const all = buildPageModel(withAdvice({ held: 3, tokens: [tok(1, "burn", ["p"]), tok(2, "burn", ["p"]), tok(3, "burn", ["p"])], holdings: [] }))
-    assert.equal(all.notices.length, 1)
-    assert.match(all.notices[0], /at most 2 of these 3 can go/)
-    assert.ok(all.lines.includes(all.notices[0]))
-    assert.equal(buildPageModel(result({})).notices.length, 0)
+    const cap = all.notices.filter((n) => /at most 2 of these 3 can go/.test(n))
+    assert.equal(cap.length, 1)
+    assert.ok(all.lines.includes(cap[0]))
+    // the only other notice an ordinary wallet gets is the one about the 4% window (the fixture's window is open)
+    assert.deepEqual(buildPageModel(result({})).notices.filter((n) => !/4% rate/.test(n)), [])
     assert.equal(buildPageModel(null).notices.length, 0)
   })
 

@@ -15,7 +15,7 @@
    "get": {
     "operationId": "burnBuy",
     "summary": "Burn / keep / buy advice for a wallet, or the market alone",
-    "description": "With `wallet`: a verdict for every Normie held, ranked moves by exact score change, and the market. Without it: only the market (cheapest #PIXEL per ETH) and the census. `yieldMode` says how a burn pays (`promo` = fixed 4%, ends Monday Oct 5 per Serc; `normal` = a roll inside a range). `marketState` says whether Pixel Market is open.",
+    "description": "With `wallet`: a verdict for every Normie held, ranked moves by exact score change, and the market. Without it: only the market (cheapest #PIXEL per ETH) and the census. `yieldMode` says how a burn pays (`promo` = fixed 4%, announced to end by 8 PM Central European time on Monday Oct 5 and possibly 1 to 2 hours earlier, per Serc; `normal` = a roll inside a range; flips by itself from 16:00 UTC Oct 5 unless pinned). `marketState` says whether Pixel Market is open.",
     "parameters": [
      {
       "name": "wallet",
@@ -56,7 +56,8 @@
            "enum": [
             "promo",
             "normal"
-           ]
+           ],
+           "description": "How a burn pays: `promo` (fixed 4%) or `normal` (a roll inside a range). Flips from promo to normal by itself at promo.window.earliestEnd (2026-10-05T16:00:00Z) unless pinned by the site owner."
           },
           "marketState": {
            "type": "string",
@@ -70,7 +71,8 @@
            "required": [
             "ratePercent",
             "basis",
-            "ends"
+            "ends",
+            "window"
            ],
            "properties": {
             "ratePercent": {
@@ -85,6 +87,39 @@
             },
             "ends": {
              "type": "string"
+            },
+            "window": {
+             "type": "object",
+             "required": [
+              "state",
+              "earliestEnd",
+              "latestEnd",
+              "pinned"
+             ],
+             "description": "The announced end of the fixed 4% (Serc in the Normies community chat, relayed, not independently verified): until 8 PM Central European time (18:00 UTC) on Monday 2026-10-05, possibly 1 to 2 hours earlier. `yieldMode` flips to `normal` BY ITSELF from `earliestEnd` unless the site owner pinned it.",
+             "properties": {
+              "state": {
+               "type": "string",
+               "enum": [
+                "open",
+                "may-have-closed",
+                "closed"
+               ],
+               "description": "open: before earliestEnd. may-have-closed: between earliestEnd and latestEnd. closed: after latestEnd."
+              },
+              "earliestEnd": {
+               "type": "string",
+               "format": "date-time"
+              },
+              "latestEnd": {
+               "type": "string",
+               "format": "date-time"
+              },
+              "pinned": {
+               "type": "boolean",
+               "description": "True when the site owner fixed `yieldMode` by hand, so the clock does not decide it."
+              }
+             }
             }
            }
           },
