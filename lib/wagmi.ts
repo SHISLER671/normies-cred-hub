@@ -2,6 +2,17 @@
 
 import { ZULO } from "@/constants/contracts"
 import { getDefaultConfig } from "@rainbow-me/rainbowkit"
+import {
+  coinbaseWallet,
+  injectedWallet,
+  ledgerWallet,
+  metaMaskWallet,
+  phantomWallet,
+  rabbyWallet,
+  rainbowWallet,
+  trustWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets"
 import { http } from "viem"
 import { mainnet } from "wagmi/chains"
 import { RPC_URL } from "@/lib/viem-client"
@@ -37,6 +48,12 @@ export const wagmiConfig = getDefaultConfig({
   appUrl,
   appIcon: 'https://normies-cred-hub-dashboard.vercel.app/icon.png',
   projectId,
+  // The wallets this community actually uses, hardware-friendly ones included (Rabby and Ledger first-class, not buried
+  // behind WalletConnect). injectedWallet catches any other browser wallet that is installed.
+  wallets: [
+    { groupName: "Popular", wallets: [rainbowWallet, metaMaskWallet, rabbyWallet, coinbaseWallet] },
+    { groupName: "Hardware and more", wallets: [ledgerWallet, phantomWallet, trustWallet, walletConnectWallet, injectedWallet] },
+  ],
   chains: [mainnet],
   transports: {
     [mainnet.id]: http(RPC_URL),
