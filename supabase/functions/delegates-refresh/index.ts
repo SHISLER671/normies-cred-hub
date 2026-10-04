@@ -10,6 +10,9 @@ import { planDelegateChanges } from "./plan.ts"
 const API = "https://api.normies.art"
 const SLICE = 80
 const DELAY_MS = 1250 // 0.8 requests a second, under the documented 60 a minute
+// The platform allows 150 s of wall clock and a full slice takes about 105 s (132 s was seen once). Stop reading before the limit and move the
+// position only as far as we really got, instead of being killed with the position unmoved.
+const BUDGET_MS = 100_000
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 const same = (a: string, b: string) => a.length === b.length && [...a].reduce((d, c, i) => d | (c.charCodeAt(0) ^ b.charCodeAt(i)), 0) === 0
@@ -33,6 +36,7 @@ async function getJson(path: string): Promise<any> {
 type Item = { tokenId: string; agentId: string }
 
 async function run(db: ReturnType<typeof createClient>, dry: boolean) {
+  const started = Date.now()
   const { data: state } = await db.from("census_sync").select("summary").eq("job", "delegates").maybeSingle()
   const cursor: string | null = (state?.summary as { nextCursor?: string | null } | undefined)?.nextCursor ?? null
 
@@ -48,17 +52,20 @@ async function run(db: ReturnType<typeof createClient>, dry: boolean) {
   const indexed = new Map<number, string | null>((rows ?? []).map((r: { token_id: number; delegate: string | null }) => [r.token_id, r.delegate]))
 
   const observed = new Map<number, string | null | undefined>()
+  let done = 0
   for (const id of ids) {
+    if (done > 0 && Date.now() - started > BUDGET_MS) break
     await sleep(DELAY_MS)
     const info = await getJson(`/normie/${id}/canvas/info`)
     observed.set(id, info.error ? undefined : info.delegate && !/^0x0+$/.test(info.delegate) ? String(info.delegate).toLowerCase() : null)
+    done++
   }
 
   const plan = planDelegateChanges(observed, indexed)
-  const hasMoreAfter = Boolean(page.hasMore) || all.length > SLICE
-  const nextCursor = hasMoreAfter ? items[items.length - 1].agentId : null
+  const hasMoreAfter = Boolean(page.hasMore) || all.length > done
+  const nextCursor = hasMoreAfter ? items[done - 1].agentId : null
   const result = {
-    dry, processed: ids.length, cycleDone: !hasMoreAfter, nextCursor, changes: plan.changes.length, unknown: plan.unknown, unchanged: plan.unchanged, notInIndex: plan.notInIndex.length,
+    dry, processed: done, cycleDone: !hasMoreAfter, nextCursor, changes: plan.changes.length, unknown: plan.unknown, unchanged: plan.unchanged, notInIndex: plan.notInIndex.length,
     changed: plan.changes.map((c) => `#${c.tokenId} ${c.kind}`),
   }
   if (dry) return result
