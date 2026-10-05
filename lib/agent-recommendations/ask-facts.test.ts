@@ -714,3 +714,64 @@ describe("Ask: painting, Level, Canvas and Arena stay inside the official facts 
     assert.match(tool!.description, /read-only/)
   })
 })
+
+describe("Ask prompt hygiene: no knowledge block is pasted twice (audit 2026-10-05)", () => {
+  // The COLLAB / RAILS block (21,645 chars) and the ERC-6551 block used to be in the system prompt AND pasted again whenever the question
+  // matched, adding about 23,000 characters of exact duplicates to every matching question.
+  const queries = [
+    "Is Pixel Market live?",
+    "Tell me about the Stonk collab",
+    "How does x402 work for agents?",
+    "What is an ERC-6551 token bound account?",
+    "What is Arena?",
+    "Should I burn my Normie?",
+  ]
+  it("no block longer than 400 characters appears twice in a composed prompt", () => {
+    for (const q of queries) {
+      const prompt = composeZuloPrompt(generalContext(), q)
+      const blocks = prompt.split(/\n(?==== )/).filter((b) => b.length > 400)
+      const seen = new Map<string, number>()
+      for (const b of blocks) seen.set(b, (seen.get(b) ?? 0) + 1)
+      const dupes = [...seen].filter(([, n]) => n > 1).map(([b]) => b.split("\n")[0])
+      assert.deepEqual(dupes, [], `duplicate block(s) for: ${q}`)
+    }
+  })
+  it("a collab question still gets the full doctrine exactly once", () => {
+    const prompt = composeZuloPrompt(generalContext(), "Tell me about the Stonk collab")
+    const marker = "Always-on Ask doctrine."
+    assert.equal(prompt.split(marker).length - 1, 1)
+  })
+})
+
+describe("Ask follows the same Pixel Market switch as /burn (PIXEL_MARKET)", () => {
+  const withMarket = (value: string | undefined, run: () => void) => {
+    const before = process.env.PIXEL_MARKET
+    if (value === undefined) delete process.env.PIXEL_MARKET
+    else process.env.PIXEL_MARKET = value
+    try { run() } finally { if (before === undefined) delete process.env.PIXEL_MARKET; else process.env.PIXEL_MARKET = before }
+  }
+  it("by default (unset): launch announced for Monday, October 5, never says it is open", () => {
+    withMarket(undefined, () => {
+      const p = composeZuloPrompt(generalContext(), "Is Pixel Market live?")
+      assert.match(p, /LIVE STATUS: PIXEL MARKET \(overrides any older wording below\)/)
+      assert.match(p, /launches on Monday, October 5, 2026/)
+      assert.match(p, /Never say it is open or live, and never invent a time/)
+      assert.doesNotMatch(p, /The Pixel Market is OPEN/)
+    })
+  })
+  it("PIXEL_MARKET=live: open, but Ask still has no live prices and points to the official page and /burn", () => {
+    withMarket("live", () => {
+      const p = composeZuloPrompt(generalContext(), "Is Pixel Market live?")
+      assert.match(p, /The Pixel Market is OPEN \(confirmed by the site owner\)/)
+      assert.match(p, /You have NO live market data: never quote #PIXEL prices/)
+      assert.match(p, /https:\/\/normiescredhub\.vercel\.app\/burn/)
+      assert.match(p, /overrides any older "not open yet" or "Coming Soon" wording/)
+      assert.doesNotMatch(p, /Never say it is open or live/)
+    })
+  })
+  it("a typo does not open the market (strict, like /burn)", () => {
+    withMarket("Live!", () => {
+      assert.match(composeZuloPrompt(generalContext(), "x"), /Never say it is open or live/)
+    })
+  })
+})
