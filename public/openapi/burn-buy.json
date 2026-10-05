@@ -96,7 +96,7 @@
               "latestEnd",
               "pinned"
              ],
-             "description": "The announced end of the fixed 4% (Serc in the Normies community chat, relayed, not independently verified): until 8 PM Central European time (18:00 UTC) on Monday 2026-10-05, possibly 1 to 2 hours earlier. `yieldMode` flips to `normal` BY ITSELF from `earliestEnd` unless the site owner pinned it.",
+             "description": "The announced end of the fixed 4% (Serc in the Normies community chat, relayed, not independently verified): until 8 PM Central European time (18:00 UTC) on Monday 2026-10-05, possibly 1 to 2 hours earlier. The window is only the FALLBACK: when `source` is `contract`, `yieldMode` follows the contract exactly. Otherwise it flips to `normal` BY ITSELF from `earliestEnd` unless the site owner pinned it.",
              "properties": {
               "state": {
                "type": "string",
@@ -118,6 +118,44 @@
               "pinned": {
                "type": "boolean",
                "description": "True when the site owner fixed `yieldMode` by hand, so the clock does not decide it."
+              }
+             }
+            },
+            "source": {
+             "type": "string",
+             "enum": [
+              "pinned",
+              "contract",
+              "clock"
+             ],
+             "description": "Who decided `yieldMode`: `pinned` (the site owner set it), `contract` (the Normies contract itself, read live from the official /canvas/status: every tier minimum equal to the 4% maximum means the fixed 4% is active, a lower minimum means the normal tiered roll), or `clock` (a guess from the announced window, used only when the contract could not be read). `contract` is the most trustworthy."
+            },
+            "contract": {
+             "type": [
+              "object",
+              "null"
+             ],
+             "description": "The contract's own burn settings when they could be read (official /canvas/status), otherwise null. `paused` true means nothing can be burned right now.",
+             "properties": {
+              "paused": {
+               "type": "boolean"
+              },
+              "maxBurnPercent": {
+               "type": "number"
+              },
+              "tierThresholds": {
+               "type": "array",
+               "items": {
+                "type": "number"
+               },
+               "description": "Original pixel counts that separate the tiers (490 and 890 at the time of writing)."
+              },
+              "tierMinPercents": {
+               "type": "array",
+               "items": {
+                "type": "number"
+               },
+               "description": "The minimum yield percent of each tier. [4,4,4] with a maximum of 4 = the fixed 4% promo; [1,2,3] = the normal tiers."
               }
              }
             }
