@@ -2,6 +2,8 @@
 
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 
+import { cachedContractStatus } from "@/lib/burn-buy/contract-cache"
+import { marketPin, currentMarket, resolveMarketState } from "@/lib/burn-buy/switches"
 import { composeZuloPrompt } from "./composePrompt"
 import type { ZuloRecommendationContext } from "./types"
 
@@ -170,7 +172,11 @@ export async function generateZuloResponse(
     )
   }
 
-  const prompt = composeZuloPrompt(context, userQuery)
+  // Same decision as the /burn page: the owner's pin, else the contract (a pixelMarket block exists once the market is configured).
+  // The contract read is cached and capped at a few seconds; if it fails the switch alone decides, as before.
+  const contract = await cachedContractStatus().catch(() => null)
+  const market = resolveMarketState(marketPin(), contract, currentMarket()).state
+  const prompt = composeZuloPrompt(context, userQuery, market)
 
   let lastError: unknown
   for (let i = 0; i < providers.length; i++) {

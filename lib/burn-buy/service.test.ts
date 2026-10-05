@@ -34,7 +34,7 @@ describe("buildBurnBuy", () => {
     assert.equal(r.market!.bestPixelFodder[0].tokenId, 2) // 36/0.30 = 120 beats 20/0.29 = 69
     assert.equal(r.census.wallets, 1723)
     assert.equal(r.promo.ratePercent, 4)
-    assert.match(r.promo.ends, /not guaranteed/)
+    assert.match(r.promo.ends, /official Normies Discord/)
     assert.equal(r.asOf, NOW.toISOString())
   })
 

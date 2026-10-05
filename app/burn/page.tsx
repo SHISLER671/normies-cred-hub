@@ -191,6 +191,13 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
           </details>
         )}
 
+        {holds && (
+          <p className="burn-small burn-sim">
+            <a href="https://www.normies.art/holder" target="_blank" rel="noopener noreferrer">See your Holder Card ↗</a>
+            <span> (the official page on normies.art; it is separate from this advice)</span>
+          </p>
+        )}
+
         {model.simulatorUrl && (
           <p className="burn-small burn-sim">
             <a href={model.simulatorUrl} target="_blank" rel="noopener noreferrer">What could that pay? Try the revenue share simulator ↗</a>
@@ -343,9 +350,9 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
           )}
           <li><strong>How a burn works</strong> (official video): 1) Commit: the Normies you chose are burned and gone for good. 2) Wait about a minute while the chain produces the randomness for your roll. 3) Reveal: your pixels arrive. Bigger faces earn more.</li>
           {result.yieldMode === "normal" ? (
-            <li><strong>The fixed 4% promo has ended, or is closing.</strong> It was announced to close between about 6 and 8 PM Central European time (16:00 to 18:00 UTC) on Monday, October 5, so this page switches to the normal rates by itself from 16:00 UTC. A burn is now a roll inside a range set by the Normie&apos;s original pixel count: 0 to 490 px pays 1 to 4%, 491 to 890 px pays 2 to 4%, 891 px and up pays 3 to 4% (@normiesART article, Sep 23). This page shows the middle of the range, marked ~, with the range beside it. Real burns can land anywhere in it (the average over the first 2,718 burns was 2.74%).</li>
+            <li><strong>The fixed 4% promo has ended.</strong> The official Normies announcement put the end at 16:00 UTC on Monday, October 5, and the Normies contract itself switched to the normal rates at about 16:23 UTC. A burn is now a roll inside a range set by the Normie&apos;s original pixel count: 0 to 490 px pays 1 to 4%, 491 to 890 px pays 2 to 4%, 891 px and up pays 3 to 4% (@normiesART article, Sep 23). This page shows the middle of the range, marked ~, with the range beside it. Real burns can land anywhere in it (the average over the first 2,718 burns was 2.74%).</li>
           ) : (
-            <li><strong>The 4% burn rate is a promo with a short window.</strong> Serc said in the community chat that it runs until 8 PM Central European time on Monday, October 5 (18:00 UTC), and that it may be closed 1 to 2 hours earlier, so this page stops showing 4% by itself from 16:00 UTC. After that, burns go back to the normal 1 to 4% range. Burning itself stays open. Check @normiesART before you act.</li>
+            <li><strong>The 4% burn rate is a promo with a short window.</strong> The official Normies announcement says it ends at 16:00 UTC on Monday, October 5, so this page stops showing 4% by itself from then, or as soon as the contract changes. After that, burns go back to the normal 1 to 4% range. Burning itself stays open. Check @normiesART before you act.</li>
           )}
           <li>Burn yield is paid on a Normie&apos;s ORIGINAL pixel count (what the contract pays on), not on its edited art.</li>
           <li><strong>We can be wrong.</strong> This is an independent community tool, not made or endorsed by the Normies team. Their site and @normiesART are the source of truth.</li>

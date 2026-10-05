@@ -3,7 +3,8 @@ import assert from "node:assert/strict"
 
 import { adviseToken, rankFodder, type HeldToken, type Listing } from "./advise"
 import { buildPageModel } from "./narrate"
-import { parseMarket, resolveYieldMode } from "./switches"
+import { parseMarket, parseMarketPin, resolveMarketState, resolveYieldMode } from "./switches"
+import { contractRate, parseContractStatus, parsePixelMarket } from "./contract-state"
 import { burnYield, launchedBurnYield, launchTier, promoBurnYield } from "./score"
 import { buildBurnBuy, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
 
@@ -161,5 +162,43 @@ describe("the page wording under each combination", () => {
 
   it("the Arena note carries the Level conflict between the Sep 23 article and the Oct 3 video", () => {
     assert.match(buildPageModel(null, "arena").goalNotes.join(" "), /Sep 23 article said withdrawing #PIXEL strips a level/)
+  })
+})
+
+describe("market state: the pin, else the contract (2026-10-05: the market is open when /canvas/status carries a pixelMarket block)", () => {
+  const block = { marketAddress: "0x86156A8d6e4B9925F7fEca527ea5D71B0deeDB64", market: { paused: false, feeBps: 1000, revenueShareBps: 5000 } }
+  it("parseMarketPin: only the exact words pin", () => {
+    assert.equal(parseMarketPin("live"), "live")
+    assert.equal(parseMarketPin(" Pending "), "pending")
+    for (const v of [undefined, "", "Live!", "true", "open"]) assert.equal(parseMarketPin(v as string | undefined), null)
+  })
+  it("a pin always wins, even against the contract", () => {
+    assert.deepEqual(resolveMarketState("pending", { pixelMarket: block }), { state: "pending", source: "pinned" })
+    assert.deepEqual(resolveMarketState("live", null), { state: "live", source: "pinned" })
+  })
+  it("no pin: the contract's pixelMarket block means open", () => {
+    assert.deepEqual(resolveMarketState(null, { pixelMarket: block }), { state: "live", source: "contract" })
+  })
+  it("no pin and no block (or no contract): the fallback, which defaults to closed", () => {
+    assert.deepEqual(resolveMarketState(null, {}), { state: "pending", source: "default" })
+    assert.deepEqual(resolveMarketState(null, null), { state: "pending", source: "default" })
+    assert.deepEqual(resolveMarketState(null, null, "live"), { state: "live", source: "default" })
+  })
+  it("parsePixelMarket is strict: a missing or malformed block is never read as open", () => {
+    const good = { ...block, canvasAddress: "0x0", market: block.market }
+    assert.deepEqual(parsePixelMarket(good), { marketAddress: block.marketAddress, paused: false, feeBps: 1000, revenueShareBps: 5000 })
+    for (const bad of [null, {}, { ...block, marketAddress: "nope" }, { ...block, market: null }, { ...block, market: { paused: "no", feeBps: 1000, revenueShareBps: 5000 } }, { ...block, market: { paused: false, feeBps: -1, revenueShareBps: 5000 } }, { ...block, market: { paused: false, feeBps: 1000, revenueShareBps: 99999 } }]) {
+      assert.equal(parsePixelMarket(bad), null, JSON.stringify(bad))
+    }
+  })
+  it("the real /canvas/status from 2026-10-05 20:40 UTC parses, market block included", () => {
+    const real = { paused: false, maxBurnPercent: 4, tierThresholds: [490, 890], tierMinPercents: [1, 2, 3], pixelMarket: { canvasAddress: "0xF14f2852e1fD6A4108156054AF49B3915dc40E2e", marketAddress: "0x86156A8d6e4B9925F7fEca527ea5D71B0deeDB64", enlargePrices: { "50": 900 }, blankCanvasPrice: 200, treasury: "0xAF8e9BDcF6463EA1f50f8f70ECF13d85a092a1Aa", market: { paused: false, feeBps: 1000, revenueShareBps: 5000 } } }
+    const s = parseContractStatus(real)!
+    assert.equal(s.pixelMarket?.feeBps, 1000)
+    assert.equal(contractRate(s), "tiered")
+  })
+  it("an old-shape status (no market block) still parses exactly as before", () => {
+    const old = { paused: false, maxBurnPercent: 4, tierThresholds: [490, 890], tierMinPercents: [4, 4, 4] }
+    assert.deepEqual(parseContractStatus(old), old)
   })
 })

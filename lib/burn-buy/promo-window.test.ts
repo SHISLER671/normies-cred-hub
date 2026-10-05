@@ -60,12 +60,12 @@ const depsAt = (iso: string, pin?: string): Deps => {
 describe("what the API and the page say at each moment", () => {
   const asked = async (iso: string, pin?: string) => buildBurnBuy({ wallet: "0xabc" }, depsAt(iso, pin))
 
-  it("Sunday night (open): 4%, the narrow window is stated, notice says 'ends by 8 PM Central European time'", async () => {
+  it("Sunday night (open): 4%, the narrow window is stated, notice says it ends at 16:00 UTC (official)", async () => {
     const r = await asked("2026-10-04T12:00:00Z")
     assert.equal(r.yieldMode, "promo")
     assert.equal(r.promo.window.state, "open")
-    assert.match(r.promo.ends, /Until 8 PM Central European time on Monday, October 5 \(18:00 UTC\).*1 to 2 hours earlier.*not guaranteed/)
-    assert.match(promoNotice(r)!, /ends by 8 PM Central European time on Monday, October 5 \(18:00 UTC\), and may close 1 to 2 hours earlier/)
+    assert.match(r.promo.ends, /official Normies Discord.*16:00 UTC on Monday, October 5.*about 16:23 UTC/)
+    assert.match(promoNotice(r)!, /ends at 16:00 UTC on Monday, October 5 \(official Normies announcement\)/)
   })
 
   it("Monday 16:30 UTC (may have closed): the API is already on the normal roll, and the page warns", async () => {
@@ -75,14 +75,14 @@ describe("what the API and the page say at each moment", () => {
     assert.equal(r.promo.window.state, "may-have-closed")
     assert.ok(r.wallet!.advice.tokens.every((t) => t.yield.range), "figures are rolled, with ranges")
     const m = buildPageModel(r, "share")
-    assert.ok(m.notices.some((n) => /may already have ended.*between about 6 and 8 PM Central European time.*Check normies\.art/.test(n)))
+    assert.ok(m.notices.some((n) => /has ended.*official Normies announcement.*16:00 UTC.*Check normies\.art/.test(n)))
   })
 
   it("Tuesday 04:00 Guam time = Monday 18:00 UTC (closed): normal roll, 'has ended' notice", async () => {
     const r = await asked("2026-10-05T18:00:00Z")
     assert.equal(r.promo.window.state, "closed")
     assert.equal(r.yieldMode, "normal")
-    assert.ok(buildPageModel(r, "share").notices.some((n) => /The 4% rate has ended/.test(n)))
+    assert.ok(buildPageModel(r, "share").notices.some((n) => /The 4% rate ended on Monday, October 5 at 16:00 UTC/.test(n)))
   })
 
   it("the 'has ended' notice stops after 72 hours", async () => {

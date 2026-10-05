@@ -95,6 +95,23 @@ describe("buildBurnBuy follows the contract (the key failure mode: the clock gue
       assert.equal(after.yieldMode, "normal"); assert.equal(after.promo.source, "clock")
     }
   })
+  const WITH_MARKET = { ...NORMAL, pixelMarket: { marketAddress: "0x86156A8d6e4B9925F7fEca527ea5D71B0deeDB64", paused: false, feeBps: 1000, revenueShareBps: 5000 } }
+  it("market: the contract's pixelMarket block opens it with no pin (source: contract), even with the old switch unset", async () => {
+    const r = await run({ contractStatus: async () => WITH_MARKET, marketState: () => "pending", marketPin: () => null }, "2026-10-05T21:00:00Z")
+    assert.equal(r.marketState, "live"); assert.equal(r.marketSource, "contract")
+  })
+  it("market: no block means closed (source: default); a pin beats the contract either way", async () => {
+    const closed = await run({ contractStatus: async () => NORMAL, marketPin: () => null }, "2026-10-05T17:00:00Z")
+    assert.equal(closed.marketState, "pending"); assert.equal(closed.marketSource, "default")
+    const pinnedClosed = await run({ contractStatus: async () => WITH_MARKET, marketPin: () => "pending" }, "2026-10-05T21:00:00Z")
+    assert.equal(pinnedClosed.marketState, "pending"); assert.equal(pinnedClosed.marketSource, "pinned")
+    const pinnedOpen = await run({ contractStatus: async () => null, marketPin: () => "live" }, "2026-10-05T21:00:00Z")
+    assert.equal(pinnedOpen.marketState, "live"); assert.equal(pinnedOpen.marketSource, "pinned")
+  })
+  it("market: contract unreadable and no pin falls back to the old switch, exactly as before", async () => {
+    const r = await run({ contractStatus: async () => null, marketState: () => "live" }, "2026-10-05T21:00:00Z")
+    assert.equal(r.marketState, "live"); assert.equal(r.marketSource, "default")
+  })
   it("no contractStatus dependency at all behaves exactly as before the change", async () => {
     const r = await run({}, "2026-10-05T14:00:00Z")
     assert.equal(r.yieldMode, "promo"); assert.equal(r.promo.source, "clock")

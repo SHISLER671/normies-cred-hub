@@ -11,28 +11,14 @@ import { getSupabase } from "@/lib/db/supabase"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
 import { fetchJevOpinions } from "./jev"
-import { currentMarket, currentYieldMode, currentYieldPinned } from "./switches"
+import { cachedContractStatus } from "./contract-cache"
+import { currentMarket, currentYieldMode, currentYieldPinned, marketPin } from "./switches"
 import { walletScore } from "./score"
+import { ttl } from "./ttl"
 import { SourceError, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
 
 const RARITY = `${NORMIES_API_BASE}/rarity`
 const HEADERS = { Accept: "application/json" }
-
-/** Tiny TTL cache that also shares one in-flight load between concurrent callers. */
-function ttl<T>(ms: number, load: () => Promise<T>): () => Promise<T> {
-  let value: T | undefined
-  let at = 0
-  let inflight: Promise<T> | null = null
-  return async () => {
-    if (value !== undefined && Date.now() - at < ms) return value
-    if (!inflight) {
-      inflight = load()
-        .then((v) => { value = v; at = Date.now(); return v })
-        .finally(() => { inflight = null })
-    }
-    return inflight
-  }
-}
 
 interface RawItem {
   id: number
@@ -356,13 +342,6 @@ async function lookupDelegations(address: string): Promise<Delegation[]> {
   return out
 }
 
-/** The contract status changes rarely (the API itself caches it for 5 minutes), so 30 s is plenty; a failed read is never kept. */
-const contractStatusCached = ttl(30_000, async () => {
-  const s = await loadBurnContractStatus()
-  if (!s) throw new Error("contract status unavailable")
-  return s
-})
-
 export const realDeps: Deps = {
 
   resolveHolder,
@@ -370,7 +349,7 @@ export const realDeps: Deps = {
   fetchListings: listingsCached,
   loadSnapshot: snapshotCached,
   findDelegations,
-  contractStatus: () => contractStatusCached().catch(() => null),
+  contractStatus: () => cachedContractStatus().catch(() => null),
   // Jev stays OFF (returns null) until a TYPESAFE_API_KEY exists; the service only calls this once PIXEL_MARKET=live.
   // JEV_DISABLE=1 is a kill switch.
   jevOpinions: async (tokens) => {
@@ -382,5 +361,6 @@ export const realDeps: Deps = {
   yieldMode: (now) => currentYieldMode(now),
   yieldPinned: (now) => currentYieldPinned(now),
   marketState: currentMarket,
+  marketPin,
   now: () => new Date(),
 }

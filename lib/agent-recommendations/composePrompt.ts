@@ -1,6 +1,7 @@
 // lib/agent-recommendations/composePrompt.ts
 
 import { currentMarket } from "../burn-buy/switches"
+import type { MarketState } from "../burn-buy/score"
 import { buildMarketStatusBlock } from "./marketStatus"
 import {
   buildEcosystemGuidePrompt,
@@ -337,6 +338,8 @@ Output Format (JSON only — no markdown code fences wrapping the whole response
 export function composeZuloPrompt(
   context: ZuloRecommendationContext,
   userQuery: string,
+  /** Is the Pixel Market open? generateZuloResponse resolves this from the contract; without it only the PIXEL_MARKET switch is read. */
+  market: MarketState = currentMarket(),
 ): string {
   const pulse = context.platformContext?.pulse
   const pulseLine = context.platformContext?.pulseSummary
@@ -639,7 +642,7 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
       : `Decision subject: Normie #${context.normie.id}${context.normie.name ? ` (${context.normie.name})` : ""}${scope?.userOwnsFocus ? " · user owns focus" : ""}`
 
   return `${SYSTEM_PROMPT}
-${buildMarketStatusBlock(currentMarket(), new Date())}
+${buildMarketStatusBlock(market, new Date())}
 ${fullProtocolsSection}${erc6551Section}${collabFocusSection}
 === CURRENT CONTEXT (highlights) ===
 User: ${context.user.ens || context.user.walletAddress || "Anonymous (disconnected OK)"}
