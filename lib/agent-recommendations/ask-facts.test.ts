@@ -685,3 +685,32 @@ describe("the knowledge .md files and their bundled runtime copies stay in sync"
     assert.equal(norm(fs.readFileSync("lib/agent-recommendations/knowledge/pixel-economy.md", "utf8")), norm(PIXEL_ECONOMY_MD))
   })
 })
+
+describe("Ask: painting, Level, Canvas and Arena stay inside the official facts (audit 2026-10-05)", () => {
+  const prompt = composeZuloPrompt(generalContext(), "Does painting my Normie cost #PIXEL, and what does Level do?")
+
+  it("painting never spends #PIXEL, and never changes Level (live Ask said each flip costs 1 #PIXEL)", () => {
+    assert.match(prompt, /Painting does NOT spend or use up #PIXEL/)
+    assert.match(prompt, /Never say each pixel flip costs #PIXEL/)
+    assert.match(prompt, /painting never spends it/)
+  })
+  it("bigger and blank canvas belong to the Pixel Market, and readiness numbers are labelled as Zulo's own heuristics", () => {
+    assert.match(prompt, /Bigger canvas and blank canvas/)
+    assert.match(prompt, /not available until the market opens/)
+    assert.match(prompt, /Zulo's own planning heuristics, NOT official requirements/)
+  })
+  it("Level formula is stated, with the two official sources that differ on withdrawing #PIXEL", () => {
+    assert.match(prompt, /Level = floor\(AP \/ 10\) \+ 1/)
+    assert.match(prompt, /September 23 article said withdrawing #PIXEL strips a level/)
+  })
+  it("Arena: only what is official; the combat rules are not published", () => {
+    assert.match(prompt, /combat rules are NOT published/)
+    assert.match(prompt, /never say how stats scale/)
+  })
+  it("the community tool catalog lists the independent burn advisor with its /burn URL", () => {
+    const tool = COMMUNITY_TOOLS.find((t) => t.url === "https://normiescredhub.vercel.app/burn")
+    assert.ok(tool, "burn advisor missing from COMMUNITY_TOOLS")
+    assert.match(tool!.description, /Independent community tool, not made by the Normies team/)
+    assert.match(tool!.description, /read-only/)
+  })
+})

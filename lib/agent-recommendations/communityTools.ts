@@ -12,6 +12,34 @@ export interface CommunityTool {
 
 export const COMMUNITY_TOOLS: CommunityTool[] = [
   {
+    name: "Burn or keep? (NormiesCredHub)",
+    url: "https://normiescredhub.vercel.app/burn",
+    description:
+      "Paste a wallet address (read-only, no connecting, no signing) for a plain answer on what to buy, keep or burn for revenue share, Arena or art. Independent community tool, not made by the Normies team.",
+    useCases: [
+      "Should I burn or keep this Normie?",
+      "What is my best move before the Pixel Market opens?",
+      "See my revenue-share score and what the next step adds",
+      "Check whether an edited Normie is safe to burn",
+    ],
+    audience: "casual",
+    keywords: [
+      "burn or keep",
+      "keep or burn",
+      "what to burn",
+      "what to buy",
+      "best move",
+      "revenue share",
+      "score",
+      "pool share",
+      "edited art",
+      "4%",
+      "burn promo",
+      "should i burn",
+      "wallet",
+    ],
+  },
+  {
     name: "Normies Burn Tracker",
     url: "https://normiesburntracker.lovable.app/",
     description: "Historical burn data and AP yield estimates",
