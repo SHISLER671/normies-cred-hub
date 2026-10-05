@@ -14,6 +14,7 @@ import {
   type WalletAdvice,
 } from "./advise"
 import { contractRate, matchesKnownTiers, type BurnContractStatus } from "./contract-state"
+import { resolveMarketState } from "./switches"
 import { promoWindow, type PromoWindow } from "./promo-window"
 import { JEV_MAX_TOKENS, type JevOpinion, type JevToken } from "./jev"
 
@@ -79,6 +80,8 @@ export interface Deps {
   contractStatus?(): Promise<BurnContractStatus | null>
   /** Whether Pixel Market is open. Optional; missing means "pending" (today). Real deps read PIXEL_MARKET. */
   marketState?(): MarketState
+  /** The site owner's pin (PIXEL_MARKET=live|pending), or null. Without a pin the contract status decides. */
+  marketPin?(): MarketState | null
   now(): Date
 }
 
@@ -94,6 +97,8 @@ export interface BurnBuyResult {
   yieldMode: YieldMode
   /** Whether Pixel Market (the #PIXEL exchange) is open. */
   marketState: MarketState
+  /** Who decided marketState: the site owner's pin, the Normies contract itself (checked live), or the default (closed). */
+  marketSource: "pinned" | "contract" | "default"
   /** In normal mode `ratePercent` is null: the rate is a roll inside a tier range, described in `basis`. */
   promo: {
     ratePercent: number | null
@@ -142,7 +147,7 @@ export const NORMAL_INFO_CONTRACT = {
 export const PROMO_INFO = {
   ratePercent: 4,
   basis: "4% of the burned Normie's original (base) pixel count, plus the burned token's own AP",
-  ends: "Until 8 PM Central European time on Monday, October 5 (18:00 UTC), and possibly closed 1 to 2 hours earlier, per Serc in the community chat (not independently verified, so not guaranteed); burns then return to the normal 1-4% range",
+  ends: "Announced by the official Normies Discord: ends at 2:00 AM Guam time = 16:00 UTC on Monday, October 5. The Normies contract returned to the normal 1-4% tiers at about 16:23 UTC; burns now pay a roll inside the tier range",
 } as const
 
 /** Largest holder today has 432. Above this we refuse rather than show a wrong (truncated) score. */
@@ -177,7 +182,8 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   const rate = contractRate(contract)
   const yieldMode: YieldMode = pinned ? clockMode : rate === "fixed" ? "promo" : rate === "tiered" ? "normal" : clockMode
   const modeSource: BurnBuyResult["promo"]["source"] = pinned ? "pinned" : rate === "unknown" ? "clock" : "contract"
-  const marketState: MarketState = deps.marketState ? deps.marketState() : "pending"
+  const marketDecision = resolveMarketState(deps.marketPin ? deps.marketPin() : null, contract, deps.marketState ? deps.marketState() : "pending")
+  const marketState: MarketState = marketDecision.state
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
     marketState === "live"
@@ -414,6 +420,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     asOf: now.toISOString(),
     yieldMode,
     marketState,
+    marketSource: marketDecision.source,
     promo: {
       ...(yieldMode === "normal" ? (modeSource === "contract" ? NORMAL_INFO_CONTRACT : NORMAL_INFO) : PROMO_INFO),
       window: promoWindow(now, pinned),

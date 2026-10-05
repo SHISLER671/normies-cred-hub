@@ -221,7 +221,7 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 - **Your score:** (Normies x bracket multiplier + #PIXEL / 5) x (1 + boost). Brackets by Normies held: 1 = 1.00x, 2 = 1.15x, 5 = 1.30x, 10 = 1.45x, 25 = 1.60x, 50 = 1.75x. Boost by #PIXEL held (on Normies, in the wallet or in listings): 15 = +15%, 100 = +35%, 500 = +60%, 1,500 = +100%. #PIXEL alone earns nothing: you need at least one Normie.
 - **Your share:** your score divided by everyone's total score. Real payouts depend on real market volume, so any figure is an estimate, never a promise.
 - **Status:** not open yet. Planned for October 5, 2026, audits permitting; that is not guaranteed. Prices, order-book depth and exact timing are still TBA: never invent them.
-- **Burn yield (community-sourced):** Serc said in the community chat that burns pay a fixed 4% until about 8 PM Central European time on October 5 (possibly 1 to 2 hours earlier), then return to the normal tiers (0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%). This is NOT from an official @normiesART post: say so, and tell people to check @normiesART.
+- **Burn yield (official, 2026-10-05):** the fixed 4% promo has ENDED. The official Normies Discord announced it would end at 2:00 AM Guam time = 16:00 UTC on October 5, and the Normies contract reported the normal tiers from about 16:23 UTC. Burns now pay a roll by original pixel count: 0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%. Older text that calls the 4% community-sourced, ongoing or "until about 8 PM CET" is out of date.
 - **What a burn pays on:** the ORIGINAL pixel count (what the contract uses), not the current edited art. Painting or editing does not raise burn yield. Burning an edited Normie erases that art for good, so an edited Normie is a strong reason to keep.
 - **Wallet-specific answers:** point people to https://normiescredhub.vercel.app/burn (an independent community tool, not made by the Normies team; read-only, paste an address) and to the official simulator at https://simulator.normies.art.
 
@@ -292,7 +292,7 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 
 ### "Should I burn before the 4% promo ends?"
 
-- The fixed 4% yield window is community-sourced (Serc), not an official post; if it holds it ends around October 5, 8 PM Central European time. Say that plainly.
+- The fixed 4% yield promo ended on October 5, 2026 (official Normies Discord announcement: 16:00 UTC; the contract showed the normal tiers by about 16:23 UTC). Say it has ended and burns now pay a roll inside the tier range.
 - No pressure: burns are permanent. Ask for their token IDs, and point to https://normiescredhub.vercel.app/burn for a keep-or-burn read. Never invent other deadlines.
 
 ### "Does painting or editing my Normie raise its burn yield?"
@@ -1000,7 +1000,7 @@ DUAL-EVAL / PIXEL MARKET ENFORCEMENT:
 - #PIXEL = Action Points, NOT a token; PIXEL MARKET is not open yet (planned Oct 5, audits permitting) but its revenue-share rules ARE official (section 1b takes precedence over older "TBA" notes)
 - Never invent AP prices, order books, buy/sell mechanics, hold-threshold X, or a live Marketplace AP checkout
 - Never say the revenue-share formula is unpublished. Never say edited or painted pixels raise burn yield (a burn pays on the ORIGINAL pixel count)
-- The fixed 4% burn promo is community-sourced (Serc), not an official post: say so, and point to @normiesART
+- The fixed 4% burn promo has ended (October 5, 2026, official Normies Discord announcement); burns now pay the normal tiered roll. Point to @normiesART for anything newer
 - For a wallet-specific keep-or-burn answer, point to https://normiescredhub.vercel.app/burn (independent, read-only)
 - #PIXEL is the paint budget: painting never spends it (never say a pixel flip costs #PIXEL, uses it up, or changes Level). Label any canvas-readiness numbers as Zulo heuristics, not official
 - Arena: Type, Level and on-chain history matter (official); the combat rules are NOT published, so never say how stats scale
@@ -1134,7 +1134,7 @@ export function getDualEvalAndPixelMarketContextSummary(): {
       "#PIXEL = Action Points (AP) — NOT a token",
       "Status: not open yet (planned Oct 5, audits permitting); revenue-share rules are OFFICIAL (score formula, 10% fee and 5% royalty with 50% to holders, monthly payouts)",
       "AP earned by burning Normies into Canvas; #PIXEL counts toward the revenue-share score; prices and order-book mechanics TBA",
-      "A burn pays on the ORIGINAL pixel count; edited art does not raise yield; the fixed 4% promo is community-sourced (Serc)",
+      "A burn pays on the ORIGINAL pixel count; edited art does not raise yield; the fixed 4% promo ended on 2026-10-05 and burns now pay a tiered roll",
       "Do not invent AP prices, buy/sell rules, hold-threshold X, or a live order book",
     ],
     dualEval: [

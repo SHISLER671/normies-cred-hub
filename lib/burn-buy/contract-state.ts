@@ -7,11 +7,40 @@
 // Why: the clock only GUESSES when the promo ends (announced as 16:00 to 18:00 UTC, relayed, not verified). Showing the normal roll while the
 // contract still pays a fixed 4% understates a holder's yield, and a burn is permanent. This lets the page follow the contract exactly.
 
+/**
+ * The Pixel Market stack, as /canvas/status reports it once it is configured (seen live 2026-10-05, after the 18:00 UTC launch):
+ *   "pixelMarket": { canvasAddress, marketAddress, enlargePrices, blankCanvasPrice, treasury, market: { paused, feeBps, revenueShareBps } }
+ * The api.normies.art llms.txt says the object is only added "once the Pixel Market stack is configured", so its presence is the market being open.
+ */
+export interface PixelMarketStatus {
+  marketAddress: string
+  paused: boolean
+  feeBps: number
+  revenueShareBps: number
+}
+
 export interface BurnContractStatus {
   paused: boolean
   maxBurnPercent: number
   tierThresholds: number[]
   tierMinPercents: number[]
+  /** Present only when the contract status carries a well-formed pixelMarket block. */
+  pixelMarket?: PixelMarketStatus
+}
+
+const ADDRESS = /^0x[0-9a-fA-F]{40}$/
+
+/** Strict: a missing or malformed block is null (so a changed API can never be misread as "market open"). */
+export function parsePixelMarket(raw: unknown): PixelMarketStatus | null {
+  if (!raw || typeof raw !== "object") return null
+  const r = raw as Record<string, unknown>
+  const m = r.market
+  if (typeof r.marketAddress !== "string" || !ADDRESS.test(r.marketAddress)) return null
+  if (!m || typeof m !== "object") return null
+  const mm = m as Record<string, unknown>
+  const bps = (v: unknown) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 10_000
+  if (typeof mm.paused !== "boolean" || !bps(mm.feeBps) || !bps(mm.revenueShareBps)) return null
+  return { marketAddress: r.marketAddress, paused: mm.paused, feeBps: mm.feeBps as number, revenueShareBps: mm.revenueShareBps as number }
 }
 
 /** fixed: every tier pays exactly the fixed rate this page knows (4%). tiered: a roll inside a range. unknown: cannot tell, use the clock. */
@@ -30,7 +59,8 @@ export function parseContractStatus(raw: unknown): BurnContractStatus | null {
   if (!isNumArray(r.tierMinPercents) || !isNumArray(r.tierThresholds)) return null
   if (r.tierMinPercents.length !== r.tierThresholds.length + 1) return null
   if (r.tierMinPercents.some((n) => n < 0 || n > (r.maxBurnPercent as number))) return null
-  return { paused: r.paused, maxBurnPercent: r.maxBurnPercent, tierThresholds: r.tierThresholds, tierMinPercents: r.tierMinPercents }
+  const pixelMarket = parsePixelMarket(r.pixelMarket)
+  return { paused: r.paused, maxBurnPercent: r.maxBurnPercent, tierThresholds: r.tierThresholds, tierMinPercents: r.tierMinPercents, ...(pixelMarket ? { pixelMarket } : {}) }
 }
 
 export function contractRate(s: BurnContractStatus | null): ContractRate {

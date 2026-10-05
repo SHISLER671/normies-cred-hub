@@ -121,16 +121,16 @@ export function jevView(op: { verdict: JevVerdict; pRegret: number }) {
   return { verdict: op.verdict, pRegret: op.pRegret, text }
 }
 
-const NOTICE_OPEN = "The 4% rate ends by 8 PM Central European time on Monday, October 5 (18:00 UTC), and may close 1 to 2 hours earlier. After that, burns go back to the normal 1 to 4% range."
-const NOTICE_MAYBE_CLOSED = "The 4% rate may already have ended: it was announced to close between about 6 and 8 PM Central European time (16:00 to 18:00 UTC) on Monday. Figures here use the normal roll. Check normies.art before you burn."
+const NOTICE_OPEN = "The 4% rate ends at 16:00 UTC on Monday, October 5 (official Normies announcement). After that, burns go back to the normal 1 to 4% range."
+const NOTICE_MAYBE_CLOSED = "The 4% rate has ended: the official Normies announcement put it at 16:00 UTC on Monday, October 5. Figures here use the normal roll. Check normies.art before you burn."
 const NOTICE_PINNED_PAST = "This page is still showing the 4% rate because the site owner has pinned it, but the announced end has passed. Check normies.art before you burn."
-const NOTICE_ENDED = "The 4% rate has ended (it was announced to close on Monday, October 5). Figures here use the normal roll."
+const NOTICE_ENDED = "The 4% rate ended on Monday, October 5 at 16:00 UTC (official Normies announcement). Figures here use the normal roll."
 const ENDED_NOTICE_MS = 72 * 3600 * 1000
 
 const NOTICE_PAUSED = "Burning is paused on the Normies contract right now, so nothing can be burned until it reopens. Figures show what a burn would pay once it does."
-const NOTICE_CONTRACT_FIXED = "The Normies contract is paying a fixed 4% right now (checked live). It is expected to return to the normal 1 to 4% range when the promo closes, announced for about 6 to 8 PM Central European time (16:00 to 18:00 UTC) today, so check again before you burn."
+const NOTICE_CONTRACT_FIXED = "The Normies contract is paying a fixed 4% right now (checked live). It is expected to return to the normal 1 to 4% range when the promo closes, officially announced for 16:00 UTC on Monday, October 5, so check again before you burn."
 const NOTICE_CONTRACT_FIXED_LATE = "The Normies contract is still paying a fixed 4% (checked live), even though the announced end has passed. It can change at any moment, so check @normiesART before you burn."
-const NOTICE_CONTRACT_NORMAL = "The Normies contract is back to the normal tiered roll (checked live), so the fixed 4% is over. Figures here use the normal roll."
+const NOTICE_CONTRACT_NORMAL = "The Normies contract is back to the normal tiered roll (checked live), so the fixed 4% is over (it ended on Monday, October 5, as officially announced). Figures here use the normal roll."
 
 /** The one sentence about the 4% window that fits the moment, or null. Uses the result's own clock; when the contract could be read, it wins over the clock. */
 export function promoNotice(r: Pick<BurnBuyResult, "yieldMode" | "asOf"> & { promo: { window?: { state: string; latestEnd: string }; source?: string; contract?: { paused: boolean } | null } }): string | null {

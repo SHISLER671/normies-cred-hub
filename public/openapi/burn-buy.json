@@ -15,7 +15,7 @@
    "get": {
     "operationId": "burnBuy",
     "summary": "Burn / keep / buy advice for a wallet, or the market alone",
-    "description": "With `wallet`: a verdict for every Normie held, ranked moves by exact score change, and the market. Without it: only the market (cheapest #PIXEL per ETH) and the census. `yieldMode` says how a burn pays (`promo` = fixed 4%, announced to end by 8 PM Central European time on Monday Oct 5 and possibly 1 to 2 hours earlier, per Serc; `normal` = a roll inside a range; flips by itself from 16:00 UTC Oct 5 unless pinned). `marketState` says whether Pixel Market is open.",
+    "description": "With `wallet`: a verdict for every Normie held, ranked moves by exact score change, and the market. Without it: only the market (cheapest #PIXEL per ETH) and the census. `yieldMode` says how a burn pays (`promo` = fixed 4%, ended on Monday Oct 5 at 16:00 UTC per the official Normies announcement; the contract switched at about 16:23 UTC; `normal` = a roll inside a range; flips by itself from 16:00 UTC Oct 5 unless pinned). `marketState` says whether Pixel Market is open and `marketSource` who decided it (`contract` = the Normies contract status carries a pixelMarket block, `pinned` = the site owner, `default`).",
     "parameters": [
      {
       "name": "wallet",
@@ -39,6 +39,7 @@
           "asOf",
           "yieldMode",
           "marketState",
+          "marketSource",
           "promo",
           "wallet",
           "market",
@@ -96,7 +97,7 @@
               "latestEnd",
               "pinned"
              ],
-             "description": "The announced end of the fixed 4% (Serc in the Normies community chat, relayed, not independently verified): until 8 PM Central European time (18:00 UTC) on Monday 2026-10-05, possibly 1 to 2 hours earlier. The window is only the FALLBACK: when `source` is `contract`, `yieldMode` follows the contract exactly. Otherwise it flips to `normal` BY ITSELF from `earliestEnd` unless the site owner pinned it.",
+             "description": "The official end of the fixed 4% (Normies Discord announcement): 2:00 AM Guam = 16:00 UTC on Monday 2026-10-05. The contract switched to the normal tiers at about 16:23 UTC. The window is only the FALLBACK: when `source` is `contract`, `yieldMode` follows the contract exactly. Otherwise it flips to `normal` BY ITSELF from `earliestEnd` unless the site owner pinned it.",
              "properties": {
               "state": {
                "type": "string",
@@ -869,6 +870,15 @@
             "type": "string"
            },
            "description": "Plain-language limits that apply to this answer. Show them."
+          },
+          "marketSource": {
+           "type": "string",
+           "enum": [
+            "pinned",
+            "contract",
+            "default"
+           ],
+           "description": "Who decided marketState: the site owner's pin, the Normies contract itself (checked live), or the default (closed)."
           }
          }
         }

@@ -663,9 +663,15 @@ describe("Ask knows the OFFICIAL Pixel Market economics (updated 2026-10-05)", (
     assert.match(prompt, /Painting or editing does not raise burn yield/)
     assert.match(prompt, /Never say edited or painted pixels raise burn yield/)
   })
-  it("the 4% promo is described as community-sourced, never as official", () => {
-    assert.match(prompt, /community-sourced/)
-    assert.match(prompt, /NOT from an official @normiesART post/)
+  it("the 4% promo is described as ENDED (official, 2026-10-05), never as community-sourced or ongoing", () => {
+    assert.match(prompt, /fixed 4% promo has ENDED/)
+    assert.match(prompt, /16:00 UTC on October 5/)
+    assert.doesNotMatch(prompt, /community-sourced \(Serc\)/)
+    assert.doesNotMatch(prompt, /NOT from an official @normiesART post/)
+  })
+  it("names the official Holder Card page without inventing what it shows", () => {
+    assert.match(prompt, /https:\/\/www\.normies\.art\/holder/)
+    assert.match(prompt, /never describe what it shows/)
   })
   it("points to the independent /burn tool and the official simulator, nothing else invented", () => {
     assert.match(prompt, /https:\/\/normiescredhub\.vercel\.app\/burn/)
@@ -764,7 +770,7 @@ describe("Ask follows the same Pixel Market switch as /burn (PIXEL_MARKET)", () 
   it("PIXEL_MARKET=live: open, but Ask still has no live prices and points to the official page and /burn", () => {
     withMarket("live", () => {
       const p = composeZuloPrompt(generalContext(), "Is Pixel Market live?")
-      assert.match(p, /The Pixel Market is OPEN \(confirmed by the site owner\)/)
+      assert.match(p, /The Pixel Market is OPEN \(confirmed by the Normies contract status or the site owner\)/)
       assert.match(p, /You have NO live market data: never quote #PIXEL prices/)
       assert.match(p, /https:\/\/normiescredhub\.vercel\.app\/burn/)
       assert.match(p, /overrides any older "not open yet", "Coming Soon" or "not tradable" wording/)
@@ -797,7 +803,7 @@ describe("the launch clock only changes WORDING, never opens the market (@serc1n
     assert.doesNotMatch(b, /OPEN \(confirmed/)
   })
   it("only the switch says open, at any time", () => {
-    for (const t of [before, after]) assert.match(buildMarketStatusBlock("live", t), /The Pixel Market is OPEN \(confirmed by the site owner\)/)
+    for (const t of [before, after]) assert.match(buildMarketStatusBlock("live", t), /The Pixel Market is OPEN \(confirmed by the Normies contract status or the site owner\)/)
   })
   it("carries the official facts from Serc's post: #PIXEL tradable, no separate coin, HIVE and Arena next month, moved links", () => {
     for (const state of ["pending", "live"] as const) {
