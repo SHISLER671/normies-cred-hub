@@ -40,6 +40,7 @@
           "yieldMode",
           "marketState",
           "marketSource",
+          "pixelMarket",
           "promo",
           "wallet",
           "market",
@@ -173,7 +174,8 @@
             "ens",
             "delegateOf",
             "advice",
-            "historicalIllustration"
+            "historicalIllustration",
+            "pixelMarketView"
            ],
            "properties": {
             "address": {
@@ -581,6 +583,147 @@
               "description": "Jev's second opinion. It can only add caution; it never changes a verdict."
              },
              "description": "Only when the market is live and Jev is on. Keyed by token id."
+            },
+            "pixelMarketView": {
+             "type": [
+              "object",
+              "null"
+             ],
+             "description": "Priced from the live order book. Null without a live book. No verdicts: ranges, snapshots and arithmetic.",
+             "properties": {
+              "cliffCost": {
+               "type": [
+                "object",
+                "null"
+               ],
+               "description": "What reaching the next #PIXEL boost would cost if every #PIXEL were bought off the book today (the price rises as you eat through it).",
+               "properties": {
+                "needMore": {
+                 "type": "integer"
+                },
+                "atPixel": {
+                 "type": "integer"
+                },
+                "boostPct": {
+                 "type": "integer"
+                },
+                "buy": {
+                 "type": "object",
+                 "required": [
+                  "filled",
+                  "shortfall",
+                  "costEth",
+                  "avgEth",
+                  "worstEth",
+                  "approx"
+                 ],
+                 "properties": {
+                  "filled": {
+                   "type": "integer"
+                  },
+                  "shortfall": {
+                   "type": "integer",
+                   "description": "#PIXEL the book could not fill."
+                  },
+                  "costEth": {
+                   "type": "number"
+                  },
+                  "avgEth": {
+                   "type": [
+                    "number",
+                    "null"
+                   ]
+                  },
+                  "worstEth": {
+                   "type": [
+                    "number",
+                    "null"
+                   ]
+                  },
+                  "approx": {
+                   "type": "boolean",
+                   "description": "True when a level includes listings that must be bought whole, so the real cost can be a little higher."
+                  }
+                 }
+                },
+                "scoreBefore": {
+                 "type": "number"
+                },
+                "scoreAfter": {
+                 "type": "number"
+                },
+                "scoreGain": {
+                 "type": "number"
+                },
+                "costPerScorePoint": {
+                 "type": [
+                  "number",
+                  "null"
+                 ]
+                },
+                "payback": {
+                 "type": "array",
+                 "description": "Illustrative scenarios (a quarter of, equal to, and double the Sep 23 article's published pool pace), NOT forecasts. Empty when the book cannot fill the whole step.",
+                 "items": {
+                  "type": "object",
+                  "properties": {
+                   "label": {
+                    "type": "string"
+                   },
+                   "poolEthPerMonth": {
+                    "type": "number"
+                   },
+                   "monthlyEth": {
+                    "type": "number"
+                   },
+                   "months": {
+                    "type": [
+                     "number",
+                     "null"
+                    ]
+                   }
+                  }
+                 }
+                }
+               }
+              },
+              "sell": {
+               "type": "array",
+               "description": "What selling would net at reference prices (the best ask, the last fill, the cheapest burn route), after the seller's market fee, with how many #PIXEL are listed ahead. Reference prices only: not a recommendation of where to list.",
+               "items": {
+                "type": "object",
+                "properties": {
+                 "label": {
+                  "type": "string"
+                 },
+                 "pixels": {
+                  "type": "integer"
+                 },
+                 "priceEth": {
+                  "type": "number"
+                 },
+                 "grossEth": {
+                  "type": "number"
+                 },
+                 "feeEth": {
+                  "type": "number"
+                 },
+                 "netEth": {
+                  "type": "number"
+                 },
+                 "ahead": {
+                  "type": "integer"
+                 },
+                 "scoreAfter": {
+                  "type": "number"
+                 },
+                 "sharePctAfter": {
+                  "type": "number"
+                 }
+                }
+               }
+              }
+             }
             }
            }
           },
@@ -664,6 +807,30 @@
                },
                "url": {
                 "type": "string"
+               },
+               "vsAsk": {
+                "type": "string",
+                "enum": [
+                 "market-cheaper",
+                 "burn-cheaper",
+                 "depends-on-roll"
+                ],
+                "description": "Live market only. Burning this Normie for #PIXEL versus buying the same #PIXEL at the best ask, per #PIXEL. `depends-on-roll` = the ask sits inside the burn's range. A comparison of two costs, not advice."
+               },
+               "breakEvenNormieEth": {
+                "type": "object",
+                "description": "Live market only. The most this Normie could cost before buying #PIXEL at the best ask would have been cheaper (best roll, middle, worst roll).",
+                "properties": {
+                 "low": {
+                  "type": "number"
+                 },
+                 "mid": {
+                  "type": "number"
+                 },
+                 "high": {
+                  "type": "number"
+                 }
+                }
                }
               }
              }
@@ -726,6 +893,30 @@
                },
                "url": {
                 "type": "string"
+               },
+               "vsAsk": {
+                "type": "string",
+                "enum": [
+                 "market-cheaper",
+                 "burn-cheaper",
+                 "depends-on-roll"
+                ],
+                "description": "Live market only. Burning this Normie for #PIXEL versus buying the same #PIXEL at the best ask, per #PIXEL. `depends-on-roll` = the ask sits inside the burn's range. A comparison of two costs, not advice."
+               },
+               "breakEvenNormieEth": {
+                "type": "object",
+                "description": "Live market only. The most this Normie could cost before buying #PIXEL at the best ask would have been cheaper (best roll, middle, worst roll).",
+                "properties": {
+                 "low": {
+                  "type": "number"
+                 },
+                 "mid": {
+                  "type": "number"
+                 },
+                 "high": {
+                  "type": "number"
+                 }
+                }
                }
               }
              }
@@ -861,6 +1052,10 @@
               }
              },
              "description": "Whether one data source worked. Check `ok` before trusting what depends on it."
+            },
+            "pixelMarket": {
+             "type": "object",
+             "description": "Present once the market is live: whether the order book could be read."
             }
            }
           },
@@ -879,6 +1074,95 @@
             "default"
            ],
            "description": "Who decided marketState: the site owner's pin, the Normies contract itself (checked live), or the default (closed)."
+          },
+          "pixelMarket": {
+           "type": [
+            "object",
+            "null"
+           ],
+           "description": "The live Pixel Market order book from api.normies.art /market/stats and /market/depth (cached ~15 s here). Null when the market is not live or the book could not be read. Every price is a snapshot: the market is new and thin.",
+           "required": [
+            "asOf",
+            "bestAskEth",
+            "lastPriceEth",
+            "volume24hEth",
+            "pixels24h",
+            "activeListings",
+            "pixelsListed",
+            "feeBps",
+            "revenueShareBps",
+            "paused",
+            "depth"
+           ],
+           "properties": {
+            "asOf": {
+             "type": "string",
+             "format": "date-time"
+            },
+            "bestAskEth": {
+             "type": [
+              "number",
+              "null"
+             ],
+             "description": "Cheapest listing, ETH per #PIXEL. Null when nothing is listed."
+            },
+            "lastPriceEth": {
+             "type": [
+              "number",
+              "null"
+             ],
+             "description": "Price of the last fill, ETH per #PIXEL."
+            },
+            "volume24hEth": {
+             "type": "number"
+            },
+            "pixels24h": {
+             "type": "integer"
+            },
+            "activeListings": {
+             "type": "integer"
+            },
+            "pixelsListed": {
+             "type": "integer"
+            },
+            "feeBps": {
+             "type": "integer",
+             "description": "Market fee, taken from the seller (1000 = 10%)."
+            },
+            "revenueShareBps": {
+             "type": "integer",
+             "description": "Share of fees paid to holders (5000 = 50%)."
+            },
+            "paused": {
+             "type": "boolean"
+            },
+            "depth": {
+             "type": "array",
+             "description": "Cheapest first, at most 40 price levels.",
+             "items": {
+              "type": "object",
+              "required": [
+               "priceEth",
+               "remaining",
+               "partialRemaining"
+              ],
+              "properties": {
+               "priceEth": {
+                "type": "number",
+                "description": "ETH per #PIXEL."
+               },
+               "remaining": {
+                "type": "integer",
+                "description": "#PIXEL listed at this price."
+               },
+               "partialRemaining": {
+                "type": "integer",
+                "description": "Part of it that can be bought in part (a listing that is not partial-fill must be bought whole)."
+               }
+              }
+             }
+            }
+           }
           }
          }
         }
