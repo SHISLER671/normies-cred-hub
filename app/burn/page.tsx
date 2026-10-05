@@ -14,6 +14,7 @@ import { buildBurnBuy, isStale, SourceError, STALE_HOURS, type BurnBuyResult } f
 import { checkRateLimitById, clientIdFromHeaders } from "@/lib/ratelimit"
 import { burnJsonLd, jsonLdScript } from "@/lib/burn-buy/jsonld"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
+import { launchTimePassed, PIXEL_MARKET_LAUNCH_TEXT } from "@/lib/burn-buy/market-launch"
 import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
 
 import "../zulo/styles.css"
@@ -327,7 +328,7 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
           {result.marketState === "live" ? (
             <li><strong>This page does not read live #PIXEL prices yet.</strong> Pixel Market is open, but moves here are ranked by score, not by value. The prices in the official demo (for example 0.016 ETH per #PIXEL) were labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them.</li>
           ) : (
-            <li><strong>#PIXEL has no market price yet.</strong> This page has not seen Pixel Market open yet. It was planned for October 5, audits permitting, and that was never guaranteed: check @normiesART for the real status. The prices in the official Pixel Market demo (for example 0.016 ETH per #PIXEL) are labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them. Moves here are ranked by score, not by value.</li>
+            <li><strong>#PIXEL has no market price here yet.</strong> {launchTimePassed(new Date(result.asOf)) ? `@serc1n announced the Pixel Market for ${PIXEL_MARKET_LAUNCH_TEXT}. That time has passed, and this page has not been told it is open: check @normiesART or the official Pixel Market page for whether it is open right now.` : `@serc1n announced the Pixel Market for ${PIXEL_MARKET_LAUNCH_TEXT}. This page has not been told it is open yet.`} The prices in the official Pixel Market demo (for example 0.016 ETH per #PIXEL) are labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them. Moves here are ranked by score, not by value.</li>
           )}
           <li><strong>How a burn works</strong> (official video): 1) Commit: the Normies you chose are burned and gone for good. 2) Wait about a minute while the chain produces the randomness for your roll. 3) Reveal: your pixels arrive. Bigger faces earn more.</li>
           {result.yieldMode === "normal" ? (

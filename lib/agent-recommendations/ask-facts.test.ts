@@ -13,6 +13,8 @@ import {
 } from "./burnMath"
 import { CANVAS_EVOLUTION_DISCLAIMER } from "./canvasEvolution"
 import { COMMUNITY_TOOLS } from "./communityTools"
+import { buildMarketStatusBlock } from "./marketStatus"
+import { launchTimePassed } from "../burn-buy/market-launch"
 import { ECOSYSTEM_LINKS } from "./constants"
 import {
   buildCollabRailsPromptBlock,
@@ -750,12 +752,12 @@ describe("Ask follows the same Pixel Market switch as /burn (PIXEL_MARKET)", () 
     else process.env.PIXEL_MARKET = value
     try { run() } finally { if (before === undefined) delete process.env.PIXEL_MARKET; else process.env.PIXEL_MARKET = before }
   }
-  it("by default (unset): launch announced for Monday, October 5, never says it is open", () => {
+  it("by default (unset): never says it is open, whatever the clock says", () => {
     withMarket(undefined, () => {
       const p = composeZuloPrompt(generalContext(), "Is Pixel Market live?")
       assert.match(p, /LIVE STATUS: PIXEL MARKET \(overrides any older wording below\)/)
-      assert.match(p, /launches on Monday, October 5, 2026/)
-      assert.match(p, /Never say it is open or live, and never invent a time/)
+      assert.match(p, /8 PM CET \/ 2 PM EST \(18:00 UTC\) on Monday, October 5, 2026/)
+      assert.match(p, /has NOT been told it is open/)
       assert.doesNotMatch(p, /The Pixel Market is OPEN/)
     })
   })
@@ -765,13 +767,55 @@ describe("Ask follows the same Pixel Market switch as /burn (PIXEL_MARKET)", () 
       assert.match(p, /The Pixel Market is OPEN \(confirmed by the site owner\)/)
       assert.match(p, /You have NO live market data: never quote #PIXEL prices/)
       assert.match(p, /https:\/\/normiescredhub\.vercel\.app\/burn/)
-      assert.match(p, /overrides any older "not open yet" or "Coming Soon" wording/)
-      assert.doesNotMatch(p, /Never say it is open or live/)
+      assert.match(p, /overrides any older "not open yet", "Coming Soon" or "not tradable" wording/)
+      assert.doesNotMatch(p, /has NOT been told it is open/)
     })
   })
   it("a typo does not open the market (strict, like /burn)", () => {
     withMarket("Live!", () => {
-      assert.match(composeZuloPrompt(generalContext(), "x"), /Never say it is open or live/)
+      assert.match(composeZuloPrompt(generalContext(), "x"), /has NOT been told it is open/)
     })
+  })
+})
+
+
+describe("the launch clock only changes WORDING, never opens the market (@serc1n: 8 PM CET / 2 PM EST = 18:00 UTC, 2026-10-05)", () => {
+  const before = new Date("2026-10-05T17:59:59Z")
+  const after = new Date("2026-10-05T18:00:00Z")
+
+  it("before 18:00 UTC: scheduled for today, never open", () => {
+    const b = buildMarketStatusBlock("pending", before)
+    assert.match(b, /is scheduled to launch at 8 PM CET \/ 2 PM EST \(18:00 UTC\)/)
+    assert.match(b, /Never say it is open or live/)
+    assert.doesNotMatch(b, /OPEN \(confirmed/)
+  })
+  it("from 18:00 UTC with the switch unset: the scheduled time has passed, check the official page, neither open nor delayed", () => {
+    const b = buildMarketStatusBlock("pending", after)
+    assert.match(b, /was SCHEDULED to launch/)
+    assert.match(b, /the scheduled launch time has passed; check @normiesART or the official Pixel Market page/)
+    assert.match(b, /Never claim it is open, and never claim it is delayed/)
+    assert.doesNotMatch(b, /OPEN \(confirmed/)
+  })
+  it("only the switch says open, at any time", () => {
+    for (const t of [before, after]) assert.match(buildMarketStatusBlock("live", t), /The Pixel Market is OPEN \(confirmed by the site owner\)/)
+  })
+  it("carries the official facts from Serc's post: #PIXEL tradable, no separate coin, HIVE and Arena next month, moved links", () => {
+    for (const state of ["pending", "live"] as const) {
+      const b = buildMarketStatusBlock(state, before)
+      assert.match(b, /#PIXEL is the new name for Action Points/)
+      assert.match(b, /free to trade on the Pixel Market/)
+      assert.match(b, /There is NO separate coin/)
+      assert.match(b, /Next month \(official\): NormiesHIVE \(agentic swarm\) and Arena/)
+      assert.match(b, /Arena rules are still not published/)
+      assert.match(b, /normies\.art deep links in older notes may have moved/)
+    }
+  })
+  it("the announcement holds no numbers that go stale (volumes, burn counts, agent counts)", () => {
+    const b = buildMarketStatusBlock("pending", before)
+    assert.doesNotMatch(b, /3200|2957|1884|\$6\.6M|\$2\.5M/)
+  })
+  it("launchTimePassed is exact at the boundary", () => {
+    assert.equal(launchTimePassed(new Date("2026-10-05T17:59:59.999Z")), false)
+    assert.equal(launchTimePassed(new Date("2026-10-05T18:00:00.000Z")), true)
   })
 })
