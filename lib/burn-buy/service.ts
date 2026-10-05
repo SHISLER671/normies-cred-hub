@@ -45,6 +45,14 @@ export interface RarityToken {
   customized?: boolean
 }
 
+/** Which source answered. `opensea` = the Normies API listings were unavailable, so these are the cheapest listings straight from OpenSea. */
+export interface ListingsResult {
+  items: RawListing[]
+  floorEth: number | null
+  total: number
+  source?: "normies-api" | "opensea"
+}
+
 export interface RawListing extends RarityToken {
   priceEth: number
   url?: string
@@ -67,7 +75,7 @@ export interface MarketSnapshot {
 export interface Deps {
   resolveHolder(input: string): Promise<{ address: string; ens: string | null; tokenIds: number[] }>
   fetchTokens(ids: number[]): Promise<RarityToken[]>
-  fetchListings(): Promise<{ items: RawListing[]; floorEth: number | null; total: number }>
+  fetchListings(): Promise<ListingsResult>
   loadSnapshot(): Promise<MarketSnapshot>
   /** Tokens this address is the Canvas delegate for (it can edit pixels but cannot burn). Optional. */
   findDelegations?(address: string): Promise<Array<DelegatedToken>>
@@ -280,6 +288,11 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
       sources.listings = { ok: false, error: `all ${skipped} listings were skipped: none are in the index yet` }
     } else if (skipped > 0) {
       sources.listings = { ok: true, note: `${skipped} listings skipped: not in the index yet` }
+    }
+    if (raw.source === "opensea" && sources.listings.ok) {
+      const via = `listings come from OpenSea, because the Normies API listings were unavailable: the cheapest ${raw.items.length} only`
+      sources.listings = { ok: true, note: sources.listings.note ? `${via}; ${sources.listings.note}` : via }
+      caveats.push(`Listings come straight from OpenSea right now (the Normies API listings were unavailable), and only the cheapest ${raw.items.length} are read, so the "cheapest #PIXEL" picks come from that set. The floor is OpenSea's.`)
     }
   } catch (e) {
     sources.listings = fail("listings", e)
