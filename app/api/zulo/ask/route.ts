@@ -14,7 +14,8 @@ import { requirePaymentIfNeeded } from "@/lib/agent-recommendations/verifyPaymen
 import { enforceDualRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/middleware/rateLimit"
 import { appendSecurityEvent } from "@/lib/security/audit"
 
-export const maxDuration = 60
+// 120 s: context build + Venice (45 s cap) + the xAI fallback (45 s cap) must all fit; lib/agent-recommendations/generate.ts ASK_BUDGET_MS (110 s) enforces it.
+export const maxDuration = 120
 export const dynamic = "force-dynamic"
 
 type SessionTurn = { userMessage: string; zuloResponse: string }
