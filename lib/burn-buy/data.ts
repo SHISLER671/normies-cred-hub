@@ -13,10 +13,12 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { fetchJevOpinions } from "./jev"
 import { cachedContractStatus } from "./contract-cache"
 import { loadPixelMarket } from "./market-feed"
+import { listingsWithFallback } from "./listings-source"
+import { loadOpenSeaListings, openSeaAssetUrl } from "./opensea-listings"
 import { currentMarket, currentYieldMode, currentYieldPinned, marketPin } from "./switches"
 import { walletScore } from "./score"
 import { ttl } from "./ttl"
-import { SourceError, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
+import { SourceError, type Deps, type ListingsResult, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
 
 const RARITY = `${NORMIES_API_BASE}/rarity`
 const HEADERS = { Accept: "application/json" }
@@ -121,7 +123,7 @@ export function withTimeout<T>(p: Promise<T>, ms: number, message: string): Prom
  * Listings are OPTIONAL, so they get a hard time cap well inside the page's 20 s budget. A slow listings source then
  * costs a warning, not the whole page.
  */
-export const LISTINGS_BUDGET_MS = 6_000
+export const LISTINGS_BUDGET_MS = 9_000
 /** The index snapshot is REQUIRED; cap it so a hung database gives our friendly error, not a platform 504. */
 export const SNAPSHOT_BUDGET_MS = 8_000
 
@@ -152,14 +154,36 @@ export async function withOneRetry<T>(attempt: (fresh: boolean) => Promise<T>, p
   }
 }
 
+/**
+ * The fallback listings, from OpenSea (the cheapest ~250 tokens), enriched with rank / type / AP from the Normies rarity API.
+ * Used only when the Normies API's own listings fail or come back empty (live 2026-10-05: empty for hours while OpenSea had 100+).
+ * Without OPENSEA_API_KEY this throws, so nothing changes for a deployment that has no key.
+ */
+async function openSeaFallback(): Promise<ListingsResult> {
+  const os = await loadOpenSeaListings(process.env.OPENSEA_API_KEY)
+  if (!os || os.length === 0) throw new SourceError("listings", "OpenSea listings unavailable")
+  const top = os.slice(0, 100)
+  const tokens = await fetchTokens(top.map((l) => l.tokenId))
+  const byId = new Map(tokens.map((t) => [t.id, t]))
+  const items: RawListing[] = []
+  for (const l of top) {
+    const t = byId.get(l.tokenId)
+    if (t) items.push({ ...t, priceEth: l.priceEth, url: openSeaAssetUrl(l.tokenId) })
+  }
+  if (items.length === 0) throw new SourceError("listings", "OpenSea listings could not be matched to Normies")
+  return { items, floorEth: os[0].priceEth, total: os.length, source: "opensea" }
+}
+
 const listingsCached = ttl(60_000, () =>
   withTimeout(
-    withOneRetry((fresh) =>
-      requireListings(() =>
-        loadListings((page) =>
-          getJson<ListingsPage>(`${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`, "listings", fresh ? 0 : 60),
+    listingsWithFallback(
+      (fresh) =>
+        requireListings(() =>
+          loadListings((page) =>
+            getJson<ListingsPage>(`${RARITY}/normies?listed=1&limit=100&page=${page}&sort=price&order=asc`, "listings", fresh ? 0 : 60),
+          ),
         ),
-      ),
+      openSeaFallback,
     ),
     LISTINGS_BUDGET_MS,
     `listings took longer than ${LISTINGS_BUDGET_MS / 1000} s`,
