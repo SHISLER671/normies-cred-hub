@@ -2,6 +2,7 @@
 // Rule: every number shown here is copied from the result, never recomputed, so the page cannot disagree with the API.
 
 import type { Move, Verdict } from "./advise"
+import type { CliffCost, PixelMarketSnapshot, SellRow } from "./market-math"
 import type { JevVerdict } from "./jev"
 import { BOOSTS, BRACKETS, boostFor, type CliffSide, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
 import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } from "./service"
@@ -9,13 +10,14 @@ import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } fro
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
 
 /** What the holder is burning FOR. Same data, different answer. */
-export type Goal = "share" | "arena" | "art"
+export type Goal = "share" | "arena" | "art" | "sell"
 export const GOALS: ReadonlyArray<{ id: Goal; label: string; blurb: string }> = [
   { id: "share", label: "Revenue share", blurb: "Grow your score and your slice of the pool." },
   { id: "arena", label: "Arena", blurb: "Protect the Normies you want to play with." },
   { id: "art", label: "Art", blurb: "Earn pixels to draw on the Normies you keep." },
+  { id: "sell", label: "Sell", blurb: "Selling #PIXEL: what it nets, and what it does to your score." },
 ]
-export const parseGoal = (v: string | null | undefined): Goal => (v === "arena" || v === "art" ? v : "share")
+export const parseGoal = (v: string | null | undefined): Goal => (v === "arena" || v === "art" || v === "sell" ? v : "share")
 
 /** Official formula (Normies docs): Level = floor(AP / 10) + 1. */
 export const levelOf = (ap: number) => Math.floor(ap / 10) + 1
@@ -70,7 +72,7 @@ export interface PageModel {
   lines: string[]
   rows: TokenRow[]
   moves: MoveLine[]
-  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; /** ETH per #PIXEL if you burn it (price ÷ pays). */ ethPerPixel: number; /** Normal burn mode only: cheapest and dearest outcome per #PIXEL. */ ethPerPixelRange: { low: number; high: number } | null; url: string | null; /** Normal burn mode only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
+  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; /** Live market only: burning this versus buying #PIXEL at the best ask, per #PIXEL, in plain words. Null without a live book. */ vsAsk: string | null; /** Live market only: the Normie price above which buying #PIXEL at the best ask would have been cheaper (a range at normal tiers). */ breakEven: string | null; /** ETH per #PIXEL if you burn it (price ÷ pays). */ ethPerPixel: number; /** Normal burn mode only: cheapest and dearest outcome per #PIXEL. */ ethPerPixelRange: { low: number; high: number } | null; url: string | null; /** Normal burn mode only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
   /** A link to the normies.art revenue share simulator, pre-filled with this wallet's Normies and #PIXEL. Share goal only. */
   simulatorUrl: string | null
   /** How a burn pays ("normal" means a roll, so figures are shown as about / ~ with a range). */
@@ -88,6 +90,10 @@ export interface PageModel {
   nextSteps: NextStep[]
   /** Where you stand against each cliff, in plain words: what the next step needs and what dropping below this one costs. Revenue share goal with Normies only; otherwise empty. */
   cliffNotes: string[]
+  /** One line of live Pixel Market numbers (best ask, last fill, listed, 24h volume), or null without a live book. */
+  marketLine: string | null
+  /** The Sell view (Sell goal, a wallet with #PIXEL, a live book): reference-price rows and the plain limits. Otherwise null. */
+  sellView: { rows: Array<{ label: string; net: string; detail: string }>; notes: string[] } | null
   /** Extra plain-language facts and limits for the chosen goal (shown in the disclaimer box). */
   goalNotes: string[]
 }
@@ -209,6 +215,13 @@ const SHARE_NOTES = [
   `Boost, by #PIXEL held (on Normies, in your wallet, or listed): ${[...BOOSTS].reverse().map((b) => `${b.min.toLocaleString("en-US")} or more = +${Math.round(b.boost * 100)}%`).join(", ")}.`,
 ]
 
+const SELL_NOTES = [
+  "The Pixel Market is a sell-side order book (official): sellers list #PIXEL at a price, buyers buy listings. The market takes a 10% fee from the seller; buyers pay the listed price and nothing extra. Half of every fee goes to the holder pool.",
+  "Prices here are reference points from today's book (the best ask, the last fill, and what the cheapest burn costs per #PIXEL), not a recommendation of where to list and not a prediction. The market is new and thin, so one sale can move the price.",
+  "#PIXEL you have listed for sale still counts toward your score until it sells. Holdings are checked at four random blocks a day, so what counts is what you hold at those moments.",
+  "Selling #PIXEL lowers your score even when your boost holds: each #PIXEL is worth 1/5 of a point. Falling below a boost line costs much more, because the boost applies to your whole score. The rows below show both.",
+]
+
 function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number | null): MoveLine {
   const base = `Buy #${f.tokenId} for ${eth(f.priceEth)} and burn it into a Normie you keep`
   if (goal === "arena") {
@@ -223,10 +236,10 @@ function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number
 }
 
 export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share"): PageModel {
-  const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : SHARE_NOTES
+  const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : goal === "sell" ? SELL_NOTES : SHARE_NOTES
   const yieldMode: YieldMode = result?.yieldMode ?? "promo"
   const marketState: MarketState = result?.marketState ?? "pending"
-  const base: PageModel = { simulatorUrl: null, yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes, ledger: [], nextSteps: [], cliffNotes: [] }
+  const base: PageModel = { simulatorUrl: null, yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes, ledger: [], nextSteps: [], cliffNotes: [], marketLine: null, sellView: null }
   if (!result) return base
 
   const fodder = (result.market?.bestPixelFodder ?? []).slice(0, 5).map((f) => ({
@@ -234,11 +247,16 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     priceEth: f.priceEth,
     pays: f.yieldTotal,
     perEth: f.yieldPerEth,
+    vsAsk: vsAskText(f.vsAsk, result.pixelMarket?.bestAskEth ?? null),
+    breakEven: breakEvenText(f.breakEvenNormieEth),
     ethPerPixel: f.ethPerPixel,
     ethPerPixelRange: f.ethPerPixelLow !== undefined && f.ethPerPixelHigh !== undefined ? { low: f.ethPerPixelLow, high: f.ethPerPixelHigh } : null,
     url: safeUrl(f.url),
     range: f.yieldMin !== undefined && f.yieldMax !== undefined ? { min: f.yieldMin, max: f.yieldMax } : null,
   }))
+
+  const marketLine = marketLineText(result.pixelMarket ?? null)
+  base.marketLine = marketLine
 
   // Listings down: say so ON the answer, not only in the folded fine print. Without this the moves and the fodder table
   // silently vanished and the headline read "Nothing to do right now" (live, 2026-10-04 21:55 UTC).
@@ -365,6 +383,8 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   } else if (goal === "arena") {
     if (lone) lines.push(`Your Arena Normie is #${lone.tokenId}${lone.type ? ` (${lone.type})` : ""}: Level ${levelOf(lone.actionPoints)} with ${lone.actionPoints} AP.`)
     else if (keepN > 1) lines.push(`Your fighters: ${keepRows.map((r) => `#${r.tokenId}${r.type ? ` ${r.type}` : ""} (Level ${r.level})`).join(", ")}.`)
+  } else if (goal === "sell") {
+    // The Sell view needs no per-Normie lines: the numbers are in the section below.
   } else {
     lines.push("Pixels on a Normie are its paint budget: they set how many pixels of its face you can change. Painting never uses them up.")
   }
@@ -379,6 +399,9 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
         ? "Market data did not load, so we cannot rank moves right now. Try again in a minute."
         : "Nothing to do right now: no move improves your score."
     moves = advice.moves.slice(0, 3).map((m) => describeMove(m, yieldMode))
+  } else if (goal === "sell") {
+    headline = sellHeadline(advice.pixel, advice.cliffs.pixel.floor, w.pixelMarketView?.sell ?? [], result.pixelMarket ?? null, marketState)
+    moves = []
   } else {
     const picks = fodder.slice(0, 3).map((f) => fodderLine(f, goal, keeperAp))
     moves = picks
@@ -402,8 +425,10 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   }
 
   const { ledger, nextSteps } = goal === "share" ? scoreBreakdown(advice) : { ledger: [], nextSteps: [] }
-  const cliffNotes = goal === "share" ? cliffSentences(advice.cliffs) : []
-  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: w.delegateOf, notices, goal, goalNotes, ledger, nextSteps, cliffNotes }
+  const view = w.pixelMarketView ?? null
+  const cliffNotes = goal === "share" || goal === "sell" ? [...cliffSentences(advice.cliffs), ...cliffCostSentences(view?.cliffCost ?? null)] : []
+  const sellView = goal === "sell" ? buildSellView(view?.sell ?? [], advice.pixel, result.pixelMarket ?? null) : null
+  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows: goal === "sell" ? [] : rows, moves, fodder: goal === "sell" ? [] : fodder, delegateOf: w.delegateOf, notices, goal, goalNotes, ledger, nextSteps, cliffNotes, marketLine, sellView }
 }
 
 /**
@@ -432,6 +457,75 @@ export function cliffSentences(c: { normies: CliffSide; pixel: CliffSide }): str
   if (n.next) out.push(`${n.next.needMore} more Normie${n.next.needMore === 1 ? "" : "s"} (${n.next.at} in all) lifts your whole stack to ${num(n.next.value)}x.`)
   out.push("#PIXEL you have listed for sale still counts until it sells. Holdings are sampled at four random blocks a day, so what counts is what you hold at those moments.")
   return out
+}
+
+const ethText = (n: number) => String(Number(n.toFixed(5)))
+
+/** Burning versus buying at the best ask, per #PIXEL, in plain words. Null without a live ask. */
+function vsAskText(v: string | undefined, ask: number | null): string | null {
+  if (!v || ask === null) return null
+  if (v === "market-cheaper") return `below the ask (${ethText(ask)}): buying #PIXEL is cheaper`
+  if (v === "burn-cheaper") return `above the ask (${ethText(ask)}): burning is cheaper`
+  return `the ask (${ethText(ask)}) is inside the burn's range`
+}
+
+function breakEvenText(b: { low: number; mid: number; high: number } | undefined): string | null {
+  if (!b) return null
+  return b.low === b.high ? `${ethText(b.mid)} ETH` : `${ethText(b.low)} to ${ethText(b.high)} ETH`
+}
+
+/** One line of live numbers. Always a snapshot; the market is new and thin. */
+export function marketLineText(m: PixelMarketSnapshot | null): string | null {
+  if (!m) return null
+  const parts: string[] = []
+  parts.push(m.bestAskEth !== null ? `best ask ${ethText(m.bestAskEth)} ETH per #PIXEL` : "nothing listed right now")
+  if (m.lastPriceEth !== null) parts.push(`last fill ${ethText(m.lastPriceEth)}`)
+  parts.push(`${m.pixelsListed.toLocaleString("en-US")} #PIXEL listed in ${m.activeListings} listing${m.activeListings === 1 ? "" : "s"}`)
+  parts.push(`24h volume ${ethText(m.volume24hEth)} ETH (${m.pixels24h} #PIXEL)`)
+  return `Pixel Market now: ${parts.join(" · ")}. A snapshot of a new, thin market: it can move in minutes.${m.paused ? " The market is paused right now." : ""}`
+}
+
+/** What reaching the next boost would cost off the book today, and the labelled illustrative payback. */
+export function cliffCostSentences(c: CliffCost | null): string[] {
+  if (!c) return []
+  const out: string[] = []
+  const b = c.buy
+  if (b.shortfall > 0) {
+    out.push(`The book is too thin to fill the next boost (+${c.boostPct}% at ${c.atPixel} #PIXEL): only ${b.filled} of the ${c.needMore} you need are listed.`)
+    return out
+  }
+  out.push(`Reaching ${c.atPixel} #PIXEL (+${c.boostPct}% boost) means buying ${c.needMore} more: about ${ethText(b.costEth)} ETH off the book today (average ${ethText(b.avgEth ?? 0)}, dearest ${ethText(b.worstEth ?? 0)}; the price rises as you buy${b.approx ? ", and some listings must be bought whole, so it can run a little higher" : ""}). Your score would go ${num(c.scoreBefore)} to ${num(c.scoreAfter)} (+${num(c.scoreGain)}), about ${ethText(c.costPerScorePoint ?? 0)} ETH per point.`)
+  if (c.payback.length > 0) {
+    const bits = c.payback.map((p) => `${num(p.poolEthPerMonth)} ETH a month: ${ethText(p.monthlyEth)} ETH a month for you, ${p.months === null ? "no payback" : `${num(p.months)} months to earn it back`}`)
+    out.push(`If the monthly holder pool were (illustrative scenarios built on the Sep 23 article's pace, NOT forecasts; the real pool depends on volume nobody knows yet): ${bits.join("; ")}.`)
+  }
+  return out
+}
+
+/** The one sentence at the top of the Sell view. */
+function sellHeadline(pixel: number, floor: { at: number; spare: number; dropsTo: number } | null, rows: SellRow[], book: PixelMarketSnapshot | null, market: MarketState): string {
+  if (pixel === 0) return "You hold no #PIXEL, so there is nothing to sell."
+  if (market !== "live") return "The Pixel Market is not open yet, so there is nothing to sell into."
+  if (!book || rows.length === 0) return "The order book could not be read this time, so we cannot price a sale. Try again in a minute."
+  const cushion = rows[0]
+  const keeps = floor && cushion.pixels === floor.spare && floor.spare < pixel
+  if (floor && floor.spare === 0) return `You are exactly on a boost line, so selling even 1 #PIXEL drops your boost. At the best ask, all ${pixel} #PIXEL would net about ${ethText(rows[0].netEth)} ETH after the 10% fee.`
+  return keeps
+    ? `You can sell up to ${cushion.pixels} #PIXEL and keep your boost: about ${ethText(cushion.netEth)} ETH at ${cushion.label.split(" at ")[1]} after the 10% fee.`
+    : `Selling ${cushion.pixels} #PIXEL would net about ${ethText(cushion.netEth)} ETH at ${cushion.label.split(" at ")[1]} after the 10% fee.`
+}
+
+/** The rows of the Sell view, at reference prices only. */
+function buildSellView(rows: SellRow[], pixel: number, book: PixelMarketSnapshot | null): PageModel["sellView"] {
+  if (pixel === 0 || !book || rows.length === 0) return null
+  return {
+    rows: rows.map((r) => ({
+      label: `Sell ${r.pixels} #PIXEL (${r.label})`,
+      net: `${ethText(r.netEth)} ETH net`,
+      detail: `${ethText(r.priceEth)} ETH each = ${ethText(r.grossEth)} gross, minus the 10% fee ${ethText(r.feeEth)}. ${r.ahead.toLocaleString("en-US")} #PIXEL are listed at or below that price, so they sell first. Your score would be ${num(r.scoreAfter)} (pool share ${r.sharePctAfter}%).`,
+    })),
+    notes: ["Reference prices, not advice on where to list. You set your own price; nothing here predicts it will sell."],
+  }
 }
 
 const pctText = (n: number) => String(Number(n.toFixed(4)))

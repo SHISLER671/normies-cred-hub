@@ -129,7 +129,7 @@ describe("the API result under each combination", () => {
     assert.equal(r.marketState, "live")
     assert.equal(r.yieldMode, "promo")
     assert.equal(r.promo.ratePercent, 4)
-    assert.ok(r.caveats.some((c) => /does not read live #PIXEL prices/.test(c)))
+    assert.ok(r.caveats.some((c) => /order book could not be read/.test(c)))
   })
 
   it("both on", async () => {

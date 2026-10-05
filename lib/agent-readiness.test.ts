@@ -145,6 +145,37 @@ describe("the OpenAPI spec matches the real answers (both yield modes, with and 
     })
   }
 
+  it("market LIVE with an order book: pixelMarket, pixelMarketView, cliffCost, sell rows and the fodder comparison are all documented", async () => {
+    const book = {
+      asOf: "2026-10-05T20:40:00Z", bestAskEth: 0.0169, lastPriceEth: 0.017, volume24hEth: 0.0719, pixels24h: 4, activeListings: 17, pixelsListed: 499,
+      feeBps: 1000, revenueShareBps: 5000, paused: false,
+      depth: [{ priceEth: 0.0169, remaining: 5, partialRemaining: 5 }, { priceEth: 0.017, remaining: 2, partialRemaining: 2 }, { priceEth: 0.0175, remaining: 143, partialRemaining: 143 }],
+    }
+    const r = (await buildBurnBuy({ wallet: "0xabc" }, deps({ marketState: () => "live", pixelMarket: async () => book }))) as unknown as Record<string, any>
+    same("root", r, ok200)
+    same("pixelMarket", r.pixelMarket, ok200.properties.pixelMarket)
+    same("depth level", r.pixelMarket.depth[0], ok200.properties.pixelMarket.properties.depth.items)
+    const view = r.wallet.pixelMarketView
+    assert.ok(view, "a held wallet with a live book gets a view")
+    same("view", view, ok200.properties.wallet.properties.pixelMarketView)
+    assert.ok(view.cliffCost, "10 #PIXEL held: the next boost (15) can be priced")
+    same("cliffCost", view.cliffCost, ok200.properties.wallet.properties.pixelMarketView.properties.cliffCost)
+    same("buy", view.cliffCost.buy, ok200.properties.wallet.properties.pixelMarketView.properties.cliffCost.properties.buy)
+    same("payback", view.cliffCost.payback[0], ok200.properties.wallet.properties.pixelMarketView.properties.cliffCost.properties.payback.items)
+    assert.ok(view.sell.length > 0)
+    same("sell row", view.sell[0], ok200.properties.wallet.properties.pixelMarketView.properties.sell.items)
+    same("fodder", r.market.bestPixelFodder[0], ok200.properties.market.properties.bestPixelFodder.items)
+    assert.ok(r.market.bestPixelFodder[0].vsAsk && r.market.bestPixelFodder[0].breakEvenNormieEth)
+    same("sources", r.sources, ok200.properties.sources)
+    assert.equal(view.cliffCost.needMore, 5)
+    assert.equal(view.cliffCost.buy.costEth, 0.0845) // 5 #PIXEL, all at the 0.0169 best ask
+  })
+  it("market LIVE but the book is unreadable: pixelMarket is null, the wallet view is null, and the source says so", async () => {
+    const r = (await buildBurnBuy({ wallet: "0xabc" }, deps({ marketState: () => "live", pixelMarket: async () => null }))) as unknown as Record<string, any>
+    assert.equal(r.pixelMarket, null); assert.equal(r.wallet.pixelMarketView, null)
+    assert.equal(r.sources.pixelMarket.ok, false)
+    assert.ok(r.caveats.some((c: string) => /order book could not be read/.test(c)))
+  })
   it("market-only (no wallet): wallet is null, as the spec says", async () => {
     const r = (await buildBurnBuy({}, deps())) as unknown as Record<string, any>
     same("root", r, ok200)

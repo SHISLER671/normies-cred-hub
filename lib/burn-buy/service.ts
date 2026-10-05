@@ -15,6 +15,7 @@ import {
 } from "./advise"
 import { contractRate, matchesKnownTiers, type BurnContractStatus } from "./contract-state"
 import { resolveMarketState } from "./switches"
+import { cliffCost, sellRows, type PixelMarketSnapshot, type PixelMarketView } from "./market-math"
 import { promoWindow, type PromoWindow } from "./promo-window"
 import { JEV_MAX_TOKENS, type JevOpinion, type JevToken } from "./jev"
 
@@ -82,6 +83,8 @@ export interface Deps {
   marketState?(): MarketState
   /** The site owner's pin (PIXEL_MARKET=live|pending), or null. Without a pin the contract status decides. */
   marketPin?(): MarketState | null
+  /** The Pixel Market's live order book (best ask, depth, fee). Only called once the market is live; null = could not be read. */
+  pixelMarket?(): Promise<PixelMarketSnapshot | null>
   now(): Date
 }
 
@@ -117,9 +120,13 @@ export interface BurnBuyResult {
     delegateOf: Array<DelegatedToken>
     advice: WalletAdvice & { holdings: Array<{ tokenId: number; originalPixels: number; actionPoints: number; rank: number | null; type: string | null }> }
     historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: number; source: string }
+    /** Priced from the live order book: the cost to reach the next boost, and what selling would net. Null without a live book. */
+    pixelMarketView: PixelMarketView | null
     /** Jev's second opinion per burn candidate (only when the market is live and Jev is on). It never changes a verdict. */
     jev?: Record<number, JevOpinion>
   }
+  /** The live Pixel Market order book (best ask, last fill, depth, fee), or null when the market is not live or could not be read. */
+  pixelMarket: PixelMarketSnapshot | null
   market: null | {
     floorEth: number | null
     listedCount: number
@@ -128,8 +135,13 @@ export interface BurnBuyResult {
     skippedListings: number
   }
   census: { wallets: number; totalScore: number; livingSupply: number; indexOldestIndexedAt: string | null }
-  sources: Record<SourceName, SourceStatus>
+  sources: Record<SourceName, SourceStatus> & { pixelMarket?: SourceStatus }
   caveats: string[]
+}
+
+function cliffMath(advice: WalletAdvice, book: PixelMarketSnapshot, othersScore: number) {
+  const next = advice.cliffs.pixel.next
+  return cliffCost(advice.held, advice.pixel, next, book.depth, othersScore)
 }
 
 export const NORMAL_INFO = {
@@ -184,11 +196,18 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   const modeSource: BurnBuyResult["promo"]["source"] = pinned ? "pinned" : rate === "unknown" ? "clock" : "contract"
   const marketDecision = resolveMarketState(deps.marketPin ? deps.marketPin() : null, contract, deps.marketState ? deps.marketState() : "pending")
   const marketState: MarketState = marketDecision.state
+  // The live order book (cached upstream of here; a 3 s cap). Null when the market is not live, no dependency is wired, or it could not be read.
+  const pixelBook: PixelMarketSnapshot | null = marketState === "live" && deps.pixelMarket ? await deps.pixelMarket().catch(() => null) : null
+  if (marketState === "live" && deps.pixelMarket) {
+    sources.pixelMarket = pixelBook ? { ok: true, note: pixelBook.paused ? "market is paused" : undefined } : { ok: false, error: "the Pixel Market order book could not be read" }
+  }
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
-    marketState === "live"
-      ? "Not financial advice. This tool does not read live #PIXEL prices yet, so moves are compared by score, not value."
-      : "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value.",
+    marketState !== "live"
+      ? "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value."
+      : pixelBook
+        ? "Not financial advice. Moves are ranked by score. The live #PIXEL order book (best ask, depth, fee) is shown beside them for comparison; it is thin and can change in minutes, so treat every price as a snapshot."
+        : "Not financial advice. The #PIXEL order book could not be read this time, so moves are compared by score, not value.",
     "Yield uses each token's ORIGINAL pixel count (what the contract pays on), not its current edited art.",
     ...(contract?.paused ? ["Burning is paused on the Normies contract right now, so nothing can be burned until it reopens. Figures show what a burn would pay once it does."] : []),
     ...(contract && rate === "tiered" && !matchesKnownTiers(contract)
@@ -252,8 +271,8 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     market = {
       floorEth: raw.floorEth,
       listedCount: raw.total,
-      bestPixelFodder: rankFodder(listings, ctx, { withAp: false, limit: 10 }),
-      bestApCarriers: rankFodder(listings, ctx, { withAp: true, limit: 10 }),
+      bestPixelFodder: rankFodder(listings, ctx, { withAp: false, limit: 10, askEth: pixelBook?.bestAskEth ?? null }),
+      bestApCarriers: rankFodder(listings, ctx, { withAp: true, limit: 10, askEth: pixelBook?.bestAskEth ?? null }),
       skippedListings: skipped,
     }
     if (raw.items.length > 0 && listings.length === 0) {
@@ -327,6 +346,27 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     const indexScore = snap.walletScores.get(holder.address.toLowerCase()) ?? 0
     const walletCtx = { ...ctx, censusTotal: Math.max(0, snap.censusTotal - indexScore) + liveScore }
     const advice = adviseWallet(held, listings.filter((l) => !own.has(l.tokenId)), walletCtx)
+    // Priced from the live book: what reaching the next boost would cost, and what selling would net. Never a verdict.
+    let pixelMarketView: PixelMarketView | null = null
+    if (pixelBook && held.length > 0) {
+      const othersScore = Math.max(0, walletCtx.censusTotal - advice.score)
+      const prices: Array<{ label: string; priceEth: number }> = []
+      const addPrice = (label: string, priceEth: number | null | undefined) => {
+        if (priceEth && priceEth > 0 && !prices.some((p) => Math.abs(p.priceEth - priceEth) < 1e-9)) prices.push({ label, priceEth })
+      }
+      addPrice("the best ask", pixelBook.bestAskEth)
+      addPrice("the last fill", pixelBook.lastPriceEth)
+      addPrice("what the cheapest burn costs per #PIXEL", market?.bestPixelFodder[0]?.ethPerPixel)
+      const floor = advice.cliffs.pixel.floor
+      pixelMarketView = {
+        cliffCost: cliffMath(advice, pixelBook, othersScore),
+        sell: advice.pixel > 0
+          ? sellRows({ held: advice.held, pixel: advice.pixel, spare: floor ? floor.spare : advice.pixel, prices, depth: pixelBook.depth, feeBps: pixelBook.feeBps, othersScore })
+          : [],
+      }
+      const i = advice.notes.findIndex((n) => n.startsWith("Scores use the published formula."))
+      if (i >= 0) advice.notes[i] = "Scores use the published formula. Moves are ranked by score; live #PIXEL prices from the order book are shown beside them, as a snapshot."
+    }
     // Jev: a cautious second opinion on burn candidates only, only once the market is live and a key exists. Fail-safe:
     // any problem means no opinion and an honest note; the verdicts above are never touched.
     let jev: Record<number, JevOpinion> | undefined
@@ -412,6 +452,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
         payoutEthIfSharePaidLikeArticleWindow: historicalPayoutEth(advice.sharePct),
         source: ARTICLE_WINDOW.source,
       },
+      pixelMarketView,
       ...(jev ? { jev } : {}),
     }
   }
@@ -428,6 +469,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
       contract: contract ?? null,
     },
     wallet,
+    pixelMarket: pixelBook,
     market,
     census: {
       wallets: snap.wallets,

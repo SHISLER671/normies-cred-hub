@@ -12,6 +12,7 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
 import { fetchJevOpinions } from "./jev"
 import { cachedContractStatus } from "./contract-cache"
+import { loadPixelMarket } from "./market-feed"
 import { currentMarket, currentYieldMode, currentYieldPinned, marketPin } from "./switches"
 import { walletScore } from "./score"
 import { ttl } from "./ttl"
@@ -342,6 +343,16 @@ async function lookupDelegations(address: string): Promise<Delegation[]> {
   return out
 }
 
+/**
+ * The order book is cached upstream for 10 s and api.normies.art allows 60 requests per minute per IP, so one shared 15 s cache here means
+ * at most 8 requests a minute (two calls per refresh) however many people visit. A failed read is never kept.
+ */
+const pixelMarketCached = ttl(15_000, async () => {
+  const m = await loadPixelMarket()
+  if (!m) throw new Error("pixel market unavailable")
+  return m
+})
+
 export const realDeps: Deps = {
 
   resolveHolder,
@@ -350,6 +361,7 @@ export const realDeps: Deps = {
   loadSnapshot: snapshotCached,
   findDelegations,
   contractStatus: () => cachedContractStatus().catch(() => null),
+  pixelMarket: () => pixelMarketCached().catch(() => null),
   // Jev stays OFF (returns null) until a TYPESAFE_API_KEY exists; the service only calls this once PIXEL_MARKET=live.
   // JEV_DISABLE=1 is a kill switch.
   jevOpinions: async (tokens) => {

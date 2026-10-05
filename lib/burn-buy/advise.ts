@@ -5,6 +5,7 @@
 // permanent. Nothing here invents a #PIXEL price: moves are compared by exact SCORE change, and by ETH only
 // where a real listing price exists.
 
+import { breakEvenNormieEth, compareToAsk, type VsAsk } from "./market-math"
 import {
   BOOST_CLIFFS,
   BRACKET_CLIFFS,
@@ -304,7 +305,23 @@ export interface FodderPick {
   /** Normal mode: the whole range this listing's burn could pay (pixel roll + the AP it carries). */
   yieldMin?: number
   yieldMax?: number
+  /** Live market only: burning this for #PIXEL versus buying the same #PIXEL at the best ask, per #PIXEL. */
+  vsAsk?: VsAsk
+  /** Live market only: the most this Normie could cost before buying #PIXEL at the best ask would have been cheaper (best roll, middle, worst roll). */
+  breakEvenNormieEth?: { low: number; mid: number; high: number }
   url?: string
+}
+
+/** Per-#PIXEL burn cost against the best ask, and the break-even price of the Normie, when a live ask exists. */
+function vsMarket(priceEth: number, y: { total: number; transferred: number; range?: { min: number; max: number } }, askEth: number | null): { vsAsk?: VsAsk; breakEvenNormieEth?: { low: number; mid: number; high: number } } {
+  if (askEth === null || askEth <= 0) return {}
+  const lowPays = y.range ? y.range.min + y.transferred : y.total
+  const highPays = y.range ? y.range.max + y.transferred : y.total
+  const burn = { low: priceEth / Math.max(1, highPays), mid: priceEth / Math.max(1, y.total), high: priceEth / Math.max(1, lowPays) }
+  return {
+    vsAsk: compareToAsk(burn, askEth),
+    breakEvenNormieEth: { low: breakEvenNormieEth(lowPays, askEth), mid: breakEvenNormieEth(y.total, askEth), high: breakEvenNormieEth(highPays, askEth) },
+  }
 }
 
 /**
@@ -315,7 +332,7 @@ export interface FodderPick {
 export function rankFodder(
   listings: Listing[],
   ctx: Pick<Context, "livingSupply" | "yieldMode">,
-  opts: { withAp: boolean; limit?: number },
+  opts: { withAp: boolean; limit?: number; /** The live best ask (ETH per #PIXEL). When given, each pick is compared with buying #PIXEL there. */ askEth?: number | null },
 ): FodderPick[] {
   return listings
     .filter((l) => l.priceEth > 0 && (l.actionPoints > 0) === opts.withAp && keepReasons(l, ctx).length === 0)
@@ -338,6 +355,7 @@ export function rankFodder(
               ethPerPixelHigh: round(l.priceEth / Math.max(1, y.range.min + y.transferred), 5),
             }
           : {}),
+        ...vsMarket(l.priceEth, y, opts.askEth ?? null),
         url: l.url,
       }
     })

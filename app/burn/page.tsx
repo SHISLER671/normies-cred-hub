@@ -75,7 +75,7 @@ async function answer(wallet: string, goal: Goal, isExample: boolean): Promise<O
 const utc = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC"
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
 const SHORT_VERDICT = { keep: "KEEP", burn: "BURN?", neutral: "EITHER" } as const
-const GOAL_NAME = { share: "Revenue share", arena: "Arena", art: "Art" } as const
+const GOAL_NAME = { share: "Revenue share", arena: "Arena", art: "Art", sell: "Sell" } as const
 
 export default async function BurnPage({ searchParams }: { searchParams: Promise<{ wallet?: string | string[]; goal?: string | string[] }> }) {
   const sp = await searchParams
@@ -171,6 +171,8 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
           </dl>
         )}
 
+        {model.marketLine && <p className="burn-small burn-marketline">{model.marketLine}</p>}
+
         {model.nextSteps.length > 0 && (
           <section className="burn-next" aria-labelledby="next-h">
             <h3 id="next-h" className="burn-cap">Next step</h3>
@@ -183,7 +185,7 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
         )}
 
         {model.cliffNotes.length > 0 && (
-          <details className="burn-box burn-fold" data-tag="Selling?">
+          <details className="burn-box burn-fold" data-tag="Selling?" open={model.goal === "sell"}>
             <summary><span>Where you stand on the cliffs</span></summary>
             <ul className="burn-small">
               {model.cliffNotes.map((n) => <li key={n}>{n}</li>)}
@@ -260,6 +262,27 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
         </section>
       )}
 
+      {model.sellView && (
+        <section className="burn-sec" aria-labelledby="sell-h">
+          <h2 id="sell-h" className="burn-cap">What selling nets</h2>
+          <ol className="burn-moves">
+            {model.sellView.rows.map((r, i) => (
+              <li key={r.label}>
+                <details className="burn-move" open={i === 0}>
+                  <summary>
+                    <span className="burn-num2">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="burn-movetitle">{r.label}</span>
+                    <span className="burn-chip">{r.net}</span>
+                  </summary>
+                  <div className="burn-body"><p className="burn-small">{r.detail}</p></div>
+                </details>
+              </li>
+            ))}
+          </ol>
+          {model.sellView.notes.map((n) => <p key={n} className="burn-small">{n}</p>)}
+        </section>
+      )}
+
       {model.moves.length > 0 && (
         <section className="burn-sec" aria-labelledby="moves-h">
           <h2 id="moves-h" className="burn-cap">{model.goal === "share" ? "Best moves" : model.goal === "arena" ? "To add Level" : "To add paint budget"}</h2>
@@ -285,7 +308,7 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
           <summary><span>Cheapest #PIXEL per ETH</span><span className="burn-sub">{model.fodder.length} listings</span></summary>
           <table className="burn-table">
             <caption className="sr-only">Cheapest ways to get #PIXEL by burning a bought Normie</caption>
-            <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Pays</th><th scope="col">Per ETH</th><th scope="col">ETH per #PIXEL</th></tr></thead>
+            <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Pays</th><th scope="col">Per ETH</th><th scope="col">ETH per #PIXEL</th>{model.marketLine && <th scope="col">Versus the ask</th>}</tr></thead>
             <tbody>
               {model.fodder.map((f) => (
                 <tr key={f.tokenId}>
@@ -294,12 +317,13 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
                   <td>{f.range ? "~" : ""}{f.pays}</td>
                   <td>{f.perEth}</td>
                   <td>{f.ethPerPixelRange ? `${f.ethPerPixelRange.low} to ${f.ethPerPixelRange.high}` : f.ethPerPixel}</td>
+                  {model.marketLine && <td>{f.vsAsk ?? ""}{f.breakEven && <><br /><span className="burn-small">Buying #PIXEL beats this Normie above {f.breakEven}</span></>}</td>}
                 </tr>
               ))}
             </tbody>
           </table>
           {model.yieldMode === "normal" && <p className="burn-small">~ is the middle of a range. A burn is a roll, so the real result can land anywhere in it.</p>}
-          <p className="burn-small">ETH per #PIXEL is what you pay for the Normie divided by what its burn pays: the price of #PIXEL made this way. Compare it with what #PIXEL sells for before you buy to burn.</p>
+          <p className="burn-small">ETH per #PIXEL is what you pay for the Normie divided by what its burn pays: the price of #PIXEL made this way. Compare it with what #PIXEL costs on the Pixel Market before you buy to burn.</p>
         </details>
       )}
     </>
@@ -307,7 +331,7 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
 }
 
 function GoalNotes({ model }: { model: PageModel }) {
-  const title = model.goal === "arena" ? "About Arena: known and unknown" : model.goal === "art" ? "About painting and burning for art" : "How the revenue share works"
+  const title = model.goal === "arena" ? "About Arena: known and unknown" : model.goal === "art" ? "About painting and burning for art" : model.goal === "sell" ? "About selling #PIXEL" : "How the revenue share works"
   return (
     <details className="burn-box burn-fold" data-tag="Good to know">
       <summary><span>{title}</span></summary>
