@@ -28,7 +28,7 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 ### Tradeability & sacrificial economy
 
 - Today: AP is a **Canvas-local** resource created by sacrifice (burn fodder → keep/edit favorites).
-- **#PIXEL = Action Points (AP), not a token** (Serc / @normiesART). **PIXEL MARKET** is **Coming Soon** / **not** live full rules. Do not invent order books, buy/sell mechanics, AP prices, or hold-thresholds.
+- **#PIXEL = Action Points (AP), not a token** (Serc / @normiesART). **PIXEL MARKET** is **not open yet**. Do not invent order books, buy/sell mechanics, AP prices, or hold-thresholds. Its revenue-share rules ARE official: see the Pixel Market economics in the Dual Evaluation block, which takes precedence over older "TBA" notes. A burn pays on the ORIGINAL pixel count; edited art does not raise yield.
 - Doctrine: this is a **sacrificial economy**. Value flows from permanent burns into scarce edit budget and future arena power. Treat AP as earned capital, not free spins.
 - **Burn vs hold is dual-frame** — see `knowledge/dual-evaluation-and-pixel-market.md` (high-px efficiency vs extreme low-px collectible scarcity).
 

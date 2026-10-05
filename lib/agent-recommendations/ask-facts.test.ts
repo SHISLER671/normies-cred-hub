@@ -177,8 +177,10 @@ describe("collab / rails knowledge", () => {
     const summary = getDualEvalAndPixelMarketContextSummary()
     const joined = summary.pixelMarket.join(" ")
     assert.match(joined, /NOT a token/i)
-    assert.match(joined, /Coming Soon/)
-    assert.match(joined, /NOT live full rules/i)
+    // 2026-10-05: the market is "not open yet", and its revenue-share rules are now OFFICIAL; prices and order-book mechanics stay TBA.
+    assert.match(joined, /not open yet/i)
+    assert.match(joined, /revenue-share rules are OFFICIAL/)
+    assert.match(joined, /order-book mechanics TBA/i)
     assert.doesNotMatch(joined, /will add buy\/sell later/i)
   })
 })
@@ -629,5 +631,57 @@ describe("pulse-first guarantee", () => {
     )
     const count = (out.understanding.match(/Pulse 2\/5/g) ?? []).length
     assert.equal(count, 1)
+  })
+})
+
+describe("Ask knows the OFFICIAL Pixel Market economics (updated 2026-10-05)", () => {
+  const prompt = composeZuloPrompt(generalContext(), "How is my share of the Pixel Market revenue calculated?")
+
+  it("gives the official score formula, brackets, boosts and the 50% holder split", () => {
+    assert.match(prompt, /\(Normies x bracket multiplier \+ #PIXEL \/ 5\) x \(1 \+ boost\)/)
+    assert.match(prompt, /2 = 1\.15x, 5 = 1\.30x, 10 = 1\.45x, 25 = 1\.60x, 50 = 1\.75x/)
+    assert.match(prompt, /15 = \+15%, 100 = \+35%, 500 = \+60%, 1,500 = \+100%/)
+    assert.match(prompt, /10% fee/)
+    assert.match(prompt, /50% of that fee goes to holders/)
+    assert.match(prompt, /5% royalty/)
+    assert.match(prompt, /four random blocks a day/)
+    assert.match(prompt, /#PIXEL alone earns nothing/)
+  })
+  it("no longer tells people the revenue-share rules are unpublished", () => {
+    assert.match(prompt, /Never say the revenue-share formula is unpublished/)
+    assert.match(prompt, /revenue-share rules ARE official/)
+  })
+  it("keeps the honesty rails: market not open yet, no invented prices or order book", () => {
+    assert.match(prompt, /not open yet/)
+    assert.match(prompt, /Never invent AP prices, order books, buy\/sell mechanics/)
+    assert.match(prompt, /audits permitting/)
+  })
+  it("burn yield is on the ORIGINAL pixel count and editing does not raise it", () => {
+    assert.match(prompt, /ORIGINAL pixel count/)
+    assert.match(prompt, /Painting or editing does not raise burn yield/)
+    assert.match(prompt, /Never say edited or painted pixels raise burn yield/)
+  })
+  it("the 4% promo is described as community-sourced, never as official", () => {
+    assert.match(prompt, /community-sourced/)
+    assert.match(prompt, /NOT from an official @normiesART post/)
+  })
+  it("points to the independent /burn tool and the official simulator, nothing else invented", () => {
+    assert.match(prompt, /https:\/\/normiescredhub\.vercel\.app\/burn/)
+    assert.match(prompt, /simulator\.normies\.art/)
+    assert.match(prompt, /independent community tool, not made by the Normies team/)
+  })
+})
+
+describe("the knowledge .md files and their bundled runtime copies stay in sync", () => {
+  const norm = (s: string) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").trim()
+  it("dual-evaluation-and-pixel-market", async () => {
+    const fs = await import("node:fs")
+    const { DUAL_EVAL_AND_PIXEL_MARKET_MD } = await import("./loadKnowledge")
+    assert.equal(norm(fs.readFileSync("lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md", "utf8")), norm(DUAL_EVAL_AND_PIXEL_MARKET_MD))
+  })
+  it("pixel-economy", async () => {
+    const fs = await import("node:fs")
+    const { PIXEL_ECONOMY_MD } = await import("./loadKnowledge")
+    assert.equal(norm(fs.readFileSync("lib/agent-recommendations/knowledge/pixel-economy.md", "utf8")), norm(PIXEL_ECONOMY_MD))
   })
 })
