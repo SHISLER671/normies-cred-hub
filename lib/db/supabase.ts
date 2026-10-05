@@ -79,6 +79,30 @@ export function getSupabase(): SupabaseClient | null {
   return cachedClient
 }
 
+let cachedPrivate: SupabaseClient | null = null
+let warnedNoServiceKey = false
+
+/**
+ * Server-only client for the tables that must NOT be reachable with the public key: floor_prices, burn_opportunities, workflow_runs.
+ * It uses the service-role key, which bypasses row level security, so those tables can be locked to the public key without breaking the site.
+ * This module must never be imported by a client component (a test checks that). With no service key (local dev) it falls back to the public
+ * client, with one warning, so nothing breaks; the lock-down itself is then what would stop it, loudly, instead of silently.
+ */
+export function getPrivateDb(): SupabaseClient | null {
+  if (cachedPrivate) return cachedPrivate
+  const url = process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  if (url && key) {
+    cachedPrivate = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
+    return cachedPrivate
+  }
+  if (!warnedNoServiceKey) {
+    warnedNoServiceKey = true
+    console.warn("[supabase] SUPABASE_SERVICE_ROLE_KEY is not set: using the public client for floor/burn tables")
+  }
+  return getSupabase()
+}
+
 export function isSupabaseConfigured(): boolean {
   return getSupabase() != null
 }
@@ -91,7 +115,7 @@ export async function saveFloorPrice(
   floorUSD: number | null | undefined,
   source?: string | null,
 ): Promise<FloorPriceRow | null> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase) {
     console.warn("[supabase] saveFloorPrice skipped — SUPABASE_URL/KEY not set")
     return null
@@ -129,7 +153,7 @@ export async function saveFloorPrice(
 export async function getHistoricalFloor(
   days: number = 7,
 ): Promise<HistoricalFloorPoint[]> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase) {
     console.warn(
       "[supabase] getHistoricalFloor skipped — SUPABASE_URL/KEY not set",
@@ -214,7 +238,7 @@ export async function getBurnOpportunities(options?: {
   limit?: number
   minEfficiency?: number
 }): Promise<BurnOpportunityRow[]> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase) {
     console.warn(
       "[supabase] getBurnOpportunities skipped — SUPABASE_URL/KEY not set",
@@ -280,7 +304,7 @@ export async function saveBurnOpportunity(input: {
   alerted?: boolean
   detectedAt?: string
 }): Promise<BurnOpportunityRow | null> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase) return null
 
   const row = {
@@ -315,7 +339,7 @@ export async function logWorkflowRun(input: {
   startedAt?: string
   completedAt?: string
 }): Promise<WorkflowRunRow | null> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase) return null
 
   const row = {
