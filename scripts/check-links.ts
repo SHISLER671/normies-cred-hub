@@ -1,5 +1,5 @@
 /**
- * Check every outbound normies.art link the site uses (burn page, header, Ask knowledge, tool catalog).
+ * Check every outbound normies.art link the site uses (burn page, header, Ask knowledge) and EVERY url in the two curated tool lists.
  *
  *   npx tsx scripts/check-links.ts          # prints status per URL, exits 1 if any is broken
  *
@@ -23,7 +23,17 @@ function walk(dir: string, out: string[] = []): string[] {
   return out
 }
 
+// The two curated tool lists (the Tools modal and the community tool catalog Ask recommends from): check EVERY host in them, not only normies.art.
+const TOOL_LISTS = ["lib/tools.ts", "lib/agent-recommendations/communityTools.ts"]
+const ANY_URL_RE = /https?:\/\/[a-z0-9.-]+\.[a-z]{2,}[^\s"'`<>)\\]*/gi
 const found = new Map<string, string>()
+for (const f of TOOL_LISTS) {
+  if (!fs.existsSync(f)) continue
+  for (const m of fs.readFileSync(f, "utf8").matchAll(ANY_URL_RE)) {
+    const url = m[0].replace(/[.,;:]+$/, "")
+    if (!/[${}]/.test(url) && !found.has(url)) found.set(url, f)
+  }
+}
 for (const root of ROOTS) {
   if (!fs.existsSync(root)) continue
   for (const f of walk(root)) {
@@ -39,10 +49,14 @@ for (const root of ROOTS) {
   }
 }
 
+// Not pages: base paths that are only prefixes for real endpoints (api.normies.art/rarity/... exists, /rarity alone is a 404 by design).
+const NOT_A_PAGE = new Set(["https://api.normies.art/rarity"])
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 async function main() {
   let bad = 0
   for (const [url, file] of [...found].sort()) {
+    if (NOT_A_PAGE.has(url)) continue
     let status = "ERR"
     let final = ""
     try {

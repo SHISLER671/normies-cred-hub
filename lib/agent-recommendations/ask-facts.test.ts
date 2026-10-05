@@ -819,3 +819,11 @@ describe("the launch clock only changes WORDING, never opens the market (@serc1n
     assert.equal(launchTimePassed(new Date("2026-10-05T18:00:00.000Z")), true)
   })
 })
+
+describe("Ask knows where the official Tools directory is", () => {
+  it("the community tool catalog lists https://www.normies.art/tools and says it has an Official filter", () => {
+    const t = COMMUNITY_TOOLS.find((x) => x.url === "https://www.normies.art/tools")
+    assert.ok(t, "official Tools directory missing from COMMUNITY_TOOLS")
+    assert.match(t!.description, /Official filter/)
+  })
+})

@@ -12,6 +12,19 @@ export interface CommunityTool {
 
 export const COMMUNITY_TOOLS: CommunityTool[] = [
   {
+    name: "Normies Tools directory (official site)",
+    url: "https://www.normies.art/tools",
+    description:
+      "The official directory of Normies tools, with an Official filter (Node, Grid, News, Normifier, Card, PvP, Cam, Generator) next to the community-built ones.",
+    useCases: [
+      "See every Normies tool in one place",
+      "Find the official tools",
+      "Discover community-built tools",
+    ],
+    audience: "casual",
+    keywords: ["tools", "tool list", "directory", "what tools", "official tools", "list of tools", "normifier", "grid", "node", "card", "cam"],
+  },
+  {
     name: "Burn or keep? (NormiesCredHub)",
     url: "https://normiescredhub.vercel.app/burn",
     description:

@@ -69,13 +69,7 @@ export const tools: Tool[] = [
     category: "Marketplace",
     url: "https://opensea.io/collection/normies",
   },
-  {
-    id: "normies-tools",
-    name: "Axiom Normies Tools",
-    description: "Open-source developer tools and agent utilities: pixel history, TBA resolver, normie lookup, and more.",
-    category: "Development",
-    url: "https://github.com/0xAxiom/normies-tools",
-  },
+  // "Axiom Normies Tools" (github.com/0xAxiom/normies-tools) was removed 2026-10-05: the GitHub account no longer exists, so the link was dead.
   {
     id: "normuseum",
     name: "Normuseum",
@@ -102,29 +96,18 @@ export const tools: Tool[] = [
     name: "Normies Generator",
     description: "Generate New Normies. Official pixel art generator.",
     category: "Generator",
-    url: "https://generator.normies.art",
+    url: "https://legacy.normies.art/",
   },
   {
-    id: "pup",
-    name: "PUP",
-    description: "Which Normie looks better? Side-by-side comparison tool. Official PVP by @sercln.",
+    id: "pvp",
+    name: "PvP",
+    description: "Which Normie looks better? Side-by-side comparison tool. Official PvP by @serc1n.",
     category: "PvP",
-    url: "https://pup.normies.art",
+    url: "https://legacy.normies.art/pvp",
   },
-  {
-    id: "arena",
-    name: "Normies Arena",
-    description: "PvP battleground where Normies fight for pixels. Official.",
-    category: "PvP",
-    url: "https://arena.normies.art",
-  },
-  {
-    id: "zombies",
-    name: "Normies Zombies",
-    description: "Only 21 Zombies. Burn enough and one is yours. Limited official tool.",
-    category: "Limited",
-    url: "https://zombies.normies.art",
-  },
+  // Arena and Zombies are NOT listed: neither has a live tool (Arena is announced for next month, the 21 Zombies are sealed), and the
+  // addresses this list used to carry for them (arena.normies.art, zombies.normies.art) do not exist. Add them back only from the
+  // official directory (https://www.normies.art/tools) once they are really live.
   {
     id: "agentic",
     name: "Agentic",
@@ -135,37 +118,37 @@ export const tools: Tool[] = [
   {
     id: "normie-cam",
     name: "Normie Cam",
-    description: "See yourself as a Normie. Official tool by @sercln.",
+    description: "See yourself as a Normie. Official tool by @serc1n.",
     category: "Visualizer",
-    url: "https://normiecam.normies.art",
+    url: "https://legacy.normies.art/normiecam",
   },
   {
     id: "grid",
     name: "Grid",
-    description: "View & Arrange Your Collection. Official by @sercln.",
+    description: "View & Arrange Your Collection. Official by @serc1n.",
     category: "Collection",
-    url: "https://grid.normies.art",
+    url: "https://legacy.normies.art/grid",
   },
   {
     id: "normies-news",
     name: "Normies News",
-    description: "Generate a newspaper cover for your Normie. Official by @sercln.",
+    description: "Generate a newspaper cover for your Normie. Official by @serc1n.",
     category: "Generator",
-    url: "https://news.normies.art",
+    url: "https://legacy.normies.art/normiesnews",
   },
   {
     id: "normies-node",
     name: "Normies Node",
     description: "Find your Normie in 10,000. Official explorer tool.",
     category: "Explorer",
-    url: "https://node.normies.art",
+    url: "https://normiesnode.up.railway.app/",
   },
   {
     id: "normie-card",
     name: "Normie Card",
-    description: "Generate a trading card for your Normie. Official by @sercln.",
+    description: "Generate a trading card for your Normie. Official by @serc1n.",
     category: "Generator",
-    url: "https://card.normies.art",
+    url: "https://legacy.normies.art/normiecard",
   },
 ];
 
