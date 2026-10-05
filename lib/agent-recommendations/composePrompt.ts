@@ -639,7 +639,7 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
       : `Decision subject: Normie #${context.normie.id}${context.normie.name ? ` (${context.normie.name})` : ""}${scope?.userOwnsFocus ? " · user owns focus" : ""}`
 
   return `${SYSTEM_PROMPT}
-${buildMarketStatusBlock(currentMarket())}
+${buildMarketStatusBlock(currentMarket(), new Date())}
 ${fullProtocolsSection}${erc6551Section}${collabFocusSection}
 === CURRENT CONTEXT (highlights) ===
 User: ${context.user.ens || context.user.walletAddress || "Anonymous (disconnected OK)"}
