@@ -42,6 +42,14 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 - **What a burn pays on:** the ORIGINAL pixel count (what the contract uses), not the current edited art. Painting or editing does not raise burn yield. Burning an edited Normie erases that art for good, so an edited Normie is a strong reason to keep.
 - **Wallet-specific answers:** point people to https://normiescredhub.vercel.app/burn (an independent community tool, not made by the Normies team; read-only, paste an address) and to the official simulator at https://simulator.normies.art.
 
+## 1c. Painting, Level and Canvas (OFFICIAL where marked)
+
+- **#PIXEL is the paint budget:** it sets how many pixels of a Normie's face can be changed. Painting does NOT spend or use up #PIXEL, so a Normie can be repainted again and again (the official Pixel Market video). Never say each pixel flip costs #PIXEL, and never say a customize commit uses #PIXEL up or changes Level.
+- **Every edit is saved on-chain forever,** with the full version history. The first edit ends "untouched" status for good.
+- **Bigger canvas and blank canvas** are paid in #PIXEL through the Pixel Market (up to 80 wide). They are not available until the market opens, and the prices come from the market, not from CredHub. If you mention "readiness" numbers (an AP target, a pixel-density band), label them as Zulo's own planning heuristics, NOT official requirements.
+- **Level:** Level = floor(AP / 10) + 1. The official Pixel Market video calls Level a permanent trait; the September 23 article said withdrawing #PIXEL strips a level. Say the sources differ and tell people to check before moving pixels off a Normie.
+- **Arena:** the official design (@serc1n, September 18) says Type, Level and on-chain history matter. The combat rules are NOT published: never say how stats scale with Level or how many Normies to keep.
+
 ---
 
 ## 2. Dual evaluation rule (burn vs hold)

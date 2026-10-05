@@ -225,6 +225,14 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 - **What a burn pays on:** the ORIGINAL pixel count (what the contract uses), not the current edited art. Painting or editing does not raise burn yield. Burning an edited Normie erases that art for good, so an edited Normie is a strong reason to keep.
 - **Wallet-specific answers:** point people to https://normiescredhub.vercel.app/burn (an independent community tool, not made by the Normies team; read-only, paste an address) and to the official simulator at https://simulator.normies.art.
 
+## 1c. Painting, Level and Canvas (OFFICIAL where marked)
+
+- **#PIXEL is the paint budget:** it sets how many pixels of a Normie's face can be changed. Painting does NOT spend or use up #PIXEL, so a Normie can be repainted again and again (the official Pixel Market video). Never say each pixel flip costs #PIXEL, and never say a customize commit uses #PIXEL up or changes Level.
+- **Every edit is saved on-chain forever,** with the full version history. The first edit ends "untouched" status for good.
+- **Bigger canvas and blank canvas** are paid in #PIXEL through the Pixel Market (up to 80 wide). They are not available until the market opens, and the prices come from the market, not from CredHub. If you mention "readiness" numbers (an AP target, a pixel-density band), label them as Zulo's own planning heuristics, NOT official requirements.
+- **Level:** Level = floor(AP / 10) + 1. The official Pixel Market video calls Level a permanent trait; the September 23 article said withdrawing #PIXEL strips a level. Say the sources differ and tell people to check before moving pixels off a Normie.
+- **Arena:** the official design (@serc1n, September 18) says Type, Level and on-chain history matter. The combat rules are NOT published: never say how stats scale with Level or how many Normies to keep.
+
 ---
 
 ## 2. Dual evaluation rule (burn vs hold)
@@ -994,6 +1002,8 @@ DUAL-EVAL / PIXEL MARKET ENFORCEMENT:
 - Never say the revenue-share formula is unpublished. Never say edited or painted pixels raise burn yield (a burn pays on the ORIGINAL pixel count)
 - The fixed 4% burn promo is community-sourced (Serc), not an official post: say so, and point to @normiesART
 - For a wallet-specific keep-or-burn answer, point to https://normiescredhub.vercel.app/burn (independent, read-only)
+- #PIXEL is the paint budget: painting never spends it (never say a pixel flip costs #PIXEL, uses it up, or changes Level). Label any canvas-readiness numbers as Zulo heuristics, not official
+- Arena: Type, Level and on-chain history matter (official); the combat rules are NOT published, so never say how stats scale
 - Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit. AP is not spent when you draw.
 - High pixel (e.g. 891+): efficiency frame usually stronger; extreme low pixel + tiny supply: do NOT auto-burn
 - Always weigh: burn efficiency + scarcity/supply + identity/aesthetic + market premium signals
@@ -1091,7 +1101,7 @@ export function getPixelEconomyContextSummary(): {
       "AP earned only by burning (commit→reveal); bound to a specific Normie Canvas",
       "AP sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit",
       "Burn tiers by on-pixel count: 0–490 →1–4%, 491–890 →2–4%, 891+ →3–4%",
-      "Sacrificial economy: burns fund AP; #PIXEL = AP (not a token); Pixel Market Coming Soon / not live full rules",
+      "Sacrificial economy: burns fund AP; #PIXEL = AP (not a token); Pixel Market not open yet, revenue-share rules official",
       "Expansion path 40×40 → 80×80: stockpile AP, keep flexible density, stage placement",
       "Gacha EV = Σ(p×value)/cost (+EV >1); raffle EV ≈ prize/(entry×N); high-value edge ≥20%",
     ],
@@ -1104,7 +1114,7 @@ export function getPixelEconomyContextSummary(): {
       "Patience compounds. Haste erodes.",
       "We don't chase pumps. We stack pixels.",
       "PIXEL MARKET is an arena, not a casino — strategy over sentiment",
-      "#PIXEL = AP, not a token; PIXEL MARKET Coming Soon / not live full rules",
+      "#PIXEL = AP, not a token; PIXEL MARKET not open yet, revenue-share rules official",
     ],
     source: "lib/agent-recommendations/knowledge/pixel-economy.md",
   }
