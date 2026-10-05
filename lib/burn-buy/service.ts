@@ -13,6 +13,7 @@ import {
   type Listing,
   type WalletAdvice,
 } from "./advise"
+import { contractRate, matchesKnownTiers, type BurnContractStatus } from "./contract-state"
 import { promoWindow, type PromoWindow } from "./promo-window"
 import { JEV_MAX_TOKENS, type JevOpinion, type JevToken } from "./jev"
 
@@ -74,6 +75,8 @@ export interface Deps {
   yieldMode?(now?: Date): YieldMode
   /** True when the site owner pinned the yield mode (BURN_YIELD_MODE) instead of letting the clock decide. Optional; missing means false. */
   yieldPinned?(now?: Date): boolean
+  /** What the Normies contract itself reports (official /canvas/status). Optional. Null means unknown, and the clock decides. Never throws. */
+  contractStatus?(): Promise<BurnContractStatus | null>
   /** Whether Pixel Market is open. Optional; missing means "pending" (today). Real deps read PIXEL_MARKET. */
   marketState?(): MarketState
   now(): Date
@@ -92,7 +95,16 @@ export interface BurnBuyResult {
   /** Whether Pixel Market (the #PIXEL exchange) is open. */
   marketState: MarketState
   /** In normal mode `ratePercent` is null: the rate is a roll inside a tier range, described in `basis`. */
-  promo: { ratePercent: number | null; basis: string; ends: string; window: PromoWindow }
+  promo: {
+    ratePercent: number | null
+    basis: string
+    ends: string
+    window: PromoWindow
+    /** Who decided yieldMode: the site owner's pin, the Normies contract itself (checked live), or the clock (a guess from the announced window). */
+    source: "pinned" | "contract" | "clock"
+    /** The contract's own numbers when they could be read, otherwise null. */
+    contract: BurnContractStatus | null
+  }
   wallet: null | {
     address: string
     ens: string | null
@@ -119,6 +131,12 @@ export const NORMAL_INFO = {
   ratePercent: null,
   basis: "a roll inside a range set by the burned Normie's original pixel count (0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%, per the Sep 23 article), plus the burned token's own AP",
   ends: "The fixed 4% promo has ended, or closes by 18:00 UTC at the latest; this page uses the normal rolls from 16:00 UTC",
+} as const
+
+export const NORMAL_INFO_CONTRACT = {
+  ratePercent: null,
+  basis: NORMAL_INFO.basis,
+  ends: "The fixed 4% promo has ended: the Normies contract itself (checked live) is back to the normal tiered roll",
 } as const
 
 export const PROMO_INFO = {
@@ -152,7 +170,13 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     index: { ok: true },
     jev: { ok: true, note: "off" },
   }
-  const yieldMode: YieldMode = deps.yieldMode ? deps.yieldMode(now) : "promo"
+  // Who decides how a burn pays: the site owner's pin, else the contract itself (checked live), else the clock's guess.
+  const pinned = deps.yieldPinned ? deps.yieldPinned(now) : false
+  const clockMode: YieldMode = deps.yieldMode ? deps.yieldMode(now) : "promo"
+  const contract = deps.contractStatus ? await deps.contractStatus().catch(() => null) : null
+  const rate = contractRate(contract)
+  const yieldMode: YieldMode = pinned ? clockMode : rate === "fixed" ? "promo" : rate === "tiered" ? "normal" : clockMode
+  const modeSource: BurnBuyResult["promo"]["source"] = pinned ? "pinned" : rate === "unknown" ? "clock" : "contract"
   const marketState: MarketState = deps.marketState ? deps.marketState() : "pending"
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
@@ -160,6 +184,16 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
       ? "Not financial advice. This tool does not read live #PIXEL prices yet, so moves are compared by score, not value."
       : "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value.",
     "Yield uses each token's ORIGINAL pixel count (what the contract pays on), not its current edited art.",
+    ...(contract?.paused ? ["Burning is paused on the Normies contract right now, so nothing can be burned until it reopens. Figures show what a burn would pay once it does."] : []),
+    ...(contract && rate === "tiered" && !matchesKnownTiers(contract)
+      ? [`The Normies contract reports tier minimums of ${contract.tierMinPercents.join(", ")}% (up to ${contract.maxBurnPercent}%) at ${contract.tierThresholds.join(" and ")} pixels, which differs from the ranges this page uses (1, 2, 3% up to 4% at 490 and 890). Treat the burn figures here as approximate.`]
+      : []),
+    ...(contract && rate === "unknown"
+      ? [`The Normies contract reports an unusual burn setting (${contract.tierMinPercents.join(", ")}% minimums, ${contract.maxBurnPercent}% maximum), so this page is falling back to the announced schedule.`]
+      : []),
+    ...(pinned && contract && rate !== "unknown" && (rate === "fixed" ? "promo" : "normal") !== clockMode
+      ? [`The site owner has pinned the burn rate, but the Normies contract currently reports ${rate === "fixed" ? "a fixed 4%" : "the normal tiered roll"}. Check normies.art before you burn.`]
+      : []),
     ...(yieldMode === "normal"
       ? ["A burn is now a roll inside a range, so figures here are the middle of the range with the full range beside them. Real burns can land anywhere in it. The tiers come from the Sep 23 @normiesART article."]
       : []),
@@ -380,7 +414,12 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     asOf: now.toISOString(),
     yieldMode,
     marketState,
-    promo: { ...(yieldMode === "normal" ? NORMAL_INFO : PROMO_INFO), window: promoWindow(now, deps.yieldPinned ? deps.yieldPinned(now) : false) },
+    promo: {
+      ...(yieldMode === "normal" ? (modeSource === "contract" ? NORMAL_INFO_CONTRACT : NORMAL_INFO) : PROMO_INFO),
+      window: promoWindow(now, pinned),
+      source: modeSource,
+      contract: contract ?? null,
+    },
     wallet,
     market,
     census: {

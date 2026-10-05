@@ -4,6 +4,7 @@
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { delegationCheckIncomplete, findDelegateXyz, registryReaders } from "@/lib/delegations"
+import { loadBurnContractStatus } from "./contract-state"
 import { publicClient } from "@/lib/viem-client"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getSupabase } from "@/lib/db/supabase"
@@ -355,6 +356,13 @@ async function lookupDelegations(address: string): Promise<Delegation[]> {
   return out
 }
 
+/** The contract status changes rarely (the API itself caches it for 5 minutes), so 30 s is plenty; a failed read is never kept. */
+const contractStatusCached = ttl(30_000, async () => {
+  const s = await loadBurnContractStatus()
+  if (!s) throw new Error("contract status unavailable")
+  return s
+})
+
 export const realDeps: Deps = {
 
   resolveHolder,
@@ -362,6 +370,7 @@ export const realDeps: Deps = {
   fetchListings: listingsCached,
   loadSnapshot: snapshotCached,
   findDelegations,
+  contractStatus: () => contractStatusCached().catch(() => null),
   // Jev stays OFF (returns null) until a TYPESAFE_API_KEY exists; the service only calls this once PIXEL_MARKET=live.
   // JEV_DISABLE=1 is a kill switch.
   jevOpinions: async (tokens) => {

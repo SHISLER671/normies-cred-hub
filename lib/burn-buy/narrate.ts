@@ -125,9 +125,20 @@ const NOTICE_PINNED_PAST = "This page is still showing the 4% rate because the s
 const NOTICE_ENDED = "The 4% rate has ended (it was announced to close on Monday, October 5). Figures here use the normal roll."
 const ENDED_NOTICE_MS = 72 * 3600 * 1000
 
-/** The one sentence about the 4% window that fits the moment, or null. Uses the result's own clock. */
-export function promoNotice(r: Pick<BurnBuyResult, "yieldMode" | "asOf"> & { promo: { window?: { state: string; latestEnd: string } } }): string | null {
+const NOTICE_PAUSED = "Burning is paused on the Normies contract right now, so nothing can be burned until it reopens. Figures show what a burn would pay once it does."
+const NOTICE_CONTRACT_FIXED = "The Normies contract is paying a fixed 4% right now (checked live). It is expected to return to the normal 1 to 4% range when the promo closes, announced for about 6 to 8 PM Central European time (16:00 to 18:00 UTC) today, so check again before you burn."
+const NOTICE_CONTRACT_FIXED_LATE = "The Normies contract is still paying a fixed 4% (checked live), even though the announced end has passed. It can change at any moment, so check @normiesART before you burn."
+const NOTICE_CONTRACT_NORMAL = "The Normies contract is back to the normal tiered roll (checked live), so the fixed 4% is over. Figures here use the normal roll."
+
+/** The one sentence about the 4% window that fits the moment, or null. Uses the result's own clock; when the contract could be read, it wins over the clock. */
+export function promoNotice(r: Pick<BurnBuyResult, "yieldMode" | "asOf"> & { promo: { window?: { state: string; latestEnd: string }; source?: string; contract?: { paused: boolean } | null } }): string | null {
   const w = r.promo.window
+  if (r.promo.contract?.paused) return NOTICE_PAUSED
+  if (r.promo.source === "contract") {
+    if (r.yieldMode === "promo") return w && w.state === "closed" ? NOTICE_CONTRACT_FIXED_LATE : NOTICE_CONTRACT_FIXED
+    if (w && Date.parse(r.asOf) < Date.parse(w.latestEnd) + ENDED_NOTICE_MS) return NOTICE_CONTRACT_NORMAL
+    return null
+  }
   if (!w) return null
   if (r.yieldMode === "promo") return w.state === "open" ? NOTICE_OPEN : NOTICE_PINNED_PAST
   if (w.state === "may-have-closed") return NOTICE_MAYBE_CLOSED
