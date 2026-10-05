@@ -40,6 +40,8 @@ export async function fetchCanvasDelegatedFromIndex(
   db: Pick<SupabaseClient, "from"> | null = getSupabase(),
 ): Promise<CanvasLookup> {
   if (!db) return { tokenIds: [], asOf: null, checked: false }
+  // The zero address is how "no delegate" is stored in the index, so it is never a real delegate (a checked, empty answer).
+  if (/^0x0+$/i.test(address)) return { tokenIds: [], asOf: null, checked: true }
   try {
     const [rows, oldest] = await Promise.all([
       db.from("normie_index").select("token_id").eq("burned", false).eq("delegate", address.toLowerCase()),

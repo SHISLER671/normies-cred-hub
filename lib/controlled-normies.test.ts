@@ -37,3 +37,11 @@ describe("fetchCanvasDelegatedFromIndex", () => {
     assert.equal((await fetchCanvasDelegatedFromIndex("0xB879", null)).checked, false)
   })
 })
+
+describe("fetchCanvasDelegatedFromIndex: the zero address", () => {
+  it("is a checked, empty answer (it is how 'no delegate' is stored), and never queries the index", async () => {
+    const db = { from: () => { throw new Error("must not query") } } as never
+    const r = await fetchCanvasDelegatedFromIndex("0x0000000000000000000000000000000000000000", db)
+    assert.deepEqual(r, { tokenIds: [], asOf: null, checked: true })
+  })
+})

@@ -6,12 +6,16 @@ import { planCensusRefresh, type BulkRow } from "./plan.ts"
 
 const API = "https://api.normies.art"
 const PAGE_DELAY_MS = 1150 // a little under the documented 60 requests a minute
+// The platform allows 150 s of wall clock and a full run takes 80 to 115 s. Stop FETCHING before the limit, apply what we have, and say so
+// (burned flags are then withheld by the planner and the freshness stamp does not advance), instead of being killed with nothing written.
+const BUDGET_MS = 125_000
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
 
-async function getJson<T>(path: string): Promise<T> {
+async function getJson<T>(path: string, deadline = Number.POSITIVE_INFINITY): Promise<T> {
   let last = ""
   for (let attempt = 1; attempt <= 4; attempt++) {
+    if (Date.now() > deadline) throw new Error(`${path}: time budget used up`)
     try {
       const res = await fetch(API + path, { signal: AbortSignal.timeout(20_000) })
       if (res.ok) return (await res.json()) as T
@@ -33,6 +37,7 @@ const attr = (it: Item, name: string) => it.attributes?.find((a) => a.trait_type
 const same = (a: string, b: string) => a.length === b.length && [...a].reduce((d, c, i) => d | (c.charCodeAt(0) ^ b.charCodeAt(i)), 0) === 0
 
 async function run(db: ReturnType<typeof createClient>, dry: boolean) {
+  const deadline = Date.now() + BUDGET_MS
   const stats = await getJson<{ fetched: number; total: number; burned: number; running: boolean }>("/rarity/stats")
   if (stats.fetched !== stats.total || stats.running) throw new Error("the official rarity list is not settled (fetched != total or still running)")
   const hist = await getJson<{ totalBurnedTokens: number }>("/history/stats")
@@ -43,9 +48,11 @@ async function run(db: ReturnType<typeof createClient>, dry: boolean) {
   const take = (items: Item[]) => { for (const it of items) bulk.push({ id: Number(it.id), actionPoints: Number(attr(it, "Action Points") ?? 0), level: attr(it, "Level") === undefined ? null : Number(attr(it, "Level")), customized: attr(it, "Customized") === "Yes" }) }
   take(first.items)
   let pagesOk = true
+  let truncated = false
   for (let p = 2; p <= first.totalPages; p++) {
+    if (Date.now() > deadline) { pagesOk = false; truncated = true; break }
     await sleep(PAGE_DELAY_MS)
-    try { take((await getJson<{ items: Item[] }>(`/rarity/normies?limit=100&page=${p}&sort=rank&order=asc`)).items) } catch { pagesOk = false }
+    try { take((await getJson<{ items: Item[] }>(`/rarity/normies?limit=100&page=${p}&sort=rank&order=asc`, deadline)).items) } catch { pagesOk = false }
   }
 
   const chunks = await Promise.all(Array.from({ length: 10 }, (_, i) => i * 1000).map(async (from) => {
@@ -54,7 +61,7 @@ async function run(db: ReturnType<typeof createClient>, dry: boolean) {
     return data ?? []
   }))
   const plan = planCensusRefresh(bulk, chunks.flat(), { expectedLiving: stats.total, pagesOk })
-  const summary = { bulk: bulk.length, pagesOk, updates: plan.updates.length, burnedFound: plan.burned.length, burnedApplied: plan.burnedGuardOk ? plan.burned.length : 0, burnedGuard: plan.burnedGuardWhy, unchanged: plan.unchanged, notInIndex: plan.notInIndex.length }
+  const summary = { bulk: bulk.length, pagesOk, truncated, updates: plan.updates.length, burnedFound: plan.burned.length, burnedApplied: plan.burnedGuardOk ? plan.burned.length : 0, burnedGuard: plan.burnedGuardWhy, unchanged: plan.unchanged, notInIndex: plan.notInIndex.length }
   if (dry) return { dry: true, ...summary }
 
   for (let i = 0; i < plan.updates.length; i += 20) {
@@ -86,7 +93,7 @@ Deno.serve(async (req) => {
 
   const dry = new URL(req.url).searchParams.get("dry") === "1"
   const job = run(db, dry).then(
-    async (summary) => { if (!dry) await stamp(db, true, summary); return summary },
+    async (summary) => { if (!dry) await stamp(db, summary.pagesOk, summary); return summary },
     async (e) => { const summary = { error: String(e instanceof Error ? e.message : e) }; if (!dry) await stamp(db, false, summary); throw e },
   )
   if (dry) {
