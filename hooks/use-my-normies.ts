@@ -4,11 +4,25 @@ import { useQuery } from "@tanstack/react-query"
 import { getAddress } from "viem"
 
 import { enrichOwnedNormies, normiesApi } from "@/lib/api/normies"
+import { shouldLiveScan, type CanvasIndexAnswer } from "@/lib/canvas-scan-policy"
 import { findDelegateXyz, registryReaders } from "@/lib/delegations"
 import { publicClient } from "@/lib/viem-client"
 import type { OwnedNormie } from "@/lib/types"
 
 const CANVAS_DELEGATE_CACHE_MS = 10 * 60 * 1000
+
+/** Canvas delegations from the hourly-refreshed index (one database read behind /api/canvas-index). Never throws: a failure is "unknown". */
+async function fetchCanvasDelegatedFromIndex(address: string): Promise<CanvasIndexAnswer> {
+  try {
+    const res = await fetch(`/api/canvas-index?address=${address}`)
+    if (!res.ok) return { tokenIds: [], checked: false }
+    const d = (await res.json()) as { tokenIds?: Array<number | string>; checked?: boolean }
+    const tokenIds = (d.tokenIds ?? []).map(Number).filter((n) => Number.isFinite(n))
+    return { tokenIds, checked: d.checked === true }
+  } catch {
+    return { tokenIds: [], checked: false }
+  }
+}
 
 /** Delegate.xyz v1 + v2 through the shared, tested module (lib/delegations.ts). Never throws: a failed read just yields no ids here. */
 async function fetchDelegateXyzTokenIds(wallet: `0x${string}`): Promise<number[]> {
@@ -106,15 +120,21 @@ export function useMyNormies(address?: string) {
 
       const normalized = getAddress(address) as `0x${string}`
 
-      const [holdersResult, delegateXyzIds, canvasDelegateIds] = await Promise.all([
+      const [holdersResult, delegateXyzIds, canvasIndex] = await Promise.all([
         normiesApi.holders(normalized).catch(() => ({ tokenIds: [] as Array<number | string> })),
         fetchDelegateXyzTokenIds(normalized),
-        fetchCanvasDelegatedTokenIds(normalized),
+        fetchCanvasDelegatedFromIndex(normalized),
       ])
 
       const directIds = (holdersResult.tokenIds ?? [])
         .map((id) => Number(id))
         .filter((id) => Number.isFinite(id))
+
+      // The index answers almost everyone instantly. The live scan (about 20 pages of calls from one shared address) only runs when the
+      // cheap sources found nothing, or the index could not be read: see lib/canvas-scan-policy.ts.
+      const canvasDelegateIds = shouldLiveScan({ direct: directIds, delegateXyz: delegateXyzIds, canvasIndex })
+        ? Array.from(new Set([...canvasIndex.tokenIds, ...(await fetchCanvasDelegatedTokenIds(normalized))]))
+        : canvasIndex.tokenIds
 
       const uniqueIds = Array.from(
         new Set([...directIds, ...delegateXyzIds, ...canvasDelegateIds]),
