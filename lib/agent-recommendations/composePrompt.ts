@@ -1,5 +1,7 @@
 // lib/agent-recommendations/composePrompt.ts
 
+import { currentMarket } from "../burn-buy/switches"
+import { buildMarketStatusBlock } from "./marketStatus"
 import {
   buildEcosystemGuidePrompt,
   formatToolsForPrompt,
@@ -510,11 +512,13 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
 `
     : ""
 
+  // The full ERC-6551 and COLLAB / RAILS texts are already in the system prompt above. The query-matched sections used to paste them a
+  // second time (about 23,000 characters of exact duplicates per matching question); now they point at the copy that is already there.
   const erc6551Section = queryNeedsErc6551Knowledge(userQuery)
     ? `
 
 === ERC-6551 FOCUS (query-matched) ===
-${ERC6551}
+- This question is about token-bound accounts: the ERC-6551 section in the system prompt applies in full.
 - TBAs exist in the wild (e.g. Stonk). Normies has NOT enabled 6551 for agent/pixel pay → TBA.
 - Never claim a live Zulo TBA address as product identity without provider status live
 - Do not invent Stonk AMM, clock-in, launchpad fees, or Normies TBA yield
@@ -525,7 +529,7 @@ ${ERC6551}
     ? `
 
 === COLLAB / RAILS FOCUS (query-matched — stay inside public posts) ===
-${COLLAB_RAILS}
+- This question touches collabs, rails or Pixel/Arena/Hive facts: the COLLAB / RAILS / ASK PATTERNS section in the system prompt applies in full. Stay inside the public posts; beyond them is TBA.
 `
     : ""
 
@@ -635,6 +639,7 @@ ${COLLAB_RAILS}
       : `Decision subject: Normie #${context.normie.id}${context.normie.name ? ` (${context.normie.name})` : ""}${scope?.userOwnsFocus ? " · user owns focus" : ""}`
 
   return `${SYSTEM_PROMPT}
+${buildMarketStatusBlock(currentMarket())}
 ${fullProtocolsSection}${erc6551Section}${collabFocusSection}
 === CURRENT CONTEXT (highlights) ===
 User: ${context.user.ens || context.user.walletAddress || "Anonymous (disconnected OK)"}
