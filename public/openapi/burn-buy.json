@@ -220,6 +220,7 @@
               "tokens",
               "nextBracket",
               "nextBoost",
+              "cliffs",
               "moves",
               "notes",
               "holdings"
@@ -438,6 +439,110 @@
                  }
                 }
                }
+              },
+              "cliffs": {
+               "type": "object",
+               "description": "Cliff cushions for sellers and gaps for buyers. Pure arithmetic on the published ladders; no prices. #PIXEL listed for sale still counts until it sells.",
+               "properties": {
+                "normies": {
+                 "type": "object",
+                 "description": "Where the wallet stands against one ladder (Normies brackets or #PIXEL boosts).",
+                 "properties": {
+                  "have": {
+                   "type": "integer"
+                  },
+                  "now": {
+                   "type": "number",
+                   "description": "Multiplier (Normies) or boost fraction (#PIXEL) held now."
+                  },
+                  "next": {
+                   "type": [
+                    "object",
+                    "null"
+                   ],
+                   "description": "The next step up; null at the top.",
+                   "properties": {
+                    "at": {
+                     "type": "integer"
+                    },
+                    "needMore": {
+                     "type": "integer"
+                    },
+                    "value": {
+                     "type": "number"
+                    }
+                   }
+                  },
+                  "floor": {
+                   "type": [
+                    "object",
+                    "null"
+                   ],
+                   "description": "The step you stand on: spare = how many you can lose and keep it; dropsTo = what you fall to one below that.",
+                   "properties": {
+                    "at": {
+                     "type": "integer"
+                    },
+                    "spare": {
+                     "type": "integer"
+                    },
+                    "dropsTo": {
+                     "type": "number"
+                    }
+                   }
+                  }
+                 }
+                },
+                "pixel": {
+                 "type": "object",
+                 "description": "Where the wallet stands against one ladder (Normies brackets or #PIXEL boosts).",
+                 "properties": {
+                  "have": {
+                   "type": "integer"
+                  },
+                  "now": {
+                   "type": "number",
+                   "description": "Multiplier (Normies) or boost fraction (#PIXEL) held now."
+                  },
+                  "next": {
+                   "type": [
+                    "object",
+                    "null"
+                   ],
+                   "description": "The next step up; null at the top.",
+                   "properties": {
+                    "at": {
+                     "type": "integer"
+                    },
+                    "needMore": {
+                     "type": "integer"
+                    },
+                    "value": {
+                     "type": "number"
+                    }
+                   }
+                  },
+                  "floor": {
+                   "type": [
+                    "object",
+                    "null"
+                   ],
+                   "description": "The step you stand on: spare = how many you can lose and keep it; dropsTo = what you fall to one below that.",
+                   "properties": {
+                    "at": {
+                     "type": "integer"
+                    },
+                    "spare": {
+                     "type": "integer"
+                    },
+                    "dropsTo": {
+                     "type": "number"
+                    }
+                   }
+                  }
+                 }
+                }
+               }
               }
              }
             },
@@ -511,7 +616,8 @@
                "originalPixels",
                "yieldTotal",
                "fromPixels",
-               "yieldPerEth"
+               "yieldPerEth",
+               "ethPerPixel"
               ],
               "properties": {
                "tokenId": {
@@ -534,6 +640,18 @@
                },
                "yieldPerEth": {
                 "type": "number"
+               },
+               "ethPerPixel": {
+                "type": "number",
+                "description": "ETH this listing costs per #PIXEL its burn pays (price / pays). Middle of the range in normal mode."
+               },
+               "ethPerPixelLow": {
+                "type": "number",
+                "description": "Normal mode only: price / the most the burn could pay."
+               },
+               "ethPerPixelHigh": {
+                "type": "number",
+                "description": "Normal mode only: price / the least the burn could pay."
                },
                "yieldMin": {
                 "type": "integer",
@@ -560,7 +678,8 @@
                "originalPixels",
                "yieldTotal",
                "fromPixels",
-               "yieldPerEth"
+               "yieldPerEth",
+               "ethPerPixel"
               ],
               "properties": {
                "tokenId": {
@@ -583,6 +702,18 @@
                },
                "yieldPerEth": {
                 "type": "number"
+               },
+               "ethPerPixel": {
+                "type": "number",
+                "description": "ETH this listing costs per #PIXEL its burn pays (price / pays). Middle of the range in normal mode."
+               },
+               "ethPerPixelLow": {
+                "type": "number",
+                "description": "Normal mode only: price / the most the burn could pay."
+               },
+               "ethPerPixelHigh": {
+                "type": "number",
+                "description": "Normal mode only: price / the least the burn could pay."
                },
                "yieldMin": {
                 "type": "integer",
