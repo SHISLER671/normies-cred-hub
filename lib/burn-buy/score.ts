@@ -129,3 +129,43 @@ export function launchedBurnYield(originalPixels: number, burnedTokenAp: number)
 export function burnYield(mode: YieldMode, originalPixels: number, burnedTokenAp: number): BurnYield {
   return mode === "normal" ? launchedBurnYield(originalPixels, burnedTokenAp) : promoBurnYield(originalPixels, burnedTokenAp)
 }
+
+export interface CliffSide {
+  /** The count you hold now. */
+  have: number
+  /** The multiplier (Normies) or boost fraction (#PIXEL) you have now. */
+  now: number
+  /** The next step up: where it starts, how many more you need, and what it would be. Null at the top. */
+  next: { at: number; needMore: number; value: number } | null
+  /** The step you are standing on: where it starts, how many you can lose before dropping, and what you would drop to. Null when below the first step. */
+  floor: { at: number; spare: number; dropsTo: number } | null
+}
+
+/**
+ * Where a wallet stands against each cliff, so a seller can see what dropping below one costs and a buyer what the
+ * next one needs. Pure arithmetic on the published ladders: no prices.
+ */
+export function cliffStatus(held: number, pixel: number): { normies: CliffSide; pixel: CliffSide } {
+  const h = Number.isFinite(held) && held > 0 ? Math.floor(held) : 0
+  const p = Number.isFinite(pixel) && pixel > 0 ? Math.floor(pixel) : 0
+  const bracketsAsc = [...BRACKETS].reverse()
+  const boostsAsc = [...BOOSTS].reverse()
+
+  const side = (have: number, now: number, steps: ReadonlyArray<{ min: number; value: number }>, base: number): CliffSide => {
+    const nextStep = steps.find((s) => s.min > have)
+    const idx = steps.reduce((acc, s, i) => (s.min <= have ? i : acc), -1)
+    const floorStep = idx >= 0 ? steps[idx] : null
+    const below = idx > 0 ? steps[idx - 1].value : base
+    return {
+      have,
+      now,
+      next: nextStep ? { at: nextStep.min, needMore: nextStep.min - have, value: nextStep.value } : null,
+      floor: floorStep ? { at: floorStep.min, spare: have - floorStep.min, dropsTo: below } : null,
+    }
+  }
+
+  return {
+    normies: side(h, bracketMultiplier(h), bracketsAsc.map((b) => ({ min: b.min, value: b.mult })), 0),
+    pixel: side(p, boostFor(p), boostsAsc.map((b) => ({ min: b.min, value: b.boost })), 0),
+  }
+}

@@ -182,6 +182,15 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
           </section>
         )}
 
+        {model.cliffNotes.length > 0 && (
+          <details className="burn-box burn-fold" data-tag="Selling?">
+            <summary><span>Where you stand on the cliffs</span></summary>
+            <ul className="burn-small">
+              {model.cliffNotes.map((n) => <li key={n}>{n}</li>)}
+            </ul>
+          </details>
+        )}
+
         {model.simulatorUrl && (
           <p className="burn-small burn-sim">
             <a href={model.simulatorUrl} target="_blank" rel="noopener noreferrer">What could that pay? Try the revenue share simulator ↗</a>
@@ -269,7 +278,7 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
           <summary><span>Cheapest #PIXEL per ETH</span><span className="burn-sub">{model.fodder.length} listings</span></summary>
           <table className="burn-table">
             <caption className="sr-only">Cheapest ways to get #PIXEL by burning a bought Normie</caption>
-            <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Pays</th><th scope="col">Per ETH</th></tr></thead>
+            <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Pays</th><th scope="col">Per ETH</th><th scope="col">ETH per #PIXEL</th></tr></thead>
             <tbody>
               {model.fodder.map((f) => (
                 <tr key={f.tokenId}>
@@ -277,11 +286,13 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
                   <td>{f.priceEth} ETH</td>
                   <td>{f.range ? "~" : ""}{f.pays}</td>
                   <td>{f.perEth}</td>
+                  <td>{f.ethPerPixelRange ? `${f.ethPerPixelRange.low} to ${f.ethPerPixelRange.high}` : f.ethPerPixel}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           {model.yieldMode === "normal" && <p className="burn-small">~ is the middle of a range. A burn is a roll, so the real result can land anywhere in it.</p>}
+          <p className="burn-small">ETH per #PIXEL is what you pay for the Normie divided by what its burn pays: the price of #PIXEL made this way. Compare it with what #PIXEL sells for before you buy to burn.</p>
         </details>
       )}
     </>

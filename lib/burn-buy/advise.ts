@@ -9,6 +9,8 @@ import {
   BOOST_CLIFFS,
   BRACKET_CLIFFS,
   burnYield,
+  cliffStatus,
+  type CliffSide,
   type MarketState,
   type YieldMode,
   shareIfAdded,
@@ -185,6 +187,8 @@ export interface WalletAdvice {
   tokens: TokenAdvice[]
   nextBracket: { atHeld: number; needMore: number } | null
   nextBoost: { atPixel: number; needMore: number } | null
+  /** Where the wallet stands against every cliff: the next step up, and how much it can lose before dropping a step. */
+  cliffs: { normies: CliffSide; pixel: CliffSide }
   moves: Move[]
   notes: string[]
 }
@@ -278,6 +282,7 @@ export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Cont
     tokens: advice,
     nextBracket: nb ? { atHeld: nb, needMore: nb - held } : null,
     nextBoost: nx ? { atPixel: nx, needMore: nx - pixel } : null,
+    cliffs: cliffStatus(held, pixel),
     moves: useful.slice(0, 10),
     notes,
   }
@@ -291,6 +296,11 @@ export interface FodderPick {
   yieldTotal: number
   fromPixels: number
   yieldPerEth: number
+  /** ETH this listing costs per #PIXEL it pays if burned (price ÷ pays). In normal mode this is the middle of the range. */
+  ethPerPixel: number
+  /** Normal mode: the cheapest and dearest outcome (price ÷ the most it could pay, price ÷ the least). */
+  ethPerPixelLow?: number
+  ethPerPixelHigh?: number
   /** Normal mode: the whole range this listing's burn could pay (pixel roll + the AP it carries). */
   yieldMin?: number
   yieldMax?: number
@@ -319,7 +329,15 @@ export function rankFodder(
         yieldTotal: y.total,
         fromPixels: y.fromPixels,
         yieldPerEth: round(y.total / l.priceEth, 1),
-        ...(y.range ? { yieldMin: y.range.min + y.transferred, yieldMax: y.range.max + y.transferred } : {}),
+        ethPerPixel: round(l.priceEth / y.total, 5),
+        ...(y.range
+          ? {
+              yieldMin: y.range.min + y.transferred,
+              yieldMax: y.range.max + y.transferred,
+              ethPerPixelLow: round(l.priceEth / (y.range.max + y.transferred), 5),
+              ethPerPixelHigh: round(l.priceEth / Math.max(1, y.range.min + y.transferred), 5),
+            }
+          : {}),
         url: l.url,
       }
     })

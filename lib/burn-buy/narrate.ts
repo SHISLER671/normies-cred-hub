@@ -3,7 +3,7 @@
 
 import type { Move, Verdict } from "./advise"
 import type { JevVerdict } from "./jev"
-import { BOOSTS, BRACKETS, boostFor, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
+import { BOOSTS, BRACKETS, boostFor, type CliffSide, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
 import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } from "./service"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
@@ -70,7 +70,7 @@ export interface PageModel {
   lines: string[]
   rows: TokenRow[]
   moves: MoveLine[]
-  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; url: string | null; /** Normal burn mode only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
+  fodder: Array<{ tokenId: number; priceEth: number; pays: number; perEth: number; /** ETH per #PIXEL if you burn it (price ÷ pays). */ ethPerPixel: number; /** Normal burn mode only: cheapest and dearest outcome per #PIXEL. */ ethPerPixelRange: { low: number; high: number } | null; url: string | null; /** Normal burn mode only: the full range one burn could pay. */ range: { min: number; max: number } | null }>
   /** A link to the normies.art revenue share simulator, pre-filled with this wallet's Normies and #PIXEL. Share goal only. */
   simulatorUrl: string | null
   /** How a burn pays ("normal" means a roll, so figures are shown as about / ~ with a range). */
@@ -86,6 +86,8 @@ export interface PageModel {
   ledger: LedgerRow[]
   /** What the nearest multiplier or boost step would do to the score. Revenue share goal only; otherwise empty. */
   nextSteps: NextStep[]
+  /** Where you stand against each cliff, in plain words: what the next step needs and what dropping below this one costs. Revenue share goal with Normies only; otherwise empty. */
+  cliffNotes: string[]
   /** Extra plain-language facts and limits for the chosen goal (shown in the disclaimer box). */
   goalNotes: string[]
 }
@@ -224,7 +226,7 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   const goalNotes = goal === "arena" ? ARENA_NOTES : goal === "art" ? ART_NOTES : SHARE_NOTES
   const yieldMode: YieldMode = result?.yieldMode ?? "promo"
   const marketState: MarketState = result?.marketState ?? "pending"
-  const base: PageModel = { simulatorUrl: null, yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes, ledger: [], nextSteps: [] }
+  const base: PageModel = { simulatorUrl: null, yieldMode, marketState, state: "no-wallet", headline: "Paste a wallet to get your answer.", lines: [], rows: [], moves: [], fodder: [], delegateOf: [], notices: [], goal, goalNotes, ledger: [], nextSteps: [], cliffNotes: [] }
   if (!result) return base
 
   const fodder = (result.market?.bestPixelFodder ?? []).slice(0, 5).map((f) => ({
@@ -232,6 +234,8 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
     priceEth: f.priceEth,
     pays: f.yieldTotal,
     perEth: f.yieldPerEth,
+    ethPerPixel: f.ethPerPixel,
+    ethPerPixelRange: f.ethPerPixelLow !== undefined && f.ethPerPixelHigh !== undefined ? { low: f.ethPerPixelLow, high: f.ethPerPixelHigh } : null,
     url: safeUrl(f.url),
     range: f.yieldMin !== undefined && f.yieldMax !== undefined ? { min: f.yieldMin, max: f.yieldMax } : null,
   }))
@@ -398,7 +402,36 @@ export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share
   }
 
   const { ledger, nextSteps } = goal === "share" ? scoreBreakdown(advice) : { ledger: [], nextSteps: [] }
-  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: w.delegateOf, notices, goal, goalNotes, ledger, nextSteps }
+  const cliffNotes = goal === "share" ? cliffSentences(advice.cliffs) : []
+  return { state: "holds", simulatorUrl: goal === "share" && advice.held >= 1 ? simulatorUrl(advice.held, advice.pixel) : null, yieldMode, marketState, headline, lines, rows, moves, fodder, delegateOf: w.delegateOf, notices, goal, goalNotes, ledger, nextSteps, cliffNotes }
+}
+
+/**
+ * Plain words for the cliffs: how far to the next step, and what selling or burning below the current one would cost.
+ * Pure arithmetic on the published ladders, so it holds at any #PIXEL price. Listed #PIXEL still counts until it sells.
+ */
+export function cliffSentences(c: { normies: CliffSide; pixel: CliffSide }): string[] {
+  if (c.normies.have < 1) return []
+  const out: string[] = []
+  const pct = (b: number) => `+${Math.round(b * 100)}%`
+  const px = c.pixel
+  if (px.floor) {
+    out.push(
+      px.floor.spare === 0
+        ? `You are exactly on the ${pct(px.now)} boost line (${px.floor.at} #PIXEL). Selling or spending even 1 drops you to ${px.floor.dropsTo === 0 ? "no boost" : `${pct(px.floor.dropsTo)} boost`}.`
+        : `You can sell or move up to ${px.floor.spare} #PIXEL and keep your ${pct(px.now)} boost. One more than that drops you to ${px.floor.dropsTo === 0 ? "no boost" : `${pct(px.floor.dropsTo)} boost`}.`,
+    )
+  } else if (px.next) {
+    out.push(`You have no boost yet. It starts at ${px.next.at} #PIXEL (${pct(px.next.value)}), ${px.next.needMore} away.`)
+  }
+  if (px.next && px.floor) out.push(`${px.next.needMore} more #PIXEL (${px.next.at} in all) lifts you to ${pct(px.next.value)}.`)
+  const n = c.normies
+  if (n.floor && n.floor.dropsTo !== 0 && n.floor.spare === 0) {
+    out.push(`You hold exactly ${n.floor.at} Normies, the line for the ${num(n.now)}x multiplier. Selling or burning one drops your whole stack to ${num(n.floor.dropsTo)}x.`)
+  }
+  if (n.next) out.push(`${n.next.needMore} more Normie${n.next.needMore === 1 ? "" : "s"} (${n.next.at} in all) lifts your whole stack to ${num(n.next.value)}x.`)
+  out.push("#PIXEL you have listed for sale still counts until it sells. Holdings are sampled at four random blocks a day, so what counts is what you hold at those moments.")
+  return out
 }
 
 const pctText = (n: number) => String(Number(n.toFixed(4)))

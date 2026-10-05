@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 
 import type { Move, TokenAdvice } from "./advise"
 import { buildPageModel, describeMove, levelOf, parseGoal, safeUrl, scoreBreakdown } from "./narrate"
-import { walletScore } from "./score"
+import { cliffStatus, walletScore } from "./score"
 import type { BurnBuyResult } from "./service"
 
 const move = (over: Partial<Move> = {}): Move => ({
@@ -16,7 +16,7 @@ const tok = (tokenId: number, verdict: TokenAdvice["verdict"], reasons: string[]
 function result(over: Partial<NonNullable<BurnBuyResult["wallet"]>> | null, extra: Partial<BurnBuyResult> = {}): BurnBuyResult {
   const advice = {
     held: 1, pixel: 12, score: 3.4, sharePct: 0.0131, othersScore: 25873, tokens: [tok(7141, "keep", ["awakened agent: an on-chain identity, not fodder"], 30, 18, 12)],
-    nextBracket: { atHeld: 2, needMore: 1 }, nextBoost: { atPixel: 15, needMore: 3 }, moves: [move()], notes: ["Scores use the published formula."],
+    nextBracket: { atHeld: 2, needMore: 1 }, nextBoost: { atPixel: 15, needMore: 3 }, cliffs: cliffStatus(1, 12), moves: [move()], notes: ["Scores use the published formula."],
     holdings: [{ tokenId: 7141, originalPixels: 454, actionPoints: 12, rank: 3874, type: "Human" }],
   }
   return {
@@ -25,7 +25,7 @@ function result(over: Partial<NonNullable<BurnBuyResult["wallet"]>> | null, extr
     marketState: "pending",
     promo: { ratePercent: 4, basis: "", ends: "", window: { state: "open", earliestEnd: "2026-10-05T16:00:00Z", latestEnd: "2026-10-05T18:00:00Z", pinned: false }, source: "clock", contract: null },
     wallet: over === null ? null : { address: "0xabc", ens: null, delegateOf: [], advice, historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: 0, source: "" }, ...over },
-    market: { floorEth: 0.286, listedCount: 3, bestPixelFodder: [{ tokenId: 1, priceEth: 0.29, actionPoints: 0, originalPixels: 700, yieldTotal: 28, fromPixels: 28, yieldPerEth: 96.55, url: "https://example.com/1" }, { tokenId: 2, priceEth: 0.3, actionPoints: 0, originalPixels: 650, yieldTotal: 26, fromPixels: 26, yieldPerEth: 86.6, url: "javascript:alert(1)" }], bestApCarriers: [], skippedListings: 0 },
+    market: { floorEth: 0.286, listedCount: 3, bestPixelFodder: [{ tokenId: 1, priceEth: 0.29, actionPoints: 0, originalPixels: 700, yieldTotal: 28, fromPixels: 28, yieldPerEth: 96.55, ethPerPixel: 0.01036, url: "https://example.com/1" }, { tokenId: 2, priceEth: 0.3, actionPoints: 0, originalPixels: 650, yieldTotal: 26, fromPixels: 26, yieldPerEth: 86.6, ethPerPixel: 0.01154, url: "javascript:alert(1)" }], bestApCarriers: [], skippedListings: 0 },
     census: { wallets: 1723, totalScore: 25872.7, livingSupply: 7226, indexOldestIndexedAt: null },
     sources: { holder: { ok: true }, rarity: { ok: true }, listings: { ok: true }, index: { ok: true }, jev: { ok: true, note: "off" } },
     caveats: [],
