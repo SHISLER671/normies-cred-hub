@@ -8,6 +8,20 @@ import type { ZuloRecommendationContext } from "./types"
 /** Inference can be slow under load; abort before Vercel kills the function. */
 const INFERENCE_TIMEOUT_MS = 45_000
 
+/**
+ * The route's maxDuration (app/api/zulo/ask/route.ts) minus a safety margin. Everything in one request (building the context,
+ * the first provider, the fallback) must fit inside this, or Vercel kills the function and the user sees a bare 504 instead of
+ * our JSON error. Seen live 2026-10-05 14:30 UTC: Venice timed out at 45 s, the fallback started, and the 60 s limit hit.
+ */
+export const ASK_BUDGET_MS = 110_000
+/** A provider attempt shorter than this cannot finish a real answer, so do not start it. */
+const MIN_ATTEMPT_MS = 8_000
+
+/** How long a provider attempt may run: its own cap, or whatever is left of the request budget, whichever is less. */
+export function attemptTimeout(deadlineMs: number, nowMs: number, capMs = INFERENCE_TIMEOUT_MS): number {
+  return Math.min(capMs, deadlineMs - nowMs)
+}
+
 /** Venice GLM 5.2 is the primary model; xAI grok-4 is the fallback. */
 const VENICE_MODEL = "zai-org-glm-5-2"
 const XAI_MODEL = "grok-4"
@@ -73,6 +87,7 @@ function resolveProviders(): ProviderConfig[] {
 async function callProvider(
   provider: ProviderConfig,
   prompt: string,
+  timeoutMs = INFERENCE_TIMEOUT_MS,
 ): Promise<string> {
   let response: Response
   try {
@@ -93,7 +108,7 @@ async function callProvider(
           max_tokens: 4096,
         }),
       },
-      INFERENCE_TIMEOUT_MS,
+      timeoutMs,
     )
   } catch (err) {
     if (isTimeoutError(err)) {
@@ -143,6 +158,8 @@ async function callProvider(
 export async function generateZuloResponse(
   context: ZuloRecommendationContext,
   userQuery: string,
+  /** Epoch ms by which the whole request must be done. Defaults to a full budget from now. */
+  deadlineMs: number = Date.now() + ASK_BUDGET_MS,
 ): Promise<string> {
   const providers = resolveProviders()
   if (providers.length === 0) {
@@ -158,8 +175,13 @@ export async function generateZuloResponse(
   let lastError: unknown
   for (let i = 0; i < providers.length; i++) {
     const provider = providers[i]
+    const timeoutMs = attemptTimeout(deadlineMs, Date.now())
+    if (timeoutMs < MIN_ATTEMPT_MS) {
+      lastError = new ZuloGenerateError("timeout", `no time left to try ${provider.label}`, 504)
+      break
+    }
     try {
-      return await callProvider(provider, prompt)
+      return await callProvider(provider, prompt, timeoutMs)
     } catch (err) {
       lastError = err
       const isLast = i === providers.length - 1

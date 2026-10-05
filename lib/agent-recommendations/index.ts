@@ -2,7 +2,7 @@
 // Main entry point for the standalone Zulo recommendations plugin.
 
 import { buildZuloContext } from "./buildContext"
-import { generateZuloResponse } from "./generate"
+import { ASK_BUDGET_MS, generateZuloResponse } from "./generate"
 import { postProcessZuloOutput } from "./postProcess"
 import { ensurePulseFirst } from "./pulseFirst"
 import type {
@@ -20,6 +20,8 @@ import type {
 export async function getZuloRecommendation(
   params: RecommendParams,
 ): Promise<ZuloResponse> {
+  // The request budget starts now, so a slow context build leaves less for the model.
+  const deadlineMs = Date.now() + ASK_BUDGET_MS
   const context = await buildZuloContext({
     normieId: params.normieId,
     sessionHistory: params.sessionHistory,
@@ -28,7 +30,7 @@ export async function getZuloRecommendation(
     userQuery: params.userQuery,
   })
 
-  const rawOutput = await generateZuloResponse(context, params.userQuery)
+  const rawOutput = await generateZuloResponse(context, params.userQuery, deadlineMs)
   const processed = postProcessZuloOutput(rawOutput)
   return ensurePulseFirst(processed, context)
 }
