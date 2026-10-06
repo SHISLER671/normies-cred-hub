@@ -342,23 +342,30 @@ export async function checkApprovals(input: string): Promise<ApprovalsCheck> {
   const stored = ((rows ?? []) as Array<{ spender: string; amount: string | number }>).map((r) => ({ spender: r.spender, amount: String(r.amount) }))
 
   const owner = who.address as `0x${string}`
-  const calls = await within(
-    publicClient.multicall({
-      allowFailure: true,
-      contracts: [
-        { address: NORMIES_CANVAS_STORAGE, abi: STORAGE_ABI, functionName: "balanceOf" as const, args: [owner] as const },
-        ...stored.map((s) => ({ address: NORMIES_CANVAS_STORAGE, abi: STORAGE_ABI, functionName: "allowance" as const, args: [owner, s.spender as `0x${string}`] as const })),
-      ],
-    }),
-    6_000,
-  )
+  // Two separate reads, each with one function, the same shape as readAttached (which builds and runs).
+  const [allowances, balance] = await Promise.all([
+    stored.length === 0
+      ? Promise.resolve(null)
+      : within(
+          publicClient.multicall({
+            allowFailure: true,
+            contracts: stored.map((s) => ({
+              address: NORMIES_CANVAS_STORAGE,
+              abi: STORAGE_ABI,
+              functionName: "allowance" as const,
+              args: [owner, s.spender as `0x${string}`] as const,
+            })),
+          }),
+          6_000,
+        ),
+    within(publicClient.readContract({ address: NORMIES_CANVAS_STORAGE, abi: STORAGE_ABI, functionName: "balanceOf", args: [owner] }), 4_000),
+  ])
   const live = new Map<string, string | null>()
   stored.forEach((s, i) => {
-    const r = calls?.[i + 1]
+    const r = allowances ? allowances[i] : undefined
     live.set(s.spender.toLowerCase(), r && r.status === "success" && typeof r.result === "bigint" ? r.result.toString() : null)
   })
-  const bal = calls?.[0]
-  const walletPixels = bal && bal.status === "success" && typeof bal.result === "bigint" && bal.result <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(bal.result) : null
+  const walletPixels = typeof balance === "bigint" && balance <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(balance) : null
 
   const built = buildApprovalRows(stored, live)
   const active = built.filter(isActiveApproval)
