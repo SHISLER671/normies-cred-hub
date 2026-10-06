@@ -46,6 +46,7 @@ type View =
   | { kind: "approvals"; check: ApprovalsCheck }
   | { kind: "calc"; answer: PixelsAnswer | BudgetAnswer; inputs: BuySmartInputs }
   | { kind: "error"; message: string }
+  | { kind: "none" }
 
 const utc = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC"
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
@@ -72,7 +73,7 @@ function parseAmount(raw: string | undefined, mode: "pixels" | "eth"): number | 
   return n <= 1_000 ? n : null
 }
 
-async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined, calc?: { mode: "pixels" | "eth"; amount: string | undefined }): Promise<View> {
+async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined, calc: { mode: "pixels" | "eth"; amount: string | undefined } | undefined, showExample: boolean): Promise<View> {
   try {
     if (calc) {
       const amount = parseAmount(calc.amount, calc.mode)
@@ -107,6 +108,7 @@ async function answer(token: string | undefined, wallet: string | undefined, lis
       if (stop) return { kind: "error", message: stop }
       return { kind: "token", check: await tokenCached(String(id)), isExample: false }
     }
+    if (!showExample) return { kind: "none" }
     return { kind: "token", check: await tokenCached(String(EXAMPLE_TOKEN)), isExample: true }
   } catch (err) {
     console.error("[ap page] unexpected failure", err)
@@ -114,7 +116,24 @@ async function answer(token: string | undefined, wallet: string | undefined, lis
   }
 }
 
-export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[]; calc?: string | string[]; amount?: string | string[] }> }) {
+type Tab = "check" | "buy" | "offers" | "safety"
+const TABS: ReadonlyArray<{ id: Tab; label: string; intro: string }> = [
+  { id: "check", label: "Check", intro: "Is this Normie what OpenSea says? Live pixels, what a burn pays, and the offers on it." },
+  { id: "buy", label: "Buy", intro: "The cheapest way to get pixels: the Pixel Market, or burning floor Normies." },
+  { id: "offers", label: "Offers", intro: "Your open offers on Normies whose pixels are gone." },
+  { id: "safety", label: "Safety", intro: "Who can spend your pixels? Spot approvals you don't recognize." },
+]
+
+/** The tab follows what was asked; a bare ?tab= just opens that tab. */
+function pickTab(q: { tab?: string; token?: string; wallet?: string; approvals?: string; calc?: string; listings: boolean }): Tab {
+  if (q.approvals) return "safety"
+  if (q.wallet) return "offers"
+  if (q.calc || q.listings) return "buy"
+  if (q.token) return "check"
+  return q.tab === "buy" || q.tab === "offers" || q.tab === "safety" ? q.tab : "check"
+}
+
+export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[]; calc?: string | string[]; amount?: string | string[]; tab?: string | string[] }> }) {
   const sp = await searchParams
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined
   const token = first(sp.token)
@@ -123,7 +142,10 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
   const calcRaw = first(sp.calc)
   const calcMode: "pixels" | "eth" = calcRaw === "eth" ? "eth" : "pixels"
   const amountRaw = first(sp.amount)
-  const view = await answer(token, wallet, first(sp.view) === "listings", approvals, calcRaw ? { mode: calcMode, amount: amountRaw } : undefined)
+  const listings = first(sp.view) === "listings"
+  const tab = pickTab({ tab: first(sp.tab), token, wallet, approvals, calc: calcRaw, listings })
+  const view = await answer(token, wallet, listings, approvals, calcRaw ? { mode: calcMode, amount: amountRaw } : undefined, tab === "check")
+  const intro = TABS.find((t) => t.id === tab)?.intro
 
   return (
     <div className="zulo-chrome min-h-screen burn-page pixels-page">
@@ -135,54 +157,75 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           <p className="burn-tagline">Check the pixels before you trust the offer.</p>
         </header>
 
-        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Normie">
-          <label htmlFor="token" className="sr-only">Normie number</label>
-          <div className="burn-inputrow">
-            <input id="token" name="token" type="text" defaultValue={view.kind === "token" && !view.isExample ? String(view.check.tokenId) : ""} placeholder="Normie # (0–9999)" inputMode="numeric" enterKeyHint="go" spellCheck={false} autoComplete="off" className="burn-input" />
-            <button type="submit" className="burn-go" aria-label="Check this Normie's pixels"><span>Check</span><span aria-hidden="true">→</span></button>
-          </div>
-          <p className="burn-safeline">Live from the chain · look-only · no signing</p>
-        </form>
+        <nav className="burn-tabs pixels-tabnav" aria-label="Pixel Check tools">
+          {TABS.map((t) => (
+            <a key={t.id} href={`/pixels?tab=${t.id}`} className={`burn-tab${t.id === tab ? " is-active" : ""}`} aria-current={t.id === tab ? "page" : undefined}>
+              <span>{t.label}</span>
+            </a>
+          ))}
+        </nav>
+        <p className="burn-hint pixels-intro">{intro}</p>
 
-        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Market or burn?">
-          <fieldset className="burn-tabs pixels-toggle">
-            <legend className="sr-only">Compare by</legend>
-            <label className="burn-tab"><input type="radio" name="calc" value="pixels" defaultChecked={calcMode === "pixels"} /><span>Pixels I want</span></label>
-            <label className="burn-tab"><input type="radio" name="calc" value="eth" defaultChecked={calcMode === "eth"} /><span>ETH to spend</span></label>
-          </fieldset>
-          <label htmlFor="amount" className="sr-only">Amount</label>
-          <div className="burn-inputrow">
-            <input id="amount" name="amount" type="text" defaultValue={view.kind === "calc" ? amountRaw ?? "" : ""} placeholder="500 pixels, or 0.5 ETH" inputMode="decimal" enterKeyHint="go" spellCheck={false} autoComplete="off" className="burn-input" />
-            <button type="submit" className="burn-go" aria-label="Compare the Pixel Market with burning floor Normies"><span>Compare</span><span aria-hidden="true">→</span></button>
-          </div>
-          <p className="burn-safeline">Pixel Market vs burning floor Normies · live chain pixels</p>
-        </form>
-
-        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Offers I made">
-          <label htmlFor="wallet" className="sr-only">Wallet address or .eth name</label>
-          <div className="burn-inputrow">
-            <input id="wallet" name="wallet" type="text" defaultValue={view.kind === "wallet" && view.check.kind === "ok" ? view.check.ens ?? view.check.address : wallet ?? ""} placeholder="0x… or yourname.eth" inputMode="text" enterKeyHint="go" spellCheck={false} autoComplete="off" autoCapitalize="off" className="burn-input" />
-            <button type="submit" className="burn-go" aria-label="Check the offers this wallet made"><span>Check</span><span aria-hidden="true">→</span></button>
-          </div>
-          <p className="burn-safeline">Flags your item offers on Normies whose pixels are gone</p>
-        </form>
-
-        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Who can spend my pixels?">
-          <label htmlFor="approvals" className="sr-only">Wallet address or .eth name</label>
-          <div className="burn-inputrow">
-            <input id="approvals" name="approvals" type="text" defaultValue={view.kind === "approvals" && view.check.kind === "ok" ? view.check.ens ?? view.check.address : approvals ?? ""} placeholder="0x… or yourname.eth" inputMode="text" enterKeyHint="go" spellCheck={false} autoComplete="off" autoCapitalize="off" className="burn-input" />
-            <button type="submit" className="burn-go" aria-label="Check who this wallet approved to spend its pixels"><span>Check</span><span aria-hidden="true">→</span></button>
-          </div>
-          <p className="burn-safeline">Shows every address you approved to spend your #PIXEL</p>
-        </form>
-
-        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Buying?">
-          <input type="hidden" name="view" value="listings" />
-          <div className="burn-inputrow pixels-listings-row">
-            <p className="burn-small pixels-listings-text">Check the cheapest {LISTINGS_CHECKED} listings for Normies that show more pixels on OpenSea than they really have.</p>
-            <button type="submit" className="burn-go" aria-label="Check the cheapest listings"><span>Check</span><span aria-hidden="true">→</span></button>
-          </div>
-        </form>
+        {tab === "check" && (
+          <>
+            <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Normie">
+              <label htmlFor="token" className="sr-only">Normie number</label>
+              <div className="burn-inputrow">
+                <input id="token" name="token" type="text" defaultValue={view.kind === "token" && !view.isExample ? String(view.check.tokenId) : ""} placeholder="Normie # (0–9999)" inputMode="numeric" enterKeyHint="go" spellCheck={false} autoComplete="off" className="burn-input" />
+                <button type="submit" className="burn-go" aria-label="Check this Normie's pixels"><span>Check</span><span aria-hidden="true">→</span></button>
+              </div>
+              <p className="burn-safeline">Live from the chain · look-only · no signing</p>
+            </form>
+          </>
+        )}
+        {tab === "buy" && (
+          <>
+            <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Market or burn?">
+              <fieldset className="burn-tabs pixels-toggle">
+                <legend className="sr-only">Compare by</legend>
+                <label className="burn-tab"><input type="radio" name="calc" value="pixels" defaultChecked={calcMode === "pixels"} /><span>Pixels I want</span></label>
+                <label className="burn-tab"><input type="radio" name="calc" value="eth" defaultChecked={calcMode === "eth"} /><span>ETH to spend</span></label>
+              </fieldset>
+              <label htmlFor="amount" className="sr-only">Amount</label>
+              <div className="burn-inputrow">
+                <input id="amount" name="amount" type="text" defaultValue={view.kind === "calc" ? amountRaw ?? "" : ""} placeholder="500 pixels, or 0.5 ETH" inputMode="decimal" enterKeyHint="go" spellCheck={false} autoComplete="off" className="burn-input" />
+                <button type="submit" className="burn-go" aria-label="Compare the Pixel Market with burning floor Normies"><span>Compare</span><span aria-hidden="true">→</span></button>
+              </div>
+              <p className="burn-safeline">Pixel Market vs burning floor Normies · live chain pixels</p>
+            </form>
+            <form method="get" action="/pixels#result" className="pixels-listings-form">
+              <input type="hidden" name="view" value="listings" />
+              <div className="pixels-listings-row">
+                <p className="burn-small pixels-listings-text">Check the cheapest {LISTINGS_CHECKED} listings for Normies that show more pixels on OpenSea than they really have.</p>
+                <button type="submit" className="burn-go" aria-label="Check the cheapest listings"><span>Check</span><span aria-hidden="true">→</span></button>
+              </div>
+            </form>
+          </>
+        )}
+        {tab === "offers" && (
+          <>
+            <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Offers I made">
+              <label htmlFor="wallet" className="sr-only">Wallet address or .eth name</label>
+              <div className="burn-inputrow">
+                <input id="wallet" name="wallet" type="text" defaultValue={view.kind === "wallet" && view.check.kind === "ok" ? view.check.ens ?? view.check.address : wallet ?? ""} placeholder="0x… or yourname.eth" inputMode="text" enterKeyHint="go" spellCheck={false} autoComplete="off" autoCapitalize="off" className="burn-input" />
+                <button type="submit" className="burn-go" aria-label="Check the offers this wallet made"><span>Check</span><span aria-hidden="true">→</span></button>
+              </div>
+              <p className="burn-safeline">Flags your item offers on Normies whose pixels are gone</p>
+            </form>
+          </>
+        )}
+        {tab === "safety" && (
+          <>
+            <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Who can spend my pixels?">
+              <label htmlFor="approvals" className="sr-only">Wallet address or .eth name</label>
+              <div className="burn-inputrow">
+                <input id="approvals" name="approvals" type="text" defaultValue={view.kind === "approvals" && view.check.kind === "ok" ? view.check.ens ?? view.check.address : approvals ?? ""} placeholder="0x… or yourname.eth" inputMode="text" enterKeyHint="go" spellCheck={false} autoComplete="off" autoCapitalize="off" className="burn-input" />
+                <button type="submit" className="burn-go" aria-label="Check who this wallet approved to spend its pixels"><span>Check</span><span aria-hidden="true">→</span></button>
+              </div>
+              <p className="burn-safeline">Shows every address you approved to spend your #PIXEL</p>
+            </form>
+          </>
+        )}
 
         {/* Every form submits to /pixels#result, so the answer scrolls into view instead of landing below the fold. */}
         <div id="result" className="pixels-result-anchor">
@@ -551,7 +594,7 @@ function ApprovalsResult({ check }: { check: Extract<ApprovalsCheck, { kind: "ok
         <p className="burn-small">{check.rows.length - active.length} earlier {check.rows.length - active.length === 1 ? "approval has" : "approvals have"} already been used up or revoked.</p>
       )}
       <p className="burn-small">
-        Approvals are tracked from 2026-10-05 ~03:15 UTC, right after the pixel contract went live, and re-read live from the chain for this page.
+        Every approval since the pixel contract went live (2026-10-04) is tracked, and each amount is re-read live from the chain for this page.
         {check.indexedAt ? ` Index last caught up ${utc(check.indexedAt)}.` : ""}
       </p>
       <p className="burn-small ap-stamp">Checked {utc(check.checkedAt)}</p>
