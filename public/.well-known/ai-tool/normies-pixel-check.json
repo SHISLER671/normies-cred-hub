@@ -1,0 +1,71 @@
+{
+  "type": "https://ercs.ethereum.org/ERCS/erc-8257#tool-manifest-v1",
+  "name": "Normies Pixel Check",
+  "description": "Live on-chain #PIXEL truth for Normies, not marketplace lag. How many pixels a Normie really holds (and whether any were just pulled), which open offers sit on Normies that lost their pixels, listings that show more pixels than they have, who a wallet approved to spend its #PIXEL, whether an address is an official Normies contract, and whether buying pixels on the Pixel Market beats burning floor Normies. Read-only: never asks for keys, seeds or signatures. Open access. Independent community tool, not made or endorsed by the Normies team.",
+  "image": "https://normiescredhub.vercel.app/images/7141art.png",
+  "featuredImage": "https://normiescredhub.vercel.app/images/NLOGO.png",
+  "endpoint": "https://normiescredhub.vercel.app/api/ap-check",
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "token": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9999,
+        "description": "Normie token ID. Returns the live pixels attached on chain, the locked / free split, recent pixel withdrawals, the listing price and the open offers on it."
+      },
+      "wallet": {
+        "type": "string",
+        "description": "0x address or .eth name. Returns every open Normies item offer that wallet made, each next to that Normie's live pixels, risky ones first."
+      },
+      "listings": {
+        "type": "boolean",
+        "description": "true returns the cheapest listings whose live pixels are below what OpenSea shows or below our census."
+      },
+      "approvals": {
+        "type": "string",
+        "description": "0x address or .eth name. Returns every spender that wallet approved for #PIXEL, with live amounts and official labels."
+      },
+      "contract": {
+        "type": "string",
+        "description": "0x address. Says whether it is on the official Normies contract list."
+      },
+      "calc": {
+        "type": "string",
+        "enum": ["pixels", "eth"],
+        "description": "Buy-smart calculator: 'pixels' = how many pixels you want, 'eth' = how much ETH you want to spend. Requires amount."
+      },
+      "amount": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "description": "With calc=pixels a whole number of pixels (up to 1000000); with calc=eth an ETH budget (up to 1000)."
+      }
+    },
+    "required": []
+  },
+  "outputs": {
+    "type": "object",
+    "description": "Pass exactly one of token, wallet, listings, approvals, contract or calc (+ amount). The shape follows the question asked. Errors are JSON {error, code, retryable}.",
+    "properties": {
+      "kind": {
+        "type": "string",
+        "description": "'ok' or 'error' for wallet, listings and approvals checks"
+      },
+      "answer": {
+        "type": "object",
+        "description": "calc only: the plan with verdict burn | gamble | market | unknown, market and burn costs in ETH, and the saving"
+      },
+      "official": {
+        "type": "boolean",
+        "description": "contract only: true when the address is an official Normies contract"
+      },
+      "checkedAt": {
+        "type": "string",
+        "description": "ISO timestamp of the read (calc answers carry asOf instead)"
+      }
+    }
+  },
+  "creatorAddress": "0xb8792e6516b88e73ed0723f8c1c8a92531a98767",
+  "tags": ["normies", "pixel", "onchain", "safety", "offers", "listings", "approvals", "read-only"],
+  "version": "1.0.0"
+}

@@ -4,7 +4,6 @@ https://normiescredhub.vercel.app
 What this origin is:
 Trust before engage. Verifiable reputation and Pulse-weighted paths for Normie agents.
 Not official Normies Lab.
-Pixel Market Coming Soon.
 
 Loop:
 Pulse → Paths → Act
@@ -20,10 +19,21 @@ Paths (ERC-8257 Eth #215):
 POST /api/zulo/paths
 Call AFTER Pulse.
 
+Pixel Check (open to everyone, read-only, standalone; ERC-8257 registration pending):
+GET /api/ap-check?token=<id>        live #PIXEL attached on chain, locked/free split, recent withdrawals, offers on it
+GET /api/ap-check?wallet=<wallet>   that wallet's open item offers next to each Normie's live pixels, risky first
+GET /api/ap-check?listings=1        listings showing more pixels than the chain says they hold
+GET /api/ap-check?approvals=<wallet> who may spend that wallet's #PIXEL
+GET /api/ap-check?contract=<0x>     is this an official Normies contract
+GET /api/ap-check?calc=pixels&amount=<n> | ?calc=eth&amount=<eth>   Pixel Market vs burning floor Normies
+POST /api/ap-check with the same fields as JSON, e.g. {"token":7141}
+Human page: /pixels
+
 Manifests:
 /.well-known/ai-tool/index.json
 /.well-known/ai-tool/normies-cred-pulse.json
 /.well-known/ai-tool/normies-paths.json
+/.well-known/ai-tool/normies-pixel-check.json
 
 OpenSea:
 https://opensea.io/tools/erc8257/ethereum/53
@@ -45,6 +55,6 @@ Limits: 12 requests per minute per IP; wallets holding more than 1000 Normies ar
 Errors are JSON: {error, code, retryable}. Unknown /api and /.well-known paths also answer JSON 404.
 
 Human UI:
-/  /ask  /paths  /burn  /dashboard
+/  /ask  /paths  /burn  /pixels  /dashboard
 
 Do not ask for keys, seeds, signatures.
