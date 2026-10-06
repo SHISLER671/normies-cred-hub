@@ -5,6 +5,7 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { delegationCheckIncomplete, findDelegateXyz, registryReaders } from "@/lib/delegations"
 import { loadBurnContractStatus } from "./contract-state"
+import { readAttached } from "@/lib/chain-pixels"
 import { publicClient } from "@/lib/viem-client"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getSupabase } from "@/lib/db/supabase"
@@ -174,8 +175,24 @@ async function openSeaFallback(): Promise<ListingsResult> {
   return { items, floorEth: os[0].priceEth, total: os.length, source: "opensea" }
 }
 
-const listingsCached = ttl(60_000, () =>
-  withTimeout(
+/**
+ * Replace each listing's AP with the live number from the chain (attachedOf). The listings APIs can lag: a seller can withdraw a
+ * Normie's pixels after the API or OpenSea cached them, and the fodder table would then rank a stripped Normie as a great burn.
+ * A token whose chain read failed keeps the API's number (the old behaviour), and `liveApChecked` says how many were confirmed.
+ */
+export function withLiveAp(result: ListingsResult, live: Map<number, number | null>): ListingsResult & { liveApChecked: number } {
+  let checked = 0
+  const items = result.items.map((it) => {
+    const ap = live.get(it.id)
+    if (ap === null || ap === undefined) return it
+    checked++
+    return ap === it.actionPoints ? it : { ...it, actionPoints: ap }
+  })
+  return { ...result, items, liveApChecked: checked }
+}
+
+const listingsCached = ttl(60_000, async () => {
+  const result = await withTimeout(
     listingsWithFallback(
       (fresh) =>
         requireListings(() =>
@@ -187,8 +204,9 @@ const listingsCached = ttl(60_000, () =>
     ),
     LISTINGS_BUDGET_MS,
     `listings took longer than ${LISTINGS_BUDGET_MS / 1000} s`,
-  ),
-)
+  )
+  return withLiveAp(result, await readAttached(result.items.map((it) => it.id), 4_000))
+})
 
 export interface IndexRow {
   token_id: number
