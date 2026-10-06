@@ -237,3 +237,46 @@ export function judgeListing(l: ListingInput): ListingFlag | null {
     : `Had ${was} pixels at our last census; ${l.live} now.`
   return { ...l, kind, line }
 }
+
+// ── Pixel approvals ────────────────────────────────────────────────────────────────────────────────────────────────────────
+// Who a wallet has approved to spend its #PIXEL. An approval is custody of that amount, from the wallet or from any Normie the
+// wallet owns, so an approval to anything that is not an official Normies contract deserves a hard look.
+
+/** Contracts the Normies team publishes (api.normies.art /canvas/status pixelMarket block, read 2026-10-06). */
+export const OFFICIAL_SPENDERS: Record<string, string> = {
+  "0x86156a8d6e4b9925f7feca527ea5d71b0deedb64": "Normies Pixel Market (official)",
+  "0xf14f2852e1fd6a4108156054af49b3915dc40e2e": "Normies Canvas (official)",
+}
+
+export interface ApprovalRow {
+  spender: string
+  /** Live allowance from the chain (decimal string); null = the read failed. */
+  live: string | null
+  /** The allowance as last indexed from events (decimal string). */
+  indexed: string
+  label: string | null
+  official: boolean
+  /** Very large approvals ("unlimited") are shown as such. */
+  unlimited: boolean
+}
+
+/** 2^255 or more is how apps write "unlimited". */
+const UNLIMITED = BigInt("0x8000000000000000000000000000000000000000000000000000000000000000")
+
+/** Pure: one row per spender ever approved, with the live amount when known; active (live > 0) unofficial ones first. */
+export function buildApprovalRows(stored: Array<{ spender: string; amount: string }>, live: Map<string, string | null>): ApprovalRow[] {
+  const rows = stored.map((s) => {
+    const spender = s.spender.toLowerCase()
+    const l = live.has(spender) ? live.get(spender) ?? null : null
+    const amount = BigInt(l ?? s.amount)
+    const label = OFFICIAL_SPENDERS[spender] ?? null
+    return { spender, live: l, indexed: s.amount, label, official: label !== null, unlimited: amount >= UNLIMITED }
+  })
+  const rank = (r: ApprovalRow) => (r.live === null ? 1 : BigInt(r.live) > BigInt(0) ? (r.official ? 2 : 0) : 3)
+  return rows.sort((a, b) => rank(a) - rank(b) || a.spender.localeCompare(b.spender))
+}
+
+/** True when a row is an approval that is still live (or could not be read but was live when indexed). */
+export function isActiveApproval(r: ApprovalRow): boolean {
+  return BigInt(r.live ?? r.indexed) > BigInt(0)
+}

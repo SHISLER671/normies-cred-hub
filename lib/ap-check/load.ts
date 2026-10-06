@@ -12,12 +12,15 @@ import { getSupabase } from "@/lib/db/supabase"
 import { publicClient } from "@/lib/viem-client"
 
 import {
+  buildApprovalRows,
+  isActiveApproval,
   judgeAp,
   judgeListing,
   parseItemOffers,
   parsePixelSplit,
   parseShownPixels,
   type ApJudgement,
+  type ApprovalRow,
   type ApReading,
   type CensusAp,
   type ItemOffer,
@@ -25,7 +28,11 @@ import {
   type PixelSplit,
 } from "./core"
 
-const STORAGE_ABI = parseAbi(["function attachedOf(uint256 tokenId) view returns (uint256)"])
+const STORAGE_ABI = parseAbi([
+  "function attachedOf(uint256 tokenId) view returns (uint256)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function balanceOf(address account) view returns (uint256)",
+])
 const OPENSEA = "https://api.opensea.io/api/v2"
 const SLUG = "normies"
 /** A wallet with more open Normies item offers than this gets the first ones checked and a note saying so. */
@@ -296,5 +303,76 @@ export async function checkListings(): Promise<ListingsCheck> {
     return await listingsCached()
   } catch {
     return { kind: "error", message: "Could not read OpenSea listings just now. Try again in a minute." }
+  }
+}
+
+export type ApprovalsCheck =
+  | {
+      kind: "ok"
+      address: string
+      ens: string | null
+      /** Pixels in the wallet itself (not counting pixels attached to Normies). Null = read failed. */
+      walletPixels: number | null
+      rows: ApprovalRow[]
+      active: number
+      activeUnofficial: number
+      /** Up to which block the approvals index is complete, and when it last caught up. */
+      indexedThrough: number | null
+      indexedAt: string | null
+      checkedAt: string
+    }
+  | { kind: "error"; message: string }
+
+/** Every spender this wallet has approved for #PIXEL (from our index), each with its live allowance from the chain. */
+export async function checkApprovals(input: string): Promise<ApprovalsCheck> {
+  const who = await resolveWallet(input)
+  if (!who) return { kind: "error", message: "That name does not resolve to a wallet. Paste the 0x address instead." }
+  const db = getSupabase()
+  if (!db) return { kind: "error", message: "The approvals index is not reachable just now. Try again in a minute." }
+  const res = await within(
+    Promise.all([
+      db.from("pixel_approvals").select("spender,amount").eq("owner", who.address),
+      db.from("census_sync").select("synced_at,summary").eq("job", "approvals").maybeSingle(),
+    ]),
+    4_000,
+  )
+  if (!res) return { kind: "error", message: "The approvals index is not reachable just now. Try again in a minute." }
+  const [{ data: rows, error }, { data: sync }] = res
+  if (error) return { kind: "error", message: "The approvals index is not reachable just now. Try again in a minute." }
+  const stored = ((rows ?? []) as Array<{ spender: string; amount: string | number }>).map((r) => ({ spender: r.spender, amount: String(r.amount) }))
+
+  const owner = who.address as `0x${string}`
+  const calls = await within(
+    publicClient.multicall({
+      allowFailure: true,
+      contracts: [
+        { address: NORMIES_CANVAS_STORAGE, abi: STORAGE_ABI, functionName: "balanceOf" as const, args: [owner] as const },
+        ...stored.map((s) => ({ address: NORMIES_CANVAS_STORAGE, abi: STORAGE_ABI, functionName: "allowance" as const, args: [owner, s.spender as `0x${string}`] as const })),
+      ],
+    }),
+    6_000,
+  )
+  const live = new Map<string, string | null>()
+  stored.forEach((s, i) => {
+    const r = calls?.[i + 1]
+    live.set(s.spender.toLowerCase(), r && r.status === "success" && typeof r.result === "bigint" ? r.result.toString() : null)
+  })
+  const bal = calls?.[0]
+  const walletPixels = bal && bal.status === "success" && typeof bal.result === "bigint" && bal.result <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(bal.result) : null
+
+  const built = buildApprovalRows(stored, live)
+  const active = built.filter(isActiveApproval)
+  const summary = (sync?.summary ?? {}) as { lastBlock?: number }
+  return {
+    kind: "ok",
+    address: who.address,
+    ens: who.ens,
+    walletPixels,
+    rows: built,
+    active: active.length,
+    activeUnofficial: active.filter((r) => !r.official).length,
+    indexedThrough: typeof summary.lastBlock === "number" ? summary.lastBlock : null,
+    indexedAt: (sync as { synced_at?: string } | null)?.synced_at ?? null,
+    checkedAt: new Date().toISOString(),
   }
 }
