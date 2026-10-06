@@ -228,6 +228,16 @@ export async function loadShownPixels(ids: number[], apiKey = process.env.OPENSE
 /** How many of the cheapest listings are checked. */
 export const LISTINGS_CHECKED = 100
 
+export interface ListingRow {
+  tokenId: number
+  priceEth: number
+  live: number | null
+  shown: number | null
+}
+
+/** How many of the cheapest listings are shown in full, flagged or not. */
+export const LISTINGS_SHOWN = 10
+
 export type ListingsCheck =
   | {
       kind: "ok"
@@ -236,6 +246,10 @@ export type ListingsCheck =
       flags: ListingFlag[]
       /** False when OpenSea's shown values could not be read, so only the census comparison ran. */
       shownChecked: boolean
+      /** How many of the checked listings OpenSea showed a pixel number for (0 with shownChecked = the trait was not found). */
+      shownCount: number
+      /** The cheapest few, flagged or not, so people can see what was compared. */
+      cheapest: ListingRow[]
       censusAt: string | null
       checkedAt: string
     }
@@ -248,15 +262,30 @@ async function runListingsCheck(): Promise<Extract<ListingsCheck, { kind: "ok" }
   const ids = top.map((l) => l.tokenId)
   const [live, census, shown] = await Promise.all([readAttached(ids), loadCensus(ids), loadShownPixels(ids)])
   const flags: ListingFlag[] = []
+  const rows: ListingRow[] = []
   let censusAt: string | null = null
+  let shownCount = 0
   for (const l of top) {
     const c = census?.get(l.tokenId) ?? null
     if (c?.at) censusAt = c.at
-    const f = judgeListing({ tokenId: l.tokenId, priceEth: l.priceEth, live: live.get(l.tokenId) ?? null, shown: shown?.get(l.tokenId) ?? null, census: c })
+    const row: ListingRow = { tokenId: l.tokenId, priceEth: l.priceEth, live: live.get(l.tokenId) ?? null, shown: shown?.get(l.tokenId) ?? null }
+    if (row.shown !== null) shownCount++
+    rows.push(row)
+    const f = judgeListing({ ...row, census: c })
     if (f) flags.push(f)
   }
   flags.sort((a, b) => a.priceEth - b.priceEth || a.tokenId - b.tokenId)
-  return { kind: "ok", checked: top.length, flags, shownChecked: shown !== null, censusAt, checkedAt: new Date().toISOString() }
+  rows.sort((a, b) => a.priceEth - b.priceEth || a.tokenId - b.tokenId)
+  return {
+    kind: "ok",
+    checked: top.length,
+    flags,
+    shownChecked: shown !== null,
+    shownCount,
+    cheapest: rows.slice(0, LISTINGS_SHOWN),
+    censusAt,
+    checkedAt: new Date().toISOString(),
+  }
 }
 
 /** The listings check is the same for everyone, so it is shared for a minute: at most a handful of OpenSea calls a minute. */

@@ -4,7 +4,7 @@ import { headers } from "next/headers"
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { apiDisagrees, openSeaItemUrl, parseTokenInput } from "@/lib/ap-check/core"
-import { checkListings, checkToken, checkWallet, LISTINGS_CHECKED, MAX_WALLET_OFFERS, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
+import { checkListings, checkToken, checkWallet, LISTINGS_CHECKED, LISTINGS_SHOWN, MAX_WALLET_OFFERS, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
 import { keyedTtl } from "@/lib/burn-buy/data"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { checkRateLimitById, clientIdFromHeaders } from "@/lib/ratelimit"
@@ -99,7 +99,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           <p className="burn-tagline">Check the pixels before you trust the offer.</p>
         </header>
 
-        <form method="get" action="/pixels" className="burn-box burn-form" data-tag="Normie">
+        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Normie">
           <label htmlFor="token" className="sr-only">Normie number</label>
           <div className="burn-inputrow">
             <input id="token" name="token" type="text" defaultValue={view.kind === "token" && !view.isExample ? String(view.check.tokenId) : ""} placeholder="Normie # (0–9999)" inputMode="numeric" enterKeyHint="go" spellCheck={false} autoComplete="off" className="burn-input" />
@@ -108,7 +108,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           <p className="burn-safeline">Live from the chain · look-only · no signing</p>
         </form>
 
-        <form method="get" action="/pixels" className="burn-box burn-form" data-tag="Offers I made">
+        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Offers I made">
           <label htmlFor="wallet" className="sr-only">Wallet address or .eth name</label>
           <div className="burn-inputrow">
             <input id="wallet" name="wallet" type="text" defaultValue={view.kind === "wallet" && view.check.kind === "ok" ? view.check.ens ?? view.check.address : wallet ?? ""} placeholder="0x… or yourname.eth" inputMode="text" enterKeyHint="go" spellCheck={false} autoComplete="off" autoCapitalize="off" className="burn-input" />
@@ -117,7 +117,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           <p className="burn-safeline">Flags your item offers on Normies whose pixels are gone</p>
         </form>
 
-        <form method="get" action="/pixels" className="burn-box burn-form" data-tag="Buying?">
+        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Buying?">
           <input type="hidden" name="view" value="listings" />
           <div className="burn-inputrow pixels-listings-row">
             <p className="burn-small pixels-listings-text">Check the cheapest {LISTINGS_CHECKED} listings for Normies that show more pixels on OpenSea than they really have.</p>
@@ -125,6 +125,8 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           </div>
         </form>
 
+        {/* Every form submits to /pixels#result, so the answer scrolls into view instead of landing below the fold. */}
+        <div id="result" className="pixels-result-anchor">
         {view.kind === "error" && (
           <section className="burn-box burn-error" data-tag="Oops" role="alert">
             <p className="burn-headline">We could not answer that.</p>
@@ -146,6 +148,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           </section>
         )}
         {view.kind === "listings" && view.check.kind === "ok" && <ListingsResult check={view.check} />}
+        </div>
 
         <FinePrint />
       </main>
@@ -237,7 +240,7 @@ function WalletResult({ check }: { check: Extract<WalletCheck, { kind: "ok" }> }
           <tbody>
             {check.offers.map((o) => (
               <tr key={o.orderHash} data-risk={o.judgement.offerRisk}>
-                <th scope="row"><a href={`/pixels?token=${o.tokenId}`}>#{o.tokenId}</a>{o.judgement.offerRisk && <span className="ap-flag" title={o.judgement.line}> {o.judgement.verdict === "burned" ? "burned" : o.judgement.verdict === "dropped" ? "pixels down" : "no pixels"}</span>}</th>
+                <th scope="row"><a href={`/pixels?token=${o.tokenId}#result`}>#{o.tokenId}</a>{o.judgement.offerRisk && <span className="ap-flag" title={o.judgement.line}> {o.judgement.verdict === "burned" ? "burned" : o.judgement.verdict === "dropped" ? "pixels down" : "no pixels"}</span>}</th>
                 <td>{o.onchain ?? "?"}</td>
                 <td>{eth(o.price)}</td>
                 <td>{days(o.expiresAt)}</td>
@@ -259,32 +262,61 @@ function ListingsResult({ check }: { check: Extract<ListingsCheck, { kind: "ok" 
   const n = check.flags.length
   const headline =
     n === 0
-      ? `All ${check.checked} of the cheapest listings show the pixels they really have.`
-      : `${n} of the cheapest ${check.checked} listings ${n === 1 ? "has" : "have"} fewer pixels than ${n === 1 ? "it shows or had" : "they show or had"}.`
+      ? `All clear: the ${check.checked} cheapest listings have the pixels they show.`
+      : `${n} of the ${check.checked} cheapest listings ${n === 1 ? "has" : "have"} fewer pixels than ${n === 1 ? "it shows or had" : "they show or had"}.`
+  const noTrait = check.shownChecked && check.shownCount === 0
   return (
     <section className="burn-box ap-result" data-tag="Cheapest listings" data-verdict={n > 0 ? "dropped" : "has-ap"} aria-labelledby="ap-l-h">
       <h2 id="ap-l-h" className="burn-headline">{headline}</h2>
+
+      <dl className="burn-stats pixels-l-stats">
+        <div><dt>Listings checked</dt><dd>{check.checked}</dd></div>
+        <div><dt>Flagged</dt><dd>{n}</dd></div>
+        <div><dt>OpenSea numbers read</dt><dd>{check.shownChecked ? check.shownCount : "–"}</dd></div>
+      </dl>
+
       {n > 0 && (
-        <p className="burn-note ap-warn" role="note">
-          Before buying one of these, open it here to see its live pixels. OpenSea may still show the old number until someone refreshes its metadata.
-        </p>
+        <>
+          <p className="burn-note ap-warn" role="note">
+            Before buying one of these, open it here to see its live pixels. OpenSea may keep showing the old number until someone refreshes its metadata.
+          </p>
+          <h3 className="burn-cap">Flagged</h3>
+          <table className="burn-table ap-table">
+            <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">OpenSea shows</th><th scope="col">Pixels now</th></tr></thead>
+            <tbody>
+              {check.flags.map((f) => (
+                <tr key={f.tokenId} data-risk="true">
+                  <th scope="row"><a href={`/pixels?token=${f.tokenId}#result`}>#{f.tokenId}</a></th>
+                  <td>{eth(f.priceEth)}</td>
+                  <td>{f.shown ?? "–"}</td>
+                  <td title={f.line}>{f.live}{f.kind !== "stale" && typeof f.census?.ap === "number" ? <span className="ap-cur"> (was {f.census.ap})</span> : null}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
-      {n > 0 && (
-        <table className="burn-table ap-table">
-          <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">OpenSea shows</th><th scope="col">Pixels now</th></tr></thead>
-          <tbody>
-            {check.flags.map((f) => (
-              <tr key={f.tokenId} data-risk="true">
-                <th scope="row"><a href={`/pixels?token=${f.tokenId}`}>#{f.tokenId}</a></th>
-                <td>{eth(f.priceEth)}</td>
-                <td>{f.shown ?? "–"}</td>
-                <td title={f.line}>{f.live}{f.kind !== "stale" && typeof f.census?.ap === "number" ? <span className="ap-cur"> (was {f.census.ap})</span> : null}</td>
+
+      <h3 className="burn-cap pixels-l-cap">The {LISTINGS_SHOWN} cheapest, as checked</h3>
+      <table className="burn-table ap-table">
+        <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">OpenSea shows</th><th scope="col">Pixels now</th></tr></thead>
+        <tbody>
+          {check.cheapest.map((r) => {
+            const off = r.live !== null && r.shown !== null && r.shown > r.live
+            return (
+              <tr key={r.tokenId} data-risk={off}>
+                <th scope="row"><a href={`/pixels?token=${r.tokenId}#result`}>#{r.tokenId}</a></th>
+                <td>{eth(r.priceEth)}</td>
+                <td>{r.shown ?? "–"}</td>
+                <td>{r.live ?? "?"}{r.live !== null && r.shown !== null && !off ? <span className="ap-cur"> ✓</span> : null}</td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            )
+          })}
+        </tbody>
+      </table>
+
       {!check.shownChecked && <p className="burn-small">Could not read what OpenSea shows just now, so only our census comparison ran.</p>}
+      {noTrait && <p className="burn-note" role="note">OpenSea did not show a pixel number for any of these listings, so only our census comparison ran.</p>}
       <p className="burn-small">
         &quot;Was&quot; is our census{check.censusAt ? ` from ${utc(check.censusAt)}` : ""}. Only the cheapest {LISTINGS_CHECKED} listings are checked, and the result is shared for a minute.
       </p>
