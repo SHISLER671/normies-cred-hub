@@ -6,6 +6,7 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { delegationCheckIncomplete, findDelegateXyz, registryReaders } from "@/lib/delegations"
 import { loadBurnContractStatus } from "./contract-state"
 import { readAttached } from "@/lib/chain-pixels"
+import { loadLoosePixels, loadLoosePixelsFor } from "./pixel-holders"
 import { publicClient } from "@/lib/viem-client"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getSupabase } from "@/lib/db/supabase"
@@ -268,7 +269,7 @@ export function freshnessOf(stamps: SyncStamps | undefined, oldestRow: string | 
 }
 
 /** Pure: turns index rows into the snapshot the advice needs. */
-export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps): MarketSnapshot {
+export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps, loose?: Map<string, number> | null): MarketSnapshot {
   const originalPixels = new Map<number, number>()
   const pixelSupply = new Map<number, number>()
   const wallets = new Map<string, { n: number; ap: number }>()
@@ -289,7 +290,8 @@ export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps): MarketS
   let censusTotal = 0
   const walletScores = new Map<string, number>()
   for (const [owner, w] of wallets) {
-    const sc = walletScore(w.n, w.ap)
+    // Loose #PIXEL (wallet + listed) counts the same as attached; a wallet with no Normies is not in this map and scores zero anyway.
+    const sc = walletScore(w.n, w.ap + (loose?.get(owner.toLowerCase()) ?? 0))
     walletScores.set(owner.toLowerCase(), sc)
     censusTotal += sc
   }
@@ -300,12 +302,13 @@ export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps): MarketS
 const snapshotCached = ttl(10 * 60_000, async (): Promise<MarketSnapshot> => {
   const db = getSupabase()
   if (!db) throw new Error("database is not configured")
-  const [rows, stamps] = await withTimeout(
-    Promise.all([fetchIndexRows(db), fetchSyncStamps(db)]),
+  const [rows, stamps, loose] = await withTimeout(
+    // Loose #PIXEL gets its own 5 s cap and falls back to "attached only", so a slow pixels API can never sink the index read.
+    Promise.all([fetchIndexRows(db), fetchSyncStamps(db), withTimeout(loadLoosePixels(), 5_000, "loose pixels").catch(() => null)]),
     SNAPSHOT_BUDGET_MS,
     `the index took longer than ${SNAPSHOT_BUDGET_MS / 1000} s`,
   )
-  return snapshotFromRows(rows, stamps)
+  return snapshotFromRows(rows, stamps, loose)
 })
 
 /** Tokens for which `address` is the Canvas delegate, from the index. Only ever called with a validated 0x address. */
@@ -404,6 +407,7 @@ export const realDeps: Deps = {
   findDelegations,
   contractStatus: () => cachedContractStatus().catch(() => null),
   pixelMarket: () => pixelMarketCached().catch(() => null),
+  loosePixels: (address) => loadLoosePixelsFor(address),
   // Jev stays OFF (returns null) until a TYPESAFE_API_KEY exists; the service only calls this once PIXEL_MARKET=live.
   // JEV_DISABLE=1 is a kill switch.
   jevOpinions: async (tokens) => {

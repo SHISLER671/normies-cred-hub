@@ -45,19 +45,21 @@ export type YieldMode = "promo" | "normal"
 export type MarketState = "pending" | "live"
 
 /**
- * In normal mode a burn rolls a random rate inside a range set by the burned Normie's ORIGINAL pixel count
- * (@normiesART article "Pixel Market: The Currency of the Canvas", Sep 23, 2026). Realized average over the first
- * 2,718 burns was 2.74%. These tiers come from that article and are not yet confirmed by a launch-day source.
+ * In normal mode a burn rolls a whole percentage in [tier minimum, 4] of the burned Normie's ORIGINAL pixel count.
+ * Confirmed against NormiesCanvasV2 (verified source, 2026-10-06): _getMinPercent returns tier i when
+ * pixelCount < tierThresholds[i], with thresholds [490, 890] and minimums [1, 2, 3]. So UNDER 490 rolls 1-4%,
+ * 490 to 889 rolls 2-4%, and 890 and up rolls 3-4% (normies.art/docs says the same). The team can retune these;
+ * the burn service compares the live contract numbers with these and warns when they differ.
  */
-export const LAUNCH_TIERS: ReadonlyArray<{ maxPixels: number; minPct: number; maxPct: number }> = [
-  { maxPixels: 490, minPct: 1, maxPct: 4 },
-  { maxPixels: 890, minPct: 2, maxPct: 4 },
-  { maxPixels: Number.POSITIVE_INFINITY, minPct: 3, maxPct: 4 },
+export const LAUNCH_TIERS: ReadonlyArray<{ below: number; minPct: number; maxPct: number }> = [
+  { below: 490, minPct: 1, maxPct: 4 },
+  { below: 890, minPct: 2, maxPct: 4 },
+  { below: Number.POSITIVE_INFINITY, minPct: 3, maxPct: 4 },
 ]
 
 export function launchTier(originalPixels: number) {
   const px = Math.max(0, Math.trunc(originalPixels))
-  return LAUNCH_TIERS.find((t) => px <= t.maxPixels) ?? LAUNCH_TIERS[LAUNCH_TIERS.length - 1]
+  return LAUNCH_TIERS.find((t) => px < t.below) ?? LAUNCH_TIERS[LAUNCH_TIERS.length - 1]
 }
 
 export function bracketMultiplier(held: number): number {

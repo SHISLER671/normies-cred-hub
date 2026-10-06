@@ -11,10 +11,10 @@ import { buildBurnBuy, type Deps, type MarketSnapshot, type RarityToken, type Ra
 const NOW = new Date("2026-10-05T00:00:00.000Z")
 
 describe("normal burn yield (tiers from the Sep 23 article)", () => {
-  it("tier boundaries: 490 / 491 and 890 / 891", () => {
-    assert.deepEqual([launchTier(0), launchTier(490)].map((t) => [t.minPct, t.maxPct]), [[1, 4], [1, 4]])
-    assert.deepEqual([launchTier(491), launchTier(890)].map((t) => [t.minPct, t.maxPct]), [[2, 4], [2, 4]])
-    assert.deepEqual([launchTier(891), launchTier(1600)].map((t) => [t.minPct, t.maxPct]), [[3, 4], [3, 4]])
+  it("tier boundaries match the contract (pixelCount < threshold): 489 / 490 and 889 / 890", () => {
+    assert.deepEqual([launchTier(0), launchTier(489)].map((t) => [t.minPct, t.maxPct]), [[1, 4], [1, 4]])
+    assert.deepEqual([launchTier(490), launchTier(889)].map((t) => [t.minPct, t.maxPct]), [[2, 4], [2, 4]])
+    assert.deepEqual([launchTier(890), launchTier(1600)].map((t) => [t.minPct, t.maxPct]), [[3, 4], [3, 4]])
   })
 
   it("range and middle per tier, with the burned token's AP added whole", () => {

@@ -9,9 +9,9 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 - **AP is earned only by burning** Normies into a receiver’s Canvas (commit → wait → reveal).
 - AP is **bound to a specific Normie** (Canvas budget), not a free-floating wallet ledger.
 - Reveal RNG sits inside **pixel-count tiers**:
-  - 0–490 on-pixels → ~1–4% of pixels as AP
-  - 491–890 → ~2–4%
-  - 891+ → ~3–4% (best efficiency band)
+  - under 490 on-pixels → ~1–4% of pixels as AP
+  - 490–889 → ~2–4%
+  - 890+ → ~3–4% (best efficiency band)
 - Miss the reveal window → **minimum band only**. Burns are permanent.
 
 ### Appearance / customize (not an AP debit)
@@ -38,7 +38,7 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 
 - Grid: **40×40** (1600 pixels), on-chain monochrome bitmap.
 - Blank / sparse canvases: high negative space — good for planned composition, weak as burn fodder if on-pixel count is low.
-- Dense canvases (891+ on-px): stronger burn yield bands if used as fodder; less headroom for additive art.
+- Dense canvases (890+ on-px): stronger burn yield bands if used as fodder; less headroom for additive art.
 
 ### Expansion era (forward-looking)
 

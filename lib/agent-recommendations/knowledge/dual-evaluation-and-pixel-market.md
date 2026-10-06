@@ -38,7 +38,7 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 - **Your score:** (Normies x bracket multiplier + #PIXEL / 5) x (1 + boost). Brackets by Normies held: 1 = 1.00x, 2 = 1.15x, 5 = 1.30x, 10 = 1.45x, 25 = 1.60x, 50 = 1.75x. Boost by #PIXEL held (on Normies, in the wallet or in listings): 15 = +15%, 100 = +35%, 500 = +60%, 1,500 = +100%. #PIXEL alone earns nothing: you need at least one Normie.
 - **Your share:** your score divided by everyone's total score. Real payouts depend on real market volume, so any figure is an estimate, never a promise.
 - **Status:** not open yet. Planned for October 5, 2026, audits permitting; that is not guaranteed. Prices, order-book depth and exact timing are still TBA: never invent them.
-- **Burn yield (official, 2026-10-05):** the fixed 4% promo has ENDED. The official Normies Discord announced it would end at 2:00 AM Guam time = 16:00 UTC on October 5, and the Normies contract reported the normal tiers from about 16:23 UTC. Burns now pay a roll by original pixel count: 0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%. Older text that calls the 4% community-sourced, ongoing or "until about 8 PM CET" is out of date.
+- **Burn yield (official, 2026-10-05):** the fixed 4% promo has ENDED. The official Normies Discord announced it would end at 2:00 AM Guam time = 16:00 UTC on October 5, and the Normies contract reported the normal tiers from about 16:23 UTC. Burns now pay a roll by original pixel count: under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%. Older text that calls the 4% community-sourced, ongoing or "until about 8 PM CET" is out of date.
 - **What a burn pays on:** the ORIGINAL pixel count (what the contract uses), not the current edited art. Painting or editing does not raise burn yield. Burning an edited Normie erases that art for good, so an edited Normie is a strong reason to keep.
 - **Wallet-specific answers:** point people to https://normiescredhub.vercel.app/burn (an independent community tool, not made by the Normies team; read-only, paste an address) and to the official simulator at https://simulator.normies.art.
 
@@ -58,8 +58,8 @@ Not every Normie is meant to burn. Always weigh **both** frames before recommend
 
 ### Burn-efficiency frame
 
-- **High pixel count (e.g. 891+ on-pixels):** generally **better burn efficiency** — typically the higher AP-yield band (~3–4% of pixels as AP on reveal; treat bands as **guidance**, not guarantees).
-- Mid bands (e.g. 491–890) and lower bands (e.g. 0–490) are weaker efficiency fodder *all else equal* — still not auto-burn if scarcity or identity dominates.
+- **High pixel count (e.g. 890+ on-pixels):** generally **better burn efficiency** — typically the higher AP-yield band (~3–4% of pixels as AP on reveal; treat bands as **guidance**, not guarantees).
+- Mid bands (e.g. 490–889) and lower bands (e.g. under 490) are weaker efficiency fodder *all else equal* — still not auto-burn if scarcity or identity dominates.
 - Missed reveal windows → minimum band only. Burns are **permanent**.
 
 ### Collectible / hold frame
@@ -89,7 +89,7 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 
 - Do **not** auto-say burn because low pixel = weak AP band.  
 - Apply dual evaluation: low-px + small supply → collectible risk; ask/consider supply, aesthetics, premium signals.  
-- High-px fodder (891+) is where efficiency framing is usually stronger.  
+- High-px fodder (890+) is where efficiency framing is usually stronger.  
 - DYOR; permanent decision.
 
 ### “What is PIXEL MARKET / is it live?”
