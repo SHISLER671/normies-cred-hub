@@ -31,6 +31,13 @@ export const ETHOS_CLIENT_HEADER = "NormiesCredHub/1.2"
 /** Main Normies ERC-721 collection on Ethereum */
 export const NORMIES_NFT = "0x9eb6e2025b64f340691e424b7fe7022ffde12438" as const
 
+/**
+ * NormiesCanvasStorageV2 on Ethereum: where #PIXEL lives, both in wallets and attached to Normies.
+ * `attachedOf(uint256 tokenId)` is the AP attached to a Normie (its painting ceiling). Read-only use here.
+ * Checked live 2026-10-06: attachedOf(7141) = 12, matching api.normies.art /canvas/token/7141/pixels.
+ */
+export const NORMIES_CANVAS_STORAGE = "0x96F2DA32Bb9D429d59ac13dB469f4950cBe02084" as const
+
 /** ERC-8257 Agent Tool Registry (same CREATE2 address on mainnet + Base) */
 export const ERC8257 = {
   TOOL_REGISTRY: "0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1",
