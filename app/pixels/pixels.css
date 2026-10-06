@@ -55,3 +55,15 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 /* The listings check is a quiet second action inside the Buy tab, not a box of its own. */
 .pixels-page .pixels-listings-form { margin: -6px 0 var(--gap); }
 .pixels-page .pixels-listings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px dashed var(--border); }
+
+/* Pixel history: one line per change, withdrawals in the warning colour */
+.pixels-page .pixels-history { margin: 6px 0 14px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+.pixels-page .pixels-history-list { list-style: none; margin: 8px 0 0; padding: 0; font: 13px var(--font-mono); }
+.pixels-page .pixels-history-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 7px 0; border-top: 1px solid var(--border-light); color: var(--text-primary); }
+.pixels-page .pixels-history-list li:first-child { border-top: 0; }
+.pixels-page .pixels-history-list li[data-kind="withdraw"] .pixels-history-what { color: var(--warn); }
+.pixels-page .pixels-history-after, .pixels-page .pixels-history-when { color: var(--mute); white-space: nowrap; }
+.pixels-page .pixels-history-when a { color: inherit; }
+
+.pixels-page .pixels-official-list { list-style: none; padding: 0; margin: 8px 0 0; }
+.pixels-page .pixels-official-list li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--border-light); }

@@ -45,3 +45,18 @@ describe("every #PIXEL counts the same (normies.art revenue share rules)", () =>
     assert.equal(counted.censusTotal, walletScore(1, 130))
   })
 })
+
+import { parseOfficialShare } from "./pixel-holders"
+
+describe("official revenue share", () => {
+  it("reads sharePpm as a percent, with what it counted", () => {
+    // api.normies.art /revshare/wallet for the example wallet, 2026-10-06
+    const raw = { address: "0xfafd", score: "340000", totalScore: "2914168750", sharePpm: 116, breakdown: { tokens: 1, bracket100: 100, pixels: "12", boostPct: 0 } }
+    assert.deepEqual(parseOfficialShare(raw), { sharePct: 0.0116, pixels: 12, tokens: 1 })
+  })
+  it("refuses a body of the wrong shape", () => {
+    assert.equal(parseOfficialShare({ sharePpm: "116" }), null)
+    assert.equal(parseOfficialShare({ sharePpm: 116 }), null)
+    assert.equal(parseOfficialShare(null), null)
+  })
+})

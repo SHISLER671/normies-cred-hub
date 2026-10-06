@@ -63,3 +63,27 @@ export async function loadLoosePixelsFor(address: string, timeoutMs = 3_000): Pr
   const raw = await get(`${NORMIES_API_BASE}/pixels/holders/${address.toLowerCase()}`, timeoutMs)
   return loosePixelsOf(raw)?.loose ?? null
 }
+
+/** The official revenue-share standing of one wallet (api.normies.art /revshare/wallet/{address}). */
+export interface OfficialShare {
+  /** Share of the pool in percent (the API reports parts per million). */
+  sharePct: number
+  /** #PIXEL the official scorer counted (wallet + listed + attached). */
+  pixels: number
+  tokens: number
+}
+
+/** Strict parse; null when the body is not the documented shape. Seen live 2026-10-06: { sharePpm: 116, breakdown: { tokens: 1, pixels: "12" } }. */
+export function parseOfficialShare(raw: unknown): OfficialShare | null {
+  if (!isObj(raw) || typeof raw.sharePpm !== "number" || !Number.isFinite(raw.sharePpm) || raw.sharePpm < 0) return null
+  const b = isObj(raw.breakdown) ? raw.breakdown : null
+  const pixels = b ? count(b.pixels) : null
+  const tokens = b && typeof b.tokens === "number" && Number.isInteger(b.tokens) && b.tokens >= 0 ? b.tokens : null
+  if (pixels === null || tokens === null) return null
+  return { sharePct: Math.round((raw.sharePpm / 10_000) * 10_000) / 10_000, pixels, tokens }
+}
+
+export async function loadOfficialShare(address: string, timeoutMs = 3_000): Promise<OfficialShare | null> {
+  if (!ADDRESS.test(address)) return null
+  return parseOfficialShare(await get(`${NORMIES_API_BASE}/revshare/wallet/${address.toLowerCase()}`, timeoutMs))
+}

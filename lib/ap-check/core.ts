@@ -12,6 +12,7 @@
 //   4. OpenSea API v2 offers (item offers only; collection and trait offers are not tied to one Normie)
 
 import { NORMIES_NFT } from "@/constants/contracts"
+import { OFFICIAL_CONTRACTS } from "@/lib/official-contracts"
 
 export const MAX_TOKEN_ID = 9999
 
@@ -244,10 +245,10 @@ export function judgeListing(l: ListingInput): ListingFlag | null {
 // Who a wallet has approved to spend its #PIXEL. An approval is custody of that amount, from the wallet or from any Normie the
 // wallet owns, so an approval to anything that is not an official Normies contract deserves a hard look.
 
-/** Contracts the Normies team publishes (api.normies.art /canvas/status pixelMarket block, read 2026-10-06). */
-export const OFFICIAL_SPENDERS: Record<string, string> = {
-  "0x86156a8d6e4b9925f7feca527ea5d71b0deedb64": "Normies Pixel Market (official)",
-  "0xf14f2852e1fd6a4108156054af49b3915dc40e2e": "Normies Canvas (official)",
+/** Labels for approved spenders come from the one official list (normies.art/docs), so the Safety tab and the checker agree. */
+const officialLabel = (address: string): string | null => {
+  const c = OFFICIAL_CONTRACTS.get(address.toLowerCase())
+  return c ? `${c.name} (official)` : null
 }
 
 export interface ApprovalRow {
@@ -271,7 +272,7 @@ export function buildApprovalRows(stored: Array<{ spender: string; amount: strin
     const spender = s.spender.toLowerCase()
     const l = live.has(spender) ? live.get(spender) ?? null : null
     const amount = BigInt(l ?? s.amount)
-    const label = OFFICIAL_SPENDERS[spender] ?? null
+    const label = officialLabel(spender)
     return { spender, live: l, indexed: s.amount, label, official: label !== null, unlimited: amount >= UNLIMITED }
   })
   const rank = (r: ApprovalRow) => (r.live === null ? 1 : BigInt(r.live) > BigInt(0) ? (r.official ? 2 : 0) : 3)
@@ -281,4 +282,78 @@ export function buildApprovalRows(stored: Array<{ spender: string; amount: strin
 /** True when a row is an approval that is still live (or could not be read but was live when indexed). */
 export function isActiveApproval(r: ApprovalRow): boolean {
   return BigInt(r.live ?? r.indexed) > BigInt(0)
+}
+
+// ── Pixel history ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+// api.normies.art /canvas/token/{id}/activity: every change to the pixels attached to one Normie, newest first. This is the
+// strongest evidence that a Normie was stripped: the exact time and amount pixels were taken off, not a 6-hourly census guess.
+// Seen live 2026-10-06: #4632 carried 101 pixels (migration, Oct 5) and had all 101 withdrawn on Oct 6 12:26 UTC.
+
+export interface PixelEvent {
+  /** deposit (put on), withdraw (taken off), migration (copied from the old canvas), and whatever else the API adds. */
+  reason: string
+  amount: number
+  /** Pixels on the Normie right after this event. */
+  after: number
+  at: string
+  tx: string | null
+}
+
+/** Strict: only "attached" events with whole amounts. Anything else is skipped, never guessed. */
+export function parsePixelEvents(raw: unknown): PixelEvent[] | null {
+  if (!isObj(raw) || !Array.isArray(raw.events)) return null
+  const out: PixelEvent[] = []
+  for (const e of raw.events) {
+    if (!isObj(e) || e.kind !== "attached" || typeof e.reason !== "string") continue
+    const amount = typeof e.amount === "string" && /^\d+$/.test(e.amount) ? Number(e.amount) : null
+    const after = typeof e.newAttached === "string" && /^\d+$/.test(e.newAttached) ? Number(e.newAttached) : null
+    const ts = typeof e.timestamp === "string" && /^\d+$/.test(e.timestamp) ? Number(e.timestamp) : null
+    if (amount === null || after === null || ts === null) continue
+    const tx = typeof e.txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(e.txHash) ? e.txHash.toLowerCase() : null
+    out.push({ reason: e.reason, amount, after, at: new Date(ts * 1000).toISOString(), tx })
+  }
+  return out.sort((a, b) => b.at.localeCompare(a.at))
+}
+
+const REASON_TEXT: Record<string, string> = {
+  deposit: "put on",
+  withdraw: "taken off",
+  migration: "carried over to the new canvas",
+  burn: "added by a burn",
+  enlarge: "spent on a bigger canvas",
+  clearBase: "spent on a blank canvas",
+}
+export const reasonText = (r: string) => REASON_TEXT[r] ?? r
+
+/** How long ago, in plain words. */
+export function ago(iso: string, now: number = Date.now()): string {
+  const s = Math.max(0, Math.round((now - Date.parse(iso)) / 1000))
+  if (s < 90) return "just now"
+  const m = Math.round(s / 60)
+  if (m < 90) return `${m} minutes ago`
+  const h = Math.round(m / 60)
+  if (h < 36) return `${h} hours ago`
+  return `${Math.round(h / 24)} days ago`
+}
+
+/** Pixels taken off within the window, and the most recent withdrawal. */
+export function recentWithdrawals(events: PixelEvent[], windowHours = 72, now: number = Date.now()) {
+  const since = now - windowHours * 3_600_000
+  const recent = events.filter((e) => e.reason === "withdraw" && Date.parse(e.at) >= since)
+  return { takenOff: recent.reduce((s, e) => s + e.amount, 0), last: recent[0] ?? null }
+}
+
+/**
+ * Fold the pixel history into the judgement: a recent withdrawal is the clearest stripped signal there is, so it wins over the
+ * census comparison. Burned and unknown readings are left alone.
+ */
+export function judgeWithHistory(base: ApJudgement, r: ApReading, history: PixelEvent[] | null, now: number = Date.now()): ApJudgement {
+  if (!history || r.onchain === null || base.verdict === "burned" || base.verdict === "unknown") return base
+  const { takenOff, last } = recentWithdrawals(history, 72, now)
+  if (!last || takenOff <= 0) return base
+  return {
+    verdict: "dropped",
+    line: `${takenOff} ${takenOff === 1 ? "pixel was" : "pixels were"} taken off this Normie in the last 3 days (latest ${ago(last.at, now)}); it has ${r.onchain} now.`,
+    offerRisk: true,
+  }
 }

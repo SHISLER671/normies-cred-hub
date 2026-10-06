@@ -79,7 +79,7 @@ describe("buildApprovalRows", () => {
       new Map([[MARKET, "10"], [SPENDER, "3"], ["0x00000000000000000000000000000000000000aa", "0"]]),
     )
     assert.deepEqual(rows.map((r) => [r.spender, r.official]), [[SPENDER, false], [MARKET, true], ["0x00000000000000000000000000000000000000aa", false]])
-    assert.equal(rows[1].label, "Normies Pixel Market (official)")
+    assert.equal(rows[1].label, "NormiesPixelMarket (official)")
     assert.equal(rows.filter(isActiveApproval).length, 2)
   })
   it("flags unlimited approvals", () => {
