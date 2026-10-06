@@ -3,8 +3,8 @@ import { headers } from "next/headers"
 
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
-import { apiDisagrees, openSeaItemUrl, parseTokenInput } from "@/lib/ap-check/core"
-import { checkListings, checkToken, checkWallet, LISTINGS_CHECKED, LISTINGS_SHOWN, MAX_WALLET_OFFERS, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
+import { apiDisagrees, isActiveApproval, openSeaItemUrl, parseTokenInput } from "@/lib/ap-check/core"
+import { checkApprovals, checkListings, checkToken, checkWallet, LISTINGS_CHECKED, LISTINGS_SHOWN, MAX_WALLET_OFFERS, type ApprovalsCheck, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
 import { keyedTtl } from "@/lib/burn-buy/data"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { checkRateLimitById, clientIdFromHeaders } from "@/lib/ratelimit"
@@ -41,6 +41,7 @@ type View =
   | { kind: "token"; check: TokenCheck; isExample: boolean }
   | { kind: "wallet"; check: WalletCheck }
   | { kind: "listings"; check: ListingsCheck }
+  | { kind: "approvals"; check: ApprovalsCheck }
   | { kind: "error"; message: string }
 
 const utc = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC"
@@ -57,8 +58,15 @@ async function limited(): Promise<string | null> {
   return rl.ok ? null : `Too many lookups from your network. Try again in ${rl.retryAfter} seconds.`
 }
 
-async function answer(token: string | undefined, wallet: string | undefined, listings: boolean): Promise<View> {
+async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined): Promise<View> {
   try {
+    if (approvals) {
+      const w = normalizeWalletInput(approvals)
+      if (!(ADDRESS.test(w) || ENS.test(w))) return { kind: "error", message: "That is not a wallet. Paste a 0x address (42 characters) or a name ending in .eth." }
+      const stop = await limited()
+      if (stop) return { kind: "error", message: stop }
+      return { kind: "approvals", check: await checkApprovals(w) }
+    }
     // Shared and cached for a minute, so it is not rate limited per visitor.
     if (listings) return { kind: "listings", check: await checkListings() }
     if (wallet) {
@@ -82,12 +90,13 @@ async function answer(token: string | undefined, wallet: string | undefined, lis
   }
 }
 
-export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[] }> }) {
+export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[] }> }) {
   const sp = await searchParams
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined
   const token = first(sp.token)
   const wallet = first(sp.wallet)
-  const view = await answer(token, wallet, first(sp.view) === "listings")
+  const approvals = first(sp.approvals)
+  const view = await answer(token, wallet, first(sp.view) === "listings", approvals)
 
   return (
     <div className="zulo-chrome min-h-screen burn-page pixels-page">
@@ -115,6 +124,15 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
             <button type="submit" className="burn-go" aria-label="Check the offers this wallet made"><span>Check</span><span aria-hidden="true">→</span></button>
           </div>
           <p className="burn-safeline">Flags your item offers on Normies whose pixels are gone</p>
+        </form>
+
+        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Who can spend my pixels?">
+          <label htmlFor="approvals" className="sr-only">Wallet address or .eth name</label>
+          <div className="burn-inputrow">
+            <input id="approvals" name="approvals" type="text" defaultValue={view.kind === "approvals" && view.check.kind === "ok" ? view.check.ens ?? view.check.address : approvals ?? ""} placeholder="0x… or yourname.eth" inputMode="text" enterKeyHint="go" spellCheck={false} autoComplete="off" autoCapitalize="off" className="burn-input" />
+            <button type="submit" className="burn-go" aria-label="Check who this wallet approved to spend its pixels"><span>Check</span><span aria-hidden="true">→</span></button>
+          </div>
+          <p className="burn-safeline">Shows every address you approved to spend your #PIXEL</p>
         </form>
 
         <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Buying?">
@@ -148,6 +166,13 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           </section>
         )}
         {view.kind === "listings" && view.check.kind === "ok" && <ListingsResult check={view.check} />}
+        {view.kind === "approvals" && view.check.kind === "error" && (
+          <section className="burn-box burn-error" data-tag="Oops" role="alert">
+            <p className="burn-headline">We could not answer that.</p>
+            <p className="burn-small">{view.check.message}</p>
+          </section>
+        )}
+        {view.kind === "approvals" && view.check.kind === "ok" && <ApprovalsResult check={view.check} />}
         </div>
 
         <FinePrint />
@@ -325,6 +350,63 @@ function ListingsResult({ check }: { check: Extract<ListingsCheck, { kind: "ok" 
   )
 }
 
+const STORAGE_WRITE_URL = "https://etherscan.io/address/0x96F2DA32Bb9D429d59ac13dB469f4950cBe02084#writeContract"
+
+function ApprovalsResult({ check }: { check: Extract<ApprovalsCheck, { kind: "ok" }> }) {
+  const who = check.ens ?? short(check.address)
+  const active = check.rows.filter(isActiveApproval)
+  const headline =
+    check.active === 0
+      ? `${who} has not approved anyone to spend its pixels.`
+      : check.activeUnofficial === 0
+        ? `${who} has approved only official Normies contracts.`
+        : `${who} has approved ${check.activeUnofficial} ${check.activeUnofficial === 1 ? "address" : "addresses"} that ${check.activeUnofficial === 1 ? "is not" : "are not"} an official Normies contract.`
+  return (
+    <section className="burn-box ap-result" data-tag={`Pixel approvals · ${who}`} data-verdict={check.activeUnofficial > 0 ? "dropped" : "has-ap"} aria-labelledby="ap-a-h">
+      <h2 id="ap-a-h" className="burn-headline">{headline}</h2>
+      <p className="burn-small">
+        An approval lets that address spend up to the approved amount of your pixels, from your wallet <strong>or from any Normie you own</strong>, without asking you again. Only approve what you mean to spend, and only on sites you trust.
+      </p>
+      {check.walletPixels !== null && <p className="burn-small">Pixels in this wallet right now: {check.walletPixels} (pixels attached to Normies are not counted here).</p>}
+
+      {active.length > 0 && (
+        <table className="burn-table ap-table">
+          <thead><tr><th scope="col">Approved address</th><th scope="col">Can spend</th><th scope="col">Who</th></tr></thead>
+          <tbody>
+            {active.map((r) => (
+              <tr key={r.spender} data-risk={!r.official}>
+                <th scope="row" className="burn-mono"><a href={`https://etherscan.io/address/${r.spender}`} target="_blank" rel="noopener noreferrer">{short(r.spender)}</a></th>
+                <td>{r.unlimited ? "unlimited" : r.live ?? `${r.indexed}?`}</td>
+                <td>{r.label ?? <span className="ap-flag">not official</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {check.activeUnofficial > 0 && (
+        <div className="burn-note ap-warn" role="note">
+          <p className="burn-small" style={{ marginTop: 0 }}><strong>Don&apos;t recognize one?</strong> Revoke it yourself. This page will never ask you to sign anything.</p>
+          <ol className="burn-small">
+            <li>Open the <a href={STORAGE_WRITE_URL} target="_blank" rel="noopener noreferrer">official pixel contract on Etherscan ↗</a> and choose <em>Connect to Web3</em> with this wallet.</li>
+            <li>Find <strong>approve</strong>. Put the approved address in <em>spender</em> and <strong>0</strong> in <em>amount</em>, then write.</li>
+            <li>Check the address bar says etherscan.io and the contract is 0x96F2…2084 before you sign.</li>
+          </ol>
+        </div>
+      )}
+
+      {check.rows.length > active.length && (
+        <p className="burn-small">{check.rows.length - active.length} earlier {check.rows.length - active.length === 1 ? "approval has" : "approvals have"} already been used up or revoked.</p>
+      )}
+      <p className="burn-small">
+        Approvals are tracked from 2026-10-05 ~03:15 UTC, right after the pixel contract went live, and re-read live from the chain for this page.
+        {check.indexedAt ? ` Index last caught up ${utc(check.indexedAt)}.` : ""}
+      </p>
+      <p className="burn-small ap-stamp">Checked {utc(check.checkedAt)}</p>
+    </section>
+  )
+}
+
 function FinePrint() {
   return (
     <details className="burn-box burn-fold" data-tag="How this works">
@@ -334,6 +416,7 @@ function FinePrint() {
         <li>Locked and free come from the Normies API, which can lag the chain by a little.</li>
         <li>Last census is our own snapshot, refreshed every 6 hours. If the live number is lower, pixels were removed since then.</li>
         <li>&quot;OpenSea shows&quot; is OpenSea&apos;s own cached copy of the Normie&apos;s traits. It can lag behind the chain until someone refreshes it.</li>
+        <li>Pixel approvals come from the pixel contract&apos;s own Approval events, indexed hourly, and every amount shown is re-read live from the chain.</li>
         <li>Offers come from OpenSea. Only item offers (one specific Normie) are checked; collection and trait offers are not tied to one Normie.</li>
         <li>Read-only. Nothing here connects a wallet, asks for a signature, or can move anything. Independent community tool, not affiliated with the Normies team.</li>
       </ul>

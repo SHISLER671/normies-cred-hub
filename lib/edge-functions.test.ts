@@ -14,7 +14,7 @@ describe("scheduled Supabase functions", () => {
     for (const f of ["lib/census-refresh.ts", "lib/owners-refresh.ts", "lib/delegate-refresh.ts"]) assert.doesNotMatch(read(f), /^import /m, f)
   })
   it("both functions check the cron secret before doing anything and never print it", () => {
-    for (const f of ["census-refresh", "owners-refresh", "delegates-refresh"]) {
+    for (const f of ["census-refresh", "owners-refresh", "delegates-refresh", "approvals-refresh"]) {
       const src = read(`supabase/functions/${f}/index.ts`)
       assert.ok(src.indexOf("unauthorized") < src.indexOf("run(db, dry"), `${f}: auth must come before the work`)
       assert.doesNotMatch(src, /console\.log/, `${f}: no logging of anything`)
