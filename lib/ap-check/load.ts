@@ -4,12 +4,26 @@
 import { parseAbi } from "viem"
 import { normalize } from "viem/ens"
 
-import { NORMIES_API_BASE, NORMIES_CANVAS_STORAGE } from "@/constants/contracts"
+import { NORMIES_API_BASE, NORMIES_CANVAS_STORAGE, NORMIES_NFT } from "@/constants/contracts"
 import { fetchSyncStamps } from "@/lib/burn-buy/data"
+import { loadOpenSeaListings } from "@/lib/burn-buy/opensea-listings"
+import { ttl } from "@/lib/burn-buy/ttl"
 import { getSupabase } from "@/lib/db/supabase"
 import { publicClient } from "@/lib/viem-client"
 
-import { judgeAp, parseItemOffers, parsePixelSplit, type ApJudgement, type ApReading, type CensusAp, type ItemOffer, type PixelSplit } from "./core"
+import {
+  judgeAp,
+  judgeListing,
+  parseItemOffers,
+  parsePixelSplit,
+  parseShownPixels,
+  type ApJudgement,
+  type ApReading,
+  type CensusAp,
+  type ItemOffer,
+  type ListingFlag,
+  type PixelSplit,
+} from "./core"
 
 const STORAGE_ABI = parseAbi(["function attachedOf(uint256 tokenId) view returns (uint256)"])
 const OPENSEA = "https://api.opensea.io/api/v2"
@@ -122,6 +136,8 @@ export interface TokenCheck {
   tokenId: number
   reading: ApReading
   judgement: ApJudgement
+  /** What OpenSea shows as this Normie's "Action Points" (its cached copy). Null = shows none, or could not ask. */
+  shown: number | null
   /** Null = could not check OpenSea (no key, or it did not answer). Empty = no open item offers. */
   offers: ItemOffer[] | null
   checkedAt: string
@@ -129,9 +145,22 @@ export interface TokenCheck {
 
 /** Everything for one token, fetched in parallel. */
 export async function checkToken(tokenId: number): Promise<TokenCheck> {
-  const [attached, split, census, offers] = await Promise.all([readAttached([tokenId]), loadSplit(tokenId), loadCensus([tokenId]), loadTokenOffers(tokenId)])
+  const [attached, split, census, offers, shown] = await Promise.all([
+    readAttached([tokenId]),
+    loadSplit(tokenId),
+    loadCensus([tokenId]),
+    loadTokenOffers(tokenId),
+    loadShownPixels([tokenId]),
+  ])
   const reading: ApReading = { tokenId, onchain: attached.get(tokenId) ?? null, split, census: census?.get(tokenId) ?? null }
-  return { tokenId, reading, judgement: judgeAp(reading), offers: offers ? offers.offers : null, checkedAt: new Date().toISOString() }
+  return {
+    tokenId,
+    reading,
+    judgement: judgeAp(reading),
+    shown: shown?.get(tokenId) ?? null,
+    offers: offers ? offers.offers : null,
+    checkedAt: new Date().toISOString(),
+  }
 }
 
 export interface CheckedOffer extends ItemOffer {
@@ -167,5 +196,76 @@ export async function checkWallet(input: string): Promise<WalletCheck> {
     criteria: made.criteria,
     complete: made.complete && made.offers.length <= MAX_WALLET_OFFERS,
     checkedAt: new Date().toISOString(),
+  }
+}
+
+/** OpenSea's batch NFT lookup takes a list of identifiers; we send small chunks so one bad chunk does not sink the rest. */
+const SHOWN_CHUNK = 25
+
+/** What OpenSea SHOWS as "Action Points" for these Normies. Null when no chunk could be read (no key, or OpenSea is down). */
+export async function loadShownPixels(ids: number[], apiKey = process.env.OPENSEA_API_KEY, timeoutMs = 4_000): Promise<Map<number, number | null> | null> {
+  const key = apiKey?.trim()
+  if (!key || ids.length === 0) return null
+  const chunks: number[][] = []
+  for (let i = 0; i < ids.length; i += SHOWN_CHUNK) chunks.push(ids.slice(i, i + SHOWN_CHUNK))
+  const results = await Promise.all(
+    chunks.map(async (chunk) => {
+      const body = JSON.stringify({ identifiers: chunk.map((id) => ({ chain: "ethereum", contract_address: NORMIES_NFT, token_id: String(id) })) })
+      const res = await within(
+        fetch(`${OPENSEA}/nfts/batch`, { method: "POST", headers: { Accept: "application/json", "Content-Type": "application/json", "X-API-KEY": key }, body, cache: "no-store" }),
+        timeoutMs,
+      )
+      if (!res || !res.ok) return null
+      return parseShownPixels(await res.json().catch(() => null))
+    }),
+  )
+  if (results.every((r) => r === null)) return null
+  const out = new Map<number, number | null>()
+  for (const r of results) if (r) for (const [id, v] of r) out.set(id, v)
+  return out
+}
+
+/** How many of the cheapest listings are checked. */
+export const LISTINGS_CHECKED = 100
+
+export type ListingsCheck =
+  | {
+      kind: "ok"
+      /** Listings compared. */
+      checked: number
+      flags: ListingFlag[]
+      /** False when OpenSea's shown values could not be read, so only the census comparison ran. */
+      shownChecked: boolean
+      censusAt: string | null
+      checkedAt: string
+    }
+  | { kind: "error"; message: string }
+
+async function runListingsCheck(): Promise<Extract<ListingsCheck, { kind: "ok" }>> {
+  const listings = await loadOpenSeaListings(process.env.OPENSEA_API_KEY)
+  if (!listings) throw new Error("listings unavailable") // thrown, not returned, so the shared cache never keeps a failure
+  const top = listings.slice(0, LISTINGS_CHECKED)
+  const ids = top.map((l) => l.tokenId)
+  const [live, census, shown] = await Promise.all([readAttached(ids), loadCensus(ids), loadShownPixels(ids)])
+  const flags: ListingFlag[] = []
+  let censusAt: string | null = null
+  for (const l of top) {
+    const c = census?.get(l.tokenId) ?? null
+    if (c?.at) censusAt = c.at
+    const f = judgeListing({ tokenId: l.tokenId, priceEth: l.priceEth, live: live.get(l.tokenId) ?? null, shown: shown?.get(l.tokenId) ?? null, census: c })
+    if (f) flags.push(f)
+  }
+  flags.sort((a, b) => a.priceEth - b.priceEth || a.tokenId - b.tokenId)
+  return { kind: "ok", checked: top.length, flags, shownChecked: shown !== null, censusAt, checkedAt: new Date().toISOString() }
+}
+
+/** The listings check is the same for everyone, so it is shared for a minute: at most a handful of OpenSea calls a minute. */
+const listingsCached = ttl(60_000, runListingsCheck)
+
+export async function checkListings(): Promise<ListingsCheck> {
+  try {
+    return await listingsCached()
+  } catch {
+    return { kind: "error", message: "Could not read OpenSea listings just now. Try again in a minute." }
   }
 }

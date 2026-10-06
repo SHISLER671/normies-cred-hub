@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { parseTokenInput } from "@/lib/ap-check/core"
-import { checkToken, checkWallet } from "@/lib/ap-check/load"
+import { checkListings, checkToken, checkWallet } from "@/lib/ap-check/load"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { checkRateLimit } from "@/lib/ratelimit"
 
@@ -10,6 +10,7 @@ import { checkRateLimit } from "@/lib/ratelimit"
  *                                 value, and the open item offers on it.
  * GET /api/ap-check?wallet=0x…   every open Normies item offer that wallet has made, each next to its Normie's live AP, with
  *                                 the risky ones (AP gone or down) first.
+ * GET /api/ap-check?listings=1   the cheapest listings whose live pixels are below what OpenSea shows, or below our census.
  *
  * Public data only. Nothing here can sign, approve or move anything.
  */
@@ -34,6 +35,11 @@ export async function GET(req: NextRequest) {
   const walletRaw = sp.get("wallet")
 
   try {
+    if (sp.get("listings") === "1") {
+      const result = await checkListings()
+      if (result.kind === "error") return NextResponse.json({ error: result.message, code: "unavailable", retryable: true }, { status: 502 })
+      return NextResponse.json(result, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } })
+    }
     if (tokenRaw !== null) {
       const tokenId = parseTokenInput(tokenRaw)
       if (tokenId === null) return NextResponse.json({ error: "token must be a Normie id from 0 to 9999", code: "invalid_token" }, { status: 400 })
@@ -48,7 +54,7 @@ export async function GET(req: NextRequest) {
       if (result.kind === "error") return NextResponse.json({ error: result.message, code: "unavailable", retryable: true }, { status: 502 })
       return NextResponse.json(result, { headers: HEADERS })
     }
-    return NextResponse.json({ error: "pass ?token=<id> or ?wallet=<0x address or .eth name>", code: "missing_input" }, { status: 400 })
+    return NextResponse.json({ error: "pass ?token=<id>, ?wallet=<0x address or .eth name>, or ?listings=1", code: "missing_input" }, { status: 400 })
   } catch (err) {
     console.error("[ap-check] unexpected failure", err)
     return NextResponse.json({ error: "Something went wrong.", code: "internal" }, { status: 500 })
