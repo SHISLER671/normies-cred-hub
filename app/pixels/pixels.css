@@ -30,3 +30,8 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 .pixels-page .pixels-listings-row { align-items: center; gap: 12px; }
 .pixels-page .pixels-listings-text { margin: 0; flex: 1; }
 @media (max-width: 420px) { .pixels-page .pixels-listings-row { flex-direction: column; align-items: stretch; } }
+
+/* answers land here (forms submit to /pixels#result); clear the fixed header when the browser scrolls to it */
+.pixels-page .pixels-result-anchor { scroll-margin-top: 84px; }
+.pixels-page .pixels-l-stats { grid-template-columns: repeat(3, 1fr); }
+.pixels-page .pixels-l-cap { margin-top: 18px; }
