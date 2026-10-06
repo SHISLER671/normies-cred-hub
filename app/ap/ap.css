@@ -1,0 +1,27 @@
+/* /ap: built on the /burn look (burn.css). Only what AP Check adds: a warning tone for offers on Normies whose AP is gone,
+   and the flagged rows in the wallet table. Mobile first; the tables scroll inside their box, never the page. */
+.ap-page { --warn: #f59e0b; }
+html:not(.dark) .ap-page { --warn: #b45309; }
+
+.ap-page .burn-title { margin-top: 0; }
+.ap-page .ap-result[data-verdict="no-ap"] .burn-headline,
+.ap-page .ap-result[data-verdict="dropped"] .burn-headline,
+.ap-page .ap-result[data-verdict="burned"] .burn-headline { color: var(--warn); }
+.ap-page .ap-result[data-verdict="has-ap"] .burn-headline { color: var(--accent); }
+
+.ap-page .ap-warn { border-left-color: var(--warn); }
+.ap-page .ap-offers { margin-top: 18px; }
+.ap-page .ap-offers .burn-table { margin-top: 8px; }
+.ap-page .ap-cur { color: var(--mute); font-size: 0.85em; }
+.ap-page .ap-stamp { font: 11px var(--font-mono); letter-spacing: 0.08em; color: var(--mute); margin-top: 14px; }
+
+.ap-page .ap-table { display: block; overflow-x: auto; }
+.ap-page .ap-table tr[data-risk="true"] th,
+.ap-page .ap-table tr[data-risk="true"] td { background: color-mix(in srgb, var(--warn) 9%, transparent); }
+.ap-page .ap-flag { display: inline-block; margin-left: 6px; padding: 1px 6px; border: 1px solid var(--warn); color: var(--warn); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.ap-page .ap-table a, .ap-page .ap-offers a { color: var(--accent); }
+
+@media (max-width: 420px) {
+  .ap-page .ap-stats dd { font-size: 22px; }
+  .ap-page .ap-stats dt { font-size: 9px; letter-spacing: 0.1em; }
+}
