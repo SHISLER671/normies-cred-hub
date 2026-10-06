@@ -1,11 +1,22 @@
 {
   "name": "Normies CredHub / Zulo plugin",
-  "description": "Trust before engage. Pulse → Paths → Act. Not official Normies Lab. Pixel Market Coming Soon.",
+  "description": "Trust before engage. Pulse → Paths → Act. Not official Normies Lab.",
   "origin": "https://normiescredhub.vercel.app",
   "llms": "/llms.txt",
-  "loop": ["pulse", "paths", "act"],
+  "loop": [
+    "pulse",
+    "paths",
+    "act"
+  ],
   "note": "Call Paths after Pulse. Do not ask for keys, seeds, signatures.",
-  "humanUi": ["/", "/ask", "/paths", "/dashboard"],
+  "humanUi": [
+    "/",
+    "/ask",
+    "/paths",
+    "/burn",
+    "/pixels",
+    "/dashboard"
+  ],
   "tools": [
     {
       "slug": "normies-cred-pulse",
@@ -56,6 +67,28 @@
           "endpoint": "https://normiescredhub.vercel.app/api/zulo/paths"
         }
       }
+    },
+    {
+      "slug": "normies-pixel-check",
+      "name": "Normies Pixel Check",
+      "manifest": "/.well-known/ai-tool/normies-pixel-check.json",
+      "note": "Open access, read-only. Standalone: no Pulse needed. ERC-8257 registration on Ethereum, Base, Abstract and Robinhood is pending; chainToolIds fill in once mined.",
+      "chainToolIds": {},
+      "paths": {
+        "public": {
+          "method": "GET",
+          "path": "/api/ap-check?token={tokenId} | ?wallet= | ?listings=1 | ?approvals= | ?contract= | ?calc=pixels|eth&amount=",
+          "gated": false
+        },
+        "agent": {
+          "method": "POST",
+          "path": "/api/ap-check",
+          "gated": false,
+          "endpoint": "https://normiescredhub.vercel.app/api/ap-check",
+          "body": "JSON with exactly one question, e.g. {\"token\":7141}, {\"listings\":true}, {\"calc\":\"eth\",\"amount\":0.5}"
+        }
+      },
+      "humanUi": "/pixels"
     }
   ]
 }

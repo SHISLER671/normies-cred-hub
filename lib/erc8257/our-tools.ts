@@ -24,6 +24,8 @@ export type OurAgentTool = {
   manifestPath: string
   manifestUrl: string
   endpoint: string
+  /** keccak256(JCS(manifest)) the served manifest must hash to on every chain. Pinned by lib/erc8257/manifest-hash.test.ts. */
+  manifestHash: `0x${string}`
   listings: readonly AgentToolListing[]
 }
 
@@ -37,6 +39,7 @@ export const NORMIES_CRED_PULSE: OurAgentTool = {
   manifestUrl:
     "https://normiescredhub.vercel.app/.well-known/ai-tool/normies-cred-pulse.json",
   endpoint: "https://normiescredhub.vercel.app/api/agent",
+  manifestHash: "0x9353b944873d60203ea31db77248f1ca700bee80ffa01ac49747f33eb288fca7",
   listings: [
     {
       chain: "ethereum",
@@ -81,6 +84,7 @@ export const NORMIES_PATHS: OurAgentTool = {
   manifestUrl:
     "https://normiescredhub.vercel.app/.well-known/ai-tool/normies-paths.json",
   endpoint: "https://normiescredhub.vercel.app/api/zulo/paths",
+  manifestHash: "0xbad73e563cabb96e9a6bdd708617707a3ce4f338a4ee8902b655107d02aeb7c8",
   listings: [
     {
       chain: "ethereum",
@@ -118,7 +122,27 @@ export const NORMIES_PATHS: OurAgentTool = {
   ],
 }
 
-export const OUR_AGENT_TOOLS = [NORMIES_CRED_PULSE, NORMIES_PATHS] as const
+/**
+ * Open access on every chain (accessPredicate = address(0)). Listings stay empty until each registerTool transaction is
+ * mined; fill in the tool IDs then. Until a listing exists the UI and Ask knowledge do not advertise it.
+ */
+export const NORMIES_PIXEL_CHECK: OurAgentTool = {
+  name: "Normies Pixel Check",
+  slug: "normies-pixel-check",
+  manifestPath: "/.well-known/ai-tool/normies-pixel-check.json",
+  manifestUrl:
+    "https://normiescredhub.vercel.app/.well-known/ai-tool/normies-pixel-check.json",
+  endpoint: "https://normiescredhub.vercel.app/api/ap-check",
+  manifestHash: "0x95a2307f13507a8a10f8f9cbfe6490f158f053436dc4382d3fcc6408a6365d21",
+  listings: [],
+}
+
+export const OUR_AGENT_TOOLS = [NORMIES_CRED_PULSE, NORMIES_PATHS, NORMIES_PIXEL_CHECK] as const
+
+/** Tools with at least one on-chain registration. Unregistered tools are ideas, not live. */
+export function registeredTools(): OurAgentTool[] {
+  return OUR_AGENT_TOOLS.filter((t) => t.listings.length > 0)
+}
 
 export function ethereumListing(tool: OurAgentTool): AgentToolListing {
   const found = tool.listings.find((l) => l.chain === "ethereum")
@@ -164,5 +188,13 @@ Both are gated to Normie NFT holders on Ethereum and built for autonomous agent-
 
 Zulo’s own recommendations follow the same pattern: surface the subject’s Pulse, then rank paths / advice conditioned on it.
 
-Never invent tool IDs. Prefer the official names “${NORMIES_CRED_PULSE.name}” and “${NORMIES_PATHS.name}”. Ethereum IDs are canonical.`
+${pixelCheckKnowledge()}Never invent tool IDs. Prefer the official names “${NORMIES_CRED_PULSE.name}” and “${NORMIES_PATHS.name}”. Ethereum IDs are canonical.`
+}
+
+function pixelCheckKnowledge(): string {
+  if (NORMIES_PIXEL_CHECK.listings.length === 0) return ""
+  const ids = NORMIES_PIXEL_CHECK.listings.map(listingClause).join("; ")
+  return `Third tool: **${NORMIES_PIXEL_CHECK.name}** (${ids}). Open to everyone, read-only. Live on-chain #PIXEL for a Normie, risky offers, listings that show more pixels than they hold, #PIXEL approvals, official contract check, and buy pixels vs burn floor Normies. Endpoint: GET or POST ${NORMIES_PIXEL_CHECK.endpoint}. Manifest: ${NORMIES_PIXEL_CHECK.manifestPath}. Humans: /pixels.
+
+`
 }

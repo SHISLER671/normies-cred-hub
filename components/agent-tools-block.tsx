@@ -4,6 +4,7 @@ import {
   ethereumListing,
   NORMIES_CRED_PULSE,
   NORMIES_PATHS,
+  NORMIES_PIXEL_CHECK,
   type AgentToolListing,
   type OurAgentTool,
 } from "@/lib/erc8257/our-tools"
@@ -48,6 +49,8 @@ function ToolListings({ tool }: { tool: OurAgentTool }) {
 
 /** Full registry strip for PULSE — always visible, copyable IDs. */
 export function AgentToolsStrip() {
+  // Shown only once at least one registerTool transaction is recorded in our-tools.ts.
+  const pixelCheckLive = NORMIES_PIXEL_CHECK.listings.length > 0
   return (
     <aside className="agent-tools-strip" aria-label="Agent tools ERC-8257">
       <p className="agent-tools-kicker mono">Agent tools · ERC-8257</p>
@@ -62,6 +65,13 @@ export function AgentToolsStrip() {
           {"  · "}
           <ToolListings tool={NORMIES_PATHS} />
         </li>
+        {pixelCheckLive && (
+          <li>
+            <span className="agent-tool-name">{NORMIES_PIXEL_CHECK.name}</span>
+            {"  · "}
+            <ToolListings tool={NORMIES_PIXEL_CHECK} />
+          </li>
+        )}
       </ul>
       <p className="agent-tools-manifests mono">
         Manifests:
@@ -71,9 +81,16 @@ export function AgentToolsStrip() {
         </a>
         <br />
         <a href={NORMIES_PATHS.manifestPath}>{NORMIES_PATHS.manifestPath}</a>
+        {pixelCheckLive && (
+          <>
+            <br />
+            <a href={NORMIES_PIXEL_CHECK.manifestPath}>{NORMIES_PIXEL_CHECK.manifestPath}</a>
+          </>
+        )}
       </p>
       <p className="agent-tools-note">
         Call Pulse first, then Paths. Same Normie NFT gate on Ethereum.
+        {pixelCheckLive && " Pixel Check is open to everyone."}
       </p>
     </aside>
   )
