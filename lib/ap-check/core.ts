@@ -54,6 +54,8 @@ export function parsePixelSplit(raw: unknown, tokenId: number): PixelSplit | nul
 export interface CensusAp {
   ap: number | null
   burned: boolean
+  /** The Normie's original (base) pixel count, which sets its burn roll. */
+  originalPixels?: number | null
   /** When the census last refreshed (ISO), or null if unknown. */
   at: string | null
 }

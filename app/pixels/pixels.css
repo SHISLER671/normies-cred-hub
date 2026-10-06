@@ -35,3 +35,14 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 .pixels-page .pixels-result-anchor { scroll-margin-top: 84px; }
 .pixels-page .pixels-l-stats { grid-template-columns: repeat(3, 1fr); }
 .pixels-page .pixels-l-cap { margin-top: 18px; }
+
+/* "Market or burn?": the toggle sits above the input; the two answers side by side, stacked on phones */
+.pixels-page .pixels-toggle { grid-template-columns: repeat(2, 1fr); margin-bottom: 12px; }
+.pixels-page .pixels-calc-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 4px 0 14px; }
+.pixels-page .pixels-calc-side { border: 1px solid var(--border-light); padding: 12px; }
+.pixels-page .pixels-calc-side .burn-small { margin-top: 6px; }
+.pixels-page .pixels-calc-notes { padding-left: 18px; }
+.pixels-page .pixels-calc-notes li + li { margin-top: 6px; }
+.pixels-page .pixels-lens { margin: 6px 0 14px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+.pixels-page .pixels-lens-stats { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 520px) { .pixels-page .pixels-calc-sides { grid-template-columns: 1fr; } }

@@ -4,6 +4,8 @@ import { headers } from "next/headers"
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { apiDisagrees, isActiveApproval, openSeaItemUrl, parseTokenInput } from "@/lib/ap-check/core"
+import { planForBudget, planForPixels, MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/buy-smart"
+import { loadBuySmart, type BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
 import { checkApprovals, checkListings, checkToken, checkWallet, LISTINGS_CHECKED, LISTINGS_SHOWN, MAX_WALLET_OFFERS, type ApprovalsCheck, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
 import { keyedTtl } from "@/lib/burn-buy/data"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
@@ -42,6 +44,7 @@ type View =
   | { kind: "wallet"; check: WalletCheck }
   | { kind: "listings"; check: ListingsCheck }
   | { kind: "approvals"; check: ApprovalsCheck }
+  | { kind: "calc"; answer: PixelsAnswer | BudgetAnswer; inputs: BuySmartInputs }
   | { kind: "error"; message: string }
 
 const utc = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC"
@@ -58,8 +61,29 @@ async function limited(): Promise<string | null> {
   return rl.ok ? null : `Too many lookups from your network. Try again in ${rl.retryAfter} seconds.`
 }
 
-async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined): Promise<View> {
+/** "500", "500 pixels", "0.5", "0.5 eth", "1,000" -> a positive number, or null. */
+function parseAmount(raw: string | undefined, mode: "pixels" | "eth"): number | null {
+  if (!raw) return null
+  const s = raw.trim().toLowerCase().replace(/,/g, "").replace(/\s*(pixels?|px|eth|ξ)$/, "")
+  if (!/^\d*\.?\d+$/.test(s)) return null
+  const n = Number(s)
+  if (!(n > 0)) return null
+  if (mode === "pixels") return Number.isInteger(n) && n <= 1_000_000 ? n : null
+  return n <= 1_000 ? n : null
+}
+
+async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined, calc?: { mode: "pixels" | "eth"; amount: string | undefined }): Promise<View> {
   try {
+    if (calc) {
+      const amount = parseAmount(calc.amount, calc.mode)
+      if (amount === null) {
+        return { kind: "error", message: calc.mode === "pixels" ? "Type how many pixels you want, as a whole number, like 500." : "Type how much ETH you want to spend, like 0.5." }
+      }
+      const inputs = await loadBuySmart()
+      if (!inputs) return { kind: "error", message: "Could not load listings and the Pixel Market just now. Try again in a minute." }
+      const depth = inputs.book && !inputs.book.paused ? inputs.book.depth : null
+      return { kind: "calc", inputs, answer: calc.mode === "pixels" ? planForPixels(inputs.picks, depth, amount) : planForBudget(inputs.picks, depth, amount) }
+    }
     if (approvals) {
       const w = normalizeWalletInput(approvals)
       if (!(ADDRESS.test(w) || ENS.test(w))) return { kind: "error", message: "That is not a wallet. Paste a 0x address (42 characters) or a name ending in .eth." }
@@ -90,13 +114,16 @@ async function answer(token: string | undefined, wallet: string | undefined, lis
   }
 }
 
-export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[] }> }) {
+export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[]; calc?: string | string[]; amount?: string | string[] }> }) {
   const sp = await searchParams
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined
   const token = first(sp.token)
   const wallet = first(sp.wallet)
   const approvals = first(sp.approvals)
-  const view = await answer(token, wallet, first(sp.view) === "listings", approvals)
+  const calcRaw = first(sp.calc)
+  const calcMode: "pixels" | "eth" = calcRaw === "eth" ? "eth" : "pixels"
+  const amountRaw = first(sp.amount)
+  const view = await answer(token, wallet, first(sp.view) === "listings", approvals, calcRaw ? { mode: calcMode, amount: amountRaw } : undefined)
 
   return (
     <div className="zulo-chrome min-h-screen burn-page pixels-page">
@@ -115,6 +142,20 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
             <button type="submit" className="burn-go" aria-label="Check this Normie's pixels"><span>Check</span><span aria-hidden="true">→</span></button>
           </div>
           <p className="burn-safeline">Live from the chain · look-only · no signing</p>
+        </form>
+
+        <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Market or burn?">
+          <fieldset className="burn-tabs pixels-toggle">
+            <legend className="sr-only">Compare by</legend>
+            <label className="burn-tab"><input type="radio" name="calc" value="pixels" defaultChecked={calcMode === "pixels"} /><span>Pixels I want</span></label>
+            <label className="burn-tab"><input type="radio" name="calc" value="eth" defaultChecked={calcMode === "eth"} /><span>ETH to spend</span></label>
+          </fieldset>
+          <label htmlFor="amount" className="sr-only">Amount</label>
+          <div className="burn-inputrow">
+            <input id="amount" name="amount" type="text" defaultValue={view.kind === "calc" ? amountRaw ?? "" : ""} placeholder="500 pixels, or 0.5 ETH" inputMode="decimal" enterKeyHint="go" spellCheck={false} autoComplete="off" className="burn-input" />
+            <button type="submit" className="burn-go" aria-label="Compare the Pixel Market with burning floor Normies"><span>Compare</span><span aria-hidden="true">→</span></button>
+          </div>
+          <p className="burn-safeline">Pixel Market vs burning floor Normies · live chain pixels</p>
         </form>
 
         <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Offers I made">
@@ -173,6 +214,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           </section>
         )}
         {view.kind === "approvals" && view.check.kind === "ok" && <ApprovalsResult check={view.check} />}
+        {view.kind === "calc" && <CalcResult answer={view.answer} inputs={view.inputs} />}
         </div>
 
         <FinePrint />
@@ -207,6 +249,7 @@ function TokenResult({ check, isExample }: { check: TokenCheck; isExample: boole
           Use &quot;Refresh metadata&quot; on its OpenSea page to update it.
         </p>
       )}
+      <BeforeYouBuy check={check} />
       {apiDisagrees(r) && (
         <p className="burn-note" role="note">The Normies API says {r.split?.attached} attached, the chain says {r.onchain}. The chain is the truth; the API catches up.</p>
       )}
@@ -346,6 +389,115 @@ function ListingsResult({ check }: { check: Extract<ListingsCheck, { kind: "ok" 
         &quot;Was&quot; is our census{check.censusAt ? ` from ${utc(check.censusAt)}` : ""}. Only the cheapest {LISTINGS_CHECKED} listings are checked, and the result is shared for a minute.
       </p>
       <p className="burn-small ap-stamp">Checked {utc(check.checkedAt)}</p>
+    </section>
+  )
+}
+
+const ROLL_TEXT = { normal: "a roll of 1-4% of its original pixels (higher tiers for bigger Normies)", promo: "a fixed 4% of its original pixels" } as const
+
+function BeforeYouBuy({ check }: { check: TokenCheck }) {
+  const { lens, listingPriceEth: price } = check
+  if (!lens && price === null) return null
+  const range = lens ? (lens.low === lens.high ? `${lens.mid}` : `${lens.low}–${lens.high} (typically ${lens.mid})`) : null
+  return (
+    <section className="pixels-lens" aria-labelledby="lens-h">
+      <h3 id="lens-h" className="burn-cap">Before you buy</h3>
+      <dl className="burn-stats pixels-lens-stats">
+        <div><dt>Listed at</dt><dd>{price !== null ? eth(price) : "not listed"}</dd></div>
+        <div><dt>Burn pays</dt><dd>{lens ? lens.mid : "?"}</dd></div>
+        <div><dt>Those pixels on the market</dt><dd>{lens && typeof lens.marketValueEth === "number" ? eth(lens.marketValueEth) : "–"}</dd></div>
+      </dl>
+      {lens && (
+        <p className="burn-small">
+          Burning it would pay {range} pixels: {check.yieldMode ? ROLL_TEXT[check.yieldMode] : "its burn roll"}, plus the {check.reading.onchain} pixels attached to it right now (read from the chain, not OpenSea).
+          {price !== null && lens.marketValueEth !== null
+            ? price <= lens.marketValueEth
+              ? ` At ${eth(price)} you would pay less than those pixels cost on the Pixel Market.`
+              : ` The listing costs ${eth(price - lens.marketValueEth)} more than buying the same pixels on the Pixel Market: that part pays for the Normie itself.`
+            : ""}
+        </p>
+      )}
+    </section>
+  )
+}
+
+function CalcResult({ answer: a, inputs }: { answer: PixelsAnswer | BudgetAnswer; inputs: BuySmartInputs }) {
+  const burn = a.burn
+  const m = a.market
+  const rolls = (p: { low: number; mid: number; high: number }) => (p.low === p.high ? `${p.mid}` : `${p.low}–${p.high}`)
+  let headline: string
+  if (a.mode === "pixels") {
+    headline =
+      a.verdict === "burn" && burn ? `Burning is cheaper: ${eth(burn.costEth)} for ${a.need}+ pixels, even with the worst rolls.`
+      : a.verdict === "gamble" && burn && m ? `Burning is cheaper with typical rolls (${eth(burn.costEth)} vs ${eth(m.costEth)}), but bad rolls could leave you short.`
+      : a.verdict === "market" && m ? `The Pixel Market is cheaper: ${eth(m.costEth)} for ${a.need} pixels.`
+      : "Could not price both sides right now."
+  } else {
+    headline =
+      a.verdict === "burn" && burn ? `Burning gets more: ${rolls(burn)} pixels for ${eth(burn.costEth)}, vs ${m?.pixels ?? 0} on the Pixel Market.`
+      : a.verdict === "gamble" && burn && m ? `Burning gets more with typical rolls (${burn.mid} vs ${m.pixels} pixels), but bad rolls could give you fewer.`
+      : a.verdict === "market" && m ? `The Pixel Market gets more: ${m.pixels} pixels for ${eth(m.costEth)}.`
+      : "Could not price both sides right now."
+  }
+  const verdictTag = a.verdict === "unknown" ? "has-ap" : a.verdict === "market" ? "has-ap" : "dropped"
+  return (
+    <section className="burn-box ap-result pixels-calc" data-tag={a.mode === "pixels" ? `${a.need} pixels: market or burn?` : `${a.budgetEth} ETH: market or burn?`} data-verdict={verdictTag} aria-labelledby="calc-h">
+      <h2 id="calc-h" className="burn-headline">{headline}</h2>
+
+      <div className="pixels-calc-sides">
+        <div className="pixels-calc-side">
+          <h3 className="burn-cap">Pixel Market</h3>
+          {m ? (
+            <p className="burn-small">
+              {a.mode === "pixels"
+                ? m.shortfall > 0 ? `Only ${m.pixels} pixels are listed right now (${eth(m.costEth)}).` : `${a.need} pixels for ${eth(m.costEth)}.`
+                : `${m.pixels} pixels for ${eth(m.costEth)}.`}
+              {" "}Exact, from the live order book{m.approx ? " (approximate: some listings must be bought whole)" : ""}.
+            </p>
+          ) : (
+            <p className="burn-small">The order book could not be read just now.</p>
+          )}
+        </div>
+        <div className="pixels-calc-side">
+          <h3 className="burn-cap">Burn floor Normies</h3>
+          {burn && burn.picks.length ? (
+            <>
+              <p className="burn-small">
+                Buy {burn.picks.length} {burn.picks.length === 1 ? "Normie" : "Normies"} for {eth(burn.costEth)} and burn {burn.picks.length === 1 ? "it" : "them"}: {rolls(burn)} pixels, typically {burn.mid}.
+                {a.mode === "pixels" && !burn.reached ? ` The cheapest ${MAX_BURNS} burns cannot reach ${a.need}.` : ""}
+              </p>
+              {a.mode === "pixels" && a.burnSure?.reached && a.burnSure.picks.length !== burn.picks.length && (
+                <p className="burn-small">To be sure even with the worst rolls: {a.burnSure.picks.length} Normies for {eth(a.burnSure.costEth)}.</p>
+              )}
+            </>
+          ) : (
+            <p className="burn-small">{a.mode === "eth" ? "No listed Normie fits inside that budget." : "No usable listings right now."}</p>
+          )}
+        </div>
+      </div>
+
+      {burn && burn.picks.length > 0 && (
+        <table className="burn-table ap-table">
+          <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Burn pays</th><th scope="col">Attached now</th></tr></thead>
+          <tbody>
+            {burn.picks.map((p) => (
+              <tr key={p.tokenId}>
+                <th scope="row"><a href={`/pixels?token=${p.tokenId}#result`}>#{p.tokenId}</a>{p.customized ? <span className="ap-flag" title="Burning erases its edited art"> art</span> : null}</th>
+                <td>{eth(p.priceEth)}</td>
+                <td>{rolls(p)}</td>
+                <td>{p.livePixels}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <ul className="burn-small pixels-calc-notes">
+        <li>The roll is the gamble: {ROLL_TEXT[inputs.yieldMode]}, plus every pixel attached to the burned Normie. {inputs.modeSource === "contract" ? "The burn mode was read from the Normies contract." : "The burn mode could not be read from the contract; this follows the announced schedule."}</li>
+        <li>Burning needs a Normie you own to receive the pixels, and each burn costs gas, which is not included here.</li>
+        <li>{inputs.liveConfirmed >= inputs.listingsChecked ? `Every listing's attached pixels were read from the chain, so a stripped Normie is priced as stripped.` : `${inputs.liveConfirmed} of ${inputs.listingsChecked} listings had their pixels confirmed on the chain; the rest use the listing data, which can lag.`} Open any Normie above to check it before you buy.</li>
+        <li>Listings and prices move fast. This is a comparison of two costs, not advice. Shared and refreshed every minute.</li>
+      </ul>
     </section>
   )
 }

@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { parseTokenInput } from "@/lib/ap-check/core"
+import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
+import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
 import { checkApprovals, checkListings, checkToken, checkWallet } from "@/lib/ap-check/load"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { checkRateLimit } from "@/lib/ratelimit"
@@ -12,6 +14,7 @@ import { checkRateLimit } from "@/lib/ratelimit"
  *                                 the risky ones (AP gone or down) first.
  * GET /api/ap-check?listings=1   the cheapest listings whose live pixels are below what OpenSea shows, or below our census.
  * GET /api/ap-check?approvals=0x… every address that wallet approved to spend its #PIXEL, with live amounts and official labels.
+ * GET /api/ap-check?calc=pixels&amount=500 | ?calc=eth&amount=0.5   Pixel Market vs burning floor Normies (live chain pixels).
  *
  * Public data only. Nothing here can sign, approve or move anything.
  */
@@ -41,6 +44,20 @@ export async function GET(req: NextRequest) {
       if (result.kind === "error") return NextResponse.json({ error: result.message, code: "unavailable", retryable: true }, { status: 502 })
       return NextResponse.json(result, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } })
     }
+    const calc = sp.get("calc")
+    if (calc === "pixels" || calc === "eth") {
+      const amount = Number(sp.get("amount"))
+      const ok = calc === "pixels" ? Number.isInteger(amount) && amount > 0 && amount <= 1_000_000 : amount > 0 && amount <= 1_000
+      if (!ok) return NextResponse.json({ error: "amount must be a positive whole number of pixels (calc=pixels) or ETH up to 1000 (calc=eth)", code: "invalid_amount" }, { status: 400 })
+      const inputs = await loadBuySmart()
+      if (!inputs) return NextResponse.json({ error: "listings or the Pixel Market could not be read", code: "unavailable", retryable: true }, { status: 502 })
+      const depth = inputs.book && !inputs.book.paused ? inputs.book.depth : null
+      const answer = calc === "pixels" ? planForPixels(inputs.picks, depth, amount) : planForBudget(inputs.picks, depth, amount)
+      return NextResponse.json(
+        { answer, yieldMode: inputs.yieldMode, modeSource: inputs.modeSource, listingsChecked: inputs.listingsChecked, liveConfirmed: inputs.liveConfirmed, asOf: inputs.asOf },
+        { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } },
+      )
+    }
     const approvalsRaw = sp.get("approvals")
     if (approvalsRaw !== null) {
       const wallet = normalizeWalletInput(approvalsRaw)
@@ -65,7 +82,7 @@ export async function GET(req: NextRequest) {
       if (result.kind === "error") return NextResponse.json({ error: result.message, code: "unavailable", retryable: true }, { status: 502 })
       return NextResponse.json(result, { headers: HEADERS })
     }
-    return NextResponse.json({ error: "pass ?token=<id>, ?wallet=<0x address or .eth name>, ?listings=1, or ?approvals=<wallet>", code: "missing_input" }, { status: 400 })
+    return NextResponse.json({ error: "pass ?token=<id>, ?wallet=<0x address or .eth name>, ?listings=1, ?approvals=<wallet>, or ?calc=pixels|eth&amount=<n>", code: "missing_input" }, { status: 400 })
   } catch (err) {
     console.error("[ap-check] unexpected failure", err)
     return NextResponse.json({ error: "Something went wrong.", code: "internal" }, { status: 500 })

@@ -6,11 +6,15 @@ import { normalize } from "viem/ens"
 
 import { NORMIES_API_BASE, NORMIES_CANVAS_STORAGE, NORMIES_NFT } from "@/constants/contracts"
 import { fetchSyncStamps } from "@/lib/burn-buy/data"
-import { loadOpenSeaListings } from "@/lib/burn-buy/opensea-listings"
+import { loadOpenSeaListings, parseOpenSeaListings } from "@/lib/burn-buy/opensea-listings"
+import type { YieldMode } from "@/lib/burn-buy/score"
 import { ttl } from "@/lib/burn-buy/ttl"
 import { getSupabase } from "@/lib/db/supabase"
+import { readAttached } from "@/lib/chain-pixels"
 import { publicClient } from "@/lib/viem-client"
 
+import { lensValue, type LensValue } from "./buy-smart"
+import { loadBuySmart } from "./buy-smart-load"
 import {
   buildApprovalRows,
   isActiveApproval,
@@ -43,23 +47,7 @@ function within<T>(p: Promise<T>, ms: number): Promise<T | null> {
   return Promise.race([p.catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), ms))])
 }
 
-/** attachedOf for many tokens in one multicall. A token whose read failed maps to null. */
-export async function readAttached(ids: number[], timeoutMs = 6_000): Promise<Map<number, number | null>> {
-  const out = new Map<number, number | null>(ids.map((id) => [id, null]))
-  if (ids.length === 0) return out
-  const res = await within(
-    publicClient.multicall({
-      allowFailure: true,
-      contracts: ids.map((id) => ({ address: NORMIES_CANVAS_STORAGE, abi: STORAGE_ABI, functionName: "attachedOf" as const, args: [BigInt(id)] as const })),
-    }),
-    timeoutMs,
-  )
-  if (!res) return out
-  res.forEach((r, i) => {
-    if (r.status === "success" && typeof r.result === "bigint" && r.result <= BigInt(Number.MAX_SAFE_INTEGER)) out.set(ids[i], Number(r.result))
-  })
-  return out
-}
+export { readAttached }
 
 /** Locked / free split from the Normies API (one token). */
 export async function loadSplit(tokenId: number, timeoutMs = 3_000): Promise<PixelSplit | null> {
@@ -73,15 +61,15 @@ export async function loadCensus(ids: number[], timeoutMs = 3_000): Promise<Map<
   const db = getSupabase()
   if (!db || ids.length === 0) return null
   const res = await within(
-    Promise.all([db.from("normie_index").select("token_id,action_points,burned").in("token_id", ids), fetchSyncStamps(db)]),
+    Promise.all([db.from("normie_index").select("token_id,action_points,burned,on_pixels").in("token_id", ids), fetchSyncStamps(db)]),
     timeoutMs,
   )
   if (!res) return null
   const [{ data, error }, stamps] = res
   if (error || !data) return null
   const out = new Map<number, CensusAp>()
-  for (const row of data as Array<{ token_id: number; action_points: number | null; burned: boolean | null }>) {
-    out.set(row.token_id, { ap: row.action_points, burned: row.burned === true, at: stamps.census })
+  for (const row of data as Array<{ token_id: number; action_points: number | null; burned: boolean | null; on_pixels: number | null }>) {
+    out.set(row.token_id, { ap: row.action_points, burned: row.burned === true, at: stamps.census, originalPixels: row.on_pixels })
   }
   return out
 }
@@ -147,25 +135,58 @@ export interface TokenCheck {
   shown: number | null
   /** Null = could not check OpenSea (no key, or it did not answer). Empty = no open item offers. */
   offers: ItemOffer[] | null
+  /** The cheapest OpenSea listing for this Normie right now, in ETH. Null = not listed, or could not ask. */
+  listingPriceEth: number | null
+  /** The lens: what burning it would pay with its LIVE pixels, and what those pixels cost on the Pixel Market. */
+  lens: LensValue | null
+  yieldMode: YieldMode | null
+  bestAskEth: number | null
   checkedAt: string
+}
+
+/** The cheapest active OpenSea listing for one Normie (ETH). Null when it is not listed or OpenSea could not be asked. */
+export async function loadListingPrice(tokenId: number, apiKey = process.env.OPENSEA_API_KEY, timeoutMs = 4_000): Promise<number | null> {
+  const key = apiKey?.trim()
+  if (!key) return null
+  const res = await within(
+    fetch(`${OPENSEA}/listings/collection/${SLUG}/nfts/${tokenId}/best`, { headers: { Accept: "application/json", "X-API-KEY": key }, cache: "no-store" }),
+    timeoutMs,
+  )
+  if (!res || !res.ok) return null
+  const body = await res.json().catch(() => null)
+  // The best-listing endpoint returns one Listing; the strict listings parser checks it exactly like a page of them.
+  const parsed = parseOpenSeaListings({ listings: body ? [body] : [] })
+  return parsed?.listings.find((l) => l.tokenId === tokenId)?.priceEth ?? null
 }
 
 /** Everything for one token, fetched in parallel. */
 export async function checkToken(tokenId: number): Promise<TokenCheck> {
-  const [attached, split, census, offers, shown] = await Promise.all([
+  const [attached, split, census, offers, shown, price, market] = await Promise.all([
     readAttached([tokenId]),
     loadSplit(tokenId),
     loadCensus([tokenId]),
     loadTokenOffers(tokenId),
     loadShownPixels([tokenId]),
+    loadListingPrice(tokenId),
+    loadBuySmart(),
   ])
   const reading: ApReading = { tokenId, onchain: attached.get(tokenId) ?? null, split, census: census?.get(tokenId) ?? null }
+  const original = reading.census?.originalPixels
+  const bestAsk = market?.book && !market.book.paused ? market.book.bestAskEth : null
+  const lens =
+    reading.onchain !== null && typeof original === "number" && market && !reading.census?.burned
+      ? lensValue(original, reading.onchain, market.yieldMode, price, bestAsk)
+      : null
   return {
     tokenId,
     reading,
     judgement: judgeAp(reading),
     shown: shown?.get(tokenId) ?? null,
     offers: offers ? offers.offers : null,
+    listingPriceEth: price,
+    lens,
+    yieldMode: market?.yieldMode ?? null,
+    bestAskEth: bestAsk,
     checkedAt: new Date().toISOString(),
   }
 }
