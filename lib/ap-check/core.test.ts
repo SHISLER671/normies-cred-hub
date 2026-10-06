@@ -170,3 +170,53 @@ describe("judgeListing", () => {
     assert.equal(judgeListing(l({ live: 300, shown: null })), null)
   })
 })
+
+import { ago, judgeWithHistory, parsePixelEvents, reasonText, recentWithdrawals } from "./core"
+
+// Normie #4632 as api.normies.art /canvas/token/4632/activity returned it on 2026-10-06 (trimmed).
+const H4632 = {
+  events: [
+    { kind: "attached", reason: "withdraw", amount: "101", newAttached: "0", timestamp: "1791281219", txHash: "0x" + "a".repeat(64) },
+    { kind: "attached", reason: "migration", amount: "101", newAttached: "101", timestamp: "1791223043", txHash: "0x" + "b".repeat(64) },
+  ],
+  hasMore: false,
+}
+const NOW = 1791281219_000 + 2 * 3_600_000 // two hours after the withdrawal
+
+describe("pixel history", () => {
+  it("parses attached events newest first, with plain-language reasons", () => {
+    const ev = parsePixelEvents(H4632)
+    assert.equal(ev?.length, 2)
+    assert.deepEqual([ev?.[0].reason, ev?.[0].amount, ev?.[0].after], ["withdraw", 101, 0])
+    assert.equal(reasonText("withdraw"), "taken off")
+    assert.equal(reasonText("somethingNew"), "somethingNew")
+  })
+  it("skips malformed events and refuses the wrong shape", () => {
+    assert.deepEqual(parsePixelEvents({ events: [{ kind: "attached", reason: "deposit", amount: "-3", newAttached: "1", timestamp: "1" }, { kind: "move" }] }), [])
+    assert.equal(parsePixelEvents({ items: [] }), null)
+  })
+  it("sums withdrawals inside the window", () => {
+    const ev = parsePixelEvents(H4632)!
+    assert.equal(recentWithdrawals(ev, 72, NOW).takenOff, 101)
+    assert.equal(recentWithdrawals(ev, 1, NOW).takenOff, 0)
+  })
+  it("a recent withdrawal overrides a quiet census: #4632 reads as stripped", () => {
+    const reading = { tokenId: 4632, onchain: 0, split: null, census: { ap: 0, burned: false, at: null } }
+    const base = judgeAp(reading)
+    assert.equal(base.verdict, "no-ap")
+    const j = judgeWithHistory(base, reading, parsePixelEvents(H4632), NOW)
+    assert.equal(j.verdict, "dropped")
+    assert.equal(j.offerRisk, true)
+    assert.match(j.line, /101 pixels were taken off this Normie in the last 3 days \(latest 2 hours ago\); it has 0 now/)
+  })
+  it("leaves burned and unreadable Normies alone", () => {
+    const ev = parsePixelEvents(H4632)
+    const burned = { tokenId: 1, onchain: 0, split: null, census: { ap: 0, burned: true, at: null } }
+    assert.equal(judgeWithHistory(judgeAp(burned), burned, ev, NOW).verdict, "burned")
+  })
+  it("says how long ago in plain words", () => {
+    assert.equal(ago(new Date(NOW - 30_000).toISOString(), NOW), "just now")
+    assert.equal(ago(new Date(NOW - 45 * 60_000).toISOString(), NOW), "45 minutes ago")
+    assert.equal(ago(new Date(NOW - 3 * 86_400_000).toISOString(), NOW), "3 days ago")
+  })
+})

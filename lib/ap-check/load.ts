@@ -20,6 +20,8 @@ import {
   isActiveApproval,
   judgeAp,
   judgeListing,
+  judgeWithHistory,
+  parsePixelEvents,
   parseItemOffers,
   parsePixelSplit,
   parseShownPixels,
@@ -29,6 +31,7 @@ import {
   type CensusAp,
   type ItemOffer,
   type ListingFlag,
+  type PixelEvent,
   type PixelSplit,
 } from "./core"
 
@@ -48,6 +51,13 @@ function within<T>(p: Promise<T>, ms: number): Promise<T | null> {
 }
 
 export { readAttached }
+
+/** Every change to one Normie's attached pixels, newest first. Null when the API could not be read. */
+export async function loadPixelHistory(tokenId: number, timeoutMs = 3_000): Promise<PixelEvent[] | null> {
+  const res = await within(fetch(`${NORMIES_API_BASE}/canvas/token/${tokenId}/activity?limit=25`, { headers: { Accept: "application/json" }, cache: "no-store" }), timeoutMs)
+  if (!res || !res.ok) return null
+  return parsePixelEvents(await res.json().catch(() => null))
+}
 
 /** Locked / free split from the Normies API (one token). */
 export async function loadSplit(tokenId: number, timeoutMs = 3_000): Promise<PixelSplit | null> {
@@ -135,6 +145,8 @@ export interface TokenCheck {
   shown: number | null
   /** Null = could not check OpenSea (no key, or it did not answer). Empty = no open item offers. */
   offers: ItemOffer[] | null
+  /** Changes to its attached pixels, newest first (deposits, withdrawals, burns...). Null = could not read. */
+  history: PixelEvent[] | null
   /** The cheapest OpenSea listing for this Normie right now, in ETH. Null = not listed, or could not ask. */
   listingPriceEth: number | null
   /** The lens: what burning it would pay with its LIVE pixels, and what those pixels cost on the Pixel Market. */
@@ -161,7 +173,7 @@ export async function loadListingPrice(tokenId: number, apiKey = process.env.OPE
 
 /** Everything for one token, fetched in parallel. */
 export async function checkToken(tokenId: number): Promise<TokenCheck> {
-  const [attached, split, census, offers, shown, price, market] = await Promise.all([
+  const [attached, split, census, offers, shown, price, market, history] = await Promise.all([
     readAttached([tokenId]),
     loadSplit(tokenId),
     loadCensus([tokenId]),
@@ -169,6 +181,7 @@ export async function checkToken(tokenId: number): Promise<TokenCheck> {
     loadShownPixels([tokenId]),
     loadListingPrice(tokenId),
     loadBuySmart(),
+    loadPixelHistory(tokenId),
   ])
   const reading: ApReading = { tokenId, onchain: attached.get(tokenId) ?? null, split, census: census?.get(tokenId) ?? null }
   const original = reading.census?.originalPixels
@@ -180,10 +193,11 @@ export async function checkToken(tokenId: number): Promise<TokenCheck> {
   return {
     tokenId,
     reading,
-    judgement: judgeAp(reading),
+    judgement: judgeWithHistory(judgeAp(reading), reading, history),
     shown: shown?.get(tokenId) ?? null,
     offers: offers ? offers.offers : null,
     listingPriceEth: price,
+    history,
     lens,
     yieldMode: market?.yieldMode ?? null,
     bestAskEth: bestAsk,

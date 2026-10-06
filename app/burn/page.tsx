@@ -170,6 +170,12 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
             <div><dt>Pool share now</dt><dd>{w.advice.sharePct}%</dd></div>
           </dl>
         )}
+        {holds && w.officialShare && (
+          <p className="burn-small">
+            normies.art&apos;s own figure for this wallet right now: <strong>{w.officialShare.sharePct}%</strong> of the pool
+            {w.officialShare.pixels !== w.advice.pixel ? ` (it counts ${w.officialShare.pixels} #PIXEL)` : ""}. The official one decides payouts; ours lets you test moves.
+          </p>
+        )}
 
         {model.marketLine && <p className="burn-small burn-marketline">{model.marketLine}</p>}
 

@@ -3,9 +3,10 @@ import { headers } from "next/headers"
 
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
-import { apiDisagrees, isActiveApproval, openSeaItemUrl, parseTokenInput } from "@/lib/ap-check/core"
+import { ago, apiDisagrees, isActiveApproval, openSeaItemUrl, parseTokenInput, reasonText } from "@/lib/ap-check/core"
 import { planForBudget, planForPixels, MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart, type BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
+import { checkContract, OFFICIAL_CONTRACTS, parseAddressInput, type ContractCheck } from "@/lib/official-contracts"
 import { checkApprovals, checkListings, checkToken, checkWallet, LISTINGS_CHECKED, LISTINGS_SHOWN, MAX_WALLET_OFFERS, type ApprovalsCheck, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
 import { keyedTtl } from "@/lib/burn-buy/data"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
@@ -45,6 +46,7 @@ type View =
   | { kind: "listings"; check: ListingsCheck }
   | { kind: "approvals"; check: ApprovalsCheck }
   | { kind: "calc"; answer: PixelsAnswer | BudgetAnswer; inputs: BuySmartInputs }
+  | { kind: "contract"; check: ContractCheck }
   | { kind: "error"; message: string }
   | { kind: "none" }
 
@@ -73,8 +75,13 @@ function parseAmount(raw: string | undefined, mode: "pixels" | "eth"): number | 
   return n <= 1_000 ? n : null
 }
 
-async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined, calc: { mode: "pixels" | "eth"; amount: string | undefined } | undefined, showExample: boolean): Promise<View> {
+async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined, calc: { mode: "pixels" | "eth"; amount: string | undefined } | undefined, showExample: boolean, contract?: string): Promise<View> {
   try {
+    if (contract) {
+      const a = parseAddressInput(contract)
+      if (!a) return { kind: "error", message: "Paste one contract address (0x followed by 40 characters), or an Etherscan link to it." }
+      return { kind: "contract", check: checkContract(a) }
+    }
     if (calc) {
       const amount = parseAmount(calc.amount, calc.mode)
       if (amount === null) {
@@ -121,19 +128,19 @@ const TABS: ReadonlyArray<{ id: Tab; label: string; intro: string }> = [
   { id: "check", label: "Check", intro: "Is this Normie what OpenSea says? Live pixels, what a burn pays, and the offers on it." },
   { id: "buy", label: "Buy", intro: "The cheapest way to get pixels: the Pixel Market, or burning floor Normies." },
   { id: "offers", label: "Offers", intro: "Your open offers on Normies whose pixels are gone." },
-  { id: "safety", label: "Safety", intro: "Who can spend your pixels? Spot approvals you don't recognize." },
+  { id: "safety", label: "Safety", intro: "Who can spend your pixels, and is that contract really from Normies?" },
 ]
 
 /** The tab follows what was asked; a bare ?tab= just opens that tab. */
-function pickTab(q: { tab?: string; token?: string; wallet?: string; approvals?: string; calc?: string; listings: boolean }): Tab {
-  if (q.approvals) return "safety"
+function pickTab(q: { tab?: string; token?: string; wallet?: string; approvals?: string; calc?: string; listings: boolean; contract?: string }): Tab {
+  if (q.approvals || q.contract) return "safety"
   if (q.wallet) return "offers"
   if (q.calc || q.listings) return "buy"
   if (q.token) return "check"
   return q.tab === "buy" || q.tab === "offers" || q.tab === "safety" ? q.tab : "check"
 }
 
-export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[]; calc?: string | string[]; amount?: string | string[]; tab?: string | string[] }> }) {
+export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[]; calc?: string | string[]; amount?: string | string[]; tab?: string | string[]; contract?: string | string[] }> }) {
   const sp = await searchParams
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined
   const token = first(sp.token)
@@ -143,8 +150,9 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
   const calcMode: "pixels" | "eth" = calcRaw === "eth" ? "eth" : "pixels"
   const amountRaw = first(sp.amount)
   const listings = first(sp.view) === "listings"
-  const tab = pickTab({ tab: first(sp.tab), token, wallet, approvals, calc: calcRaw, listings })
-  const view = await answer(token, wallet, listings, approvals, calcRaw ? { mode: calcMode, amount: amountRaw } : undefined, tab === "check")
+  const contract = first(sp.contract)
+  const tab = pickTab({ tab: first(sp.tab), token, wallet, approvals, calc: calcRaw, listings, contract })
+  const view = await answer(token, wallet, listings, approvals, calcRaw ? { mode: calcMode, amount: amountRaw } : undefined, tab === "check", contract)
   const intro = TABS.find((t) => t.id === tab)?.intro
 
   return (
@@ -224,6 +232,14 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
               </div>
               <p className="burn-safeline">Shows every address you approved to spend your #PIXEL</p>
             </form>
+            <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Is this contract official?">
+              <label htmlFor="contract" className="sr-only">Contract address</label>
+              <div className="burn-inputrow">
+                <input id="contract" name="contract" type="text" defaultValue={view.kind === "contract" ? view.check.address : contract ?? ""} placeholder="0x… or an Etherscan link" inputMode="text" enterKeyHint="go" spellCheck={false} autoComplete="off" autoCapitalize="off" className="burn-input" />
+                <button type="submit" className="burn-go" aria-label="Check whether this contract is an official Normies contract"><span>Check</span><span aria-hidden="true">→</span></button>
+              </div>
+              <p className="burn-safeline">Before you approve or sign, check the address</p>
+            </form>
           </>
         )}
 
@@ -258,6 +274,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
         )}
         {view.kind === "approvals" && view.check.kind === "ok" && <ApprovalsResult check={view.check} />}
         {view.kind === "calc" && <CalcResult answer={view.answer} inputs={view.inputs} />}
+        {view.kind === "contract" && <ContractResult check={view.check} />}
         </div>
 
         <FinePrint />
@@ -295,6 +312,24 @@ function TokenResult({ check, isExample }: { check: TokenCheck; isExample: boole
       <BeforeYouBuy check={check} />
       {apiDisagrees(r) && (
         <p className="burn-note" role="note">The Normies API says {r.split?.attached} attached, the chain says {r.onchain}. The chain is the truth; the API catches up.</p>
+      )}
+
+      {check.history && check.history.length > 0 && (
+        <section className="pixels-history" aria-labelledby="hist-h">
+          <h3 id="hist-h" className="burn-cap">Pixel history</h3>
+          <ul className="pixels-history-list">
+            {check.history.slice(0, 6).map((e, i) => (
+              <li key={`${e.at}-${i}`} data-kind={e.reason}>
+                <span className="pixels-history-what">{e.amount} {reasonText(e.reason)}</span>
+                <span className="pixels-history-after">→ {e.after}</span>
+                <span className="pixels-history-when">
+                  {e.tx ? <a href={`https://etherscan.io/tx/${e.tx}`} target="_blank" rel="noopener noreferrer">{ago(e.at)}</a> : ago(e.at)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {check.history.length > 6 && <p className="burn-small">Showing the latest 6 of {check.history.length}.</p>}
+        </section>
       )}
 
       <section className="ap-offers" aria-labelledby="ap-offers-h">
@@ -602,6 +637,35 @@ function ApprovalsResult({ check }: { check: Extract<ApprovalsCheck, { kind: "ok
         {check.indexedAt ? ` Index last caught up ${utc(check.indexedAt)}.` : ""}
       </p>
       <p className="burn-small ap-stamp">Checked {utc(check.checkedAt)}</p>
+    </section>
+  )
+}
+
+function ContractResult({ check }: { check: ContractCheck }) {
+  const link = `https://etherscan.io/address/${check.address}`
+  if (check.official) {
+    return (
+      <section className="burn-box ap-result" data-tag="Official" data-verdict="has-ap" aria-labelledby="ct-h">
+        <h2 id="ct-h" className="burn-headline">Yes: {check.contract.name}.</h2>
+        <p className="burn-small">{check.contract.role}. It is on the official contract list in the Normies docs.</p>
+        <p className="burn-small burn-mono"><a href={link} target="_blank" rel="noopener noreferrer">{check.address} ↗</a></p>
+        <p className="burn-small">An official contract can still be misused by a fake website. Only sign on normies.art, and read what your wallet shows before you confirm.</p>
+      </section>
+    )
+  }
+  return (
+    <section className="burn-box ap-result" data-tag="Not on the list" data-verdict="dropped" aria-labelledby="ct-h">
+      <h2 id="ct-h" className="burn-headline">Not an official Normies contract.</h2>
+      <p className="burn-note ap-warn" role="note">This address is not on the official list. That doesn&apos;t prove it is malicious, but don&apos;t approve it or sign for it unless you know exactly what it is.</p>
+      <p className="burn-small burn-mono"><a href={link} target="_blank" rel="noopener noreferrer">{check.address} ↗</a></p>
+      <details className="burn-small">
+        <summary>The official list ({OFFICIAL_CONTRACTS.size} addresses)</summary>
+        <ul className="pixels-official-list">
+          {[...OFFICIAL_CONTRACTS].map(([a, c]) => (
+            <li key={a}><span>{c.name}</span> <a className="burn-mono" href={`https://etherscan.io/address/${a}`} target="_blank" rel="noopener noreferrer">{a.slice(0, 6)}…{a.slice(-4)}</a></li>
+          ))}
+        </ul>
+      </details>
     </section>
   )
 }

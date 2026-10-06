@@ -5,6 +5,7 @@ import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
 import { checkApprovals, checkListings, checkToken, checkWallet } from "@/lib/ap-check/load"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
+import { checkContract, parseAddressInput } from "@/lib/official-contracts"
 import { checkRateLimit } from "@/lib/ratelimit"
 
 /**
@@ -14,6 +15,7 @@ import { checkRateLimit } from "@/lib/ratelimit"
  *                                 the risky ones (AP gone or down) first.
  * GET /api/ap-check?listings=1   the cheapest listings whose live pixels are below what OpenSea shows, or below our census.
  * GET /api/ap-check?approvals=0x… every address that wallet approved to spend its #PIXEL, with live amounts and official labels.
+ * GET /api/ap-check?contract=0x… whether an address is on the official Normies contract list (normies.art/docs).
  * GET /api/ap-check?calc=pixels&amount=500 | ?calc=eth&amount=0.5   Pixel Market vs burning floor Normies (live chain pixels).
  *
  * Public data only. Nothing here can sign, approve or move anything.
@@ -58,6 +60,12 @@ export async function GET(req: NextRequest) {
         { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" } },
       )
     }
+    const contractRaw = sp.get("contract")
+    if (contractRaw !== null) {
+      const a = parseAddressInput(contractRaw)
+      if (!a) return NextResponse.json({ error: "contract must be one 0x address", code: "invalid_contract" }, { status: 400 })
+      return NextResponse.json(checkContract(a), { headers: { "Cache-Control": "public, s-maxage=3600" } })
+    }
     const approvalsRaw = sp.get("approvals")
     if (approvalsRaw !== null) {
       const wallet = normalizeWalletInput(approvalsRaw)
@@ -82,7 +90,7 @@ export async function GET(req: NextRequest) {
       if (result.kind === "error") return NextResponse.json({ error: result.message, code: "unavailable", retryable: true }, { status: 502 })
       return NextResponse.json(result, { headers: HEADERS })
     }
-    return NextResponse.json({ error: "pass ?token=<id>, ?wallet=<0x address or .eth name>, ?listings=1, ?approvals=<wallet>, or ?calc=pixels|eth&amount=<n>", code: "missing_input" }, { status: 400 })
+    return NextResponse.json({ error: "pass ?token=<id>, ?wallet=<0x address or .eth name>, ?listings=1, ?approvals=<wallet>, ?calc=pixels|eth&amount=<n>, or ?contract=<0x address>", code: "missing_input" }, { status: 400 })
   } catch (err) {
     console.error("[ap-check] unexpected failure", err)
     return NextResponse.json({ error: "Something went wrong.", code: "internal" }, { status: 500 })

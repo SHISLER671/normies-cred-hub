@@ -6,7 +6,7 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { delegationCheckIncomplete, findDelegateXyz, registryReaders } from "@/lib/delegations"
 import { loadBurnContractStatus } from "./contract-state"
 import { readAttached } from "@/lib/chain-pixels"
-import { loadLoosePixels, loadLoosePixelsFor } from "./pixel-holders"
+import { loadLoosePixels, loadLoosePixelsFor, loadOfficialShare } from "./pixel-holders"
 import { publicClient } from "@/lib/viem-client"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { getSupabase } from "@/lib/db/supabase"
@@ -408,6 +408,7 @@ export const realDeps: Deps = {
   contractStatus: () => cachedContractStatus().catch(() => null),
   pixelMarket: () => pixelMarketCached().catch(() => null),
   loosePixels: (address) => loadLoosePixelsFor(address),
+  officialShare: (address) => loadOfficialShare(address),
   // Jev stays OFF (returns null) until a TYPESAFE_API_KEY exists; the service only calls this once PIXEL_MARKET=live.
   // JEV_DISABLE=1 is a kill switch.
   jevOpinions: async (tokens) => {

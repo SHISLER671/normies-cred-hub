@@ -561,6 +561,23 @@
              },
              "description": "Illustration only: what this share would have paid in the Sep 23 article's window. Not a forecast."
             },
+            "officialShare": {
+             "type": ["object", "null"],
+             "properties": {
+              "sharePct": {
+               "type": "number",
+               "description": "Share of the holder revenue pool in percent, from normies.art's own scorer (api.normies.art /revshare/wallet)."
+              },
+              "pixels": {
+               "type": "integer",
+               "description": "#PIXEL the official scorer counted: wallet + listed + attached."
+              },
+              "tokens": {
+               "type": "integer"
+              }
+             },
+             "description": "normies.art's own figure for this wallet right now, shown beside NCH's. Null when it could not be read."
+            },
             "jev": {
              "type": "object",
              "additionalProperties": {

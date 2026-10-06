@@ -2,6 +2,7 @@
 // so every success and failure path can be tested with fakes. Rule: no silent fallbacks. If a source fails,
 // the response says so, per source, instead of quietly guessing.
 
+import type { OfficialShare } from "./pixel-holders"
 import { type YieldMode, type MarketState, walletScore } from "./score"
 import {
   adviseWallet,
@@ -95,6 +96,8 @@ export interface Deps {
   pixelMarket?(): Promise<PixelMarketSnapshot | null>
   /** #PIXEL a wallet holds outside its Normies (in the wallet + in open listings). Null when it could not be read. Optional. */
   loosePixels?(address: string): Promise<number | null>
+  /** The official revenue-share standing (normies.art's own scorer). Null when it could not be read. Optional. */
+  officialShare?(address: string): Promise<OfficialShare | null>
   now(): Date
 }
 
@@ -130,6 +133,8 @@ export interface BurnBuyResult {
     delegateOf: Array<DelegatedToken>
     advice: WalletAdvice & { holdings: Array<{ tokenId: number; originalPixels: number; actionPoints: number; rank: number | null; type: string | null }> }
     historicalIllustration: { payoutEthIfSharePaidLikeArticleWindow: number; source: string }
+    /** normies.art's own figure for this wallet's share right now, shown beside ours. Null when it could not be read. */
+    officialShare?: OfficialShare | null
     /** Priced from the live order book: the cost to reach the next boost, and what selling would net. Null without a live book. */
     pixelMarketView: PixelMarketView | null
     /** Jev's second opinion per burn candidate (only when the market is live and Jev is on). It never changes a verdict. */
@@ -358,6 +363,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     const own = new Set(held.map((h) => h.tokenId))
     // The census was built from the index; this wallet's holdings are live. Swap its index score for its live
     // score so 'everyone else' is exactly the census minus this wallet, and its share is computed consistently.
+    const officialP = deps.officialShare ? deps.officialShare(holder.address).catch(() => null) : Promise.resolve(null)
     const loose = deps.loosePixels ? await deps.loosePixels(holder.address).catch(() => null) : 0
     if (loose === null) caveats.push("Could not read this wallet's loose #PIXEL (in the wallet or listed on the market), so only pixels on its Normies are counted here.")
     else if (loose > 0) caveats.push(`Includes ${loose} #PIXEL held outside your Normies (in the wallet or listed on the Pixel Market): they count for the score exactly like pixels on a Normie.`)
@@ -472,6 +478,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
         source: ARTICLE_WINDOW.source,
       },
       pixelMarketView,
+      officialShare: await officialP,
       ...(jev ? { jev } : {}),
     }
   }
