@@ -25,3 +25,8 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
   .pixels-page .ap-stats dd { font-size: 22px; }
   .pixels-page .ap-stats dt { font-size: 9px; letter-spacing: 0.1em; }
 }
+
+/* the "Buying?" box: a sentence and a button on one row, stacked on narrow phones */
+.pixels-page .pixels-listings-row { align-items: center; gap: 12px; }
+.pixels-page .pixels-listings-text { margin: 0; flex: 1; }
+@media (max-width: 420px) { .pixels-page .pixels-listings-row { flex-direction: column; align-items: stretch; } }

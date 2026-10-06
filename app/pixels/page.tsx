@@ -4,7 +4,7 @@ import { headers } from "next/headers"
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { apiDisagrees, openSeaItemUrl, parseTokenInput } from "@/lib/ap-check/core"
-import { checkToken, checkWallet, MAX_WALLET_OFFERS, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
+import { checkListings, checkToken, checkWallet, LISTINGS_CHECKED, MAX_WALLET_OFFERS, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
 import { keyedTtl } from "@/lib/burn-buy/data"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { checkRateLimitById, clientIdFromHeaders } from "@/lib/ratelimit"
@@ -40,6 +40,7 @@ const tokenCached = keyedTtl(15_000, 500, (key) => checkToken(Number(key)))
 type View =
   | { kind: "token"; check: TokenCheck; isExample: boolean }
   | { kind: "wallet"; check: WalletCheck }
+  | { kind: "listings"; check: ListingsCheck }
   | { kind: "error"; message: string }
 
 const utc = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC"
@@ -56,8 +57,10 @@ async function limited(): Promise<string | null> {
   return rl.ok ? null : `Too many lookups from your network. Try again in ${rl.retryAfter} seconds.`
 }
 
-async function answer(token: string | undefined, wallet: string | undefined): Promise<View> {
+async function answer(token: string | undefined, wallet: string | undefined, listings: boolean): Promise<View> {
   try {
+    // Shared and cached for a minute, so it is not rate limited per visitor.
+    if (listings) return { kind: "listings", check: await checkListings() }
     if (wallet) {
       const w = normalizeWalletInput(wallet)
       if (!(ADDRESS.test(w) || ENS.test(w))) return { kind: "error", message: "That is not a wallet. Paste a 0x address (42 characters) or a name ending in .eth." }
@@ -79,12 +82,12 @@ async function answer(token: string | undefined, wallet: string | undefined): Pr
   }
 }
 
-export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[] }> }) {
+export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[] }> }) {
   const sp = await searchParams
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined
   const token = first(sp.token)
   const wallet = first(sp.wallet)
-  const view = await answer(token, wallet)
+  const view = await answer(token, wallet, first(sp.view) === "listings")
 
   return (
     <div className="zulo-chrome min-h-screen burn-page pixels-page">
@@ -114,6 +117,14 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           <p className="burn-safeline">Flags your item offers on Normies whose pixels are gone</p>
         </form>
 
+        <form method="get" action="/pixels" className="burn-box burn-form" data-tag="Buying?">
+          <input type="hidden" name="view" value="listings" />
+          <div className="burn-inputrow pixels-listings-row">
+            <p className="burn-small pixels-listings-text">Check the cheapest {LISTINGS_CHECKED} listings for Normies that show more pixels on OpenSea than they really have.</p>
+            <button type="submit" className="burn-go" aria-label="Check the cheapest listings"><span>Check</span><span aria-hidden="true">→</span></button>
+          </div>
+        </form>
+
         {view.kind === "error" && (
           <section className="burn-box burn-error" data-tag="Oops" role="alert">
             <p className="burn-headline">We could not answer that.</p>
@@ -128,6 +139,13 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           </section>
         )}
         {view.kind === "wallet" && view.check.kind === "ok" && <WalletResult check={view.check} />}
+        {view.kind === "listings" && view.check.kind === "error" && (
+          <section className="burn-box burn-error" data-tag="Oops" role="alert">
+            <p className="burn-headline">We could not answer that.</p>
+            <p className="burn-small">{view.check.message}</p>
+          </section>
+        )}
+        {view.kind === "listings" && view.check.kind === "ok" && <ListingsResult check={view.check} />}
 
         <FinePrint />
       </main>
@@ -154,6 +172,13 @@ function TokenResult({ check, isExample }: { check: TokenCheck; isExample: boole
         Locked pixels back the art on the Normie right now; free pixels can be withdrawn without a reset.
         {census?.at ? ` Census as of ${utc(census.at)}.` : ""}
       </p>
+      {check.shown !== null && r.onchain !== null && check.shown !== r.onchain && (
+        <p className={check.shown > r.onchain ? "burn-note ap-warn" : "burn-note"} role="note">
+          OpenSea shows {check.shown} pixels for this Normie, but it has {r.onchain} right now.
+          {check.shown > r.onchain ? " Anyone buying from OpenSea would see the old, higher number." : " OpenSea has not caught up yet."}{" "}
+          Use &quot;Refresh metadata&quot; on its OpenSea page to update it.
+        </p>
+      )}
       {apiDisagrees(r) && (
         <p className="burn-note" role="note">The Normies API says {r.split?.attached} attached, the chain says {r.onchain}. The chain is the truth; the API catches up.</p>
       )}
@@ -230,6 +255,44 @@ function WalletResult({ check }: { check: Extract<WalletCheck, { kind: "ok" }> }
   )
 }
 
+function ListingsResult({ check }: { check: Extract<ListingsCheck, { kind: "ok" }> }) {
+  const n = check.flags.length
+  const headline =
+    n === 0
+      ? `All ${check.checked} of the cheapest listings show the pixels they really have.`
+      : `${n} of the cheapest ${check.checked} listings ${n === 1 ? "has" : "have"} fewer pixels than ${n === 1 ? "it shows or had" : "they show or had"}.`
+  return (
+    <section className="burn-box ap-result" data-tag="Cheapest listings" data-verdict={n > 0 ? "dropped" : "has-ap"} aria-labelledby="ap-l-h">
+      <h2 id="ap-l-h" className="burn-headline">{headline}</h2>
+      {n > 0 && (
+        <p className="burn-note ap-warn" role="note">
+          Before buying one of these, open it here to see its live pixels. OpenSea may still show the old number until someone refreshes its metadata.
+        </p>
+      )}
+      {n > 0 && (
+        <table className="burn-table ap-table">
+          <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">OpenSea shows</th><th scope="col">Pixels now</th></tr></thead>
+          <tbody>
+            {check.flags.map((f) => (
+              <tr key={f.tokenId} data-risk="true">
+                <th scope="row"><a href={`/pixels?token=${f.tokenId}`}>#{f.tokenId}</a></th>
+                <td>{eth(f.priceEth)}</td>
+                <td>{f.shown ?? "–"}</td>
+                <td title={f.line}>{f.live}{f.kind !== "stale" && typeof f.census?.ap === "number" ? <span className="ap-cur"> (was {f.census.ap})</span> : null}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {!check.shownChecked && <p className="burn-small">Could not read what OpenSea shows just now, so only our census comparison ran.</p>}
+      <p className="burn-small">
+        &quot;Was&quot; is our census{check.censusAt ? ` from ${utc(check.censusAt)}` : ""}. Only the cheapest {LISTINGS_CHECKED} listings are checked, and the result is shared for a minute.
+      </p>
+      <p className="burn-small ap-stamp">Checked {utc(check.checkedAt)}</p>
+    </section>
+  )
+}
+
 function FinePrint() {
   return (
     <details className="burn-box burn-fold" data-tag="How this works">
@@ -238,6 +301,7 @@ function FinePrint() {
         <li>Pixels (AP, the #PIXEL attached to a Normie) are read live from the Normies storage contract (attachedOf). That is the real number.</li>
         <li>Locked and free come from the Normies API, which can lag the chain by a little.</li>
         <li>Last census is our own snapshot, refreshed every 6 hours. If the live number is lower, pixels were removed since then.</li>
+        <li>&quot;OpenSea shows&quot; is OpenSea&apos;s own cached copy of the Normie&apos;s traits. It can lag behind the chain until someone refreshes it.</li>
         <li>Offers come from OpenSea. Only item offers (one specific Normie) are checked; collection and trait offers are not tied to one Normie.</li>
         <li>Read-only. Nothing here connects a wallet, asks for a signature, or can move anything. Independent community tool, not affiliated with the Normies team.</li>
       </ul>

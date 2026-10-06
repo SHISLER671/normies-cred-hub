@@ -1,7 +1,7 @@
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
-import { apiDisagrees, judgeAp, parseItemOffers, parsePixelSplit, parseTokenInput, type ApReading } from "./core"
+import { apiDisagrees, judgeAp, judgeListing, parseItemOffers, parsePixelSplit, parseShownPixels, parseTokenInput, type ApReading, type ListingInput } from "./core"
 
 const NORMIES = "0x9eb6e2025b64f340691e424b7fe7022ffde12438"
 const MAKER = "0x1111111111111111111111111111111111111111"
@@ -124,5 +124,49 @@ describe("parseItemOffers", () => {
   it("a body that is not the documented shape is null", () => {
     assert.equal(parseItemOffers({ orders: [] }), null)
     assert.equal(parseItemOffers(null), null)
+  })
+})
+
+// Shaped after OpenSea API v2 NftBatchResponse { nfts: NftDetailed[] } / NftResponse { nft } (openapi.json, read 2026-10-06).
+const nft = (id: number, traits: unknown[]) => ({ identifier: String(id), contract: NORMIES, collection: "normies", traits })
+
+describe("parseShownPixels", () => {
+  it("reads 'Action Points' as a number or a numeric string, from a batch or a single NFT", () => {
+    const m = parseShownPixels({ nfts: [nft(1, [{ trait_type: "Action Points", value: 300 }]), nft(2, [{ trait_type: "Action Points", value: "12" }])] })
+    assert.deepEqual([...(m ?? [])], [[1, 300], [2, 12]])
+    assert.deepEqual([...(parseShownPixels({ nft: nft(7141, [{ trait_type: "Action Points", value: 12 }]) }) ?? [])], [[7141, 12]])
+  })
+  it("a Normie without the trait is null (OpenSea shows none), never 0", () => {
+    assert.deepEqual([...(parseShownPixels({ nfts: [nft(5, [{ trait_type: "Level", value: 2 }])] }) ?? [])], [[5, null]])
+  })
+  it("ignores other contracts and refuses a body of the wrong shape", () => {
+    const other = { identifier: "1", contract: "0x2222222222222222222222222222222222222222", traits: [{ trait_type: "Action Points", value: 9 }] }
+    assert.equal(parseShownPixels({ nfts: [other] })?.size, 0)
+    assert.equal(parseShownPixels({ items: [] }), null)
+    assert.equal(parseShownPixels(null), null)
+  })
+})
+
+describe("judgeListing", () => {
+  const l = (over: Partial<ListingInput>): ListingInput => ({ tokenId: 9, priceEth: 0.3, live: 300, shown: 300, census: { ap: 300, burned: false, at: null }, ...over })
+  it("matching numbers: no flag", () => {
+    assert.equal(judgeListing(l({})), null)
+  })
+  it("OpenSea shows more than the chain: stale", () => {
+    const f = judgeListing(l({ live: 0, census: { ap: 0, burned: false, at: null } }))
+    assert.equal(f?.kind, "stale")
+    assert.match(f?.line ?? "", /OpenSea still shows 300 pixels; it has 0 now/)
+  })
+  it("census had more than the chain: dropped (even if OpenSea already caught up)", () => {
+    assert.equal(judgeListing(l({ live: 0, shown: 0 }))?.kind, "dropped")
+  })
+  it("both at once", () => {
+    assert.equal(judgeListing(l({ live: 10 }))?.kind, "both")
+  })
+  it("never flags on a failed chain read, a burned token, or more pixels than shown", () => {
+    assert.equal(judgeListing(l({ live: null })), null)
+    assert.equal(judgeListing(l({ live: 0, census: { ap: 300, burned: true, at: null } })), null)
+    assert.equal(judgeListing(l({ live: 400 })), null)
+    assert.equal(judgeListing(l({ live: 300, shown: null })), null)
   })
 })

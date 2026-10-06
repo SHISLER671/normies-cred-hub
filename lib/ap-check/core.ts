@@ -176,3 +176,64 @@ export function parseItemOffers(raw: unknown, contract: string = NORMIES_NFT): P
 }
 
 export const openSeaItemUrl = (tokenId: number) => `https://opensea.io/item/ethereum/${NORMIES_NFT}/${tokenId}`
+
+// ── Listings check ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+// The buyer's side of the same problem: OpenSea shows a Normie's traits from its own cached copy of the metadata, including
+// "Action Points". A seller can strip the pixels after OpenSea cached them, so a listing can show pixels the Normie no longer
+// has. We compare what OpenSea shows against the chain, and against our census, for the cheapest listings.
+
+/** The trait name the Normies metadata uses for attached pixels. */
+export const OPENSEA_PIXELS_TRAIT = "Action Points"
+
+/**
+ * Strict: what OpenSea currently SHOWS as each Normie's "Action Points", from an NftBatchResponse ({ nfts: [...] }) or an
+ * NftResponse ({ nft }). A Normie without that trait maps to null (OpenSea shows none). A body that is not the documented
+ * shape is null, so a changed API can never invent a number.
+ */
+export function parseShownPixels(raw: unknown, contract: string = NORMIES_NFT): Map<number, number | null> | null {
+  if (!isObj(raw)) return null
+  const list = Array.isArray(raw.nfts) ? raw.nfts : isObj(raw.nft) ? [raw.nft] : null
+  if (!list) return null
+  const want = contract.toLowerCase()
+  const out = new Map<number, number | null>()
+  for (const n of list) {
+    if (!isObj(n) || typeof n.contract !== "string" || n.contract.toLowerCase() !== want) continue
+    if (typeof n.identifier !== "string" || !/^\d{1,4}$/.test(n.identifier)) continue
+    if (!Array.isArray(n.traits)) continue
+    const t = n.traits.find((x) => isObj(x) && x.trait_type === OPENSEA_PIXELS_TRAIT)
+    const v = isObj(t) ? t.value : undefined
+    const num = typeof v === "number" ? v : typeof v === "string" && /^\d+$/.test(v.trim()) ? Number(v) : null
+    out.set(Number(n.identifier), num !== null && Number.isInteger(num) && num >= 0 ? num : null)
+  }
+  return out
+}
+
+export interface ListingInput {
+  tokenId: number
+  priceEth: number
+  /** attachedOf from the chain; null = read failed. */
+  live: number | null
+  /** What OpenSea shows as "Action Points"; null = OpenSea shows none or could not be asked. */
+  shown: number | null
+  census: CensusAp | null
+}
+
+export interface ListingFlag extends ListingInput {
+  /** stale: OpenSea shows more than the chain. dropped: the census had more than the chain. both: both are true. */
+  kind: "stale" | "dropped" | "both"
+  line: string
+}
+
+/** Pure: a flag when a listed Normie has fewer pixels than OpenSea shows or than it had at our census; null when it looks right. */
+export function judgeListing(l: ListingInput): ListingFlag | null {
+  if (l.live === null || l.census?.burned) return null
+  const stale = l.shown !== null && l.shown > l.live
+  const was = l.census?.ap
+  const dropped = was !== null && was !== undefined && was > l.live
+  if (!stale && !dropped) return null
+  const kind = stale && dropped ? "both" : stale ? "stale" : "dropped"
+  const line = stale
+    ? `OpenSea still shows ${l.shown} pixels; it has ${l.live} now.`
+    : `Had ${was} pixels at our last census; ${l.live} now.`
+  return { ...l, kind, line }
+}
