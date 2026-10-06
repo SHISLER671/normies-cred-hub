@@ -86,10 +86,10 @@ export function judgeAp(r: ApReading): ApJudgement {
   const was = r.census?.ap
   if (was !== null && was !== undefined && was > r.onchain) {
     const when = r.census?.at ? ` (${utc(r.census.at)})` : ""
-    return { verdict: "dropped", line: `AP went down: ${was} at our last census${when}, ${r.onchain} now.`, offerRisk: true }
+    return { verdict: "dropped", line: `Pixels went down: ${was} at our last census${when}, ${r.onchain} now.`, offerRisk: true }
   }
-  if (r.onchain === 0) return { verdict: "no-ap", line: `Normie #${r.tokenId} has no AP attached.`, offerRisk: true }
-  return { verdict: "has-ap", line: `Normie #${r.tokenId} has ${r.onchain} AP attached.`, offerRisk: false }
+  if (r.onchain === 0) return { verdict: "no-ap", line: `Normie #${r.tokenId} has no pixels attached (0 AP).`, offerRisk: true }
+  return { verdict: "has-ap", line: `Normie #${r.tokenId} has ${r.onchain} pixels attached (${r.onchain} AP).`, offerRisk: false }
 }
 
 /** True when the API's attached count disagrees with the chain (the API is behind). */
