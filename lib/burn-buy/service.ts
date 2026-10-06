@@ -93,6 +93,8 @@ export interface Deps {
   marketPin?(): MarketState | null
   /** The Pixel Market's live order book (best ask, depth, fee). Only called once the market is live; null = could not be read. */
   pixelMarket?(): Promise<PixelMarketSnapshot | null>
+  /** #PIXEL a wallet holds outside its Normies (in the wallet + in open listings). Null when it could not be read. Optional. */
+  loosePixels?(address: string): Promise<number | null>
   now(): Date
 }
 
@@ -154,7 +156,7 @@ function cliffMath(advice: WalletAdvice, book: PixelMarketSnapshot, othersScore:
 
 export const NORMAL_INFO = {
   ratePercent: null,
-  basis: "a roll inside a range set by the burned Normie's original pixel count (0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%, per the Sep 23 article), plus the burned token's own AP",
+  basis: "a roll inside a range set by the burned Normie's original pixel count (under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%, confirmed in the Normies contract), plus the burned token's own AP",
   ends: "The fixed 4% promo has ended, or closes by 18:00 UTC at the latest; this page uses the normal rolls from 16:00 UTC",
 } as const
 
@@ -211,6 +213,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   }
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
+    "A burn is two steps on the Canvas: commit, then reveal about a minute later. Reveal within about 50 minutes, or each burned Normie pays only the minimum of its tier.",
     marketState !== "live"
       ? "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value."
       : pixelBook
@@ -355,10 +358,13 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     const own = new Set(held.map((h) => h.tokenId))
     // The census was built from the index; this wallet's holdings are live. Swap its index score for its live
     // score so 'everyone else' is exactly the census minus this wallet, and its share is computed consistently.
-    const liveScore = walletScore(held.length, held.reduce((sum, h) => sum + h.actionPoints, 0))
+    const loose = deps.loosePixels ? await deps.loosePixels(holder.address).catch(() => null) : 0
+    if (loose === null) caveats.push("Could not read this wallet's loose #PIXEL (in the wallet or listed on the market), so only pixels on its Normies are counted here.")
+    else if (loose > 0) caveats.push(`Includes ${loose} #PIXEL held outside your Normies (in the wallet or listed on the Pixel Market): they count for the score exactly like pixels on a Normie.`)
+    const liveScore = walletScore(held.length, held.reduce((sum, h) => sum + h.actionPoints, 0) + (loose ?? 0))
     const indexScore = snap.walletScores.get(holder.address.toLowerCase()) ?? 0
     const walletCtx = { ...ctx, censusTotal: Math.max(0, snap.censusTotal - indexScore) + liveScore }
-    const advice = adviseWallet(held, listings.filter((l) => !own.has(l.tokenId)), walletCtx)
+    const advice = adviseWallet(held, listings.filter((l) => !own.has(l.tokenId)), walletCtx, loose ?? 0)
     // Priced from the live book: what reaching the next boost would cost, and what selling would net. Never a verdict.
     let pixelMarketView: PixelMarketView | null = null
     if (pixelBook && held.length > 0) {

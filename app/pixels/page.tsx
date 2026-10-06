@@ -540,7 +540,8 @@ function CalcResult({ answer: a, inputs }: { answer: PixelsAnswer | BudgetAnswer
 
       <ul className="burn-small pixels-calc-notes">
         <li>The roll is the gamble: {ROLL_TEXT[inputs.yieldMode]}, plus every pixel attached to the burned Normie. {inputs.modeSource === "contract" ? "The burn mode was read from the Normies contract." : "The burn mode could not be read from the contract; this follows the announced schedule."}</li>
-        <li>Burning needs a Normie you own to receive the pixels, and each burn costs gas, which is not included here.</li>
+        <li><strong>Reveal within about 50 minutes.</strong> A burn is two steps on the Canvas: commit, then reveal about a minute later. Miss the reveal window and every burned Normie pays only its minimum roll, so the gamble always lands on the worst case.</li>
+        <li>Burned pixels can land in your wallet or on a Normie you own. Each burn costs gas, which is not included here.</li>
         <li>{inputs.liveConfirmed >= inputs.listingsChecked ? `Every listing's attached pixels were read from the chain, so a stripped Normie is priced as stripped.` : `${inputs.liveConfirmed} of ${inputs.listingsChecked} listings had their pixels confirmed on the chain; the rest use the listing data, which can lag.`} Open any Normie above to check it before you buy.</li>
         <li>Listings and prices move fast. This is a comparison of two costs, not advice. Shared and refreshed every minute.</li>
       </ul>

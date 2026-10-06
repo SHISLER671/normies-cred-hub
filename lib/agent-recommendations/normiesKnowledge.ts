@@ -37,9 +37,9 @@ export const NORMIES_KNOWLEDGE = {
     burnMechanics: {
       process: "Two-step: Commit → Wait 5 blocks → Reveal",
       tiers: [
-        { pixels: "0-490", minAP: "1%", maxAP: "4%", note: "Low pixel count = lower yield band" },
-        { pixels: "491-890", minAP: "2%", maxAP: "4%", note: "Medium yield band" },
-        { pixels: "891+", minAP: "3%", maxAP: "4%", note: "High pixel count = best efficiency band" },
+        { pixels: "under 490", minAP: "1%", maxAP: "4%", note: "Low pixel count = lower yield band" },
+        { pixels: "490-889", minAP: "2%", maxAP: "4%", note: "Medium yield band" },
+        { pixels: "890+", minAP: "3%", maxAP: "4%", note: "High pixel count = best efficiency band" },
       ],
       formula: "AP ≈ pixelCount × randomPercentage (within tier min–max)",
       revealWindow: "~50 minutes (256 blocks)",
@@ -132,7 +132,7 @@ export const NORMIES_KNOWLEDGE = {
     traitCombos: "Watch for rare overlaps — some combinations extremely scarce",
     delegationUse: "Use for collaborations without giving up ownership",
     apEfficiency: {
-      best: "High pixel count (891+) in highest tier band",
+      best: "High pixel count (890+) in highest tier band",
       worst: "Low pixel count, missed reveal window",
     },
   },
@@ -170,26 +170,26 @@ export function apTierForPixelCount(pixels: number): ApTier {
   if (!Number.isFinite(pixels) || pixels < 0) {
     return { minPct: 1, maxPct: 4, label: "unknown", note: "Pixel count unavailable" }
   }
-  if (pixels <= 490) {
+  if (pixels < 490) {
     return {
       minPct: 1,
       maxPct: 4,
-      label: "0-490",
+      label: "under 490",
       note: "Low pixel tier — wider variance, lower min %",
     }
   }
-  if (pixels <= 890) {
+  if (pixels < 890) {
     return {
       minPct: 2,
       maxPct: 4,
-      label: "491-890",
+      label: "490-889",
       note: "Medium pixel tier",
     }
   }
   return {
     minPct: 3,
     maxPct: 4,
-    label: "891+",
+    label: "890+",
     note: "High pixel tier — best efficiency band",
   }
 }
@@ -234,9 +234,9 @@ CANVAS / BURN ECONOMICS:
 - Process: ${k.canvas.burnMechanics.process}
 - AP formula: ${k.canvas.burnMechanics.formula}
 - Tiers by pixel count:
-  • 0–490 px → 1–4% of pixels as AP
-  • 491–890 px → 2–4%
-  • 891+ px → 3–4% (best efficiency band)
+  • under 490 px → 1–4% of pixels as AP
+  • 490–889 px → 2–4%
+  • 890+ px → 3–4% (best efficiency band)
 - Reveal window: ${k.canvas.burnMechanics.revealWindow}; miss window → ${k.canvas.burnMechanics.penalty}
 - AP bound to specific Normie (non-transferable); sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official UI — not an AP debit. CredHub / Normifier preview is not a spend rail.
 - Level = floor(AP/10)+1 (starts at 1); Arena stats scale with Level
@@ -257,7 +257,7 @@ ERC-8004 AGENTS:
 STRATEGIC PRINCIPLES:
 - Untouched status often carries purist premium — weigh before editing
 - Prefer burning commons; protect rare/premium trait stacks
-- High pixel count (891+) → best burn efficiency band
+- High pixel count (890+) → best burn efficiency band
 - Delegation for collab without giving up ownership
 - Arena: official 2026-09-18 design is public (autonomous 640×640 continent; no human players). Not playable on CredHub. Pixel Market: Coming Soon / not live full rules — #PIXEL is AP, not a token; full rules TBA
 

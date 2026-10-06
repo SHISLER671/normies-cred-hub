@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 
 import { burnForBudget, burnForPixels, burnPicks, lensValue, MAX_BURNS, pixelsForBudget, planForBudget, planForPixels, type BurnCandidate } from "./buy-smart"
 
-// Normal tiers: <=490 px rolls 1-4%, 491-890 px 2-4%, 891+ px 3-4% of ORIGINAL pixels; plus every attached pixel.
+// Normal tiers: under 490 px rolls 1-4%, 490-889 px 2-4%, 890+ px 3-4% of ORIGINAL pixels; plus every attached pixel.
 const c = (tokenId: number, priceEth: number, originalPixels: number, livePixels = 0): BurnCandidate => ({ tokenId, priceEth, originalPixels, livePixels })
 const book = [
   { priceEth: 0.001, remaining: 100, partialRemaining: 100 },

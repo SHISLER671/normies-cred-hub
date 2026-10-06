@@ -7,7 +7,7 @@ import type { MarketState } from "../burn-buy/score"
 /** What @serc1n said on launch day (2026-10-05): official, dated, and free of numbers that go stale (no volumes, no burn counts). */
 /** Official (Normies Discord #normies-announcements, 2026-10-05, relayed by Ryan as a screenshot) and confirmed by the contract's own status. */
 const BURN_AND_CARD = `BURN YIELD AND HOLDER CARD (official):
-- The fixed 4% burn promo has ENDED. The official Normies Discord said it ends at 2:00 AM Guam time = 16:00 UTC on October 5, with a 1-hour pause on canvas/burn before the market launch; the Normies contract showed the normal tiers from about 16:23 UTC. Burns now pay a roll by original pixel count: 0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%. Any older text calling the 4% "community-sourced", "ongoing" or "until about 8 PM CET" is out of date.
+- The fixed 4% burn promo has ENDED. The official Normies Discord said it ends at 2:00 AM Guam time = 16:00 UTC on October 5, with a 1-hour pause on canvas/burn before the market launch; the Normies contract showed the normal tiers from about 16:23 UTC. Burns now pay a roll by original pixel count: under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%. Any older text calling the 4% "community-sourced", "ongoing" or "until about 8 PM CET" is out of date.
 - The official Holder Card is a page on the new site, in its main navigation: https://www.normies.art/holder . Its fields are not documented to you: say only that it is an official normies.art page and never describe what it shows.`
 
 const ANNOUNCEMENT = `OFFICIAL ANNOUNCEMENT (@serc1n, 2026-10-05):

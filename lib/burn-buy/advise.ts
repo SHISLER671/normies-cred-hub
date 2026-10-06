@@ -198,9 +198,11 @@ export interface WalletAdvice {
  * The wallet's current standing plus every sensible move, ranked by exact score gain.
  * `listings` should already exclude the wallet's own tokens.
  */
-export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Context): WalletAdvice {
+export function adviseWallet(tokens: HeldToken[], listings: Listing[], ctx: Context, loosePixels = 0): WalletAdvice {
   const held = tokens.length
-  const pixel = tokens.reduce((s, t) => s + t.actionPoints, 0)
+  // Every #PIXEL counts the same for the score: attached to a Normie, loose in the wallet, or in a market listing.
+  const loose = Math.max(0, Number.isFinite(loosePixels) ? Math.trunc(loosePixels) : 0)
+  const pixel = tokens.reduce((s, t) => s + t.actionPoints, 0) + loose
   const score = walletScore(held, pixel)
   const others = Math.max(0, ctx.censusTotal - score)
   const advice = tokens.map((t) => adviseToken(t, ctx)).sort((a, b) => b.yield.total - a.yield.total)

@@ -1,7 +1,7 @@
 // What the Normies contract itself says about burn yield, read from the official API (GET https://api.normies.art/canvas/status):
 //   { paused, maxBurnPercent, tierThresholds: [490, 890], tierMinPercents: [..] }
 // Seen live 2026-10-05: tierMinPercents [4,4,4] with maxBurnPercent 4 = a minimum of 4% in EVERY tier = the fixed 4% promo is active.
-// The normal tiers (Sep 23 article: 0-490 px 1-4%, 491-890 px 2-4%, 891+ px 3-4%) would read [1,2,3].
+// The normal tiers (under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%; the contract pays tier i when pixels < threshold i) read [1,2,3].
 // (That reading of the numbers is an inference from the field names and the announced promo, so everything here fails safe to the clock.)
 //
 // Why: the clock only GUESSES when the promo ends (announced as 16:00 to 18:00 UTC, relayed, not verified). Showing the normal roll while the
