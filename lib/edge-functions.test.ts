@@ -16,7 +16,7 @@ describe("scheduled Supabase functions", () => {
   it("both functions check the cron secret before doing anything and never print it", () => {
     for (const f of ["census-refresh", "owners-refresh", "delegates-refresh"]) {
       const src = read(`supabase/functions/${f}/index.ts`)
-      assert.ok(src.indexOf("unauthorized") < src.indexOf("run(db, dry)"), `${f}: auth must come before the work`)
+      assert.ok(src.indexOf("unauthorized") < src.indexOf("run(db, dry"), `${f}: auth must come before the work`)
       assert.doesNotMatch(src, /console\.log/, `${f}: no logging of anything`)
       assert.match(src, /cron_secret/)
     }
