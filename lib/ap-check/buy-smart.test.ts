@@ -62,6 +62,28 @@ describe("burn plans", () => {
   })
 })
 
+describe("burnForPixels picks the cheapest way to reach the target", () => {
+  it("finishes with one cheap Normie instead of overshooting with a pricey one", () => {
+    // Best per pixel: #1 (0.1 ETH for ~35). Then #2 is great per pixel but costs 1 ETH (~1040). #3 alone covers the rest for 0.12.
+    const picks = burnPicks([c(1, 0.1, 1000), c(2, 1, 1000, 1000), c(3, 0.12, 1000)], "normal")
+    const plan = burnForPixels(picks, 60, "mid")
+    assert.deepEqual(plan.picks.map((p) => p.tokenId).sort(), [1, 3])
+    assert.equal(plan.costEth, 0.22)
+  })
+  it("a single listing that covers everything wins when it is cheapest", () => {
+    const picks = burnPicks([c(1, 0.1, 1000), c(2, 0.1, 1000), c(3, 0.15, 1000, 100)], "normal")
+    assert.deepEqual(burnForPixels(picks, 120, "mid").picks.map((p) => p.tokenId), [3])
+  })
+  it("being sure (worst rolls) never costs less than the typical plan on the same listings", () => {
+    const picks = burnPicks(Array.from({ length: 40 }, (_, i) => c(i, 0.05 + (i % 7) * 0.03, 300 + (i * 37) % 900, (i * 13) % 50)), "normal")
+    for (const need of [30, 120, 400]) {
+      const typical = burnForPixels(picks, need, "mid")
+      const sure = burnForPixels(picks, need, "low")
+      if (typical.reached && sure.reached) assert.ok(sure.costEth >= typical.costEth - 1e-9, `need ${need}`)
+    }
+  })
+})
+
 describe("verdicts", () => {
   it("pixels: the market wins when it is cheaper", () => {
     const picks = burnPicks([c(1, 0.05, 1000), c(2, 0.05, 1000)], "normal") // 30-40 each for 0.05 ETH

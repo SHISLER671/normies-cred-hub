@@ -75,18 +75,92 @@ function sumPlan(picks: BurnPick[], reached: boolean): BurnPlan {
   }
 }
 
-/** Cheapest-per-pixel burns until `need` is reached, counting each burn as `by` (typical roll, or the worst roll to be sure). */
-export function burnForPixels(picks: BurnPick[], need: number, by: "mid" | "low" = "mid"): BurnPlan {
-  const chosen: BurnPick[] = []
-  let got = 0
-  const sorted = by === "mid" ? picks : [...picks].sort((a, b) => a.priceEth / Math.max(1, a.low) - b.priceEth / Math.max(1, b.low))
-  for (const p of sorted) {
-    if (got >= need || chosen.length >= MAX_BURNS) break
-    if (p[by] <= 0) continue
-    chosen.push(p)
-    got += p[by]
+/** Targets up to this many pixels are solved exactly; bigger ones use the fast approximation below. */
+export const EXACT_LIMIT = 5000
+/** Listings considered by the exact solver: the best value ones (keeps it fast; the rest are dearer per pixel anyway). */
+const EXACT_POOL = 250
+
+/**
+ * Exact cheapest set of listings whose `by` pixels add up to at least `need` (a 0/1 knapsack over pixels, capped at `need`).
+ * Null when no set reaches it.
+ */
+function exactPlan(items: BurnPick[], need: number, by: "mid" | "low"): BurnPick[] | null {
+  const W = need
+  const n = items.length
+  const cost = new Float64Array(W + 1).fill(Infinity)
+  cost[0] = 0
+  const took = new Uint8Array(n * (W + 1))
+  const from = new Int32Array(n * (W + 1))
+  for (let i = 0; i < n; i++) {
+    const v = items[i][by]
+    const price = items[i].priceEth
+    if (v <= 0) continue
+    for (let x = W; x >= 0; x--) {
+      if (cost[x] === Infinity) continue
+      const y = Math.min(W, x + v)
+      const c = cost[x] + price
+      if (c < cost[y] - 1e-12) {
+        cost[y] = c
+        took[i * (W + 1) + y] = 1
+        from[i * (W + 1) + y] = x
+      }
+    }
   }
-  return sumPlan(chosen, got >= need)
+  if (cost[W] === Infinity) return null
+  const plan: BurnPick[] = []
+  let y = W
+  for (let i = n - 1; i >= 0 && y > 0; i--) {
+    if (took[i * (W + 1) + y]) {
+      plan.push(items[i])
+      y = from[i * (W + 1) + y]
+    }
+  }
+  return y === 0 ? plan : null
+}
+
+/**
+ * Fast approximation for very large targets: greedy by price per pixel, and at every step also try finishing with the single
+ * cheapest listing that covers what is left; keep the cheapest plan seen.
+ */
+function greedyPlan(usable: BurnPick[], need: number, by: "mid" | "low"): BurnPick[] | null {
+  const order = [...usable].sort((a, b) => a.priceEth / a[by] - b.priceEth / b[by] || a.priceEth - b.priceEth)
+  const byPrice = [...usable].sort((a, b) => a.priceEth - b.priceEth)
+  let best: BurnPick[] | null = null
+  let bestCost = Infinity
+  const consider = (plan: BurnPick[]) => {
+    const c = plan.reduce((s, p) => s + p.priceEth, 0)
+    if (c < bestCost - 1e-12) { best = plan; bestCost = c }
+  }
+  const prefix: BurnPick[] = []
+  let got = 0
+  for (let i = 0; i <= order.length && prefix.length < MAX_BURNS; i++) {
+    if (got >= need) { consider([...prefix]); break }
+    const used = new Set(prefix.map((p) => p.tokenId))
+    const finisher = byPrice.find((p) => !used.has(p.tokenId) && p[by] >= need - got)
+    if (finisher) consider([...prefix, finisher])
+    if (i === order.length) break
+    prefix.push(order[i])
+    got += order[i][by]
+  }
+  return best
+}
+
+/**
+ * The cheapest set of burns that reaches `need`, counting each burn as `by` (typical roll, or the worst roll to be sure).
+ * Solved exactly for realistic targets, so it never overshoots with a pricey Normie when a cheaper combination exists.
+ */
+export function burnForPixels(picks: BurnPick[], need: number, by: "mid" | "low" = "mid"): BurnPlan {
+  const usable = picks.filter((p) => p[by] > 0)
+  let plan: BurnPick[] | null = null
+  if (need <= EXACT_LIMIT) {
+    const pool = [...usable].sort((a, b) => a.priceEth / a[by] - b.priceEth / b[by]).slice(0, EXACT_POOL)
+    plan = exactPlan(pool, need, by)
+    if (plan && plan.length > MAX_BURNS) plan = null
+  }
+  if (!plan) plan = greedyPlan(usable, need, by)
+  if (plan) return sumPlan([...plan].sort((a, b) => a.ethPerPixel - b.ethPerPixel), true)
+  const order = [...usable].sort((a, b) => a.priceEth / a[by] - b.priceEth / b[by])
+  return sumPlan(order.slice(0, MAX_BURNS), false)
 }
 
 /** Cheapest-per-pixel burns that fit inside `budgetEth`, skipping any that would not fit. */
