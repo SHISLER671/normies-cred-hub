@@ -471,7 +471,10 @@ function CalcResult({ answer: a, inputs }: { answer: PixelsAnswer | BudgetAnswer
   let headline: string
   if (a.mode === "pixels") {
     headline =
-      a.verdict === "burn" && burn ? `Burning is cheaper: ${eth(burn.costEth)} for ${a.need}+ pixels, even with the worst rolls.`
+      m && m.shortfall > 0 && burn?.reached
+        ? `The Pixel Market only has ${m.pixels} pixels listed. Burning gets you to ${a.need}: typically ${eth(burn.costEth)}${a.burnSure?.reached ? `, or ${eth(a.burnSure.costEth)} to be sure even with bad rolls` : ""}.`
+      : a.verdict === "burn" && a.burnSure?.reached ? `Burning is cheaper: ${eth(a.burnSure.costEth)} gets you ${a.need}+ pixels even with the worst rolls${burn && burn.costEth < a.burnSure.costEth ? ` (typically ${eth(burn.costEth)})` : ""}.`
+      : a.verdict === "burn" && burn ? `Burning is cheaper: typically ${eth(burn.costEth)} for ${a.need} pixels.`
       : a.verdict === "gamble" && burn && m ? `Burning is cheaper with typical rolls (${eth(burn.costEth)} vs ${eth(m.costEth)}), but bad rolls could leave you short.`
       : a.verdict === "market" && m ? `The Pixel Market is cheaper: ${eth(m.costEth)} for ${a.need} pixels.`
       : "Could not price both sides right now."
