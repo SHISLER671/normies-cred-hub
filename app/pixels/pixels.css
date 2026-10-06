@@ -46,3 +46,12 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 .pixels-page .pixels-lens { margin: 6px 0 14px; padding-top: 12px; border-top: 1px solid var(--border-light); }
 .pixels-page .pixels-lens-stats { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 520px) { .pixels-page .pixels-calc-sides { grid-template-columns: 1fr; } }
+
+/* Tabs: one tool at a time. Plain links (no JavaScript), styled like the /burn goal tabs; the active one is filled. */
+.pixels-page .pixels-tabnav { margin: 0 0 4px; }
+.pixels-page .pixels-tabnav .burn-tab { text-decoration: none; }
+.pixels-page .pixels-tabnav .burn-tab.is-active { background: var(--text-primary); color: var(--bg-primary); box-shadow: inset 0 -3px 0 var(--accent); }
+.pixels-page .pixels-intro { margin: 10px 0 var(--gap); }
+/* The listings check is a quiet second action inside the Buy tab, not a box of its own. */
+.pixels-page .pixels-listings-form { margin: -6px 0 var(--gap); }
+.pixels-page .pixels-listings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px dashed var(--border); }
