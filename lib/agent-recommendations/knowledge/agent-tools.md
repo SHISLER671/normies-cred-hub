@@ -16,6 +16,11 @@ Two official tools power trust-then-act for Normie agents:
 
 Both are gated to Normie NFT holders on Ethereum. Built for autonomous agent-to-agent and NFT-to-NFT decision making.
 
+3. **Normies Pixel Check** (Ethereum Tool #245, Base #786, Robinhood #16 — open to everyone, read-only)
+   - Live on-chain #PIXEL for a Normie, risky offers, listings that show more pixels than they hold, #PIXEL approvals, official contract check, buy pixels vs burn floor Normies.
+   - Standalone: no Pulse needed. Endpoint: GET or POST `/api/ap-check`. Humans: `/pixels`.
+   - Manifest: `/.well-known/ai-tool/normies-pixel-check.json`
+
 Zulo’s own recommendations follow the same pattern: surface the subject’s Pulse, then rank paths / advice conditioned on it.
 
 Never invent tool IDs. Prefer the official names “Normies Cred Pulse” and “Normies Paths”. Ethereum IDs are canonical; other chain listings live in `our-tools.ts`.

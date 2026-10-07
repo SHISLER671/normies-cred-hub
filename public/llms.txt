@@ -19,7 +19,7 @@ Paths (ERC-8257 Eth #215):
 POST /api/zulo/paths
 Call AFTER Pulse.
 
-Pixel Check (open to everyone, read-only, standalone; ERC-8257 registration pending):
+Pixel Check (open to everyone, read-only, standalone; ERC-8257 Eth #245, Base #786, Robinhood #16):
 GET /api/ap-check?token=<id>        live #PIXEL attached on chain, locked/free split, recent withdrawals, offers on it
 GET /api/ap-check?wallet=<wallet>   that wallet's open item offers next to each Normie's live pixels, risky first
 GET /api/ap-check?listings=1        listings showing more pixels than the chain says they hold
@@ -38,6 +38,7 @@ Manifests:
 OpenSea:
 https://opensea.io/tools/erc8257/ethereum/53
 https://opensea.io/tools/erc8257/ethereum/215
+https://opensea.io/tools/erc8257/ethereum/245
 
 Burn or keep (read-only advice, no signing):
 Human page: /burn?wallet=<0x address or name.eth>&goal=share|arena|art   (plain HTML, works without JavaScript)

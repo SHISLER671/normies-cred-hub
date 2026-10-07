@@ -4,7 +4,7 @@
 export const ERC8257_REGISTRY_ADDRESS =
   "0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1" as const
 
-export type AgentToolChain = "ethereum" | "base" | "abstract" | "robinhood"
+export type AgentToolChain = "ethereum" | "base" | "robinhood"
 
 export type AgentToolAccess = "nft-gated" | "open"
 
@@ -58,14 +58,6 @@ export const NORMIES_CRED_PULSE: OurAgentTool = {
       openseaUrl: OPENSEA_TOOL("base", 531),
     },
     {
-      chain: "abstract",
-      chainId: 2741,
-      label: "Abstract",
-      toolId: 1,
-      access: "open",
-      openseaUrl: OPENSEA_TOOL("abstract", 1),
-    },
-    {
       chain: "robinhood",
       chainId: 4663,
       label: "Robinhood",
@@ -103,14 +95,6 @@ export const NORMIES_PATHS: OurAgentTool = {
       openseaUrl: OPENSEA_TOOL("base", 530),
     },
     {
-      chain: "abstract",
-      chainId: 2741,
-      label: "Abstract",
-      toolId: 2,
-      access: "open",
-      openseaUrl: OPENSEA_TOOL("abstract", 2),
-    },
-    {
       chain: "robinhood",
       chainId: 4663,
       label: "Robinhood",
@@ -123,8 +107,8 @@ export const NORMIES_PATHS: OurAgentTool = {
 }
 
 /**
- * Open access on every chain (accessPredicate = address(0)). Listings stay empty until each registerTool transaction is
- * mined; fill in the tool IDs then. Until a listing exists the UI and Ask knowledge do not advertise it.
+ * Open access on every chain (accessPredicate = address(0)). Registered 2026-10-07 by the creator wallet; each listing's
+ * stored URI and manifestHash were read back from the registry and match. Abstract skipped: it shuts down 2026-12-15.
  */
 export const NORMIES_PIXEL_CHECK: OurAgentTool = {
   name: "Normies Pixel Check",
@@ -134,7 +118,33 @@ export const NORMIES_PIXEL_CHECK: OurAgentTool = {
     "https://normiescredhub.vercel.app/.well-known/ai-tool/normies-pixel-check.json",
   endpoint: "https://normiescredhub.vercel.app/api/ap-check",
   manifestHash: "0x95a2307f13507a8a10f8f9cbfe6490f158f053436dc4382d3fcc6408a6365d21",
-  listings: [],
+  listings: [
+    {
+      chain: "ethereum",
+      chainId: 1,
+      label: "Ethereum",
+      toolId: 245,
+      access: "open",
+      openseaUrl: OPENSEA_TOOL("ethereum", 245),
+    },
+    {
+      chain: "base",
+      chainId: 8453,
+      label: "Base",
+      toolId: 786,
+      access: "open",
+      openseaUrl: OPENSEA_TOOL("base", 786),
+    },
+    {
+      chain: "robinhood",
+      chainId: 4663,
+      label: "Robinhood",
+      toolId: 16,
+      access: "open",
+      explorerUrl:
+        "https://robinhoodchain.blockscout.com/tx/0xee03515911484679b01df832f21d11687901f543130bc480ba3284451cd61d20",
+    },
+  ],
 }
 
 export const OUR_AGENT_TOOLS = [NORMIES_CRED_PULSE, NORMIES_PATHS, NORMIES_PIXEL_CHECK] as const
