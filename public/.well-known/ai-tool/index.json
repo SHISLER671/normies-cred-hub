@@ -26,7 +26,6 @@
       "chainToolIds": {
         "ethereum": 53,
         "base": 531,
-        "abstract": 1,
         "robinhood": 15
       },
       "paths": {
@@ -55,7 +54,6 @@
       "chainToolIds": {
         "ethereum": 215,
         "base": 530,
-        "abstract": 2,
         "robinhood": 14
       },
       "paths": {
@@ -72,8 +70,12 @@
       "slug": "normies-pixel-check",
       "name": "Normies Pixel Check",
       "manifest": "/.well-known/ai-tool/normies-pixel-check.json",
-      "note": "Open access, read-only. Standalone: no Pulse needed. ERC-8257 registration on Ethereum, Base, Abstract and Robinhood is pending; chainToolIds fill in once mined.",
-      "chainToolIds": {},
+      "note": "Open access, read-only. Standalone: no Pulse needed. ERC-8257 tools: Ethereum #245, Base #786, Robinhood #16.",
+      "chainToolIds": {
+        "ethereum": 245,
+        "base": 786,
+        "robinhood": 16
+      },
       "paths": {
         "public": {
           "method": "GET",

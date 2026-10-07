@@ -1039,7 +1039,8 @@ ${loadAgentToolsKnowledge()}
 
 AGENT-TOOLS ENFORCEMENT:
 - When the user asks about tools, trust, agents calling each other, or how to act on a Normie, briefly mention the Pulse → Paths sequence and the two tool names/IDs if relevant.
-- Never invent tool IDs. Prefer the official names "Normies Cred Pulse" and "Normies Paths".
+- Never invent tool IDs. Prefer the official names "Normies Cred Pulse", "Normies Paths" and "Normies Pixel Check".
+- For "does this Normie still have its pixels", stripped listings, risky offers or #PIXEL approvals, point to Normies Pixel Check (open to everyone, /pixels).
 - Ethereum IDs are canonical. Other listed chains are open discovery copies of the same HTTPS endpoints.`
 }
 
