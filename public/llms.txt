@@ -20,7 +20,7 @@ POST /api/zulo/paths
 Call AFTER Pulse.
 
 Pixel Check (open to everyone, read-only, standalone; ERC-8257 Eth #245, Base #786, Robinhood #16):
-GET /api/ap-check?token=<id>        live #PIXEL attached on chain, locked/free split, recent withdrawals, offers on it
+GET /api/ap-check?token=<id>        live #PIXEL attached on chain, locked/free split, recent withdrawals, art history (art = every redraw/reset, artChange = one in the last 3 days), offers on it
 GET /api/ap-check?wallet=<wallet>   that wallet's open item offers next to each Normie's live pixels, risky first
 GET /api/ap-check?listings=1        listings showing more pixels than the chain says they hold
 GET /api/ap-check?approvals=<wallet> who may spend that wallet's #PIXEL

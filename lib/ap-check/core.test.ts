@@ -220,3 +220,45 @@ describe("pixel history", () => {
     assert.equal(ago(new Date(NOW - 3 * 86_400_000).toISOString(), NOW), "3 days ago")
   })
 })
+
+import { artVersionText, parseArtVersions, recentArtChange } from "./core"
+
+// Normie #4632 as api.normies.art /history/normie/4632/versions returned it on 2026-10-08 (transformer fields trimmed).
+const V4632 = [
+  { version: 0, changeCount: 15, newPixelCount: 487, gridSize: 40, cleared: false, blockNumber: "25302816", timestamp: "1781284535", txHash: "0x6d0d6331b56c4b55b0c36a6f276c159b084ed8fc80d49a77157209a09401252e" },
+  { version: 1, changeCount: 101, newPixelCount: 553, gridSize: 40, cleared: false, blockNumber: "26127210", timestamp: "1791215879", txHash: "0x7f595f0ead901a36cfe75b50d7aaca8797ef3e3c56ae9272791e179a7f846230" },
+  { version: 2, changeCount: 0, newPixelCount: 500, gridSize: 40, cleared: true, blockNumber: "26133327", timestamp: "1791289619", txHash: "0x4bfc59afad549d152cc9450619b9152826b1ac6493ad649882c2dfaecb01b047" },
+]
+const OCT6_1226 = Date.parse("2026-10-06T12:26:59Z")
+
+describe("art history", () => {
+  it("parses the versions feed newest first, with the reset on top", () => {
+    const v = parseArtVersions(V4632)!
+    assert.deepEqual(v.map((x) => [x.version, x.cleared]), [[2, true], [1, false], [0, false]])
+    assert.equal(v[0].at, "2026-10-06T12:26:59.000Z")
+    assert.equal(artVersionText(v[0]), "drawing wiped (reset)")
+    assert.equal(artVersionText(v[1]), "redrawn (101-pixel drawing)")
+  })
+  it("a wrong shape is null and bad rows are skipped, never guessed", () => {
+    assert.equal(parseArtVersions({ events: [] }), null)
+    assert.deepEqual(parseArtVersions([]), [])
+    assert.equal(parseArtVersions([{ version: 1, changeCount: "x", gridSize: 40, cleared: false, timestamp: "1" }])!.length, 0)
+  })
+  it("#4632: a reset within 3 days is a warning that names the reset", () => {
+    const c = recentArtChange(parseArtVersions(V4632), 72, OCT6_1226 + 2 * 3_600_000)!
+    assert.equal(c.kind, "reset")
+    assert.match(c.line, /art was reset 2 hours ago: the drawing on it was wiped/)
+    assert.match(c.line, /offer made before then was made on different art/)
+    assert.match(c.tx!, /^0x4bfc59afad/)
+  })
+  it("a recent redraw says how big the drawing now is", () => {
+    const c = recentArtChange(parseArtVersions(V4632.slice(0, 2)), 72, Date.parse("2026-10-05T18:00:00Z"))!
+    assert.equal(c.kind, "redrawn")
+    assert.match(c.line, /redrawn 2 hours ago; its drawing now changes 101 pixels of the base art/)
+  })
+  it("old changes, no changes, or an unreadable feed raise nothing", () => {
+    assert.equal(recentArtChange(parseArtVersions(V4632), 72, OCT6_1226 + 4 * 86_400_000), null)
+    assert.equal(recentArtChange([]), null)
+    assert.equal(recentArtChange(null), null)
+  })
+})

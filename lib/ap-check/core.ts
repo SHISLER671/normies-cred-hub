@@ -357,3 +357,60 @@ export function judgeWithHistory(base: ApJudgement, r: ApReading, history: Pixel
     offerRisk: true,
   }
 }
+
+// ── Art history ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// api.normies.art /history/normie/{id}/versions: every Canvas transform on one Normie, oldest first, with the block time and tx.
+// A seller can redraw or reset a customized Normie after someone bids on it, and the bidder pays for art that is gone. The
+// versions feed shows exactly when the art last changed. Seen live 2026-10-08: #4632 got a 101-pixel drawing on Oct 5 and was
+// reset on Oct 6 12:26 UTC, in the same transaction that took its 101 pixels off.
+
+export interface ArtVersion {
+  version: number
+  /** Size of the drawing after this transform: pixels that differ from the base art (0 on a reset). Not the size of this one
+   *  edit: for #184 on 2026-10-08 it was 237 = /canvas/diff's 90 added + 147 removed. */
+  changed: number
+  /** True when this transform wiped the drawing (an overlay reset). */
+  cleared: boolean
+  gridSize: number
+  at: string
+  tx: string | null
+}
+
+/** Strict: whole numbers and a real timestamp, or the version is skipped. Newest first. Null when the shape is wrong. */
+export function parseArtVersions(raw: unknown): ArtVersion[] | null {
+  if (!Array.isArray(raw)) return null
+  const out: ArtVersion[] = []
+  for (const v of raw) {
+    if (!isObj(v) || !isCount(v.version) || !isCount(v.changeCount) || typeof v.cleared !== "boolean" || !isCount(v.gridSize)) continue
+    const ts = typeof v.timestamp === "string" && /^\d+$/.test(v.timestamp) ? Number(v.timestamp) : null
+    if (ts === null) continue
+    const tx = typeof v.txHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(v.txHash) ? v.txHash.toLowerCase() : null
+    out.push({ version: v.version, changed: v.changeCount, cleared: v.cleared, gridSize: v.gridSize, at: new Date(ts * 1000).toISOString(), tx })
+  }
+  return out.sort((a, b) => b.at.localeCompare(a.at) || b.version - a.version)
+}
+
+/** One version in plain words. */
+export function artVersionText(v: ArtVersion): string {
+  if (v.cleared) return "drawing wiped (reset)"
+  return `redrawn (${v.changed}-pixel drawing)`
+}
+
+export interface ArtChange {
+  kind: "reset" | "redrawn"
+  /** One plain sentence for the warning. */
+  line: string
+  at: string
+  tx: string | null
+}
+
+/** The latest art change when it happened inside the window (default 3 days, like the pixel history); null otherwise. */
+export function recentArtChange(versions: ArtVersion[] | null, windowHours = 72, now: number = Date.now()): ArtChange | null {
+  const last = versions?.[0]
+  if (!last || Date.parse(last.at) < now - windowHours * 3_600_000) return null
+  const when = ago(last.at, now)
+  const offers = "Any offer made before then was made on different art."
+  return last.cleared
+    ? { kind: "reset", line: `This Normie's art was reset ${when}: the drawing on it was wiped. ${offers}`, at: last.at, tx: last.tx }
+    : { kind: "redrawn", line: `This Normie's art was redrawn ${when}; its drawing now changes ${last.changed} ${last.changed === 1 ? "pixel" : "pixels"} of the base art. ${offers}`, at: last.at, tx: last.tx }
+}
