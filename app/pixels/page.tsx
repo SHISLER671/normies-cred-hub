@@ -3,7 +3,7 @@ import { headers } from "next/headers"
 
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
-import { ago, apiDisagrees, isActiveApproval, openSeaItemUrl, parseTokenInput, reasonText } from "@/lib/ap-check/core"
+import { ago, apiDisagrees, artVersionText, isActiveApproval, openSeaItemUrl, parseTokenInput, reasonText } from "@/lib/ap-check/core"
 import { planForBudget, planForPixels, MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart, type BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
 import { checkContract, OFFICIAL_CONTRACTS, parseAddressInput, type ContractCheck } from "@/lib/official-contracts"
@@ -291,6 +291,17 @@ function TokenResult({ check, isExample }: { check: TokenCheck; isExample: boole
     <section className="burn-box ap-result" data-tag={isExample ? "Example · Zulo's Normie" : `Normie #${check.tokenId}`} data-verdict={j.verdict} aria-labelledby="ap-h">
       {isExample && <p className="burn-example" role="note">Showing <strong>Normie #{EXAMPLE_TOKEN}</strong> as an example. Type any Normie number above.</p>}
       <h2 id="ap-h" className="burn-headline">{j.line}</h2>
+      {check.artChange && (
+        <p className="burn-note ap-warn" role="note">
+          {check.artChange.line}
+          {check.artChange.tx && (
+            <>
+              {" "}
+              <a href={`https://etherscan.io/tx/${check.artChange.tx}`} target="_blank" rel="noopener noreferrer">See the transaction</a>.
+            </>
+          )}
+        </p>
+      )}
 
       <dl className="burn-stats ap-stats">
         <div><dt>Pixels (AP)</dt><dd>{r.onchain ?? "?"}</dd></div>
@@ -331,6 +342,30 @@ function TokenResult({ check, isExample }: { check: TokenCheck; isExample: boole
           {check.history.length > 6 && <p className="burn-small">Showing the latest 6 of {check.history.length}.</p>}
         </section>
       )}
+
+      <section className="pixels-history" aria-labelledby="art-h">
+        <h3 id="art-h" className="burn-cap">Art history</h3>
+        {check.art === null ? (
+          <p className="burn-small">Could not read the art history just now.</p>
+        ) : check.art.length === 0 ? (
+          <p className="burn-small">Never customized: it shows its original art.</p>
+        ) : (
+          <>
+            <ul className="pixels-history-list">
+              {check.art.slice(0, 4).map((v) => (
+                <li key={`${v.version}-${v.at}`} data-kind={v.cleared ? "reset" : "redraw"}>
+                  <span className="pixels-history-what">{artVersionText(v)}</span>
+                  <span className="pixels-history-after">{v.gridSize}×{v.gridSize}</span>
+                  <span className="pixels-history-when">
+                    {v.tx ? <a href={`https://etherscan.io/tx/${v.tx}`} target="_blank" rel="noopener noreferrer">{ago(v.at)}</a> : ago(v.at)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {check.art.length > 4 && <p className="burn-small">Showing the latest 4 of {check.art.length} changes.</p>}
+          </>
+        )}
+      </section>
 
       <section className="ap-offers" aria-labelledby="ap-offers-h">
         <h3 id="ap-offers-h" className="burn-cap">Open item offers on this Normie</h3>
