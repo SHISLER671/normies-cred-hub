@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
+import { MOVE_CHECKLIST } from "@/lib/ap-check/move-checklist"
 import { ago, apiDisagrees, artVersionText, isActiveApproval, openSeaItemUrl, parseTokenInput, reasonText } from "@/lib/ap-check/core"
 import { planForBudget, planForPixels, MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart, type BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
@@ -240,6 +241,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
               </div>
               <p className="burn-safeline">Before you approve or sign, check the address</p>
             </form>
+            <MoveChecklist />
           </>
         )}
 
@@ -366,6 +368,8 @@ function TokenResult({ check, isExample }: { check: TokenCheck; isExample: boole
           </>
         )}
       </section>
+
+      <p className="burn-small">Moving or selling this Normie? <a href="/pixels?tab=safety#move">Check these first</a>: its agent, pixels and canvas helpers all change with the owner.</p>
 
       <section className="ap-offers" aria-labelledby="ap-offers-h">
         <h3 id="ap-offers-h" className="burn-cap">Open item offers on this Normie</h3>
@@ -705,6 +709,28 @@ function ContractResult({ check }: { check: ContractCheck }) {
   )
 }
 
+/** Static, sourced guidance: what changes when a Normie changes wallets. Linkable as /pixels?tab=safety#move. */
+function MoveChecklist() {
+  return (
+    <section id="move" className="burn-box pixels-move" data-tag="Before you move a Normie" aria-labelledby="move-h">
+      <h2 id="move-h" className="burn-headline">Moving or selling a Normie? Check these first.</h2>
+      <ol className="pixels-move-list">
+        {MOVE_CHECKLIST.map((item) => (
+          <li key={item.title}>
+            <strong>{item.title}</strong> {item.body}
+            {item.source && (
+              <>
+                {" "}
+                <a href={item.source.url} target="_blank" rel="noopener noreferrer" className="pixels-move-src">{item.source.label} ↗</a>
+              </>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
 function FinePrint() {
   return (
     <details className="burn-box burn-fold" data-tag="How this works">
@@ -713,6 +739,8 @@ function FinePrint() {
         <li>Pixels (AP, the #PIXEL attached to a Normie) are read live from the Normies storage contract (attachedOf). That is the real number.</li>
         <li>Locked and free come from the Normies API, which can lag the chain by a little.</li>
         <li>Last census is our own snapshot, refreshed every 6 hours. If the live number is lower, pixels were removed since then.</li>
+        <li>Pixel history comes from the Normies API&apos;s record of every change to a Normie&apos;s attached pixels, with the transaction for each.</li>
+        <li>Art history comes from the Normies API&apos;s record of every Canvas redraw or reset on chain, with the transaction for each. The size shown is the whole drawing: how many pixels differ from the base art.</li>
         <li>&quot;OpenSea shows&quot; is OpenSea&apos;s own cached copy of the Normie&apos;s traits. It can lag behind the chain until someone refreshes it.</li>
         <li>Pixel approvals come from the pixel contract&apos;s own Approval events, indexed hourly, and every amount shown is re-read live from the chain.</li>
         <li>Offers come from OpenSea. Only item offers (one specific Normie) are checked; collection and trait offers are not tied to one Normie.</li>

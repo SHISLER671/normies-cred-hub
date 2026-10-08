@@ -68,3 +68,7 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 
 .pixels-page .pixels-official-list { list-style: none; padding: 0; margin: 8px 0 0; }
 .pixels-page .pixels-official-list li { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--border-light); }
+/* Before you move a Normie: a numbered checklist with a quiet source link per item. */
+.pixels-page .pixels-move-list { margin: 10px 0 0; padding-left: 22px; display: grid; gap: 10px; font-size: 15px; line-height: 1.5; color: var(--text-primary); }
+.pixels-page .pixels-move-list strong { font-weight: 600; }
+.pixels-page .pixels-move-src { font: 12px var(--font-mono); color: var(--mute); white-space: nowrap; }
