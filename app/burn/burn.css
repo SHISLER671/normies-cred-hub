@@ -250,3 +250,34 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-answer[data-tag]::before { border-color: var(--accent); }
 .burn-page .burn-link, .burn-page .burn-example, .burn-page .burn-hint { text-align: left; }
 .burn-page .burn-delegates { margin: 4px 0 14px; }
+
+/* ========== Brand v2 phase 3 (2026-10-09): /burn and /pixels on the shared cell system ==========
+   CSS only, no markup: same inputs, same answers. Matches components/brand (app/brand.css): stats read label-over-number
+   in ruled cells, verdicts are chips with a square bullet, section labels are tracked eyebrows with a left bar, tabs are
+   a segmented control whose active side is inverted, cards sit flat (no lift). */
+.burn-page .burn-stats > div { flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 18px; }
+.burn-page .burn-stats dt { order: -1; font: 500 11px/1.4 var(--font-ui); letter-spacing: 0.22em; color: var(--text-secondary); }
+.burn-page .burn-stats dd { font: 500 clamp(26px, 5vw, 34px)/1 var(--font-ui); font-variant-numeric: tabular-nums; }
+
+.burn-page .burn-tab { font-weight: 500; letter-spacing: 0.2em; }
+.burn-page .burn-tab:has(input:checked),
+.pixels-page .pixels-tabnav .burn-tab.is-active { box-shadow: inset 0 -2px 0 var(--accent); }
+
+.burn-page .burn-pill { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; padding: 5px 10px; font: 500 11px/1 var(--font-ui); letter-spacing: 0.2em; border-width: 1px; }
+.burn-page .burn-pill::before { content: ""; width: 6px; height: 6px; background: currentColor; }
+.burn-page .burn-pill[data-verdict="burn"] { border-width: 1px; padding: 5px 10px; border-color: var(--accent); color: var(--accent); }
+.burn-page .burn-pill[data-verdict="neutral"] { border-style: solid; border-color: var(--border-light); }
+.burn-page .burn-pill[data-verdict="neutral"]::before { background: transparent; border: 1px solid currentColor; width: 4px; height: 4px; }
+
+.burn-page h2.burn-cap,
+.burn-page h3.burn-cap { padding-left: 10px; border-left: 2px solid var(--text-primary); letter-spacing: 0.28em; color: var(--text-secondary); }
+
+.burn-page .burn-tile:hover { transform: none; }
+
+@media (max-width: 420px) {
+  .burn-page .burn-stats > div { padding: 12px 10px; }
+  .burn-page .burn-stats dt { letter-spacing: 0.12em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .burn-page .burn-tile { transition: none; }
+}
