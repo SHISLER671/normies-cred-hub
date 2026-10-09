@@ -33,6 +33,12 @@ export default function NotFound() {
           <Link href="/dashboard" className="button">
             Pulse
           </Link>
+          <Link href="/pixels" className="button">
+            Pixels
+          </Link>
+          <Link href="/burn" className="button">
+            Burn
+          </Link>
         </nav>
       </main>
       <SiteFooter />
