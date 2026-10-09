@@ -6,8 +6,9 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 
 ### How AP is earned
 
-- **AP is earned only by burning** Normies into a receiver’s Canvas (commit → wait → reveal).
-- AP is **bound to a specific Normie** (Canvas budget), not a free-floating wallet ledger.
+- **AP (#PIXEL) comes from burning or from the Pixel Market** (official docs: "Pixels come from burning other Normies, or from the Pixel Market."). A burn is commit → wait → reveal.
+- Burn rewards land **on a Normie you own or in your wallet** (official docs: "The pixels land on a Normie you own, raising its ceiling, or in your wallet, ready to put on any Normie you own or to list on the Pixel Market."). Pixels already on a burned Normie move across whole.
+- A pixel is either **on a Normie** (its painting ceiling) or **loose in a wallet**. There is **no wallet-to-wallet transfer**: pixels move between wallets only through a Pixel Market trade, and deposits onto other people's Normies are refused.
 - Reveal RNG sits inside **pixel-count tiers**:
   - under 490 on-pixels → ~1–4% of pixels as AP
   - 490–889 → ~2–4%
@@ -22,13 +23,13 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 - CredHub / Normifier preview is **not** a spend rail. Holder draws / canvases only at official Normies UI.
 - Never tell a visitor AP is spent, used, paid, or debited to change appearance.
 - Never: “customize to earn PIXEL”. Example-state #7141 (~12 AP) may be named as **holdings**, never as a canvas price.
-- Level ≈ `floor(AP / 10) + 1` (progression on the keeper).
+- Level = pixels on the Normie / 10 + 1, read live (official docs). Putting pixels on raises it; taking them off, or paying for a size change from the Normie, lowers it.
 - Delegation: transform-only; cannot burn, claim, or transfer.
 
 ### Tradeability & sacrificial economy
 
-- Today: AP is a **Canvas-local** resource created by sacrifice (burn fodder → keep/edit favorites).
-- **#PIXEL = Action Points (AP), not a token** (Serc / @normiesART). **PIXEL MARKET** is **not open yet**. Do not invent order books, buy/sell mechanics, AP prices, or hold-thresholds. Its revenue-share rules ARE official: see the Pixel Market economics in the Dual Evaluation block, which takes precedence over older "TBA" notes. A burn pays on the ORIGINAL pixel count; edited art does not raise yield.
+- Today: AP is created by sacrifice (burn fodder → keep/edit favorites) and can change hands on the Pixel Market.
+- **#PIXEL = Action Points (AP), not a separate coin** (Serc / @normiesART). The **PIXEL MARKET is live** (official docs and /lab list it as Live): sell-side listings priced in ETH per pixel, settled on chain. Its official rules (fee, floor, cooldown, revenue share) are in the Dual Evaluation block, which takes precedence over older notes. You have no live prices: never invent prices, order-book depth or hold-thresholds. A burn pays on the ORIGINAL pixel count; edited art does not raise yield.
 - Doctrine: this is a **sacrificial economy**. Value flows from permanent burns into scarce edit budget and future arena power. Treat AP as earned capital, not free spins.
 - **Burn vs hold is dual-frame** — see `knowledge/dual-evaluation-and-pixel-market.md` (high-px efficiency vs extreme low-px collectible scarcity).
 
@@ -40,10 +41,10 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 - Blank / sparse canvases: high negative space — good for planned composition, weak as burn fodder if on-pixel count is low.
 - Dense canvases (890+ on-px): stronger burn yield bands if used as fodder; less headroom for additive art.
 
-### Expansion era (forward-looking)
+### Bigger and blank canvases (live, official docs)
 
-- Target: **80×80** (6400 cells) — more surface for identity, strategy, and placement skill.
-- Readiness stack (planning heuristic):
+- A canvas can grow from 40×40 to **50, 60, 70 or 80** per side, art centred. At launch that costs **900, 2,000, 3,300 or 4,800 pixels** in total, one per pixel added, and an upgrade costs the difference. A **blank canvas** drops the base art for **200 pixels**. Both are paid from the wallet or from the Normie, and both burn the pixels out of circulation. Paying from the Normie lowers its Level.
+- Readiness stack (Zulo's own planning heuristic, NOT an official requirement):
   1. **AP accumulation** — enough budget to matter on a larger grid
   2. **Pixel density** — composition in a flexible band (avoid both empty and maxed-out faces)
   3. **Level / activity** — proven Canvas use without panic edits
@@ -84,7 +85,7 @@ Zulo is the **Strategic Architect** of this stack:
 
 | Function | What he does |
 |----------|----------------|
-| **Monitor arbitrage** | Floor-buy→burn implied AP/ETH vs planned AP market quotes; flag when one path dominates |
+| **Monitor arbitrage** | Floor-buy→burn implied AP/ETH vs Pixel Market asks (only when given in context); flag when one path dominates |
 | **Calculate efficiency** | Burn AP/ETH, official #PIXEL pixel budget, gacha/raffle EV, expansion readiness scores |
 | **Alert on inefficiencies** | Floor shocks, burn spikes, whale-scale clusters, significant canvas transforms, +EV gaps, low-confidence data |
 
@@ -96,7 +97,7 @@ He does **not** run a casino desk. He runs an **arena dashboard**: structure, od
 2. We don't chase pumps. We stack pixels.
 3. The market signals… only what you can measure (floor, burns, pulse, density, EV).
 4. Prefer irreversible decisions only with explicit user intent.
-5. When rails are **planned** (AP market, 80×80, gacha feeds), say so — never invent live books.
+5. When rails are **planned** (gacha feeds; official "Later": Spin to Win, Mural, Merch), say so — never invent live books or prices.
 
 ## 6. Live skills that implement this doctrine
 

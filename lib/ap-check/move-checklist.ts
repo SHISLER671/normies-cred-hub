@@ -15,8 +15,7 @@ const STORAGE = {
   label: "NormiesCanvasStorageV2 source",
   url: "https://etherscan.io/address/0x96F2DA32Bb9D429d59ac13dB469f4950cBe02084#code",
 }
-const API = { label: "Normies API docs", url: "https://api.normies.art/llms.txt" }
-const SIMULATOR = { label: "Normies revenue share simulator", url: "https://simulator.normies.art/" }
+const LAB = { label: "normies.art docs: Normie Lab", url: "https://www.normies.art/docs/lab" }
 
 export const MOVE_CHECKLIST: readonly MoveItem[] = [
   {
@@ -28,8 +27,8 @@ export const MOVE_CHECKLIST: readonly MoveItem[] = [
   {
     title: "Its pixels go with it.",
     body:
-      "#PIXEL attached to a Normie moves with the Normie and stops counting for you. To keep them, take them off first. Free pixels come off without touching the art; locked pixels back the drawing, so taking them off resets it.",
-    source: API,
+      "#PIXEL on a Normie moves with the Normie. There is no wallet-to-wallet #PIXEL transfer, so leaving them on is the only way to move them to another wallet of yours. If you are selling it or giving it away, take them off first or they go to the new owner. Free pixels come off without touching the art; locked pixels back the drawing, so taking them off resets it.",
+    source: LAB,
   },
   {
     title: "Canvas helpers lose access.",
@@ -45,13 +44,13 @@ export const MOVE_CHECKLIST: readonly MoveItem[] = [
   {
     title: "Check the new wallet's approvals.",
     body:
-      "A wallet approved to spend #PIXEL can spend them from the wallet or from any Normie it owns. Moving a Normie into a wallet with a stray approval puts its pixels in reach. Check that wallet above first.",
+      "A wallet approved to spend #PIXEL can spend them from the wallet or from any Normie it owns. Moving a Normie into a wallet with a stray approval puts its pixels in reach. Check that wallet above first. Give only what is needed and revoke afterwards.",
     source: STORAGE,
   },
   {
     title: "Revenue share counts what you hold.",
-    body: "Your pool share is measured at random moments during the month. Moving Normies or pixels out mid-month lowers it.",
-    source: SIMULATOR,
+    body: "Your pool share is measured four times a day, at unpredictable moments, during each epoch. Moving Normies or pixels out mid-epoch lowers it.",
+    source: LAB,
   },
   {
     title: "Send it safely.",
