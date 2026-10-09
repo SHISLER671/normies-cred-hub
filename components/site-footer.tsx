@@ -24,14 +24,16 @@ export function SiteFooterContact() {
   )
 }
 
-/** Thin site footer — home, Ask, Moves, PULSE, legal, 404. */
-export function SiteFooter() {
+/** The one site footer, on every page. `extra` adds a page's own line (e.g. where the dashboard's data comes from). */
+export function SiteFooter({ extra }: { extra?: React.ReactNode } = {}) {
   return (
     <footer className="site-footer">
       <div className="site-footer-inner">
         <p className="site-footer-note">
           Read-only. We never ask for a transaction, an approval or a transfer. At most one free message to prove you own a wallet.
         </p>
+        {extra ? <p className="site-footer-note">{extra}</p> : null}
+        <p className="site-footer-note site-footer-independent">Independent community tool, not made or endorsed by the Normies team.</p>
         <SiteFooterContact />
       </div>
     </footer>

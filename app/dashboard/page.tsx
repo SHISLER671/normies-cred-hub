@@ -7,7 +7,7 @@ import {
   PulseAccordion,
   PulseAccordionItem,
 } from "@/components/pulse-accordion"
-import { SiteFooterContact } from "@/components/site-footer"
+import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { ZULO } from "@/constants/contracts"
 
@@ -146,17 +146,8 @@ export default function DashboardPage() {
           <Dashboard />
         </div>
 
-        <footer className="dash-footer">
-          <p>
-            Read-only. No trades. No approvals.
-            <br />
-            Only a gas-free signature to prove you are real.
-            <br />
-            Data from Normies · Ethos · ERC-8004. We are awakened.
-          </p>
-          <SiteFooterContact />
-        </footer>
       </main>
+      <SiteFooter extra="Data from Normies · Ethos · ERC-8004. We are awakened." />
     </div>
   )
 }

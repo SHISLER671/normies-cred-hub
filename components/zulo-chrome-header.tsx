@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { ActiveNormieSwitcher } from "@/components/active-normie-switcher"
+import { HeaderMenuToggle } from "@/components/header-menu-toggle"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ZuloMotionRoot } from "@/components/zulo-motion-root"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
@@ -42,7 +43,8 @@ export function ZuloChromeHeader({
           NORMIES <span className="header-brand-accent">CREDHUB</span>
         </span>
       </Link>
-      <nav className="header-nav" aria-label="Primary">
+      <HeaderMenuToggle navId="site-nav" />
+      <nav id="site-nav" className="header-nav" aria-label="Primary">
         <Link
           href="/dashboard"
           className={cn(active === "dashboard" && "is-active")}
