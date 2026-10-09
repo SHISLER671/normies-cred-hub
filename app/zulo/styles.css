@@ -2,19 +2,21 @@
 
 .zulo-chrome {
   /* Tokens — light (default): off-white / off-black monochrome */
-  --bg-primary: #e5e5e5;
-  --bg-secondary: #d4d4d4;
-  --bg-tertiary: #c4c4c4;
-  --bg-dark: #1a1a1a;
-  --text-primary: #1a1a1a;
-  --text-secondary: #4a4a4a;
-  --text-muted: #737373;
-  --text-inverse: #e5e5e5;
-  --border: #1a1a1a;
-  --border-light: #a3a3a3;
-  --accent: #1a1a1a;
+  /* Brand v2 (2026-10-09): normies.art ink #1a1b1c / paper #e3e5e4; greys are ink mixed into paper (muted 70% = 5.7:1).
+     Zulo cyan stays the one accent: it is what keeps NCH visibly independent of the official site. */
+  --bg-primary: #e3e5e4;
+  --bg-secondary: #d3d5d4;
+  --bg-tertiary: #c5c7c6;
+  --bg-dark: #1a1b1c;
+  --text-primary: #1a1b1c;
+  --text-secondary: #4c4e4e;
+  --text-muted: #565858;
+  --text-inverse: #e3e5e4;
+  --border: #565858;
+  --border-light: #c5c7c6;
+  --accent: #1a1b1c;
   --zulo-accent: #22d3ee;
-  --card-hover: #e8e8e8;
+  --card-hover: #dbdddc;
 
   /* Cursor ring (theme-aware; square, monochrome) */
   --cursor-ring: var(--text-primary);
@@ -30,7 +32,9 @@
   --space-xl: 80px;
   --space-2xl: 120px;
 
-  --font-mono: "Courier New", Courier, "SF Mono", Monaco, ui-monospace, monospace;
+  /* --font-ui is the whole site's face (Chakra Petch); --font-mono is now real monospace, for addresses and hashes only. */
+  --font-ui: var(--font-chakra), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --pulse-speed: 2s;
 
   /* Motion tokens — product-wide (quiet, consistent) */
@@ -49,7 +53,7 @@
   --focus-offset: 2px;
 
   color-scheme: light;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
@@ -59,18 +63,18 @@
 
 /* Dark = inverted grayscale of light (no new color system) */
 .dark .zulo-chrome {
-  --bg-primary: #0d0d0d;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #262626;
-  --bg-dark: #e5e5e5;
-  --text-primary: #e5e5e5;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
-  --text-inverse: #0d0d0d;
-  --border: #a3a3a3;
-  --border-light: #4a4a4a;
-  --accent: #e5e5e5;
-  --card-hover: #222222;
+  --bg-primary: #1a1b1c;
+  --bg-secondary: #242526;
+  --bg-tertiary: #2e2f30;
+  --bg-dark: #e3e5e4;
+  --text-primary: #e3e5e4;
+  --text-secondary: #a7a8a8;
+  --text-muted: #939494;
+  --text-inverse: #1a1b1c;
+  --border: #939494;
+  --border-light: #38393a;
+  --accent: #e3e5e4;
+  --card-hover: #2a2b2c;
 
   --cursor-ring: var(--text-primary);
   --cursor-ring-opacity: 0.9;
@@ -118,7 +122,7 @@
 .zulo-chrome h2,
 .zulo-chrome h3,
 .zulo-chrome h4 {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -152,7 +156,7 @@
 }
 
 .zulo-chrome .mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 14px;
   letter-spacing: 0.02em;
   overflow-wrap: anywhere;
@@ -287,7 +291,7 @@
 }
 
 .zulo-chrome .header-brand-text {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -369,7 +373,7 @@
   border: 1px solid var(--border);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   cursor: pointer;
   border-radius: 0;
   transition:
@@ -457,7 +461,7 @@
 .zulo-chrome .active-normie-empty-hint {
   font-size: 11px;
   color: var(--text-secondary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: 0.01em;
 }
@@ -482,7 +486,7 @@
   font-size: 12px;
   line-height: 1.45;
   color: var(--text-secondary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
 }
 
@@ -503,7 +507,7 @@
   color: var(--text-primary);
   text-align: left;
   cursor: pointer;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   border-radius: 0;
 }
 
@@ -531,7 +535,7 @@
 .zulo-chrome .active-normie-option-sub {
   font-size: 11px;
   color: var(--text-muted);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: 0.01em;
 }
@@ -593,7 +597,7 @@
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-secondary, #4a4a4a);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 .my-agents-grid {
@@ -677,7 +681,7 @@
 .my-agent-status {
   font-size: 11px;
   color: var(--text-muted, #4a4a4a);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 .my-agent-active-tag {
@@ -788,7 +792,7 @@
   color: var(--text-secondary);
   text-transform: none;
   letter-spacing: 0.01em;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-weight: 400;
 }
 
@@ -802,7 +806,7 @@
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1228,7 +1232,7 @@
   color: var(--text-secondary);
   text-transform: none;
   letter-spacing: 0.01em;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-weight: 400;
 }
 
@@ -1458,7 +1462,7 @@
   border: 1px solid var(--border);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1705,7 +1709,7 @@
 }
 
 .zulo-chrome .response-label {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-ui);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -1884,7 +1888,7 @@
   border: 1px solid var(--border-light);
   background: transparent;
   color: var(--text-secondary);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   cursor: pointer;
   transition:
@@ -1929,7 +1933,7 @@
   border: 1px solid var(--border);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 14px;
   border-radius: 0;
   min-height: 48px;
@@ -2087,7 +2091,7 @@
   padding: var(--space-md);
   text-align: left;
   cursor: pointer;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   transition: background 0.2s;
   width: 100%;
   border-radius: 0;
@@ -2170,7 +2174,7 @@
   margin: 0;
   padding: 14px 20px 12px;
   text-align: center;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   line-height: 1.55;
   color: var(--text-muted);
@@ -2205,7 +2209,7 @@
 .zulo-chrome .ask-skills-summary {
   list-style: none;
   cursor: pointer;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2256,7 +2260,7 @@
   border: none;
   background: transparent;
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -2291,7 +2295,7 @@
 
 .zulo-chrome .ask-intro-text {
   margin: 0;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.65;
   color: var(--text-secondary);
@@ -2322,7 +2326,7 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -2369,7 +2373,7 @@
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -2631,7 +2635,7 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -2741,7 +2745,7 @@
   border: 1px solid var(--border);
   background: var(--bg-primary);
   text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   cursor: pointer;
   transition: background 0.15s;
   color: var(--text-primary);
@@ -2896,7 +2900,7 @@
   letter-spacing: -0.01em;
   line-height: 1.25;
   font-weight: 700;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
 }
 
 .zulo-chrome .moves-lede {
@@ -2908,7 +2912,7 @@
   text-transform: none;
   letter-spacing: 0.01em;
   font-weight: 400;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 .zulo-chrome .moves-stats {
@@ -2967,7 +2971,7 @@
 
 .zulo-chrome .moves-input {
   flex: 1 1 220px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 14px;
   padding: 12px 14px;
   border: 1px solid var(--border);
@@ -3003,7 +3007,7 @@
   font-size: 12px;
   line-height: 1.45;
   color: var(--text-muted);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: 0.01em;
 }
@@ -3027,7 +3031,7 @@
 
 .zulo-chrome .moves-chip {
   position: relative;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -3069,7 +3073,7 @@
   border: 1px solid var(--border);
   background: var(--bg-primary);
   color: var(--text-secondary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.01em;
@@ -3135,7 +3139,7 @@
   font-size: 13px;
   line-height: 1.45;
   color: var(--text-primary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   max-width: 560px;
 }
 
@@ -3154,7 +3158,7 @@
   line-height: 1.55;
   color: var(--text-muted);
   max-width: 560px;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: 0.01em;
 }
@@ -3164,7 +3168,7 @@
   font-size: 13px;
   line-height: 1.45;
   color: var(--text-muted);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: 0.01em;
   font-weight: 400;
@@ -3176,7 +3180,7 @@
   line-height: 1.55;
   color: var(--text-muted);
   max-width: 36rem;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: 0.01em;
 }
@@ -3226,7 +3230,7 @@
   color: var(--text-secondary);
   text-transform: none;
   letter-spacing: 0.01em;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-weight: 400;
 }
 
@@ -3242,7 +3246,7 @@
   font-size: 14px;
   line-height: 1.55;
   color: var(--text-secondary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: 0.01em;
   font-weight: 400;
@@ -3274,7 +3278,7 @@
 }
 
 .zulo-chrome .move-rate-btn {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 13px;
   padding: 8px 14px;
   border: 1px solid var(--border);
@@ -3324,7 +3328,7 @@
   font-size: 13px;
   line-height: 1.55;
   background: var(--bg-secondary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   color: var(--text-secondary);
 }
 
@@ -3478,7 +3482,7 @@
   letter-spacing: 0.01em;
   text-transform: none;
   color: var(--text-muted, #4a4a4a);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   line-height: 1.4;
 }
 
@@ -3583,7 +3587,7 @@
 
 .zulo-chrome .cred-framework-heading {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: clamp(22px, 4.5vw, 30px);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -3594,7 +3598,7 @@
 
 .zulo-chrome .cred-framework-sub {
   margin: 12px 0 0;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 15px;
   line-height: 1.5;
   color: var(--text-secondary);
@@ -3657,7 +3661,7 @@
 }
 
 .zulo-chrome .pulse-action-btn-title {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -3666,7 +3670,7 @@
 }
 
 .zulo-chrome .pulse-action-btn-arrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 14px;
   opacity: 0.7;
   flex-shrink: 0;
@@ -3679,7 +3683,7 @@
 
 .zulo-chrome .pulse-action-btn-desc {
   margin: 0;
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 13px;
   line-height: 1.45;
   color: var(--text-muted);
@@ -3737,7 +3741,7 @@
 }
 
 .zulo-chrome .agent-tool-id {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-ui);
   font-size: 0.95em;
   user-select: all;
   -webkit-user-select: all;
@@ -4357,7 +4361,7 @@
    (small label, light title, grey intro, left aligned). Pulse and Moves share the .moves-* header classes,
    /burn reuses them through .burn-hero, so changing the tone here changes all of them together. */
 .zulo-chrome {
-  --font-display: var(--font-space-grotesk), var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-ui);
   --page-w: 720px;
   --panel-bg: color-mix(in srgb, var(--text-primary) 5%, var(--bg-primary));
   --panel-line: color-mix(in srgb, var(--text-primary) 26%, var(--bg-primary));
@@ -4415,8 +4419,8 @@
 .zulo-chrome .caption { color: var(--text-quiet); }
 
 /* ========== PAGE SYSTEM, step 2: landing, Pulse cards, Ask ==========
-   Same tone as the page header: display font for titles (light, sentence case), Inter for reading text,
-   Courier kept for labels, tags and data. Appearance only. */
+   Same tone as the page header: display font for titles (light, sentence case). Since brand v2 (2026-10-09) titles,
+   reading text, labels, tags and data are all Chakra Petch (--font-ui), like normies.art. Appearance only. */
 
 /* landing: the front door stays centered, but speaks in the same voice */
 .zulo-chrome.zulo-home .hero-title-hub {
@@ -4428,7 +4432,7 @@
   letter-spacing: -0.03em;
 }
 .zulo-chrome.zulo-home .hero-hub .hero-subtitle {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 18px;
   line-height: 1.55;
   letter-spacing: 0;
@@ -4448,7 +4452,7 @@
   font-size: 20px;
   letter-spacing: -0.01em;
 }
-.zulo-chrome.zulo-home .home-orient-line { font-family: var(--font-inter), system-ui, sans-serif; font-size: 15px; }
+.zulo-chrome.zulo-home .home-orient-line { font-family: var(--font-ui); font-size: 15px; }
 
 /* Pulse: the agent card's name uses the display font like every other title */
 .zulo-chrome .dash-main h2.font-heading {
@@ -4464,7 +4468,7 @@
 .zulo-chrome .ask-chat { background: var(--panel-bg); }
 .zulo-chrome .chat-bubble:not(.ask-inflight-status) { border-color: var(--panel-line); }
 .zulo-chrome .ask-chat .chat-bubble {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 15px;
   line-height: 1.65;
 }

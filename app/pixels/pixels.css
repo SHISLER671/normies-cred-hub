@@ -13,7 +13,7 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 .pixels-page .ap-offers { margin-top: 18px; }
 .pixels-page .ap-offers .burn-table { margin-top: 8px; }
 .pixels-page .ap-cur { color: var(--mute); font-size: 0.85em; }
-.pixels-page .ap-stamp { font: 11px var(--font-mono); letter-spacing: 0.08em; color: var(--mute); margin-top: 14px; }
+.pixels-page .ap-stamp { font: 11px var(--font-ui); letter-spacing: 0.08em; color: var(--mute); margin-top: 14px; }
 
 .pixels-page .ap-table { display: block; overflow-x: auto; }
 .pixels-page .ap-table tr[data-risk="true"] th,
@@ -58,7 +58,7 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 
 /* Pixel history: one line per change, withdrawals in the warning colour */
 .pixels-page .pixels-history { margin: 6px 0 14px; padding-top: 12px; border-top: 1px solid var(--border-light); }
-.pixels-page .pixels-history-list { list-style: none; margin: 8px 0 0; padding: 0; font: 13px var(--font-mono); }
+.pixels-page .pixels-history-list { list-style: none; margin: 8px 0 0; padding: 0; font: 13px var(--font-ui); }
 .pixels-page .pixels-history-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 7px 0; border-top: 1px solid var(--border-light); color: var(--text-primary); }
 .pixels-page .pixels-history-list li:first-child { border-top: 0; }
 .pixels-page .pixels-history-list li[data-kind="withdraw"] .pixels-history-what,
@@ -71,4 +71,4 @@ html:not(.dark) .pixels-page { --warn: #b45309; }
 /* Before you move a Normie: a numbered checklist with a quiet source link per item. */
 .pixels-page .pixels-move-list { margin: 10px 0 0; padding-left: 22px; display: grid; gap: 10px; font-size: 15px; line-height: 1.5; color: var(--text-primary); }
 .pixels-page .pixels-move-list strong { font-weight: 600; }
-.pixels-page .pixels-move-src { font: 12px var(--font-mono); color: var(--mute); white-space: nowrap; }
+.pixels-page .pixels-move-src { font: 12px var(--font-ui); color: var(--mute); white-space: nowrap; }
