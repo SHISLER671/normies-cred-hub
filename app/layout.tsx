@@ -4,6 +4,7 @@ import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
 import { DEFAULT_SITE_ORIGIN } from '@/lib/site-origin'
 import './globals.css'
+import './brand.css'
 
 // Fonts are self-hosted (variable woff2, latin subset, OFL-1.1; see app/fonts/LICENSE-*.txt) so the build never
 // downloads anything from Google: a failed download there broke a production deploy on 2026-10-02.

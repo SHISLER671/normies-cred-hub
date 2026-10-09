@@ -1,0 +1,169 @@
+/* Brand v2 building blocks (components/brand). The normies.art cell system: square corners, 1px hairlines that cells
+   share, tracked uppercase labels, big light numbers. Built on the .zulo-chrome tokens, with fallbacks so a block also
+   renders outside it. Zulo cyan only on NCH's own LIVE chip. */
+
+.nb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border: 1px solid var(--border-light, #38393a);
+  font: 500 11px/1 var(--font-ui, sans-serif);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-secondary, #a7a8a8);
+}
+.nb-chip-dot {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+}
+.nb-chip-live {
+  background: var(--text-primary, #e3e5e4);
+  border-color: var(--text-primary, #e3e5e4);
+  color: var(--bg-primary, #1a1b1c);
+}
+.nb-chip-ours {
+  border-color: var(--zulo-accent, #22d3ee);
+  color: var(--zulo-accent, #22d3ee);
+}
+html:not(.dark) .nb-chip-ours {
+  border-color: #0891b2;
+  color: #0e7490;
+}
+
+.nb-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding-left: 12px;
+  border-left: 2px solid var(--text-primary, #e3e5e4);
+  font: 500 12px/1.4 var(--font-ui, sans-serif);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #a7a8a8);
+}
+.nb-eyebrow-n {
+  color: var(--text-primary, #e3e5e4);
+}
+
+/* Cells share hairlines: the grid draws the top and left edges, every cell draws its right and bottom. */
+.nb-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  border-top: 1px solid var(--border-light, #38393a);
+  border-left: 1px solid var(--border-light, #38393a);
+}
+.nb-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 190px;
+  padding: 22px 22px 20px;
+  border-right: 1px solid var(--border-light, #38393a);
+  border-bottom: 1px solid var(--border-light, #38393a);
+  color: var(--text-primary, #e3e5e4);
+  text-decoration: none;
+  transition: background var(--motion-base, 160ms) ease;
+}
+.nb-cell-link:hover,
+.nb-cell-link:focus-visible {
+  background: var(--bg-secondary, #242526);
+}
+.nb-cell-link:focus-visible {
+  outline: 1px solid var(--zulo-accent, #22d3ee);
+  outline-offset: -1px;
+}
+.nb-cell-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.nb-cell-n {
+  font: 400 12px var(--font-ui, sans-serif);
+  letter-spacing: 0.2em;
+  color: var(--text-muted, #939494);
+}
+.nb-cell-title {
+  font: 600 22px/1.2 var(--font-ui, sans-serif);
+  letter-spacing: -0.01em;
+}
+.nb-cell-text {
+  font: 300 15px/1.6 var(--font-ui, sans-serif);
+  color: var(--text-secondary, #a7a8a8);
+}
+.nb-cell-cta {
+  margin-top: auto;
+  padding-top: 8px;
+  font: 500 11px var(--font-ui, sans-serif);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted, #939494);
+}
+.nb-cell-link:hover .nb-cell-cta {
+  color: var(--text-primary, #e3e5e4);
+}
+
+/* Stats: ruled cells, label over a big light number. */
+.nb-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--border-light, #38393a);
+  border-left: 1px solid var(--border-light, #38393a);
+}
+.nb-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 18px 20px;
+  border-right: 1px solid var(--border-light, #38393a);
+  border-bottom: 1px solid var(--border-light, #38393a);
+}
+.nb-stat dd {
+  margin: 0;
+}
+.nb-stat-label {
+  order: -1;
+  font: 500 11px/1.4 var(--font-ui, sans-serif);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #a7a8a8);
+}
+.nb-stat-value {
+  font: 500 44px/1 var(--font-ui, sans-serif);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #e3e5e4);
+}
+.nb-stat-note {
+  font: 300 13px/1.5 var(--font-ui, sans-serif);
+  color: var(--text-muted, #939494);
+}
+.nb-stat-hi {
+  background: var(--text-primary, #e3e5e4);
+}
+.nb-stat-hi .nb-stat-label,
+.nb-stat-hi .nb-stat-value,
+.nb-stat-hi .nb-stat-note {
+  color: var(--bg-primary, #1a1b1c);
+}
+
+@media (max-width: 480px) {
+  .nb-cell {
+    min-height: 0;
+    padding: 18px 16px;
+  }
+  .nb-stat-value {
+    font-size: 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nb-cell {
+    transition: none;
+  }
+}

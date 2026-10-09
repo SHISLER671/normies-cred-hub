@@ -14,6 +14,8 @@ import {
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import { getZuloHelpfulStats } from "@/lib/db/supabase"
 
+import { Cell, CellGrid, Chip, Stat, StatGrid } from "@/components/brand"
+
 import "./zulo/styles.css"
 
 /** The five official Lab systems, in normies.art/lab's own order and status words (checked 2026-10-09). */
@@ -30,36 +32,26 @@ const CREDHUB_SURFACES = [
     name: "PULSE",
     href: "/dashboard",
     line: "Trust signals for the active Normie.",
-    cardClass: "home-surface-card-pulse",
-    delay: "1",
   },
   {
     name: "ASK",
     href: "/ask",
     line: "High-signal concierge for the active Normie.",
-    cardClass: "home-cred-card-ask",
-    delay: "2",
   },
   {
     name: "MOVES",
     href: "/paths",
     line: "Ranked next steps you can try.",
-    cardClass: "home-surface-card-moves",
-    delay: "3",
   },
   {
     name: "PIXEL CHECK",
     href: "/pixels",
     line: "Does this Normie still have its pixels? Read live from the chain, before you buy.",
-    cardClass: "home-surface-card-pixels",
-    delay: "1",
   },
   {
     name: "BURN",
     href: "/burn",
     line: "Burn or keep? Your best moves for revenue share. Look twice, burn once.",
-    cardClass: "home-surface-card-burn",
-    delay: "2",
   },
 ] as const
 
@@ -165,13 +157,7 @@ export default async function ZuloLandingPage() {
                 rel="noopener noreferrer"
               >
                 <span>{surface.name}</span>
-                <span
-                  className={
-                    surface.status === "LIVE" ? "badge badge-live" : "badge badge-soon"
-                  }
-                >
-                  {surface.status}
-                </span>
+                <Chip tone={surface.status === "LIVE" ? "live" : "outline"}>{surface.status}</Chip>
               </a>
             ))}
           </div>
@@ -195,24 +181,20 @@ export default async function ZuloLandingPage() {
             confirm the decision, don&apos;t drown in docs.
           </p>
 
-          <div className="grid-3 home-zulo-points">
-            {CREDHUB_SURFACES.map((surface) => (
-              <Link
+          <CellGrid className="home-tools" label="CredHub tools">
+            {CREDHUB_SURFACES.map((surface, i) => (
+              <Cell
                 key={surface.name}
+                n={String(i + 1).padStart(2, "0")}
+                chip={<Chip tone="ours">Live</Chip>}
+                title={surface.name}
                 href={surface.href}
-                className={`home-surface-card home-cred-card ${surface.cardClass}`.trim()}
-                data-reveal
-                data-reveal-delay={surface.delay}
+                cta="Open →"
               >
-                <span className="badge badge-live">LIVE</span>
-                <h3>{surface.name}</h3>
-                <p>{surface.line}</p>
-                <span className="home-surface-card-go mono" aria-hidden>
-                  Open →
-                </span>
-              </Link>
+                {surface.line}
+              </Cell>
             ))}
-          </div>
+          </CellGrid>
 
           <p className="caption text-center home-type-legend">
             Official types · Humans · Cats · Aliens · Agents
@@ -222,28 +204,18 @@ export default async function ZuloLandingPage() {
 
       {/* 4. Stats · 5. quiet quote */}
       <section className="section section-bordered" data-reveal>
-        <div className="stats-grid stats-grid-pair">
-          <div className="stat">
-            <div className="stat-number data-pulse">{canvasAp}</div>
-            <div className="stat-label">
-              Canvas AP · #{ZULO_IDENTITY.tokenId}
-            </div>
-            <p className="caption" style={{ marginTop: 8 }}>
-              Live on-chain balance on Zulo&apos;s Normie (not tips ledger)
-            </p>
-          </div>
-          <div className="stat">
-            <div className="stat-number">
-              {helpfulCount != null ? helpfulCount : "—"}
-            </div>
-            <div className="stat-label">
-              Helpful ratings · Zulo #{ZULO_IDENTITY.agentId}
-            </div>
-            <p className="caption" style={{ marginTop: 8 }}>
-              Moves 👍 · CredHub reputation (off-chain today)
-            </p>
-          </div>
-        </div>
+        <StatGrid className="home-stats">
+          <Stat
+            label={<>Canvas AP · #{ZULO_IDENTITY.tokenId}</>}
+            value={canvasAp}
+            note={<>Live on-chain balance on Zulo&apos;s Normie (not tips ledger)</>}
+          />
+          <Stat
+            label={<>Helpful ratings · Zulo #{ZULO_IDENTITY.agentId}</>}
+            value={helpfulCount != null ? helpfulCount : "—"}
+            note={<>Moves 👍 · CredHub reputation (off-chain today)</>}
+          />
+        </StatGrid>
 
         <blockquote className="quote quote-quiet quote-under-stats">
           <p className="quote-line">We don&apos;t chase trends.</p>
