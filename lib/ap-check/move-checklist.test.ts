@@ -17,6 +17,15 @@ describe("before you move a Normie", () => {
     assert.match(text, /cannot be undone/)
     assert.match(text, /from the wallet or from any Normie it owns/)
   })
+  it("follows the docs: no wallet-to-wallet #PIXEL transfer, so take pixels off only when selling; revenue share is per epoch, not per month", () => {
+    const text = MOVE_CHECKLIST.map((i) => `${i.title} ${i.body}`).join(" ")
+    assert.match(text, /no wallet-to-wallet #PIXEL transfer/)
+    assert.match(text, /leaving them on is the only way to move them to another wallet of yours/)
+    assert.match(text, /If you are selling it or giving it away, take them off first/)
+    assert.match(text, /four times a day, at unpredictable moments, during each epoch/)
+    assert.match(text, /revoke afterwards/)
+    assert.doesNotMatch(text, /month/i)
+  })
   it("says nothing about Abnormie alignment until an official source does", () => {
     assert.doesNotMatch(MOVE_CHECKLIST.map((i) => i.body).join(" "), /abnormie|alignment/i)
   })

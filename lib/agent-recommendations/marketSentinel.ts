@@ -467,7 +467,7 @@ function buildPositionRecs(input: {
   }
 
   recs.push(
-    "AP marketplace is not live — no direct AP↔ETH arbitrage execution; when live, re-run Sentinel to compare AP quotes vs floor-burn cost.",
+    "The Pixel Market is live, but this scan has no #PIXEL quotes — compare its asks on the official page with the floor-burn cost before buying either.",
   )
 
   return recs
@@ -734,11 +734,11 @@ export async function runMarketSentinel(options?: {
     apMarketStatus,
     spreadNote:
       apMarketStatus === "planned"
-        ? "AP market quotes are not live yet — cannot compute executable AP↔floor spread. Floor-burn path is the only priced AP acquisition route today."
+        ? "The Pixel Market is live, but this scan has no #PIXEL quotes — cannot compute an executable AP↔floor spread here. Check the official Pixel Market page for asks."
         : "Compare AP market ask vs implied ETH cost per AP from floor fodder.",
     opportunity:
       apMarketStatus === "planned"
-        ? `Planning metric only: ~${medianAp} AP median / floor ≈ ${floorBuyEfficiency ?? "n/a"} AP per ETH (≈ ${impliedApCostETH ?? "n/a"} ETH per AP). When Pixel Market / A2A AP pricing goes live, buy AP directly if cheaper than floor-burn, else burn fodder.`
+        ? `Planning metric only: ~${medianAp} AP median / floor ≈ ${floorBuyEfficiency ?? "n/a"} AP per ETH (≈ ${impliedApCostETH ?? "n/a"} ETH per AP). Compare with the Pixel Market's asks on the official page: buying #PIXEL there can beat floor-burn, or not.`
         : "Evaluate live AP quotes against floor-burn efficiency and gas.",
   }
 

@@ -72,8 +72,11 @@ describe("collab / rails knowledge", () => {
     const block = buildCollabRailsPromptBlock()
     assert.match(block, /Action Points/)
     assert.match(block, /not a token/i)
-    assert.match(block, /Coming Soon/)
-    assert.match(block, /not live full rules/i)
+    // 2026-10-09: the Pixel Market is live (official docs); "Coming Soon / not live full rules" was the pre-launch wording.
+    assert.match(block, /Pixel Market = LIVE/)
+    assert.match(block, /no wallet-to-wallet transfer/)
+    assert.doesNotMatch(block, /Pixel Market (?:=|stays) \*{0,2}Coming Soon/i)
+    assert.doesNotMatch(block, /not live full rules/i)
     assert.doesNotMatch(block, /market will add buy\/sell later/i)
   })
 
@@ -153,7 +156,8 @@ describe("collab / rails knowledge", () => {
     assert.match(block, /Zulo does \*\*not\*\* form the team/)
     assert.match(block, /Survivors earn \*\*#PIXEL\*\*/)
     assert.match(block, /in-world PX \/ survivor PIXEL ≠ a shop/i)
-    assert.match(block, /does \*\*not\*\* open Pixel Market/)
+    assert.match(block, /Arena is \*\*not\*\* the Pixel Market/)
+    assert.match(block, /\*\*not\*\* in the official docs, and it may change/)
     assert.match(block, /Not playable on CredHub/)
     assert.match(block, /Not “enter from CredHub.”/)
     assert.match(block, /Not play from here/)
@@ -179,10 +183,13 @@ describe("collab / rails knowledge", () => {
     const summary = getDualEvalAndPixelMarketContextSummary()
     const joined = summary.pixelMarket.join(" ")
     assert.match(joined, /NOT a token/i)
-    // 2026-10-05: the market is "not open yet", and its revenue-share rules are now OFFICIAL; prices and order-book mechanics stay TBA.
-    assert.match(joined, /not open yet/i)
+    // 2026-10-09: the market is LIVE (official docs) and its revenue-share rules are OFFICIAL; Ask still has no live prices.
+    assert.match(joined, /LIVE since 2026-10-05/)
+    assert.doesNotMatch(joined, /not open yet/i)
     assert.match(joined, /revenue-share rules are OFFICIAL/)
-    assert.match(joined, /order-book mechanics TBA/i)
+    assert.match(joined, /paid in epochs/)
+    assert.doesNotMatch(joined, /monthly/i)
+    assert.match(joined, /no live prices in context/)
     assert.doesNotMatch(joined, /will add buy\/sell later/i)
   })
 })
@@ -328,7 +335,7 @@ describe("composed Ask prompt", () => {
     assert.match(prompt, /swarm/)
     assert.match(prompt, /launchpad/)
     assert.match(prompt, /#PIXEL = Action Points, NOT a token/)
-    assert.match(prompt, /Coming Soon/)
+    assert.match(prompt, /Pixel Market = LIVE/)
     assert.match(prompt, /industry YES/i)
     assert.match(prompt, /Normies enablement: TBA/)
     assert.match(prompt, /not a StonkBroker/i)
@@ -341,8 +348,9 @@ describe("composed Ask prompt", () => {
     const prompt = composeZuloPrompt(generalContext(), "is PIXEL a token")
     assert.doesNotMatch(prompt, /market will add buy\/sell later/i)
     assert.match(prompt, /NOT a token/)
-    assert.match(prompt, /Coming Soon/)
-    assert.match(prompt, /not live full rules/i)
+    assert.match(prompt, /Pixel Market = LIVE/)
+    assert.doesNotMatch(prompt, /not live full rules/i)
+    assert.match(prompt, /never invent #PIXEL prices, listings, volume or order-book depth/)
   })
 
   it("does not tell visitors they spend AP to preview or customize appearance", () => {
@@ -467,10 +475,12 @@ describe("composed Ask prompt", () => {
       assert.match(prompt, /can group if same wallet or related wallet history/)
       assert.match(prompt, /Zulo does not form the team/)
       assert.match(prompt, /survivors earn #PIXEL/i)
-      assert.match(prompt, /Pixel Market not opened by the 2026-09-18 post/)
       assert.match(prompt, /in-world PX \/ survivor PIXEL ≠ a shop/)
-      assert.match(prompt, /Coming Soon/)
-      assert.match(prompt, /not live full rules/i)
+      // Arena is "Coming soon" in the official docs; every mechanic comes from an X post and is labelled that way.
+      assert.match(prompt, /official docs and \/lab list Arena as Coming Soon/)
+      assert.match(prompt, /Arena is still a work in progress\. Features and mechanics may change\./)
+      assert.match(prompt, /Arena details below come from an @serc1n X post \(2026-09-18\), not the docs, and may change/)
+      assert.doesNotMatch(prompt, /Pixel Market not opened by the 2026-09-18 post/)
       assert.match(prompt, /640×640/)
       assert.match(prompt, /No human players/)
       assert.doesNotMatch(prompt, /Grok Bot/)
@@ -646,17 +656,18 @@ describe("Ask knows the OFFICIAL Pixel Market economics (updated 2026-10-05)", (
     assert.match(prompt, /10% fee/)
     assert.match(prompt, /50% of that fee goes to holders/)
     assert.match(prompt, /5% royalty/)
-    assert.match(prompt, /four random blocks a day/)
+    assert.match(prompt, /four unpredictable moments a day/)
     assert.match(prompt, /#PIXEL alone earns nothing/)
   })
   it("no longer tells people the revenue-share rules are unpublished", () => {
     assert.match(prompt, /Never say the revenue-share formula is unpublished/)
     assert.match(prompt, /revenue-share rules ARE official/)
   })
-  it("keeps the honesty rails: market not open yet, no invented prices or order book", () => {
-    assert.match(prompt, /not open yet/)
+  it("keeps the honesty rails: market live, but no invented prices or order book", () => {
+    assert.match(prompt, /the PIXEL MARKET is LIVE \(opened October 5, 2026\)/)
     assert.match(prompt, /Never invent AP prices, order books, buy\/sell mechanics/)
-    assert.match(prompt, /audits permitting/)
+    assert.doesNotMatch(prompt, /audits permitting/)
+    assert.doesNotMatch(prompt, /PIXEL MARKET is \*{0,2}not open yet/i)
   })
   it("burn yield is on the ORIGINAL pixel count and editing does not raise it", () => {
     assert.match(prompt, /ORIGINAL pixel count/)
@@ -702,14 +713,18 @@ describe("Ask: painting, Level, Canvas and Arena stay inside the official facts 
     assert.match(prompt, /Never say each pixel flip costs #PIXEL/)
     assert.match(prompt, /painting never spends it/)
   })
-  it("bigger and blank canvas belong to the Pixel Market, and readiness numbers are labelled as Zulo's own heuristics", () => {
+  it("bigger and blank canvas carry the official launch prices, and readiness numbers are labelled as Zulo's own heuristics", () => {
     assert.match(prompt, /Bigger canvas and blank canvas/)
-    assert.match(prompt, /not available until the market opens/)
+    assert.match(prompt, /900, 2,000, 3,300 or 4,800 pixels in total, one per pixel added, and an upgrade costs the difference/)
+    assert.match(prompt, /A blank canvas drops the base art for 200 pixels/)
+    assert.doesNotMatch(prompt, /not available until the market opens/)
     assert.match(prompt, /Zulo's own planning heuristics, NOT official requirements/)
   })
-  it("Level formula is stated, with the two official sources that differ on withdrawing #PIXEL", () => {
+  it("Level follows the docs: pixels on it / 10 + 1, and taking pixels off lowers it", () => {
     assert.match(prompt, /Level = floor\(AP \/ 10\) \+ 1/)
-    assert.match(prompt, /September 23 article said withdrawing #PIXEL strips a level/)
+    assert.match(prompt, /pixels on it \/ 10 \+ 1, read live/)
+    assert.match(prompt, /taking them off, or paying for a size change from the Normie, lowers it/)
+    assert.doesNotMatch(prompt, /sources differ/i)
   })
   it("Arena: only what is official; the combat rules are not published", () => {
     assert.match(prompt, /combat rules are NOT published/)
@@ -823,6 +838,73 @@ describe("the launch clock only changes WORDING, never opens the market (@serc1n
   it("launchTimePassed is exact at the boundary", () => {
     assert.equal(launchTimePassed(new Date("2026-10-05T17:59:59.999Z")), false)
     assert.equal(launchTimePassed(new Date("2026-10-05T18:00:00.000Z")), true)
+  })
+})
+
+describe("Ask follows the official docs (normies.art/docs/lab, read 2026-10-09)", () => {
+  const questions = [
+    "Is Pixel Market live?",
+    "How is my share of the Pixel Market revenue calculated?",
+    "How much does it cost to enlarge my canvas?",
+  ]
+  for (const q of questions) {
+    describe(q, () => {
+      const prompt = composeZuloPrompt(generalContext(), q)
+      it("the Pixel Market is live, never 'not open yet' or 'Coming Soon'", () => {
+        assert.match(prompt, /Status:\*\* LIVE since October 5, 2026/)
+        assert.doesNotMatch(prompt, /PIXEL MARKET\*{0,2} is \*{0,2}not open yet/i)
+        assert.doesNotMatch(prompt, /Pixel Market (?:=|stays|spend sinks are) \*{0,2}Coming Soon/i)
+        assert.doesNotMatch(prompt, /until the market opens/i)
+      })
+      it("enlarge 900 / 2,000 / 3,300 / 4,800 and blank 200, burned out of circulation", () => {
+        assert.match(prompt, /900, 2,000, 3,300 or 4,800 pixels in total/)
+        assert.match(prompt, /blank canvas drops the base art for 200 pixels/)
+        assert.match(prompt, /both burn the pixels out of circulation/)
+      })
+      it("no wallet-to-wallet transfer; burn rewards can land in the wallet", () => {
+        assert.match(prompt, /there is no wallet-to-wallet transfer\. Pixels move between wallets only through a trade\./)
+        assert.match(prompt, /Deposits onto other people's Normies are refused/)
+        assert.match(prompt, /or in your wallet, ready to put on any Normie you own or to list on the Pixel Market/)
+        assert.doesNotMatch(prompt, /free-floating wallet ledger/)
+      })
+      it("10% fee with a hard cap, half to the pool, plus half the 5% royalty, and a per-pixel floor", () => {
+        assert.match(prompt, /10% at launch, which is also its hard cap, so it can only go down/)
+        assert.match(prompt, /Half goes to the team and half straight into the holder revenue pool/)
+        assert.match(prompt, /the collection's 5% OpenSea royalty/)
+        assert.match(prompt, /minimum price per pixel, about five dollars at launch/)
+      })
+      it("paid in epochs, never monthly; claim window and 24h delay from the docs; no 365-day rule", () => {
+        assert.match(prompt, /paid to holders in epochs/)
+        assert.match(prompt, /four unpredictable moments a day and the epoch pays the average/)
+        assert.match(prompt, /Claims open 24 hours after an epoch is posted/)
+        assert.match(prompt, /a year today and never under 30 days/)
+        assert.doesNotMatch(prompt, /Payouts are monthly|monthly, in rounds|monthly payout/i)
+        assert.doesNotMatch(prompt, /after 365 days/)
+      })
+      it("cooldown, allowances, expired listings and the at-least-one-Normie rule", () => {
+        assert.match(prompt, /Burn rewards never wait/)
+        assert.match(prompt, /anyone can return its unsold pixels to the seller/)
+        assert.match(prompt, /give what is needed and revoke afterwards/)
+        assert.match(prompt, /The team can pause every allowance at once/)
+        assert.match(prompt, /A wallet needs at least one Normie/)
+      })
+      it("Spin to Win, Mural and Merch are 'Later', never live", () => {
+        assert.match(prompt, /Spin to Win \("Five #PIXEL a spin\. Later\."\)/)
+        assert.match(prompt, /Never describe these as live/)
+      })
+    })
+  }
+  it("Agentic, Zombies and API facts come from the docs", () => {
+    const prompt = composeZuloPrompt(generalContext(), "What is Agentic?")
+    assert.match(prompt, /Name and type are sealed at awakening/)
+    assert.match(prompt, /no LLM is wired into conversations/)
+    assert.match(prompt, /A converted Normie keeps its Canvas/)
+    assert.match(prompt, /60 requests per minute per IP \(sliding window\)/)
+  })
+  it("the live-switch block says epochs, not monthly", () => {
+    const b = buildMarketStatusBlock("live")
+    assert.match(b, /Payouts are made in epochs \(the official docs give no epoch length, so never say monthly\)/)
+    assert.doesNotMatch(b, /Payouts are monthly/i)
   })
 })
 

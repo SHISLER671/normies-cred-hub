@@ -21,7 +21,7 @@ export function buildMarketStatusBlock(state: MarketState, now: Date = new Date(
     return `=== LIVE STATUS: PIXEL MARKET (overrides any older "not open yet", "Coming Soon" or "not tradable" wording below) ===
 - The Pixel Market is OPEN (confirmed by the Normies contract status or the site owner). Say so plainly. Older notes that call it "not open yet", "Coming Soon" or "planned" are out of date.
 - You have NO live market data: never quote #PIXEL prices, listings, volume, fees collected or order-book depth. For live numbers point to the official Pixel Market page (https://www.normies.art/lab/pixel-market); for a wallet's own moves point to https://normiescredhub.vercel.app/burn.
-- The revenue-share rules in the Pixel Market economics section now apply for real. Payouts are monthly and depend on real volume, so any figure is an estimate, never a promise.
+- The revenue-share rules in the Pixel Market economics section now apply for real. Payouts are made in epochs (the official docs give no epoch length, so never say monthly) and depend on real volume, so any figure is an estimate, never a promise.
 - Everything else stays as written: never invent prices, thresholds or mechanics; burns are permanent; no financial advice.
 ${BURN_AND_CARD}
 ${ANNOUNCEMENT}`

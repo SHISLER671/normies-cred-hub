@@ -112,16 +112,16 @@ export const NORMIES_KNOWLEDGE = {
 
   future: {
     arena: {
-      status: "Official design public 2026-09-18; not playable on CredHub",
+      status: "Coming soon (official docs: still a work in progress, features and mechanics may change); not playable on CredHub",
       description:
-        "Autonomous agents on a 640×640 pixel continent. No human players. No script.",
+        "Autonomous agents on a 640×640 pixel continent. No human players. No script. (From @serc1n X posts, 2026-09-18; not in the docs, may change.)",
       mechanics:
-        "Type / level / on-chain history matter. Five camps. Six-minute days. In-round death; next-round respawn. NFT not burned.",
+        "From @serc1n X posts (2026-09-18), not in the docs, may change: Type / level / on-chain history matter. Five camps. Six-minute days. In-round death; next-round respawn. NFT not burned.",
       risk: "Playable enter-now only if an official @normiesART page already says so. Do not invent an enter URL.",
     },
     pixelMarket: {
-      status: "Coming Soon",
-      description: "Peer-to-peer venue for Action Points",
+      status: "Live since 2026-10-05 (official docs)",
+      description: "On-chain market for #PIXEL: sell-side listings priced in ETH per pixel; no wallet-to-wallet transfer",
     },
   },
 
@@ -259,7 +259,7 @@ STRATEGIC PRINCIPLES:
 - Prefer burning commons; protect rare/premium trait stacks
 - High pixel count (890+) → best burn efficiency band
 - Delegation for collab without giving up ownership
-- Arena: official 2026-09-18 design is public (autonomous 640×640 continent; no human players). Not playable on CredHub. Pixel Market: Coming Soon / not live full rules — #PIXEL is AP, not a token; full rules TBA
+- Arena: Coming soon per the official docs (work in progress, mechanics may change). The 2026-09-18 design (autonomous 640×640 continent; no human players) is from @serc1n X posts, not the docs. Not playable on CredHub. Pixel Market: LIVE since 2026-10-05 (official docs) — #PIXEL is AP, not a separate coin; sell-side listings in ETH per pixel; no wallet-to-wallet transfer
 
 RESOURCES:
 - API ${k.resources.api} | Rarity ${k.resources.rarity} | Multisend ${k.resources.multisend} | Docs ${k.resources.docs}

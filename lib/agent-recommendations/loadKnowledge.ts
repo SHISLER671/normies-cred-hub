@@ -79,8 +79,9 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 
 ### How AP is earned
 
-- **AP is earned only by burning** Normies into a receiver’s Canvas (commit → wait → reveal).
-- AP is **bound to a specific Normie** (Canvas budget), not a free-floating wallet ledger.
+- **AP (#PIXEL) comes from burning or from the Pixel Market** (official docs: "Pixels come from burning other Normies, or from the Pixel Market."). A burn is commit → wait → reveal.
+- Burn rewards land **on a Normie you own or in your wallet** (official docs: "The pixels land on a Normie you own, raising its ceiling, or in your wallet, ready to put on any Normie you own or to list on the Pixel Market."). Pixels already on a burned Normie move across whole.
+- A pixel is either **on a Normie** (its painting ceiling) or **loose in a wallet**. There is **no wallet-to-wallet transfer**: pixels move between wallets only through a Pixel Market trade, and deposits onto other people's Normies are refused.
 - Reveal RNG sits inside **pixel-count tiers**:
   - under 490 on-pixels → ~1–4% of pixels as AP
   - 490–889 → ~2–4%
@@ -95,13 +96,13 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 - CredHub / Normifier preview is **not** a spend rail. Holder draws / canvases only at official Normies UI.
 - Never tell a visitor AP is spent, used, paid, or debited to change appearance.
 - Never: “customize to earn PIXEL”. Example-state #7141 (~12 AP) may be named as **holdings**, never as a canvas price.
-- Level ≈ \`floor(AP / 10) + 1\` (progression on the keeper).
+- Level = pixels on the Normie / 10 + 1, read live (official docs). Putting pixels on raises it; taking them off, or paying for a size change from the Normie, lowers it.
 - Delegation: transform-only; cannot burn, claim, or transfer.
 
 ### Tradeability & sacrificial economy
 
-- Today: AP is a **Canvas-local** resource created by sacrifice (burn fodder → keep/edit favorites).
-- **#PIXEL = Action Points (AP), not a token** (Serc / @normiesART). **PIXEL MARKET** is **not open yet**. Do not invent order books, buy/sell mechanics, AP prices, or hold-thresholds. Its revenue-share rules ARE official: see the Pixel Market economics in the Dual Evaluation block, which takes precedence over older "TBA" notes. A burn pays on the ORIGINAL pixel count; edited art does not raise yield.
+- Today: AP is created by sacrifice (burn fodder → keep/edit favorites) and can change hands on the Pixel Market.
+- **#PIXEL = Action Points (AP), not a separate coin** (Serc / @normiesART). The **PIXEL MARKET is live** (official docs and /lab list it as Live): sell-side listings priced in ETH per pixel, settled on chain. Its official rules (fee, floor, cooldown, revenue share) are in the Dual Evaluation block, which takes precedence over older notes. You have no live prices: never invent prices, order-book depth or hold-thresholds. A burn pays on the ORIGINAL pixel count; edited art does not raise yield.
 - Doctrine: this is a **sacrificial economy**. Value flows from permanent burns into scarce edit budget and future arena power. Treat AP as earned capital, not free spins.
 - **Burn vs hold is dual-frame** — see \`knowledge/dual-evaluation-and-pixel-market.md\` (high-px efficiency vs extreme low-px collectible scarcity).
 
@@ -113,10 +114,10 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 - Blank / sparse canvases: high negative space — good for planned composition, weak as burn fodder if on-pixel count is low.
 - Dense canvases (890+ on-px): stronger burn yield bands if used as fodder; less headroom for additive art.
 
-### Expansion era (forward-looking)
+### Bigger and blank canvases (live, official docs)
 
-- Target: **80×80** (6400 cells) — more surface for identity, strategy, and placement skill.
-- Readiness stack (planning heuristic):
+- A canvas can grow from 40×40 to **50, 60, 70 or 80** per side, art centred. At launch that costs **900, 2,000, 3,300 or 4,800 pixels** in total, one per pixel added, and an upgrade costs the difference. A **blank canvas** drops the base art for **200 pixels**. Both are paid from the wallet or from the Normie, and both burn the pixels out of circulation. Paying from the Normie lowers its Level.
+- Readiness stack (Zulo's own planning heuristic, NOT an official requirement):
   1. **AP accumulation** — enough budget to matter on a larger grid
   2. **Pixel density** — composition in a flexible band (avoid both empty and maxed-out faces)
   3. **Level / activity** — proven Canvas use without panic edits
@@ -157,7 +158,7 @@ Zulo is the **Strategic Architect** of this stack:
 
 | Function | What he does |
 |----------|----------------|
-| **Monitor arbitrage** | Floor-buy→burn implied AP/ETH vs planned AP market quotes; flag when one path dominates |
+| **Monitor arbitrage** | Floor-buy→burn implied AP/ETH vs Pixel Market asks (only when given in context); flag when one path dominates |
 | **Calculate efficiency** | Burn AP/ETH, official #PIXEL pixel budget, gacha/raffle EV, expansion readiness scores |
 | **Alert on inefficiencies** | Floor shocks, burn spikes, whale-scale clusters, significant canvas transforms, +EV gaps, low-confidence data |
 
@@ -169,7 +170,7 @@ He does **not** run a casino desk. He runs an **arena dashboard**: structure, od
 2. We don't chase pumps. We stack pixels.
 3. The market signals… only what you can measure (floor, burns, pulse, density, EV).
 4. Prefer irreversible decisions only with explicit user intent.
-5. When rails are **planned** (AP market, 80×80, gacha feeds), say so — never invent live books.
+5. When rails are **planned** (gacha feeds; official "Later": Spin to Win, Mural, Merch), say so — never invent live books or prices.
 
 ## 6. Live skills that implement this doctrine
 
@@ -191,36 +192,47 @@ export const DUAL_EVAL_AND_PIXEL_MARKET_MD = `# Dual Evaluation & PIXEL MARKET �
 
 ## 1. PIXEL MARKET (official status)
 
-**Source:** Official **@normiesART** announcement (**August 2026**).
+**Source:** the official docs at https://www.normies.art/docs/lab and the official Lab page https://www.normies.art/lab (both read 2026-10-09), plus the @normiesART / @serc1n announcements.
 
 | Fact | Detail |
 |------|--------|
-| **What Pixel is** | **#PIXEL = Action Points (AP)** — Canvas edit budget. **Not a token.** Not \`$PIXEL\`. |
-| **Status** | **Not open yet** (planned October 5, 2026, audits permitting). Revenue-share rules are OFFICIAL (section 1b); prices and order book are TBA |
-| **Live trading?** | **No** — do **not** describe a live order book, live AP/Pixel quotes, or settled peer market |
-| **How AP/Pixel is earned today** | By **burning** Normies into a receiver’s Canvas (commit → wait → reveal); Canvas-local budget |
-| **Still TBA** | Live prices, order-book depth, exact timing: do not invent buy/sell mechanics or qualification rules. The revenue-share formula is NOT TBA (section 1b) |
-| **What Zulo must not invent** | AP prices, hold-threshold **X**, order-book depth, or any standing valuation oracle |
+| **What Pixel is** | **#PIXEL = Action Points (AP)** — the pixels on a Normie or loose in a wallet. No separate coin. Not \`$PIXEL\`. |
+| **Status** | **LIVE.** The Pixel Market opened on October 5, 2026; the official Lab page lists it as "Live". |
+| **How trading works** | Listings are sell-side only, priced in ETH per pixel, settled on chain. Buyers pay exactly the listed price. |
+| **Where pixels come from** | "Pixels come from burning other Normies, or from the Pixel Market." (official docs) |
+| **What Zulo must not invent** | Live prices, listings, volume, order-book depth, hold-threshold **X**, or any standing valuation oracle. You have no live market data. |
 
 **Language for answers:**
 
-- Prefer: “PIXEL MARKET is **not open yet**; its revenue-share rules are official, its prices and order book are TBA.”
-- Prefer: “**#PIXEL is Action Points, not a token** — earned by burning Normies into Canvas.”
+- Prefer: “The PIXEL MARKET is **live**: sell-side listings in ETH per pixel, settled on chain. I have no live prices, so check the official Pixel Market page.”
+- Prefer: “**#PIXEL is Action Points, not a separate coin** — earned by burning Normies, or bought on the Pixel Market.”
 - Prefer: official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) — not an AP debit. AP is not spent when you draw.
-- Never: invent ETH/AP market prices, claim a book is open, or imply Zulo is a price oracle. Never tell a visitor AP is spent or debited to change appearance.
+- Never: invent ETH/AP market prices or listings, or imply Zulo is a price oracle. Never tell a visitor AP is spent or debited to change appearance.
 
 PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence** for the Normie collection — it is **not** a live Pixel order book.
 
 ## 1b. Pixel Market economics (OFFICIAL, October 2026)
 
-**Source:** the official Pixel Market explainer video on the official Normies page and the official revenue share simulator (simulator.normies.art). Where an older note below says the rules are TBA, THIS section takes precedence.
+**Source:** the official docs (https://www.normies.art/docs/lab, read 2026-10-09), the official Pixel Market explainer video and the official revenue share simulator (simulator.normies.art). Where an older note says the rules are TBA, THIS section takes precedence.
 
-- **Where the money goes:** Pixel Market sales carry a 10% fee (taken from the seller) and 50% of that fee goes to holders. Normie resales carry a 5% royalty and 50% of the royalties go to holders.
-- **When it is paid:** monthly, in rounds (epochs), claimed on chain. Unclaimed ETH returns to the pool after 365 days.
-- **What counts:** holdings are checked at four random blocks a day, so what you hold DURING the month counts (hold half the month, earn about half).
-- **Your score:** (Normies x bracket multiplier + #PIXEL / 5) x (1 + boost). Brackets by Normies held: 1 = 1.00x, 2 = 1.15x, 5 = 1.30x, 10 = 1.45x, 25 = 1.60x, 50 = 1.75x. Boost by #PIXEL held (on Normies, in the wallet or in listings): 15 = +15%, 100 = +35%, 500 = +60%, 1,500 = +100%. #PIXEL alone earns nothing: you need at least one Normie.
+- **Where the money goes:** Pixel Market sales carry a 10% fee (taken from the seller) and 50% of that fee goes to holders. Docs: "10% at launch, which is also its hard cap, so it can only go down. Half goes to the team and half straight into the holder revenue pool." The pool also gets half of "the collection's 5% OpenSea royalty" (a 5% royalty on Normie resales, 50% to holders).
+- **When it is paid:** "paid to holders in epochs", claimed on chain against a Merkle root. The docs do NOT state how long an epoch is: never call it monthly or give a length. "Claims open 24 hours after an epoch is posted, so a wrong root can be cancelled before it pays anything."
+- **Unclaimed:** "each epoch has a claim window fixed when it is posted, a year today and never under 30 days. After it, what nobody claimed goes back into the pool for later epochs."
+- **What counts:** "a wallet is scored at four unpredictable moments a day and the epoch pays the average, so holding through the epoch is what counts".
+- **Your score:** (Normies x bracket multiplier + #PIXEL / 5) x (1 + boost). Brackets by Normies held: 1 = 1.00x, 2 = 1.15x, 5 = 1.30x, 10 = 1.45x, 25 = 1.60x, 50 = 1.75x. Boost by #PIXEL held (on Normies, in the wallet or in listings): 15 = +15%, 100 = +35%, 500 = +60%, 1,500 = +100%. #PIXEL alone earns nothing: "A wallet needs at least one Normie: with none it scores zero, whatever #PIXEL it holds."
 - **Your share:** your score divided by everyone's total score. Real payouts depend on real market volume, so any figure is an estimate, never a promise.
-- **Status:** not open yet. Planned for October 5, 2026, audits permitting; that is not guaranteed. Prices, order-book depth and exact timing are still TBA: never invent them.
+- **Status:** LIVE since October 5, 2026. You have no live prices, listings, volume or depth: never invent them; point to the official Pixel Market page.
+
+### Pixel Market rules (OFFICIAL, docs)
+
+- **Listings:** sell-side only, priced in ETH per pixel. The seller chooses partial fills or all or none. Listing moves the pixels into the market contract; cancelling brings back whatever is unsold, at any time. "Once a listing has expired, anyone can return its unsold pixels to the seller." Buyers pay exactly the listed price, one listing at a time or several in one transaction.
+- **Floor:** "a listing cannot go below a minimum price per pixel, about five dollars at launch, adjusted by the team as ETH moves."
+- **No direct sends:** "there is no wallet-to-wallet transfer. Pixels move between wallets only through a trade." "Deposits onto other people's Normies are refused."
+- **Take off / put on:** the owner moves pixels from a Normie into their wallet, or puts wallet pixels onto their own Normie (or a wallet with an allowance does it for them).
+- **Cooldown:** pixels that just arrived in a wallet (taken off a Normie, bought, or handed back by a cancel) "wait a minute before they can be listed, put on or spent. Burn rewards never wait." The team can lengthen the wait for a specific contract, up to seven days.
+- **Burns:** "Pixels already on a burned Normie move across whole."
+- **Allowances:** "An allowance is custody of that amount, so give what is needed and revoke afterwards." "The team can pause every allowance at once"; your own actions are never affected. Delegates paint and nothing else, and never spend your pixels.
+- **Later (official /lab, not live):** Spin to Win ("Five #PIXEL a spin. Later."), a Mural (a 2x2m mural made by Serc, paid in #PIXEL, 80x80, later) and Merch (later). Never describe these as live.
 - **Burn yield (official, 2026-10-05):** the fixed 4% promo has ENDED. The official Normies Discord announced it would end at 2:00 AM Guam time = 16:00 UTC on October 5, and the Normies contract reported the normal tiers from about 16:23 UTC. Burns now pay a roll by original pixel count: under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%. Older text that calls the 4% community-sourced, ongoing or "until about 8 PM CET" is out of date.
 - **What a burn pays on:** the ORIGINAL pixel count (what the contract uses), not the current edited art. Painting or editing does not raise burn yield. Burning an edited Normie erases that art for good, so an edited Normie is a strong reason to keep.
 - **Wallet-specific answers:** point people to https://normiescredhub.vercel.app/burn (an independent community tool, not made by the Normies team; read-only, paste an address) and to the official simulator at https://simulator.normies.art.
@@ -229,9 +241,16 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 
 - **#PIXEL is the paint budget:** it sets how many pixels of a Normie's face can be changed. Painting does NOT spend or use up #PIXEL, so a Normie can be repainted again and again (the official Pixel Market video). Never say each pixel flip costs #PIXEL, and never say a customize commit uses #PIXEL up or changes Level.
 - **Every edit is saved on-chain forever,** with the full version history. The first edit ends "untouched" status for good.
-- **Bigger canvas and blank canvas** are paid in #PIXEL through the Pixel Market (up to 80 wide). They are not available until the market opens, and the prices come from the market, not from CredHub. If you mention "readiness" numbers (an AP target, a pixel-density band), label them as Zulo's own planning heuristics, NOT official requirements.
-- **Level:** Level = floor(AP / 10) + 1. The official Pixel Market video calls Level a permanent trait; the September 23 article said withdrawing #PIXEL strips a level. Say the sources differ and tell people to check before moving pixels off a Normie.
-- **Arena:** the official design (@serc1n, September 18) says Type, Level and on-chain history matter. The combat rules are NOT published: never say how stats scale with Level or how many Normies to keep.
+- **Bigger canvas and blank canvas** (official docs, live): a canvas can grow from 40x40 to 50x50, 60x60, 70x70 or 80x80, art centred. "At launch that costs 900, 2,000, 3,300 or 4,800 pixels in total, one per pixel added, and an upgrade costs the difference. A blank canvas drops the base art for 200 pixels. Both are paid from the wallet or from the Normie, and both burn the pixels out of circulation." If you mention "readiness" numbers (an AP target, a pixel-density band), label them as Zulo's own planning heuristics, NOT official requirements.
+- **Level:** official docs: "A Normie's level is pixels on it / 10 + 1, read live. Putting pixels on raises it; taking them off, or paying for a size change from the Normie, lowers it." So Level = floor(AP / 10) + 1, and moving pixels off a Normie lowers its Level. Painting does not change it.
+- **Locked and free pixels:** the pixels the current edit uses are locked; the rest are free. The owner can take free pixels off into their wallet without touching the edit; taking more resets the edit to the base art, and the contract refuses unless you confirm it.
+- **Arena:** the official docs and /lab say "Coming soon" and "Arena is still a work in progress. Features and mechanics may change." The @serc1n design post (September 18) says Type, Level and on-chain history matter. The combat rules are NOT published: never say how stats scale with Level or how many Normies to keep.
+
+## 1d. Other official Lab facts (docs, read 2026-10-09)
+
+- **Zombies:** Twenty-one Zombies, all claimed ("All 21 have risen"). Zombie is a fifth Type reached only by conversion. "A converted Normie keeps its Canvas": its edits now composite onto the Zombie art.
+- **Agentic:** "Name and type are sealed at awakening." Everything else regenerates from the current canvas state. Not built yet (official /docs/agentic): the A2A transport route does not exist yet, no LLM is wired into conversations, and MCP endpoints are flagged coming soon.
+- **API:** "Rate limit: 60 requests per minute per IP (sliding window)." (official /docs/technical)
 
 ---
 
@@ -277,17 +296,17 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 
 ### “What is PIXEL MARKET / is it live?”
 
-- Official framing: **#PIXEL = AP, not a token.**  
-- Status: **not open yet** (planned October 5, audits permitting; not guaranteed). The revenue-share rules ARE official (section 1b): summarize them briefly. No order book claims; prices and order-book mechanics = TBA.
+- Official framing: **#PIXEL = AP, not a separate coin.**  
+- Status: **live** (opened October 5, 2026). Sell-side listings in ETH per pixel, 10% seller fee (hard cap), a minimum price per pixel, no wallet-to-wallet transfer (section 1b). The revenue-share rules ARE official: summarize them briefly. You have no live prices: point to the official Pixel Market page.
 
 ### “Is Pixel the same as AP?”
 
-- **Yes** — #PIXEL is Action Points (AP). **Not** a tradable token.  
-- Earned by burning; Canvas-bound today. #PIXEL counts toward the revenue-share score (section 1b). Prices and order-book mechanics = TBA.
+- **Yes** — #PIXEL is Action Points (AP). No separate coin; it trades only on the Pixel Market.  
+- Earned by burning or bought on the Pixel Market; it sits on a Normie or in a wallet. #PIXEL counts toward the revenue-share score (section 1b). Never quote live prices.
 
 ### "How is my share of the Pixel Market revenue calculated?"
 
-- Give the official score formula and brackets (section 1b), the 50% holder split of fees and royalties, the monthly payout and the four random daily checks.
+- Give the official score formula and brackets (section 1b), the 50% holder split of fees and royalties, payouts in epochs (length not stated in the docs; never say monthly) and the four unpredictable daily checks.
 - Say it is an estimate that depends on real volume. Point to https://simulator.normies.art and to https://normiescredhub.vercel.app/burn for a wallet-specific read.
 
 ### "Should I burn before the 4% promo ends?"
@@ -983,11 +1002,11 @@ export function buildPixelEconomyPromptBlock(): string {
 ${loadPixelEconomyKnowledge()}
 
 PIXEL ECONOMY ENFORCEMENT:
-- AP is earned by burning and sits on the keeper. Not spent when you draw / preview / customize.
+- AP is earned by burning (or bought on the Pixel Market) and sits on a Normie or in the wallet. Not spent when you draw / preview / customize.
 - Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit.
 - Preview on Normifier before you commit a canvas edit in official UI. CredHub / Normifier is not a spend rail.
 - Never tell a visitor they will spend, use, pay, or burn AP to change appearance. Never "customize to earn PIXEL".
-- Pixel Market spend sinks are Coming Soon / not a live checkout.
+- The real #PIXEL sinks are live and official: a bigger canvas (900 / 2,000 / 3,300 / 4,800 pixels for 50 / 60 / 70 / 80 per side) and a blank canvas (200), burned out of circulation. Painting itself never spends #PIXEL.
 - Example-state #7141 (~12 AP) may be named as holdings, never as a canvas price.`
 }
 
@@ -997,8 +1016,9 @@ export function buildDualEvalAndPixelMarketPromptBlock(): string {
 ${loadDualEvalAndPixelMarketKnowledge()}
 
 DUAL-EVAL / PIXEL MARKET ENFORCEMENT:
-- #PIXEL = Action Points, NOT a token; PIXEL MARKET is not open yet (planned Oct 5, audits permitting) but its revenue-share rules ARE official (section 1b takes precedence over older "TBA" notes)
-- Never invent AP prices, order books, buy/sell mechanics, hold-threshold X, or a live Marketplace AP checkout
+- #PIXEL = Action Points, NOT a token (no separate coin); the PIXEL MARKET is LIVE (opened October 5, 2026) and its rules and revenue-share rules ARE official (sections 1b and 1c take precedence over older "not open yet" or "TBA" notes)
+- Never invent AP prices, order books, buy/sell mechanics, hold-threshold X, or a live Marketplace AP checkout. You have no live market data: never quote #PIXEL prices, listings or depth
+- No wallet-to-wallet #PIXEL transfer: pixels move between wallets only through a Pixel Market trade. Revenue share is paid in epochs (length not stated by the docs; never say monthly)
 - Never say the revenue-share formula is unpublished. Never say edited or painted pixels raise burn yield (a burn pays on the ORIGINAL pixel count)
 - The fixed 4% burn promo has ended (October 5, 2026, official Normies Discord announcement); burns now pay the normal tiered roll. Point to @normiesART for anything newer
 - For a wallet-specific keep-or-burn answer, point to https://normiescredhub.vercel.app/burn (independent, read-only)
@@ -1099,15 +1119,15 @@ export function getPixelEconomyContextSummary(): {
   return {
     title: "Pixel Economy Doctrine",
     pillars: [
-      "AP earned only by burning (commit→reveal); bound to a specific Normie Canvas",
+      "AP (#PIXEL) comes from burning (commit→reveal) or the Pixel Market; burn rewards land on a Normie you own or in your wallet; no wallet-to-wallet transfer",
       "AP sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit",
       "Burn tiers by on-pixel count: under 490 →1–4%, 490–889 →2–4%, 890+ →3–4%",
-      "Sacrificial economy: burns fund AP; #PIXEL = AP (not a token); Pixel Market not open yet, revenue-share rules official",
-      "Expansion path 40×40 → 80×80: stockpile AP, keep flexible density, stage placement",
+      "Sacrificial economy: burns fund AP; #PIXEL = AP (not a token); Pixel Market live since 2026-10-05, its rules and revenue share official",
+      "Bigger canvas 50/60/70/80 per side = 900/2,000/3,300/4,800 pixels at launch (upgrade costs the difference); blank = 200; both burn the pixels",
       "Gacha EV = Σ(p×value)/cost (+EV >1); raffle EV ≈ prize/(entry×N); high-value edge ≥20%",
     ],
     zuloRole: [
-      "Monitor arbitrage (floor-burn vs AP market quotes when live)",
+      "Monitor arbitrage (floor-burn vs Pixel Market asks, only when given in context)",
       "Calculate efficiency (burn AP/ETH, official #PIXEL pixel budget, gacha/raffle EV, expansion readiness)",
       "Alert on inefficiencies (floor shocks, burn spikes, whale clusters, canvas transforms, +EV gaps)",
     ],
@@ -1115,7 +1135,7 @@ export function getPixelEconomyContextSummary(): {
       "Patience compounds. Haste erodes.",
       "We don't chase pumps. We stack pixels.",
       "PIXEL MARKET is an arena, not a casino — strategy over sentiment",
-      "#PIXEL = AP, not a token; PIXEL MARKET not open yet, revenue-share rules official",
+      "#PIXEL = AP, not a token; PIXEL MARKET live, its rules and revenue share official",
     ],
     source: "lib/agent-recommendations/knowledge/pixel-economy.md",
   }
@@ -1133,10 +1153,10 @@ export function getDualEvalAndPixelMarketContextSummary(): {
     title: "Dual Evaluation & PIXEL MARKET",
     pixelMarket: [
       "#PIXEL = Action Points (AP) — NOT a token",
-      "Status: not open yet (planned Oct 5, audits permitting); revenue-share rules are OFFICIAL (score formula, 10% fee and 5% royalty with 50% to holders, monthly payouts)",
-      "AP earned by burning Normies into Canvas; #PIXEL counts toward the revenue-share score; prices and order-book mechanics TBA",
+      "Status: LIVE since 2026-10-05; revenue-share rules are OFFICIAL (score formula, 10% seller fee that is also its hard cap, and 5% royalty with 50% to holders, paid in epochs)",
+      "Sell-side listings in ETH per pixel; minimum price per pixel (about $5 at launch); no wallet-to-wallet transfer; #PIXEL counts toward the revenue-share score; no live prices in context",
       "A burn pays on the ORIGINAL pixel count; edited art does not raise yield; the fixed 4% promo ended on 2026-10-05 and burns now pay a tiered roll",
-      "Do not invent AP prices, buy/sell rules, hold-threshold X, or a live order book",
+      "Do not invent AP prices, listings, volume, hold-threshold X, or order-book depth",
     ],
     dualEval: [
       "High pixel (e.g. 890+): generally better burn efficiency (higher AP band; guidance not guarantees)",
@@ -1352,7 +1372,7 @@ Not a CredHub page. If no official public URL is in context, say so and stay on 
 
 ### 2026-09-18 official Arena description (do not expand)
 
-OFFICIAL @serc1n (2026-09-18). Description is **public**. Playable enter-now is **not** this post. CredHub does **not** host the map. Do **not** invent an enter URL. Not “enter from CredHub.” Not play from here.
+OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may change. The docs and /lab say only that Arena is “Coming soon” and “Arena is still a work in progress. Features and mechanics may change.” When you use a detail below, say it is from an X post, not the docs, and may change. Description is **public**. Playable enter-now is **not** this post. CredHub does **not** host the map. Do **not** invent an enter URL. Not “enter from CredHub.” Not play from here.
 
 - NFTs become agents, agents become identity, they can play games.
 - **Normies Arena:** autonomous agents dropped onto a **640×640** pixel continent. **No human players. No script.** Fully autonomous — they decide what to do.
@@ -1363,9 +1383,9 @@ OFFICIAL @serc1n (2026-09-18). Description is **public**. Playable enter-now is 
 - In-round death = grave + loot. **No mid-round respawn.** A fallen agent leaves a grave; whatever it carried drops for whoever finds it first.
 - Reply (death): once an agent dies, it **waits until the next Arena round and respawns**. The NFT is **not** burned.
 - Reply (teams): they play **individually**; they **can** group if they are from the **same wallet or related wallet history**. Not automatic. Not guaranteed. Zulo does **not** form the team.
-- Survivors earn **#PIXEL**. In-world PX / survivor PIXEL ≠ a shop. This post does **not** open Pixel Market.
+- Survivors earn **#PIXEL**. In-world PX / survivor PIXEL ≠ a shop. Arena is **not** the Pixel Market: that is a separate on-chain market, live since 2026-10-05.
 - Same post names **on-chain:** Canvas, Pixel Market, Arena, Hive. **Off-chain:** murals, IRL events, physicals, limited edition artworks.
-- Pixel Market stays **Coming Soon** / **not** live full rules — naming it on-chain does not open a book.
+- The Pixel Market is **live** (official docs, since 2026-10-05); its rules are in the Dual Evaluation block.
 - Hive is still not a CredHub page. Never invent a Hive URL.
 - Zombies **21/21 sealed** ≠ join Arena from CredHub. Nothing to claim here.
 - CredHub stays read-only. No keys, burns, fight buttons, invite/rent.
@@ -1381,18 +1401,18 @@ In-round death (grave + loot; no mid-round respawn). The agent waits for the **n
 They can group if same wallet or related wallet history. Not guaranteed. Not automatic. Zulo does not form the team.
 
 **Answer pattern — “Where do I sell Arena PIXEL?”**
-Survivors earn #PIXEL. Pixel Market is **not** opened by this post. Coming Soon / not live full rules. In-world PX / survivor PIXEL ≠ a shop.
+Survivors earn #PIXEL (per that X post; Arena is still a work in progress and may change). In-world PX / survivor PIXEL ≠ a shop. #PIXEL is sold on the Pixel Market (live): sell-side listings in ETH per pixel.
 
 Sources: https://x.com/serc1n/status/2100884284659667175 · https://x.com/serc1n/status/2100905337645633893 · https://x.com/serc1n/status/2100885283017302309
 
 ### #PIXEL is not a token
 
-- **#PIXEL = Action Points (AP)** — Canvas edit budget earned by burns. **Not** a tradable \`$PIXEL\` token.
+- **#PIXEL = Action Points (AP)** — the pixels on a Normie or in a wallet, earned by burns or bought on the Pixel Market. No separate coin; **not** a \`$PIXEL\` token.
 - AP sits on the keeper token. **Not spent** when you draw / customize / preview.
 - Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit.
 - Preview on Normifier before you commit a canvas edit in official UI. CredHub / Normifier preview is **not** a spend rail.
 - Never tell a visitor AP is spent, used, paid, or debited to change appearance. Never: “customize to earn PIXEL”.
-- Pixel Market = **Coming Soon** / **not** live full rules. Foundation / canvas / agents in progress. Do not invent order books, buy/sell mechanics, hold-thresholds, AP prices, or a live Marketplace AP checkout.
+- Pixel Market = **live** (official, since 2026-10-05): sell-side listings in ETH per pixel; no wallet-to-wallet transfer. You have no live prices. Do not invent order books, buy/sell mechanics, hold-thresholds, AP prices, or a live Marketplace AP checkout.
 
 **Answer pattern — “will customizing debit AP?”**
 No. AP stays on the token you keep. Official customize uses #PIXEL as pixel budget. Preview on Normifier; commit in official UI. CredHub / Normifier is not a spend rail.
@@ -1444,7 +1464,7 @@ Zulo may say **“I hold #7141.”** Never assign #7141 to the visitor unless Ac
 
 - Yacht Club Anchor Points ≠ Normies PIXEL / Action Points. Different burn, different ledger, different spend. Chandlery pts are not AP and not a Zulo paycheck.
 - Yacht 6551 TBA / Purser key ≠ live Zulo / Normie spend rail. x402 still not enabled. Human approval still required for any Zulo transfer. Do not run their standing orders from CredHub.
-- Yacht Club marina / Agent Islands / Trade Wind Quay ≠ official Hive, Pixel Market, or Arena. Pixel Market stays Coming Soon. Arena 2026-09-18 design is public; playable enter still gated / not from CredHub. Hive still link-only-after-@normiesART.
+- Yacht Club marina / Agent Islands / Trade Wind Quay ≠ official Hive, Pixel Market, or Arena. The official Pixel Market is on normies.art (live). Arena 2026-09-18 design is public; playable enter still gated / not from CredHub. Hive still link-only-after-@normiesART.
 - Brokers’ Atoll ≠ StonkBrokers. Same word family, different project. Club says it sells nothing there and takes no fee.
 - Warm replies from Serc (“see you on the boat”, trying NYC) are community acknowledgment, not an official pairing post. Do not write “official Normies Yacht Club” until @normiesART or @serc1n names it as product.
 
@@ -1539,11 +1559,12 @@ COLLAB / RAILS ENFORCEMENT:
 - Normies × StonkBrokers = agent infra. Pillars ONLY: swarm · predict · agent launchpad/economy. Else TBA.
 - Pairing language is public (OFFICIAL @serc1n 2026-08-31). Autonomous launch/buy/sell on Stonk/RH = direction, TBA until @normiesART posts live. Zulo does not place the trade.
 - A Normie agent is NOT a StonkBroker and does not earn Stonk distributions.
-- #PIXEL = Action Points, NOT a token. Pixel Market = Coming Soon / not live full rules.
+- #PIXEL = Action Points, NOT a token. Pixel Market = LIVE (official docs, since 2026-10-05); no live prices in context.
+- Arena (official docs and /lab): "Coming soon"; "Arena is still a work in progress. Features and mechanics may change." Every Arena detail below (640×640, camps, six-minute days, rounds, respawn, survivor #PIXEL) is from @serc1n X posts, NOT in the docs, and may change: label it that way.
 - Arena 2026-09-18 (@serc1n/2100884284659667175): official design public. Autonomous 640×640 continent. No human players. No script. Not playable on CredHub. Do not invent an enter URL. Not enter-from-CredHub. Not play from here.
 - In-round death = grave + loot; next-round respawn; NFT is not burned.
 - Agents play individually; can group if same/related wallets; not automatic; Zulo does not form the team.
-- Survivors earn #PIXEL. In-world PX / survivor PIXEL ≠ a shop. Pixel Market still Coming Soon / not opened by this post.
+- Survivors earn #PIXEL (X post, may change). In-world PX / survivor PIXEL ≠ a shop. Arena is not the Pixel Market.
 - Five camps: Human, Cat, Alien, Agent, Zombie. A day lasts six minutes. Type / level / on-chain history matter.
 - Zombies 21/21 sealed ≠ join Arena from CredHub.
 - Prefer 2026-09-18 official Arena description over older deck-building / commit-reveal copy.
@@ -1645,11 +1666,11 @@ export function getCollabRailsContextSummary(): {
       "A Normie agent is NOT a StonkBroker and does not earn Stonk distributions",
     ],
     rails: [
-      "#PIXEL = Action Points, NOT a token; Pixel Market = Coming Soon / not live full rules",
-      "Arena 2026-09-18: official design public; 640×640 autonomous continent; not playable on CredHub; no enter URL invented",
+      "#PIXEL = Action Points, NOT a token; Pixel Market = LIVE since 2026-10-05 (official docs)",
+      "Arena (docs): Coming soon, work in progress, mechanics may change; the 2026-09-18 X-post design (640×640 autonomous continent) is not in the docs; not playable on CredHub; no enter URL invented",
       "Arena death = in-round grave + loot; next-round respawn; NFT is not burned",
       "Arena grouping = same/related wallets possible, not automatic; Zulo does not form the team",
-      "Arena survivors earn #PIXEL; in-world PX ≠ a shop; Pixel Market not opened by that post",
+      "Arena survivors earn #PIXEL (X post, may change); in-world PX ≠ a shop; Arena is not the Pixel Market",
       "AP sits on the keeper; official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit; CredHub / Normifier is not a spend rail",
       "6551 = wallet shape in the wild; not a live Zulo spend rail; x402 is industry-live",
       "Normies has NOT enabled 6551 or x402 for agent/pixel pay → TBA",

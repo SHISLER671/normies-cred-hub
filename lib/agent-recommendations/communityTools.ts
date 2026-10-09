@@ -31,7 +31,7 @@ export const COMMUNITY_TOOLS: CommunityTool[] = [
       "Paste a wallet address (read-only, no connecting, no signing) for a plain answer on what to buy, keep or burn for revenue share, Arena or art. Independent community tool, not made by the Normies team.",
     useCases: [
       "Should I burn or keep this Normie?",
-      "What is my best move before the Pixel Market opens?",
+      "What is my best move now that the Pixel Market is open?",
       "See my revenue-share score and what the next step adds",
       "Check whether an edited Normie is safe to burn",
     ],
