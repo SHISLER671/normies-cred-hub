@@ -6,14 +6,8 @@ import { DEFAULT_SITE_ORIGIN } from '@/lib/site-origin'
 import './globals.css'
 import './brand.css'
 
-// Fonts are self-hosted (variable woff2, latin subset, OFL-1.1; see app/fonts/LICENSE-*.txt) so the build never
-// downloads anything from Google: a failed download there broke a production deploy on 2026-10-02.
-const geistSans = localFont({ src: './fonts/geist-latin-wght-normal.woff2', variable: '--font-geist-sans', weight: '100 900', display: 'swap' })
-const geistMono = localFont({ src: './fonts/geist-mono-latin-wght-normal.woff2', variable: '--font-geist-mono', weight: '100 900', display: 'swap' })
-
-// Premium, slightly artistic headings — Space Grotesk
-const spaceGrotesk = localFont({ src: './fonts/space-grotesk-latin-wght-normal.woff2', variable: '--font-space-grotesk', weight: '300 700', display: 'swap' })
-
+// Fonts are self-hosted (latin woff2, OFL-1.1; see app/fonts/LICENSE-*.txt) so the build never downloads anything from
+// Google: a failed download there broke a production deploy on 2026-10-02.
 // The Normies face: Chakra Petch (OFL-1.1, static latin woff2 from @fontsource/chakra-petch 5.3.0). normies.art uses it for
 // everything since its 2026 relaunch, so NCH does too: body, headings, numbers and labels.
 const chakraPetch = localFont({
@@ -28,8 +22,6 @@ const chakraPetch = localFont({
   display: 'swap',
 })
 
-// Clean, highly legible body — Inter
-const inter = localFont({ src: './fonts/inter-latin-wght-normal.woff2', variable: '--font-inter', weight: '100 900', display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'Normies CredHub — Verifiable Reputation for Awakened Agents',
@@ -63,7 +55,7 @@ export default function RootLayout({
     <html 
       lang="en" 
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${inter.variable} ${chakraPetch.variable}`}
+      className={chakraPetch.variable}
     >
       <body>
         <Providers>

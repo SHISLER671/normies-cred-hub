@@ -185,40 +185,7 @@
   border-top: 1px solid var(--border);
 }
 
-.zulo-chrome .grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-lg);
-}
-
-.zulo-chrome .grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-lg);
-}
-
-.zulo-chrome .ask-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-md);
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--space-md) var(--space-md) var(--space-xl);
-}
-
-@media (min-width: 1024px) {
-  .zulo-chrome .ask-layout {
-    grid-template-columns: minmax(280px, 340px) 1fr;
-    gap: var(--space-lg);
-    padding: var(--space-lg);
-  }
-}
-
 @media (max-width: 768px) {
-  .zulo-chrome .grid-3,
-  .zulo-chrome .grid-2 {
-    grid-template-columns: 1fr;
-  }
 
   .zulo-chrome .container {
     padding: 0 var(--space-md);
@@ -258,15 +225,6 @@
   background: var(--bg-primary);
   box-shadow: var(--shadow-soft);
   border-bottom-color: var(--border);
-}
-
-.zulo-chrome .header-logo {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--text-primary);
 }
 
 /* Hub brand mark in shared chrome */
@@ -786,16 +744,6 @@
   justify-content: center;
 }
 
-.zulo-chrome .home-rep-copy {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  text-transform: none;
-  letter-spacing: 0.01em;
-  font-family: var(--font-ui);
-  font-weight: 400;
-}
-
 /* Buttons */
 .zulo-chrome .button {
   display: inline-flex;
@@ -853,10 +801,6 @@
   border-color: var(--text-primary);
 }
 
-.zulo-chrome .button-block {
-  width: 100%;
-}
-
 .zulo-chrome .button-sm {
   padding: var(--space-xs) var(--space-sm);
   font-size: 12px;
@@ -894,30 +838,6 @@
   color: var(--text-secondary);
 }
 
-.zulo-chrome .card-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: 14px;
-}
-
-.zulo-chrome .card-row:last-child {
-  border-bottom: none;
-}
-
-.zulo-chrome .card-row-label {
-  color: var(--text-muted);
-}
-
-.zulo-chrome .card-row-value {
-  color: var(--text-primary);
-  text-align: right;
-  font-weight: 600;
-}
-
 /* Badges */
 .zulo-chrome .badge {
   display: inline-block;
@@ -932,48 +852,6 @@
 /* Stats */
 .zulo-chrome .stat {
   text-align: center;
-}
-
-.zulo-chrome .stat-number {
-  font-size: clamp(40px, 8vw, 64px);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  margin-bottom: var(--space-sm);
-  color: var(--text-primary);
-}
-
-.zulo-chrome .stat-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-}
-
-.zulo-chrome .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-lg);
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-  .zulo-chrome .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  /* Two real stats only — keep balanced, not stretched to four columns */
-  .zulo-chrome .stats-grid.stats-grid-pair {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 480px;
-    gap: var(--space-xl);
-  }
-}
-
-.zulo-chrome .stats-grid.stats-grid-pair {
-  max-width: 420px;
-  gap: var(--space-lg);
 }
 
 /* Quote */
@@ -1066,12 +944,6 @@
 .zulo-chrome .site-footer a.footer-zulo:hover,
 .zulo-chrome .site-footer a.footer-zulo:focus-visible {
   color: var(--zulo-accent);
-}
-
-.zulo-chrome .footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
 }
 
 /* Avatar */
@@ -1186,16 +1058,6 @@
   text-transform: none;
 }
 
-.zulo-chrome .home-zulo-art {
-  margin: 0 auto var(--space-lg);
-}
-
-.zulo-chrome .home-zulo-points {
-  max-width: 900px;
-  margin: 0 auto;
-  gap: var(--space-md);
-}
-
 .zulo-chrome .home-surface-card {
   display: flex;
   flex-direction: column;
@@ -1236,81 +1098,13 @@
   font-weight: 400;
 }
 
-.zulo-chrome .home-surface-card-go {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.65;
-  margin-top: 4px;
-}
-
 /* Moves — light outline (static) */
-.zulo-chrome .home-surface-card-moves:hover,
-.zulo-chrome .home-surface-card-moves:focus-visible {
-  background: var(--bg-secondary);
-  outline: none;
-}
 
 /* Ask — strongest filled treatment (inverse text for contrast) */
-.zulo-chrome .home-surface-card-ask {
-  background: var(--bg-dark);
-  color: var(--text-inverse);
-  border-color: var(--bg-dark);
-}
 
 /* Override global .zulo-chrome h3 color so titles invert on filled cards */
-.zulo-chrome .home-surface-card-ask h3,
-.zulo-chrome .home-surface-card-ask p,
-.zulo-chrome .home-surface-card-ask .home-surface-card-go {
-  color: var(--text-inverse);
-}
-
-.zulo-chrome .home-surface-card-ask p {
-  opacity: 0.88;
-}
-
-.zulo-chrome .home-surface-card-ask .home-surface-card-go {
-  opacity: 0.75;
-}
-
-.zulo-chrome .home-surface-card-ask:hover,
-.zulo-chrome .home-surface-card-ask:focus-visible {
-  background: var(--text-primary);
-  border-color: var(--text-primary);
-  color: var(--text-inverse);
-  outline: none;
-}
-
-.zulo-chrome .home-surface-card-ask:hover h3,
-.zulo-chrome .home-surface-card-ask:focus-visible h3,
-.zulo-chrome .home-surface-card-ask:hover p,
-.zulo-chrome .home-surface-card-ask:focus-visible p,
-.zulo-chrome .home-surface-card-ask:hover .home-surface-card-go,
-.zulo-chrome .home-surface-card-ask:focus-visible .home-surface-card-go {
-  color: var(--text-inverse);
-}
 
 /* PULSE — subtle monochrome pulse outline */
-.zulo-chrome .home-surface-card-pulse {
-  position: relative;
-  overflow: visible;
-}
-
-.zulo-chrome .home-surface-card-pulse::after {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border: 1px solid var(--text-primary);
-  opacity: 0;
-  pointer-events: none;
-  animation: zulo-pulse-glow var(--pulse-speed) ease-in-out infinite;
-}
-
-.zulo-chrome .home-surface-card-pulse:hover,
-.zulo-chrome .home-surface-card-pulse:focus-visible {
-  background: var(--bg-secondary);
-  outline: none;
-}
 
 .zulo-chrome .home-surface-card:active {
   transform: translateY(var(--motion-press));
@@ -1321,15 +1115,7 @@
   outline-offset: var(--focus-offset);
 }
 
-.zulo-chrome .home-surface-card:hover .home-surface-card-go,
-.zulo-chrome .home-surface-card:focus-visible .home-surface-card-go {
-  opacity: 1;
-}
-
 @media (max-width: 768px) {
-  .zulo-chrome .home-zulo-points.grid-3 {
-    grid-template-columns: 1fr;
-  }
 
   .zulo-chrome .home-surface-card {
     min-height: 120px;
@@ -1488,51 +1274,6 @@
   max-width: 32rem;
 }
 
-.zulo-chrome .badge-live {
-  opacity: 1;
-}
-
-.zulo-chrome .badge-soon {
-  opacity: 0.6;
-}
-
-.zulo-chrome .home-cred-card {
-  position: relative;
-  overflow: visible;
-  border-width: 1px;
-  padding-top: 28px;
-  min-height: 132px;
-}
-
-.zulo-chrome .home-cred-card .badge {
-  position: absolute;
-  top: -0.6rem;
-  left: 1rem;
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  padding: 2px 8px;
-  background: var(--bg-primary);
-}
-
-.zulo-chrome .home-cred-card.home-surface-card-pulse::after {
-  display: none;
-}
-
-.zulo-chrome.zulo-home .home-cred-card-ask .badge-live {
-  border-color: var(--zulo-accent);
-  color: var(--zulo-accent);
-}
-
-.zulo-chrome .home-cred-card:hover,
-.zulo-chrome .home-cred-card:focus-visible {
-  background: var(--bg-secondary);
-}
-
-.zulo-chrome .home-cred-card:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
-
 .zulo-chrome .home-type-legend {
   margin: var(--space-lg) auto 0;
   max-width: 32rem;
@@ -1542,70 +1283,11 @@
   margin-top: var(--space-lg);
 }
 
-@media (max-width: 640px) {
-  .zulo-chrome .header-logo {
-    font-size: 16px;
-    letter-spacing: 0.2em;
-  }
-}
-
 /* Identity strip */
-.zulo-chrome .identity-strip {
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-  padding: var(--space-sm) var(--space-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.zulo-chrome .identity-mark {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border);
-  background: var(--bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.zulo-chrome .identity-mark .live-dot {
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  width: 10px;
-  height: 10px;
-  background: var(--text-primary);
-  border: 2px solid var(--bg-secondary);
-}
 
 /* Bars */
-.zulo-chrome .meter {
-  height: 8px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-light);
-  overflow: hidden;
-}
-
-.zulo-chrome .meter-fill {
-  height: 100%;
-  background: var(--text-primary);
-  transition: width 0.3s ease;
-}
 
 /* Chat */
-.zulo-chrome .chat-shell {
-  border: 1px solid var(--border);
-  background: var(--bg-secondary);
-  display: flex;
-  flex-direction: column;
-  min-height: min(70vh, 700px);
-  height: 700px;
-  max-height: 75vh;
-}
 
 .zulo-chrome .chat-messages {
   flex: 1;
@@ -1866,10 +1548,6 @@
   margin-bottom: 4px;
 }
 
-.zulo-chrome .step-arrow {
-  flex-shrink: 0;
-}
-
 /* Quick prompts + input */
 .zulo-chrome .chat-footer {
   border-top: 1px solid var(--border);
@@ -1963,27 +1641,8 @@
 }
 
 /* Feature numbers */
-.zulo-chrome .feature-num {
-  font-size: 40px;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-sm);
-}
 
 /* Pulse animations */
-.zulo-chrome .pulse-indicator {
-  position: relative;
-  display: inline-block;
-}
-
-.zulo-chrome .pulse-indicator::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border: 1px solid var(--text-primary);
-  opacity: 0;
-  animation: zulo-pulse-glow var(--pulse-speed) ease-in-out infinite;
-}
 
 @keyframes zulo-pulse-glow {
   0%,
@@ -1997,41 +1656,7 @@
   }
 }
 
-.zulo-chrome .status-live {
-  color: var(--text-primary);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  /* No decorative pulse square — keep LIVE text only */
-}
-
 /* Homepage PULSE CTA — subtle monochrome live treatment */
-.zulo-chrome .button-pulse-cta {
-  position: relative;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border-color: var(--border);
-  overflow: visible;
-}
-
-.zulo-chrome .button-pulse-cta::after {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  border: 1px solid var(--text-primary);
-  opacity: 0;
-  pointer-events: none;
-  animation: zulo-pulse-glow var(--pulse-speed) ease-in-out infinite;
-}
-
-.zulo-chrome .button-pulse-cta:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.zulo-chrome .data-pulse {
-  animation: zulo-data-fresh 0.5s ease-out;
-}
 
 @keyframes zulo-data-fresh {
   0% {
@@ -2040,20 +1665,6 @@
   100% {
     opacity: 1;
   }
-}
-
-.zulo-chrome .pulse-card {
-  position: relative;
-}
-
-.zulo-chrome .pulse-card::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border: 1px solid var(--text-primary);
-  opacity: 0;
-  pointer-events: none;
-  animation: zulo-border-pulse 3s ease-in-out infinite;
 }
 
 @keyframes zulo-border-pulse {
@@ -2067,44 +1678,6 @@
 }
 
 /* Opportunities */
-.zulo-chrome .opp-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-md);
-}
-
-@media (min-width: 768px) {
-  .zulo-chrome .opp-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .zulo-chrome .opp-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.zulo-chrome .opp-card {
-  border: 1px solid var(--border);
-  background: var(--bg-secondary);
-  padding: var(--space-md);
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font-ui);
-  transition: background 0.2s;
-  width: 100%;
-  border-radius: 0;
-}
-
-.zulo-chrome .opp-card:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-}
-
-.zulo-chrome .opp-card:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .zulo-chrome .stack {
   display: flex;
@@ -2118,15 +1691,6 @@
 
 .zulo-chrome .text-center {
   text-align: center;
-}
-
-.zulo-chrome .sidebar-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  margin-top: var(--space-md);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--border);
 }
 
 .zulo-chrome .dyor {
@@ -2154,10 +1718,6 @@
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
-}
-
-.zulo-chrome.ask-page-wrap .ask-banner {
-  flex-shrink: 0;
 }
 
 .zulo-chrome .ask-shell {
@@ -2234,156 +1794,11 @@
 }
 
 /* Modular Ask — progressive disclosure modules (legacy hooks) */
-.zulo-chrome .ask-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  overflow: hidden;
-}
-
-.zulo-chrome .ask-module {
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-}
-
-.zulo-chrome .ask-module-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 48px;
-  padding: 12px 16px;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  text-align: left;
-}
-
-.zulo-chrome .ask-module-toggle:hover {
-  background: var(--bg-tertiary);
-}
-
-.zulo-chrome .ask-module-toggle-label {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px 12px;
-  min-width: 0;
-}
-
-.zulo-chrome .ask-module-meta {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  text-transform: none;
-  font-weight: 400;
-}
-
-.zulo-chrome .ask-module-body {
-  padding: 4px 16px 18px;
-  border-top: 1px solid var(--border-light);
-}
-
-.zulo-chrome .ask-intro-text {
-  margin: 0;
-  font-family: var(--font-ui);
-  font-size: 14px;
-  line-height: 1.65;
-  color: var(--text-secondary);
-  text-transform: none;
-  letter-spacing: 0.01em;
-  font-weight: 400;
-}
-
-.zulo-chrome .ask-inline-link {
-  color: var(--text-primary);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.zulo-chrome .ask-skills-tray {
-  margin-bottom: var(--space-sm);
-}
-
-.zulo-chrome .ask-skills-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 40px;
-  padding: 6px 0 10px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-ui);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  cursor: pointer;
-}
-
-.zulo-chrome .ask-skills-toggle:hover {
-  color: var(--text-primary);
-}
-
-.zulo-chrome .ask-module-opps .ask-opps-body {
-  padding-top: 12px;
-  padding-bottom: 16px;
-}
-
-.zulo-chrome .ask-modular .ask-main {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-@media (min-width: 768px) {
-  .zulo-chrome .ask-module-toggle {
-    padding: 14px 24px;
-    min-height: 52px;
-  }
-
-  .zulo-chrome .ask-module-body {
-    padding: 8px 24px 22px;
-  }
-}
 
 .zulo-chrome .ask-top {
   position: relative;
   z-index: 40;
   flex-shrink: 0;
-}
-
-.zulo-chrome .pulse-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.zulo-chrome .pulse-toggle:hover,
-.zulo-chrome .pulse-toggle.is-open {
-  background: var(--bg-secondary);
 }
 
 .zulo-chrome .pulse-toggle-chevron {
@@ -2394,68 +1809,6 @@
 
 .zulo-chrome .pulse-toggle-chevron.is-open {
   transform: rotate(180deg);
-}
-
-.zulo-chrome .pulse-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  max-height: min(70dvh, 480px);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  animation: zulo-slide-down 0.2s ease-out;
-}
-
-.zulo-chrome .pulse-dropdown-inner {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--space-md);
-}
-
-.zulo-chrome .pulse-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-md);
-}
-
-@media (min-width: 768px) {
-  .zulo-chrome .pulse-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.zulo-chrome .pulse-field .caption {
-  margin-bottom: 4px;
-}
-
-.zulo-chrome .pulse-field .mono {
-  font-size: 16px;
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.zulo-chrome .pulse-dropdown-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-top: var(--space-md);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--border-light);
-}
-
-.zulo-chrome .pulse-dropdown-actions .button {
-  min-height: 44px;
-  flex: 1 1 auto;
-}
-
-@media (min-width: 480px) {
-  .zulo-chrome .pulse-dropdown-actions .button {
-    flex: 0 1 auto;
-  }
 }
 
 /* Centered chat stage — breathing room on phone, opens on desktop */
@@ -2618,37 +1971,7 @@
   padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
 }
 
-.zulo-chrome .pulse-toggle-compact {
-  padding: 6px 10px;
-  min-height: 40px;
-  font-size: 11px;
-}
-
-.zulo-chrome .opp-collapse-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 4px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-ui);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  cursor: pointer;
-}
-
-.zulo-chrome .opp-rail-section.is-collapsed {
-  padding-top: 0;
-  padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
-}
-
-.zulo-chrome .ask-shell.keyboard-open .dyor,
-.zulo-chrome .ask-shell.keyboard-open .opp-rail-section {
+.zulo-chrome .ask-shell.keyboard-open .dyor{
   display: none;
 }
 
@@ -2694,102 +2017,6 @@
 }
 
 /* Opportunities rail (used inside collapsible ask module) */
-.zulo-chrome .opp-rail-section {
-  flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  background: var(--bg-secondary);
-  padding: var(--space-md) 0 var(--space-lg);
-  padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom, 0px));
-  margin-top: 2px;
-}
-
-.zulo-chrome .opp-rail-inner {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 var(--space-md);
-}
-
-.zulo-chrome .opp-rail {
-  display: flex;
-  gap: var(--space-md);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
-  padding-bottom: 8px;
-  scrollbar-width: thin;
-}
-
-.zulo-chrome .ask-module-opps .opp-rail {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.zulo-chrome .opp-rail::-webkit-scrollbar {
-  height: 4px;
-}
-
-.zulo-chrome .opp-rail::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-.zulo-chrome .opp-rail::-webkit-scrollbar-thumb {
-  background: var(--text-muted);
-}
-
-.zulo-chrome .opp-chip {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
-  width: min(280px, 85vw);
-  min-height: 44px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  background: var(--bg-primary);
-  text-align: left;
-  font-family: var(--font-ui);
-  cursor: pointer;
-  transition: background 0.15s;
-  color: var(--text-primary);
-  line-height: 1.5;
-}
-
-.zulo-chrome .opp-chip:hover,
-.zulo-chrome .opp-chip.is-expanded {
-  background: var(--bg-tertiary);
-}
-
-.zulo-chrome .opp-chip-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.zulo-chrome .opp-chip-body {
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--text-secondary);
-}
-
-.zulo-chrome .opp-chip-body.clamped {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.zulo-chrome .opp-chip-expand {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-light);
-  animation: zulo-fade-in 0.2s ease-out;
-}
-
-.zulo-chrome .opp-chip-expand .button {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 8px;
-}
 
 /* Utilities */
 .zulo-chrome .line-clamp-2 {
@@ -2797,10 +2024,6 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.zulo-chrome .rotate-180 {
-  transform: rotate(180deg);
 }
 
 @keyframes zulo-slide-down {
@@ -2814,10 +2037,6 @@
   }
 }
 
-.zulo-chrome .animate-slide-down {
-  animation: zulo-slide-down 0.2s ease-out;
-}
-
 @keyframes zulo-fade-in {
   from {
     opacity: 0;
@@ -2827,28 +2046,12 @@
   }
 }
 
-.zulo-chrome .animate-fade-in {
-  animation: zulo-fade-in 0.2s ease-out;
-}
-
 /* Header trailing cluster on small screens */
-.zulo-chrome .header-trailing {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  justify-content: flex-end;
-}
 
 @media (max-width: 640px) {
   .zulo-chrome .header {
     padding: 12px 12px;
     gap: 8px;
-  }
-
-  .zulo-chrome .header-logo {
-    font-size: 16px;
-    letter-spacing: 0.2em;
   }
 
   .zulo-chrome .header-nav {
@@ -2860,12 +2063,6 @@
     display: none;
   }
 
-  .zulo-chrome .pulse-toggle .pulse-tier {
-    max-width: 72px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 
 /* ========== MOVES BOARD (/paths) ========== */
@@ -3321,24 +2518,6 @@
 
 /* ========== ASK BANNER ========== */
 
-.zulo-chrome .ask-banner {
-  border-bottom: 1px solid var(--border);
-  padding: 14px 20px;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.55;
-  background: var(--bg-secondary);
-  font-family: var(--font-ui);
-  color: var(--text-secondary);
-}
-
-.zulo-chrome .ask-banner a {
-  color: var(--text-primary);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 /* ========== DASHBOARD SHELL (chrome only) ========== */
 
 .zulo-chrome .dash-shell {
@@ -3375,26 +2554,6 @@
 .zulo-chrome .dash-hero .caption {
   text-align: left;
   max-width: 34rem;
-}
-
-.zulo-chrome .dash-section {
-  margin-bottom: var(--space-lg);
-  border: 1px solid var(--border);
-  background: var(--bg-secondary);
-  padding: var(--space-md);
-}
-
-.zulo-chrome .dash-section-title {
-  font-size: 14px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin: 0 0 var(--space-sm);
-}
-
-.zulo-chrome .dash-footer {
-  border-top: 1px solid var(--border);
-  padding: var(--space-lg) 0 var(--space-xl);
-  text-align: left;
 }
 
 /* ========== PULSE accordion (mobile-first progressive disclosure) ========== */
@@ -3698,16 +2857,6 @@
   opacity: 0.85;
 }
 
-.zulo-chrome .dash-footer p {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  line-height: 1.7;
-  max-width: 34rem;
-  margin: 0;
-}
-
 .zulo-chrome .agent-tools-strip {
   margin: 0;
   padding: 14px 16px;
@@ -3860,18 +3009,6 @@
     border-color: var(--text-primary);
   }
 
-  .zulo-chrome .home-surface-card-moves:hover,
-  .zulo-chrome .home-surface-card-pulse:hover,
-  .zulo-chrome .home-cred-card:hover {
-    box-shadow: var(--shadow-card);
-    transform: translateY(var(--motion-lift));
-  }
-
-  .zulo-chrome .home-surface-card-ask:hover {
-    box-shadow: var(--shadow-card);
-    transform: translateY(var(--motion-lift));
-  }
-
   .zulo-chrome .card:hover {
     box-shadow: var(--shadow-soft);
   }
@@ -3910,37 +3047,6 @@
 
 .zulo-chrome .ask-skills-details[open] > :not(summary) {
   animation: zulo-slide-down var(--motion-base) var(--motion-ease-out) both;
-}
-
-.zulo-chrome .ask-module-toggle {
-  transition:
-    background var(--motion-base) var(--motion-ease),
-    color var(--motion-base) var(--motion-ease);
-}
-
-.zulo-chrome .ask-module-toggle:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: -2px;
-}
-
-.zulo-chrome .ask-module-toggle:active {
-  background: var(--bg-tertiary);
-}
-
-.zulo-chrome .pulse-toggle {
-  transition:
-    background var(--motion-base) var(--motion-ease),
-    border-color var(--motion-base) var(--motion-ease),
-    transform var(--motion-fast) var(--motion-ease);
-}
-
-.zulo-chrome .pulse-toggle:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
-
-.zulo-chrome .pulse-toggle:active {
-  transform: translateY(var(--motion-press));
 }
 
 .zulo-chrome .pulse-toggle-chevron {
@@ -4121,36 +3227,6 @@
 }
 
 /* --- Opp chips / residual controls --- */
-.zulo-chrome .opp-chip {
-  transition:
-    background var(--motion-base) var(--motion-ease),
-    color var(--motion-base) var(--motion-ease),
-    border-color var(--motion-base) var(--motion-ease),
-    transform var(--motion-fast) var(--motion-ease);
-  min-height: 44px;
-}
-
-.zulo-chrome .opp-chip:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
-
-.zulo-chrome .opp-chip:active {
-  transform: translateY(var(--motion-press));
-}
-
-.zulo-chrome .opp-card {
-  transition:
-    background var(--motion-base) var(--motion-ease),
-    border-color var(--motion-base) var(--motion-ease),
-    transform var(--motion-fast) var(--motion-ease),
-    box-shadow var(--motion-base) var(--motion-ease);
-}
-
-.zulo-chrome .opp-card:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
 
 /* --- Overflow safety (effects must not cause horizontal scroll) --- */
 .zulo-chrome {
@@ -4237,15 +3313,8 @@
   .zulo-chrome .hero-hub .hero-subtitle,
   .zulo-chrome .hero-hub .hero-meta,
   .zulo-chrome .pulse-acc-panel-inner,
-  .zulo-chrome .ask-skills-details[open] > :not(summary),
-  .zulo-chrome .pulse-dropdown {
+  .zulo-chrome .ask-skills-details[open] > :not(summary){
     animation: none !important;
-  }
-
-  .zulo-chrome .home-surface-card-pulse::after,
-  .zulo-chrome .pulse-indicator::after {
-    animation: none !important;
-    opacity: 0;
   }
 
   .zulo-chrome.zulo-home .hero-soul-frame::after,
@@ -4348,14 +3417,6 @@
   text-transform: none;
 }
 
-.zulo-chrome .dash-footer .site-footer-contact {
-  margin-top: 16px;
-  max-width: none;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: none;
-}
-
 /* ========== PAGE SYSTEM: the shared tone for every page ==========
    Appearance only. One display font for titles, one reading width, one panel look, one page header
    (small label, light title, grey intro, left aligned). Pulse and Moves share the .moves-* header classes,
@@ -4401,7 +3462,6 @@
 
 /* panels: flat, thin, a touch lighter than the page (like the revenue share simulator) */
 .zulo-chrome .card,
-.zulo-chrome .dash-section,
 .zulo-chrome .moves-primary {
   border-color: var(--panel-line);
   background: var(--panel-bg);
@@ -4463,7 +3523,6 @@
 }
 
 /* Ask: same panel lines, and the conversation reads in Inter */
-.zulo-chrome .ask-banner,
 .zulo-chrome .ask-chat { border-color: var(--panel-line); }
 .zulo-chrome .ask-chat { background: var(--panel-bg); }
 .zulo-chrome .chat-bubble:not(.ask-inflight-status) { border-color: var(--panel-line); }
