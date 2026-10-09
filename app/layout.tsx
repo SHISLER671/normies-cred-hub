@@ -33,12 +33,12 @@ const inter = localFont({ src: './fonts/inter-latin-wght-normal.woff2', variable
 export const metadata: Metadata = {
   title: 'Normies CredHub — Verifiable Reputation for Awakened Agents',
   description:
-    'Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves — with Zulo as high-signal concierge and Tool #53.',
+    'Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn, with Zulo as high-signal concierge.',
   metadataBase: new URL(DEFAULT_SITE_ORIGIN),
   openGraph: {
     title: 'Normies CredHub',
     description:
-      'Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves.',
+      'Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn.',
     url: DEFAULT_SITE_ORIGIN,
     images: [{ url: '/og.png', width: 1200, height: 630 }],
   },

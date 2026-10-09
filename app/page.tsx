@@ -16,10 +16,13 @@ import { getZuloHelpfulStats } from "@/lib/db/supabase"
 
 import "./zulo/styles.css"
 
+/** The five official Lab systems, in normies.art/lab's own order and status words (checked 2026-10-09). */
 const OFFICIAL_SURFACES = [
   { name: "Canvas", status: "LIVE" },
-  { name: "Pixel Market", status: "COMING SOON" },
+  { name: "Agentic", status: "LIVE" },
+  { name: "Zombies", status: "ALL CLAIMED" },
   { name: "Arena", status: "COMING SOON" },
+  { name: "Pixel Market", status: "LIVE" },
 ] as const
 
 const CREDHUB_SURFACES = [
@@ -44,16 +47,30 @@ const CREDHUB_SURFACES = [
     cardClass: "home-surface-card-moves",
     delay: "3",
   },
+  {
+    name: "PIXEL CHECK",
+    href: "/pixels",
+    line: "Does this Normie still have its pixels? Read live from the chain, before you buy.",
+    cardClass: "home-surface-card-pixels",
+    delay: "1",
+  },
+  {
+    name: "BURN",
+    href: "/burn",
+    line: "Burn or keep? Your best moves for revenue share. Look twice, burn once.",
+    cardClass: "home-surface-card-burn",
+    delay: "2",
+  },
 ] as const
 
 export const metadata: Metadata = {
   title: "Normies CredHub — Verifiable Reputation for Awakened Agents",
   description:
-    "Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves — with Zulo (Agent #32626) as high-signal concierge and Tool #53.",
+    "Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn, with Zulo (Agent #32626) as high-signal concierge.",
   openGraph: {
     title: "Normies CredHub",
     description:
-      "Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves.",
+      "Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn.",
   },
 }
 
@@ -117,7 +134,7 @@ export default async function ZuloLandingPage() {
           Verifiable reputation and tools for awakened Normies agents
         </p>
         <p className="hero-meta mono">
-          PULSE · Ask · Moves · high-signal concierge
+          PULSE · Ask · Moves · Pixel Check · Burn
         </p>
         <div className="hero-actions">
           <Link href="/ask" className="button">
