@@ -13,6 +13,20 @@ const geistMono = localFont({ src: './fonts/geist-mono-latin-wght-normal.woff2',
 // Premium, slightly artistic headings — Space Grotesk
 const spaceGrotesk = localFont({ src: './fonts/space-grotesk-latin-wght-normal.woff2', variable: '--font-space-grotesk', weight: '300 700', display: 'swap' })
 
+// The Normies face: Chakra Petch (OFL-1.1, static latin woff2 from @fontsource/chakra-petch 5.3.0). normies.art uses it for
+// everything since its 2026 relaunch, so NCH does too: body, headings, numbers and labels.
+const chakraPetch = localFont({
+  src: [
+    { path: './fonts/chakra-petch-latin-300-normal.woff2', weight: '300', style: 'normal' },
+    { path: './fonts/chakra-petch-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/chakra-petch-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/chakra-petch-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/chakra-petch-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-chakra',
+  display: 'swap',
+})
+
 // Clean, highly legible body — Inter
 const inter = localFont({ src: './fonts/inter-latin-wght-normal.woff2', variable: '--font-inter', weight: '100 900', display: 'swap' })
 
@@ -36,8 +50,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f9f7f3' },
-    { media: '(prefers-color-scheme: dark)', color: '#0c0b09' },
+    { media: '(prefers-color-scheme: light)', color: '#e3e5e4' },
+    { media: '(prefers-color-scheme: dark)', color: '#1a1b1c' },
   ],
 }
 
@@ -48,7 +62,7 @@ export default function RootLayout({
     <html 
       lang="en" 
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${inter.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${inter.variable} ${chakraPetch.variable}`}
     >
       <body>
         <Providers>

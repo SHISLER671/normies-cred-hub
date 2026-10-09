@@ -42,27 +42,28 @@
   color-scheme: light;
 
   /* Light grey monochrome (aligned with Zulo gateway) */
-  --background: #e5e5e5;
-  --foreground: #1a1a1a;
+  /* Brand v2 (2026-10-09): the normies.art palette, ink #1a1b1c on paper #e3e5e4; greys are ink mixed into paper. */
+  --background: #e3e5e4;
+  --foreground: #1a1b1c;
 
-  --card: #f0f0f0;
-  --card-hover: #e8e8e8;
+  --card: #eeefee;
+  --card-hover: #dbdddc;
 
-  --popover: #f0f0f0;
-  --secondary: #d4d4d4;
-  --muted: #d4d4d4;
-  --muted-foreground: #4a4a4a;
+  --popover: #eeefee;
+  --secondary: #d3d5d4;
+  --muted: #d3d5d4;
+  --muted-foreground: #4c4e4e;
 
-  --border: #1a1a1a;
-  --input: #f0f0f0;
+  --border: #565858;
+  --input: #eeefee;
 
   /* Monochrome-forward primary (readable buttons, Normies continuity) */
-  --primary: #1a1a1a;
-  --primary-foreground: #e5e5e5;
-  --accent: #4a4a4a;
+  --primary: #1a1b1c;
+  --primary-foreground: #e3e5e4;
+  --accent: #4c4e4e;
 
   --destructive: #dc2626;
-  --ring: #1a1a1a;
+  --ring: #1a1b1c;
 
   /* Radius variables - all squared */
   --radius: 0;
@@ -85,27 +86,28 @@
 .dark {
   color-scheme: dark;
 
-  --background: #0d0d0d;
-  --foreground: #e5e5e5;
+  /* Brand v2: paper #e3e5e4 on ink #1a1b1c, exactly normies.art; greys are paper mixed into ink. */
+  --background: #1a1b1c;
+  --foreground: #e3e5e4;
 
-  --card: #1a1a1a;
-  --card-hover: #222222;
+  --card: #242526;
+  --card-hover: #2a2b2c;
 
-  --popover: #1a1a1a;
-  --secondary: #1f1f1f;
-  --muted: #1f1f1f;
-  --muted-foreground: #a3a3a3;
+  --popover: #242526;
+  --secondary: #2e2f30;
+  --muted: #2e2f30;
+  --muted-foreground: #a7a8a8;
 
-  --border: #a3a3a3;
-  --input: #1a1a1a;
+  --border: #939494;
+  --input: #242526;
 
   /* Monochrome primary in dark */
-  --primary: #e5e5e5;
-  --primary-foreground: #0d0d0d;
-  --accent: #a3a3a3;
+  --primary: #e3e5e4;
+  --primary-foreground: #1a1b1c;
+  --accent: #a7a8a8;
 
   --destructive: #ef4444;
-  --ring: #a3a3a3;
+  --ring: #a7a8a8;
 
   --shadow: 0 1px 0 0 rgb(255 255 255 / 0.06);
   --shadow-md: 0 2px 0 0 rgb(255 255 255 / 0.08);
@@ -119,17 +121,21 @@
 }
 
 /* ---------- TYPOGRAPHY ---------- */
-/* Space Grotesk — premium, slightly artistic headings */
+/* Brand v2: Chakra Petch everywhere, like normies.art (headings, body, numbers, labels). */
+:root {
+  --font-ui: var(--font-chakra), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-code: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 .font-heading {
-  font-family: var(--font-space-grotesk), var(--font-geist-sans);
-  font-feature-settings: "tnum" "ss01";
-  letter-spacing: -0.035em;
+  font-family: var(--font-ui);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.01em;
   font-weight: 600;
 }
 
-/* Inter — clean, excellent readability for body */
 .font-body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 /* Keep Geist Mono for data / technical elements when desired */
@@ -144,7 +150,7 @@ html {
 }
 
 body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-feature-settings: "kern" "tnum";
   background-color: var(--background);
   color: var(--foreground);
@@ -423,25 +429,25 @@ textarea {
 
 /* 1. Main logo in header */
 .font-heading {
-  font-family: "Courier New", monospace;
+  font-family: var(--font-ui);
   letter-spacing: 0.05em;
 }
 
 /* 2. Main framework title */
 h1, .text-3xl, .text-4xl {
-  font-family: "Courier New", monospace;
+  font-family: var(--font-ui);
   letter-spacing: 0.03em;
 }
 
 /* 3. Framework section headers */
 h2, h3 {
-  font-family: "Courier New", monospace;
+  font-family: var(--font-ui);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 /* 4. Agent card main title */
 .text-2xl, .text-xl.font-semibold {
-  font-family: "Courier New", monospace;
+  font-family: var(--font-ui);
   letter-spacing: 0.04em;
 }

@@ -1,6 +1,6 @@
 /* /burn: the Normies look. Built on the .zulo-chrome tokens (mono type, square boxes, tags notched into the border,
    cyan accent on the active thing). Mobile first. Everything wordy folds away; nothing here changes the answer. */
-.burn-page { --body: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif; --accent: var(--zulo-accent); --gap: 18px;
+.burn-page { --body: var(--font-ui); --accent: var(--zulo-accent); --gap: 18px;
   /* captions: lighter than the site's muted grey so they stay readable (about 7:1 on dark, 6:1 on light) */
   --mute: color-mix(in srgb, var(--text-primary) 72%, var(--bg-primary)); }
 /* CYAN ACCENT FIX (2026-10-05). In dark mode `.dark .zulo-chrome` (two classes) set --accent to #e5e5e5 and beat the
@@ -51,7 +51,7 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
     30px 40px 0 0 currentColor,
     35px 40px 0 0 currentColor; }
 .burn-page .burn-title { font-size: clamp(30px, 8vw, 52px); letter-spacing: 0.04em; margin: 4px 0 0; }
-.burn-page .burn-tagline { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--mute); margin: 0; }
+.burn-page .burn-tagline { font-family: var(--font-ui); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--mute); margin: 0; }
 
 /* progress while the server thinks */
 .burn-page .burn-progress { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60; background: var(--accent); transform: scaleX(0); transform-origin: left; opacity: 0; }
@@ -64,7 +64,7 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-box { position: relative; border: 1px solid var(--border); padding: 26px 18px 18px; margin: 0 0 var(--gap); background: var(--bg-primary); }
 .burn-page .burn-box[data-tag]::before {
   content: attr(data-tag); position: absolute; top: -10px; left: 14px; padding: 3px 10px; background: var(--bg-primary);
-  border: 1px solid var(--border); font: 600 11px/1 var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-primary);
+  border: 1px solid var(--border); font: 600 11px/1 var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-primary);
 }
 .burn-page .burn-answer { border-color: var(--accent); }
 .burn-page .burn-answer[data-tag]::before { border-color: var(--accent); }
@@ -72,35 +72,35 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 /* form */
 .burn-page .burn-inputrow { display: flex; gap: 0; }
 .burn-page .burn-input {
-  flex: 1 1 auto; min-width: 0; height: 56px; padding: 0 14px; font: 500 16px var(--font-mono); letter-spacing: 0.02em;
+  flex: 1 1 auto; min-width: 0; height: 56px; padding: 0 14px; font: 500 16px var(--font-ui); letter-spacing: 0.02em;
   color: var(--text-primary); background: transparent; border: 1px solid var(--border); border-right: 0; border-radius: 0;
 }
 .burn-page .burn-go {
   display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px; cursor: pointer; border-radius: 0;
-  font: 700 14px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase;
+  font: 700 14px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase;
   background: var(--text-primary); color: var(--bg-primary); border: 1px solid var(--text-primary);
 }
-.burn-page .burn-go:hover { background: var(--accent); border-color: var(--accent); color: #0a0a0a; }
-.burn-page .burn-safeline { margin: 10px 0 18px; font: 12px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.burn-page .burn-go:hover { background: var(--accent); border-color: var(--accent); color: #1a1b1c; }
+.burn-page .burn-safeline { margin: 10px 0 18px; font: 12px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
 .burn-page .burn-tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; padding: 0; border: 1px solid var(--border); min-width: 0; }
 .burn-page .burn-tab { position: relative; display: grid; place-items: center; text-align: center; min-height: 52px; padding: 6px 4px; cursor: pointer;
-  font: 700 12px/1.2 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
+  font: 700 12px/1.2 var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
 .burn-page .burn-tab + .burn-tab { border-left: 1px solid var(--border); }
 .burn-page .burn-tab input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 .burn-page .burn-tab:has(input:checked) { background: var(--text-primary); color: var(--bg-primary); box-shadow: inset 0 -3px 0 var(--accent); }
 .burn-page .burn-tab:has(input:focus-visible), .burn-page .burn-input:focus-visible, .burn-page .burn-go:focus-visible, .burn-page a:focus-visible, .burn-page summary:focus-visible, .burn-page .burn-mini:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.burn-page .burn-hint { margin: 12px 0 0; font: 13px var(--font-mono); color: var(--mute); text-align: center; min-height: 1.4em; }
+.burn-page .burn-hint { margin: 12px 0 0; font: 13px var(--font-ui); color: var(--mute); text-align: center; min-height: 1.4em; }
 
 /* small helpers */
 .burn-page .burn-link { margin: -4px 0 var(--gap); text-align: center; }
-.burn-page .burn-link summary { display: inline-block; cursor: pointer; font: 11px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); list-style: none; padding: 8px; }
+.burn-page .burn-link summary { display: inline-block; cursor: pointer; font: 11px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); list-style: none; padding: 8px; }
 .burn-page .burn-link summary::-webkit-details-marker { display: none }
 .burn-page .burn-link summary span { opacity: 0.7 }
 .burn-page .burn-link[open] { border: 1px dashed var(--border-light); padding: 12px 16px 16px; }
 .burn-page .burn-link p { font: 400 15px/1.55 var(--body); color: var(--text-secondary); margin: 0 0 12px; text-align: left; }
-.burn-page .burn-example { text-align: center; font: 13px/1.5 var(--font-mono); letter-spacing: 0.04em; color: var(--text-primary); margin: 0 0 var(--gap); padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--bg-secondary); }
+.burn-page .burn-example { text-align: center; font: 13px/1.5 var(--font-ui); letter-spacing: 0.04em; color: var(--text-primary); margin: 0 0 var(--gap); padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--bg-secondary); }
 .burn-page .burn-example strong { color: var(--accent); font-weight: 700; }
-.burn-page .burn-cap { margin: 0; font: 12px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.burn-page .burn-cap { margin: 0; font: 12px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
 .burn-page .burn-marketline { margin: 14px 0 18px; }
 .burn-page .burn-small { font: 400 15px/1.55 var(--body); color: var(--text-secondary); margin: 8px 0 0; }
 .burn-page .burn-plain { margin: 10px 0 0; padding-left: 1.1em; display: grid; gap: 10px; font: 400 15px/1.55 var(--body); color: var(--text-secondary); }
@@ -112,12 +112,12 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 8px 0 18px; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); }
 .burn-page .burn-stats > div { display: flex; flex-direction: column-reverse; align-items: center; gap: 4px; padding: 14px 4px; }
 .burn-page .burn-stats > div + div { border-left: 1px solid var(--border-light); }
-.burn-page .burn-stats dd { margin: 0; font: 300 clamp(24px, 5vw, 32px)/1 var(--font-mono); color: var(--text-primary); white-space: nowrap; }
-.burn-page .burn-stats dt { font: 11px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+.burn-page .burn-stats dd { margin: 0; font: 300 clamp(24px, 5vw, 32px)/1 var(--font-ui); color: var(--text-primary); white-space: nowrap; }
+.burn-page .burn-stats dt { font: 11px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
 .burn-page .burn-more { margin-top: 12px; }
 .burn-page .burn-more summary, .burn-page .burn-fold > summary { cursor: pointer; list-style: none; }
 .burn-page .burn-more summary::-webkit-details-marker, .burn-page .burn-fold > summary::-webkit-details-marker { display: none }
-.burn-page .burn-more summary { font: 11px var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); padding: 6px 0; }
+.burn-page .burn-more summary { font: 11px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); padding: 6px 0; }
 .burn-page .burn-more summary::after { content: " ▾"; }
 .burn-page .burn-more[open] summary::after { content: " ▴"; }
 
@@ -132,13 +132,13 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-tile[open] { border-color: var(--text-primary); }
 .burn-page .burn-tile > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "pill yield" "id id" "sub sub" "jev jev"; gap: 2px 8px; padding: 12px 14px; min-height: 44px; }
 .burn-page .burn-tile > summary::-webkit-details-marker { display: none }
-.burn-page .burn-pill { grid-area: pill; justify-self: start; padding: 3px 8px; font: 700 11px/1 var(--font-mono); letter-spacing: 0.14em; border: 1px solid var(--text-primary); color: var(--text-primary); }
+.burn-page .burn-pill { grid-area: pill; justify-self: start; padding: 3px 8px; font: 700 11px/1 var(--font-ui); letter-spacing: 0.14em; border: 1px solid var(--text-primary); color: var(--text-primary); }
 .burn-page .burn-pill[data-verdict="keep"] { background: var(--text-primary); color: var(--bg-primary); }
 .burn-page .burn-pill[data-verdict="burn"] { border-color: var(--accent); border-width: 2px; padding: 2px 7px; color: var(--text-primary); }
 .burn-page .burn-pill[data-verdict="neutral"] { border-style: dashed; color: var(--text-secondary); border-color: var(--text-secondary); }
-.burn-page .burn-id { grid-area: id; margin-top: 8px; font: 300 28px/1 var(--font-mono); color: var(--text-primary); }
-.burn-page .burn-sub { grid-area: sub; font: 13px var(--font-mono); letter-spacing: 0.06em; color: var(--mute); }
-.burn-page .burn-yield { grid-area: yield; align-self: center; font: 600 12px var(--font-mono); letter-spacing: 0.06em; color: var(--text-secondary); }
+.burn-page .burn-id { grid-area: id; margin-top: 8px; font: 300 28px/1 var(--font-ui); color: var(--text-primary); }
+.burn-page .burn-sub { grid-area: sub; font: 13px var(--font-ui); letter-spacing: 0.06em; color: var(--mute); }
+.burn-page .burn-yield { grid-area: yield; align-self: center; font: 600 12px var(--font-ui); letter-spacing: 0.06em; color: var(--text-secondary); }
 .burn-page .burn-body { padding: 0 14px 14px; }
 .burn-page .burn-body p { margin: 0; font: 400 15px/1.5 var(--body); color: var(--text-primary); }
 .burn-page .burn-body .burn-small { margin-top: 6px; color: var(--text-secondary); }
@@ -149,34 +149,34 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-move[open] { border-color: var(--text-primary); }
 .burn-page .burn-move > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto 1fr; grid-template-areas: "n t" "n c"; gap: 6px 14px; padding: 14px; min-height: 44px; }
 .burn-page .burn-move > summary::-webkit-details-marker { display: none }
-.burn-page .burn-num2 { grid-area: n; font: 300 28px/1 var(--font-mono); color: var(--mute); }
+.burn-page .burn-num2 { grid-area: n; font: 300 28px/1 var(--font-ui); color: var(--mute); }
 .burn-page .burn-movetitle { grid-area: t; font: 500 16px/1.4 var(--body); color: var(--text-primary); }
-.burn-page .burn-chip { grid-area: c; justify-self: start; padding: 3px 8px; border: 1px solid var(--accent); font: 600 12px/1 var(--font-mono); letter-spacing: 0.06em; color: var(--text-primary); }
+.burn-page .burn-chip { grid-area: c; justify-self: start; padding: 3px 8px; border: 1px solid var(--accent); font: 600 12px/1 var(--font-ui); letter-spacing: 0.06em; color: var(--text-primary); }
 .burn-page .burn-move .burn-body { padding: 0 14px 14px 58px; }
 
 /* fold boxes (like FUTURE PLANS on the homepage) */
 .burn-page .burn-fold { padding: 18px 16px 6px; }
-.burn-page .burn-fold > summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding-bottom: 12px; font: 600 13px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-primary); }
+.burn-page .burn-fold > summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding-bottom: 12px; font: 600 13px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-primary); }
 .burn-page .burn-fold > summary::after { content: "▾"; font-size: 14px; transition: transform 160ms var(--motion-ease); }
 .burn-page .burn-fold[open] > summary::after { transform: rotate(180deg); }
 .burn-page .burn-fold > summary .burn-sub { margin-left: auto; font-weight: 400; letter-spacing: 0.06em; text-transform: none; }
 .burn-page .burn-fold > :not(summary) { margin-bottom: 14px; }
-.burn-page .burn-table { width: 100%; border-collapse: collapse; font: 13px var(--font-mono); }
+.burn-page .burn-table { width: 100%; border-collapse: collapse; font: 13px var(--font-ui); }
 .burn-page .burn-table th, .burn-page .burn-table td { text-align: left; padding: 9px 6px; border-top: 1px solid var(--border-light); font-weight: 400; color: var(--text-primary); }
 .burn-page .burn-table thead th { border-top: 0; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
 .burn-page .burn-table tbody th { font-weight: 700; }
 
 /* safety strip + share */
 .burn-page .burn-chips { list-style: none; margin: 8px 0 var(--gap); padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.burn-page .burn-chips li { padding: 6px 10px; border: 1px solid var(--border-light); font: 11px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); }
+.burn-page .burn-chips li { padding: 6px 10px; border: 1px solid var(--border-light); font: 11px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); }
 .burn-page .burn-sharebar { display: grid; gap: 8px; margin-top: 8px; }
 .burn-page .burn-copy { display: flex; }
-.burn-page .burn-copy-input { flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 10px; font: 12px var(--font-mono); color: var(--text-secondary); background: transparent; border: 1px solid var(--border-light); border-right: 0; border-radius: 0; }
-.burn-page .burn-mini { height: 44px; padding: 0 16px; cursor: pointer; border-radius: 0; font: 700 12px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--text-primary); border: 1px solid var(--text-primary); }
+.burn-page .burn-copy-input { flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 10px; font: 12px var(--font-ui); color: var(--text-secondary); background: transparent; border: 1px solid var(--border-light); border-right: 0; border-radius: 0; }
+.burn-page .burn-mini { height: 44px; padding: 0 16px; cursor: pointer; border-radius: 0; font: 700 12px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; background: transparent; color: var(--text-primary); border: 1px solid var(--text-primary); }
 .burn-page .burn-mini:hover { background: var(--text-primary); color: var(--bg-primary); }
 
 /* the connect button inside the optional section */
-.burn-page .burn-button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border-radius: 0; cursor: pointer; text-decoration: none; font: 700 12px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; background: var(--text-primary); color: var(--bg-primary); border: 1px solid var(--text-primary); }
+.burn-page .burn-button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border-radius: 0; cursor: pointer; text-decoration: none; font: 700 12px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; background: var(--text-primary); color: var(--bg-primary); border: 1px solid var(--text-primary); }
 .burn-page .burn-button-ghost { background: transparent; color: var(--text-primary); }
 .burn-page .burn-button:disabled { opacity: 0.5; cursor: wait; }
 
@@ -205,7 +205,7 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
   .burn-page .burn-move .burn-body { padding-left: 14px; }
 }
 
-.burn-page .burn-jev { grid-area: jev; justify-self: start; margin-top: 8px; padding: 2px 8px; border: 1px dashed var(--accent); font: 700 11px/1.4 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-primary); }
+.burn-page .burn-jev { grid-area: jev; justify-self: start; margin-top: 8px; padding: 2px 8px; border: 1px dashed var(--accent); font: 700 11px/1.4 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-primary); }
 .burn-page .burn-jevtext { border-left: 3px solid var(--accent); padding-left: 10px; }
 
 .burn-page .burn-sim { margin: 0 0 12px; }
@@ -222,12 +222,12 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-ledger .burn-cap { margin: 8px 0; }
 .burn-page .burn-ledger dl { margin: 0; border-top: 1px solid var(--border-light); }
 .burn-page .burn-ledger dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-light); font: 400 15px/1.4 var(--body); color: var(--text-secondary); }
-.burn-page .burn-ledger dd { margin: 0; font-family: var(--font-mono); color: var(--text-primary); white-space: nowrap; }
+.burn-page .burn-ledger dd { margin: 0; font-family: var(--font-ui); color: var(--text-primary); white-space: nowrap; }
 .burn-page .burn-ledger dl > div[data-strong="true"] { color: var(--text-primary); font-weight: 600; }
 .burn-page .burn-loop { list-style: none; margin: 4px 0 16px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; counter-reset: loop; }
 .burn-page .burn-loop li { position: relative; display: grid; gap: 4px; align-content: start; padding: 10px; border: 1px solid var(--border-light); font: 400 13px/1.4 var(--body); color: var(--text-secondary); }
-.burn-page .burn-loop li strong { font: 700 11px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-primary); }
-.burn-page .burn-loop li:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); background: var(--bg-primary); color: var(--accent); font: 700 14px var(--font-mono); line-height: 1; z-index: 1; }
+.burn-page .burn-loop li strong { font: 700 11px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-primary); }
+.burn-page .burn-loop li:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); background: var(--bg-primary); color: var(--accent); font: 700 14px var(--font-ui); line-height: 1; z-index: 1; }
 @media (max-width: 560px) {
   .burn-page .burn-loop { grid-template-columns: 1fr; }
   .burn-page .burn-loop li:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -11px; transform: translateX(-50%); }
