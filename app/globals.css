@@ -140,7 +140,7 @@
 
 /* Keep Geist Mono for data / technical elements when desired */
 .font-mono {
-  font-family: var(--font-geist-mono);
+  font-family: var(--font-code);
 }
 
 /* ---------- BASE REFINEMENTS ---------- */
