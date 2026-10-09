@@ -4485,3 +4485,9 @@
   letter-spacing: 0.02em;
   color: var(--text-quiet);
 }
+
+/* Footer on phones (2026-10-09): the footer's 40px side padding plus the inner 24px squeezed the text to ~250px. */
+@media (max-width: 640px) {
+  .zulo-chrome .site-footer { padding: 16px; }
+  .zulo-chrome .site-footer-inner { padding: 0; }
+}
