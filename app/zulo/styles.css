@@ -4485,3 +4485,87 @@
   letter-spacing: 0.02em;
   color: var(--text-quiet);
 }
+
+/* ========== HEADER, brand v2 step 1b (2026-10-09) ==========
+   The header used to be position: fixed over a 72px spacer. On phones it wrapped into two or three rows, grew taller
+   than the spacer, covered the top of the page and stayed on screen. Now:
+   - desktop: sticky, but in the page flow, so it can never cover content (the spacer is no longer needed);
+   - below 1180px (where the full nav no longer fits on one line): one compact row (wordmark + Menu) that scrolls away with the page; the nav, wallet and theme open
+     in a panel. Without JavaScript the nav stays visible (the menu only collapses once .js-menu is set). */
+.zulo-chrome .header.header-fixed {
+  position: sticky;
+  top: 0;
+  left: auto;
+  right: auto;
+}
+.zulo-chrome .header-spacer,
+.zulo-chrome.zulo-home .header-spacer {
+  display: none;
+}
+.zulo-chrome .header-menu-btn {
+  display: none;
+}
+@media (min-width: 1180px) {
+  .zulo-chrome .header,
+  .zulo-chrome .header.header-fixed {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
+
+@media (max-width: 1179px) {
+  .zulo-chrome .header,
+  .zulo-chrome .header.header-fixed,
+  .zulo-chrome.zulo-home .header {
+    position: relative;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    gap: 0;
+  }
+  .zulo-chrome .header-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--border-light);
+    background: transparent;
+    color: var(--text-primary);
+    font: 500 12px var(--font-ui);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .zulo-chrome .header-menu-icon {
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+  .zulo-chrome .header.js-menu .header-nav {
+    display: none;
+  }
+  .zulo-chrome .header.js-menu.is-menu-open .header-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+    gap: 0 10px;
+    margin-top: 10px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border-light);
+  }
+  .zulo-chrome .header.js-menu.is-menu-open .header-nav > a,
+  .zulo-chrome .header.js-menu.is-menu-open .header-nav a[href*="normies.art"],
+  .zulo-chrome.zulo-home .header.js-menu.is-menu-open .header-nav a {
+    display: flex;
+    flex: 0 0 100%;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    padding: 0 2px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .zulo-chrome .header.js-menu.is-menu-open .header-nav > :not(a) {
+    margin: 12px 0 4px;
+  }
+}
