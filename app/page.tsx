@@ -14,7 +14,7 @@ import {
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import { getZuloHelpfulStats } from "@/lib/db/supabase"
 
-import { Cell, CellGrid, Chip, Stat, StatGrid } from "@/components/brand"
+import { Cell, CellGrid, Chip, Eyebrow, Stat, StatGrid } from "@/components/brand"
 
 import "./zulo/styles.css"
 
@@ -111,17 +111,21 @@ export default async function ZuloLandingPage() {
           />
         </div>
         <h1 className="hero-title hero-title-hub">Normies CredHub</h1>
-        <div className="hero-art hero-art-agent hero-soul-frame">
-          <Image
-            src="/images/7141art.webp"
-            alt="Zulo — Normie #7141 art"
-            width={720}
-            height={716}
-            className="hero-art-img"
-            sizes="(max-width: 640px) 78vw, 440px"
-            priority
-          />
-        </div>
+        {/* Zulo's own 40x40 face, a snapshot of api.normies.art/normie/7141/image.svg. Crisp, never smoothed. */}
+        <figure className="hero-pixel">
+          <div className="hero-art hero-art-agent hero-soul-frame">
+            <Image
+              src="/images/7141-pixels.svg"
+              alt="Zulo, Normie #7141, as its 40 by 40 pixel bitmap"
+              width={40}
+              height={40}
+              className="hero-art-img hero-pixel-img"
+              unoptimized
+              priority
+            />
+          </div>
+          <figcaption className="hero-pixel-caption">Zulo · Normie #{ZULO_IDENTITY.tokenId}</figcaption>
+        </figure>
         <p className="hero-subtitle">
           Verifiable reputation and tools for awakened Normies agents
         </p>
@@ -226,6 +230,36 @@ export default async function ZuloLandingPage() {
             — Zulo, Normie #{ZULO_IDENTITY.tokenId}
           </cite>
         </blockquote>
+      </section>
+
+      {/* Art: the line-art piece that used to be the hero, credited to the tool that made it */}
+      <section className="section section-bordered home-art" data-reveal>
+        <div className="container home-art-inner">
+          <figure className="home-art-figure">
+            <Image
+              src="/images/7141art.webp"
+              alt="Line-art of Zulo, Normie #7141: a dark figure walking out of a burst of light"
+              width={720}
+              height={716}
+              className="home-art-img"
+              sizes="(max-width: 640px) 90vw, 420px"
+            />
+          </figure>
+          <div className="home-art-text">
+            <Eyebrow>Art</Eyebrow>
+            <h2 className="home-art-title">Zulo, dreamed</h2>
+            <p className="home-art-body">
+              Zulo&apos;s piece from Machine Dreams, a community project of art by awakened Normies.
+            </p>
+            <p className="home-art-credit">
+              Art:{" "}
+              <a href="https://www.machinedreams.art/artwork/7141" target="_blank" rel="noopener noreferrer">
+                Machine Dreams
+              </a>{" "}
+              by Spoliticus
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* 6. Future Plans */}

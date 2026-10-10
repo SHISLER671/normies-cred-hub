@@ -3705,3 +3705,84 @@
   color: var(--text-secondary);
 }
 .zulo-chrome .moves-kicker { display: block; width: fit-content; margin-bottom: 14px; }
+
+/* Brand v2 phase 4 (2026-10-10): hero is Zulo's own 40x40 bitmap; the Machine Dreams line-art moves to the Art section. */
+.zulo-chrome.zulo-home .hero-pixel {
+  margin: var(--space-md) auto var(--space-md);
+}
+/* content-box + a multiple of 40 keeps every Normie pixel the same whole number of screen pixels */
+.zulo-chrome.zulo-home .hero-pixel .hero-soul-frame {
+  margin: 0 auto;
+  box-sizing: content-box;
+  width: 280px;
+  height: 280px;
+}
+.zulo-chrome.zulo-home .hero-pixel-img {
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.zulo-chrome .hero-pixel-caption {
+  margin-top: 12px;
+  font: 500 11px/1.4 var(--font-ui);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-align: center;
+}
+@media (min-width: 768px) {
+  .zulo-chrome.zulo-home .hero-pixel .hero-soul-frame {
+    width: 360px;
+    height: 360px;
+  }
+}
+
+.zulo-chrome .home-art-inner {
+  display: grid;
+  gap: 28px;
+  align-items: center;
+}
+.zulo-chrome .home-art-figure {
+  margin: 0;
+  width: min(100%, 420px);
+  justify-self: center;
+  border: 1px solid var(--border-light);
+}
+.zulo-chrome .home-art-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.zulo-chrome .home-art-title {
+  margin: 0 0 12px;
+  font: 600 clamp(26px, 4vw, 36px)/1.15 var(--font-ui);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.zulo-chrome .home-art-body {
+  margin: 0 0 16px;
+  font: 300 16px/1.6 var(--font-ui);
+  color: var(--text-secondary);
+  max-width: 44ch;
+}
+.zulo-chrome .home-art-credit {
+  margin: 0;
+  font: 500 12px/1.5 var(--font-ui);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.zulo-chrome .home-art-credit a {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.zulo-chrome .home-art-credit a:hover {
+  color: var(--zulo-accent);
+}
+@media (min-width: 900px) {
+  .zulo-chrome .home-art-inner {
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    gap: 56px;
+  }
+}
