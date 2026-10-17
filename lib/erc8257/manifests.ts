@@ -1,5 +1,6 @@
 import { computeManifestHash } from "@opensea/tool-sdk"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { safeHttpsUrl } from "./trust"
 
 export type ToolManifest = {
   name?: string
@@ -67,7 +68,8 @@ export async function fetchAndVerifyManifest(
       tags: Array.isArray(manifest.tags)
         ? manifest.tags.filter((t) => typeof t === "string")
         : [],
-      endpoint: manifest.endpoint?.trim() || "",
+      // Untrusted manifest: only an https endpoint is kept (no javascript:, data:, http:).
+      endpoint: typeof manifest.endpoint === "string" ? safeHttpsUrl(manifest.endpoint) ?? "" : "",
       manifestAccessLabels,
       manifestDeclaresGating,
     }

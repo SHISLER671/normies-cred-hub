@@ -13,6 +13,7 @@ import {
 } from "@/lib/agent-recommendations/constants"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import { getZuloHelpfulStats } from "@/lib/db/supabase"
+import { SURFACE_TAGS } from "@/lib/official-status"
 
 import { Cell, CellGrid, Chip, Eyebrow, Stat, StatGrid } from "@/components/brand"
 
@@ -22,9 +23,9 @@ import "./zulo/styles.css"
 const OFFICIAL_SURFACES = [
   { name: "Canvas", status: "LIVE" },
   { name: "Agentic", status: "LIVE" },
-  { name: "Zombies", status: "ALL CLAIMED" },
-  { name: "Arena", status: "COMING SOON" },
-  { name: "Pixel Market", status: "LIVE" },
+  { name: "Zombies", status: SURFACE_TAGS.zombies },
+  { name: "Arena", status: SURFACE_TAGS.arena },
+  { name: "Pixel Market", status: SURFACE_TAGS.pixelMarket },
 ] as const
 
 const CREDHUB_SURFACES = [

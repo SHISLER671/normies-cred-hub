@@ -4,6 +4,7 @@ import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 
 import { cachedContractStatus } from "@/lib/burn-buy/contract-cache"
 import { marketPin, currentMarket, resolveMarketState } from "@/lib/burn-buy/switches"
+import { isPixelMarketOfficiallyLive } from "@/lib/official-status"
 import { composeZuloPrompt } from "./composePrompt"
 import type { ZuloRecommendationContext } from "./types"
 
@@ -175,7 +176,9 @@ export async function generateZuloResponse(
   // Same decision as the /burn page: the owner's pin, else the contract (a pixelMarket block exists once the market is configured).
   // The contract read is cached and capped at a few seconds; if it fails the switch alone decides, as before.
   const contract = await cachedContractStatus().catch(() => null)
-  const market = resolveMarketState(marketPin(), contract, currentMarket()).state
+  // Fallback (no pin, contract unreadable): the documented official status in lib/official-status.ts, so Ask cannot drift back to
+  // "not open yet" when the contract read fails. PIXEL_MARKET=pending still pins it closed.
+  const market = resolveMarketState(marketPin(), contract, isPixelMarketOfficiallyLive() ? "live" : currentMarket()).state
   const prompt = composeZuloPrompt(context, userQuery, market)
 
   let lastError: unknown

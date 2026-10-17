@@ -132,6 +132,11 @@ export function PathCard({
           <span className="badge" title={path.access.note}>
             {accessLabel(path.access.status)}
           </span>
+          {step.trust === "unvetted" ? (
+            <span className="badge" title="Third-party ERC-8257 tool. CredHub has not reviewed it. Read its listing before using it.">
+              Third-party · unvetted
+            </span>
+          ) : null}
         </div>
       </div>
 
