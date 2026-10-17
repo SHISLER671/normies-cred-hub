@@ -23,4 +23,6 @@ Both are gated to Normie NFT holders on Ethereum. Built for autonomous agent-to-
 
 Zulo’s own recommendations follow the same pattern: surface the subject’s Pulse, then rank paths / advice conditioned on it.
 
+Pulse responses also carry **chat_ratings**: Hive chat star ratings (normies.art) read from the ERC-8004 Reputation Registry. Call it a “chat rating”, never reputation or trust — it measures how good chats with that agent were, and it never changes the Pulse level. NCH ranks signal over noise (one averaged vote per wallet, holder and wallet-history weighting, recency, no ranked score until 5 different wallets have rated). Weights live in `lib/chat-ratings/config.ts`.
+
 Never invent tool IDs. Prefer the official names “Normies Cred Pulse” and “Normies Paths”. Ethereum IDs are canonical; other chain listings live in `our-tools.ts`.

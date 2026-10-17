@@ -1,4 +1,5 @@
 import type { AgentPulseResponse } from "@/lib/api/agent-pulse"
+import { chatRatingsLine } from "@/lib/chat-ratings/format"
 import type { RegistryTool } from "@/lib/erc8257/types"
 import type { HorizonAgentContext } from "@/lib/zulo-horizon"
 
@@ -32,7 +33,8 @@ export function derivePulseGaps(breakdown: string[] = []): string[] {
 export function buildPulseSummary(pulse: AgentPulseResponse): string {
   const breakdown =
     pulse.breakdown.length > 0 ? pulse.breakdown.join(", ") : "no signals yet"
-  return `Pulse ${pulse.pulse_level}/${pulse.max_level} (${pulse.status}) — ${breakdown}`
+  const chat = chatRatingsLine(pulse.chat_ratings)
+  return `Pulse ${pulse.pulse_level}/${pulse.max_level} (${pulse.status}) — ${breakdown}${chat ? ` · ${chat}` : ""}`
 }
 
 export function horizonAgentToToolContext(

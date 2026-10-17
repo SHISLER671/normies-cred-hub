@@ -1,6 +1,8 @@
 // Canonical ERC-8257 coordinates for CredHub's own tools.
 // UI, README, and agents should read IDs from here — not scattered copy.
 
+import { CHAT_RATINGS_CONFIG } from "@/lib/chat-ratings/config"
+
 export const ERC8257_REGISTRY_ADDRESS =
   "0x265BB2DBFC0A8165C9A1941Eb1372F349baD2cf1" as const
 
@@ -197,6 +199,8 @@ Two official tools power trust-then-act for Normie agents:
 Both are gated to Normie NFT holders on Ethereum and built for autonomous agent-to-agent / NFT-to-NFT decision making. Other listed chains are open discovery copies of the same HTTPS endpoints (Normies ERC-721 is Ethereum-only).
 
 Zulo’s own recommendations follow the same pattern: surface the subject’s Pulse, then rank paths / advice conditioned on it.
+
+Pulse responses also carry **chat_ratings**: Hive chat star ratings (normies.art, “How was talking to …?”) read from the ERC-8004 Reputation Registry. Call it a “chat rating”, never reputation or trust — it measures how good chats with that agent were, not whether the owner is trustworthy, and it never changes the Pulse level. NCH ranks signal over noise: one averaged vote per wallet, more weight for Normie holders and established wallets, recent chats count more, and no ranked score until ${CHAT_RATINGS_CONFIG.minUniqueRaters} different wallets have rated. Quote the raw counts next to the score. Rating costs gas and is public and permanent; Zulo never asks anyone to rate and never signs for them.
 
 ${pixelCheckKnowledge()}Never invent tool IDs. Prefer the official names “${NORMIES_CRED_PULSE.name}” and “${NORMIES_PATHS.name}”. Ethereum IDs are canonical.`
 }

@@ -148,8 +148,40 @@ Example pulse response:
     "Clean ownership & delegation"
   ],
   "next_signal": "Earn Luminous with recent Pulse checks and Pulse-conditioned Paths activity.",
-  "note": "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history."
+  "note": "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history.",
+  "chat_ratings": {
+    "agent_id": 32626,
+    "label": "Chat rating",
+    "available": true,
+    "ranked": false,
+    "score": null,
+    "stars": null,
+    "raw": { "ratings": 2, "unique_raters": 2, "average": 90 },
+    "min_unique_raters": 5,
+    "weighting": { "holders": 1, "fresh_wallets": 0, "repeat_raters": 0, "excluded_self": 0 },
+    "recency_available": true,
+    "source": { "tag1": "starred", "tag2": "hive-chat", "registry": "0x8004BAa17C55a88189AE136b182e5fdA19dE9b63" },
+    "note": "Chat rating = how good chats with this agent were (Hive chat, normies.art). …"
+  }
 }
+```
+
+### Chat ratings (Hive chat → ERC-8004 Reputation Registry)
+
+Hive chat on normies.art lets anyone rate a chat with an agent (1–5 stars, stored on-chain as 0–100 with `tag2 = "hive-chat"`, sent from the rater's own wallet). NCH reads those ratings **read-only** and ranks **signal over noise**:
+
+- **One vote per wallet** — a wallet's ratings are averaged (its recent chats weigh more), so ten ratings from one wallet never outweigh ten people. Returning wallets get a small capped boost.
+- **Normie holders count more, fresh wallets count less** (holder ×1.5, under 10 transactions ×0.5).
+- **Recent chats count more** (90-day half-life, never below 10%).
+- **No ranked score until 5 different wallets have rated** — raw counts always ship alongside.
+- The agent owner's own ratings are excluded.
+
+Weights live in `lib/chat-ratings/config.ts`; the math is in `lib/chat-ratings/score.ts` (tested). It is labelled **Chat rating**, never reputation — it measures how good chats were, not whether the owner is trustworthy, and it **never changes `pulse_level`**. The Pulse manifest (hash pinned on-chain) is unchanged; `chat_ratings` is an additive field.
+
+Also available on its own (any ERC-8004 agent id, does not count as a Pulse check):
+
+```bash
+curl "https://normiescredhub.vercel.app/api/chat-ratings/32626"
 ```
 
 ---

@@ -95,6 +95,58 @@ export const IDENTITY_REGISTRY_READ_ABI = [
 ] as const
 
 /**
+ * ERC-8004 Reputation Registry — read-only fragments only (no giveFeedback / revoke / respond).
+ * Verified 2026-10-18 against the live implementation 0x16e0fa7f…da34 behind the 0x8004BAa1…9b63 proxy.
+ *
+ * Hive chat ratings (normies.art) land here as giveFeedback(agentId, value 0–100, decimals 0,
+ * tag1 "starred", tag2 "hive-chat", endpoint "https://normies.art/normie/{tokenId}"), sent from the
+ * rater's own wallet. Checked on tx 0x74be24ff…3a7d (Agent #32813, 100/100).
+ */
+export const REPUTATION_REGISTRY_READ_ABI = [
+  {
+    type: "function",
+    name: "readAllFeedback",
+    stateMutability: "view",
+    inputs: [
+      { name: "agentId", type: "uint256" },
+      { name: "clientAddresses", type: "address[]" },
+      { name: "tag1", type: "string" },
+      { name: "tag2", type: "string" },
+      { name: "includeRevoked", type: "bool" },
+    ],
+    outputs: [
+      { name: "clients", type: "address[]" },
+      { name: "feedbackIndexes", type: "uint64[]" },
+      { name: "values", type: "int128[]" },
+      { name: "valueDecimals", type: "uint8[]" },
+      { name: "tag1s", type: "string[]" },
+      { name: "tag2s", type: "string[]" },
+      { name: "revokedStatuses", type: "bool[]" },
+    ],
+  },
+  {
+    type: "event",
+    name: "NewFeedback",
+    inputs: [
+      { name: "agentId", type: "uint256", indexed: true },
+      { name: "clientAddress", type: "address", indexed: true },
+      { name: "feedbackIndex", type: "uint64", indexed: false },
+      { name: "value", type: "int128", indexed: false },
+      { name: "valueDecimals", type: "uint8", indexed: false },
+      { name: "indexedTag1", type: "string", indexed: true },
+      { name: "tag1", type: "string", indexed: false },
+      { name: "tag2", type: "string", indexed: false },
+      { name: "endpoint", type: "string", indexed: false },
+      { name: "feedbackURI", type: "string", indexed: false },
+      { name: "feedbackHash", type: "bytes32", indexed: false },
+    ],
+  },
+] as const
+
+/** Block the Reputation Registry proxy was deployed in (first Upgraded log). Lower bound for log scans. */
+export const REPUTATION_REGISTRY_DEPLOY_BLOCK = BigInt(24_339_873)
+
+/**
  * Delegate.xyz Registry (v1)
  * Used to discover tokens delegated to the connected wallet (hot wallet pattern).
  */

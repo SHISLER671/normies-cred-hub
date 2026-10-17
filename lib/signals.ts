@@ -1,3 +1,4 @@
+import type { ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { getResolvedAgentId, isNormieAwakened } from "@/lib/normie-control"
 import type {
   CredibilitySignal,
@@ -14,6 +15,8 @@ const ALLOWED_CATEGORIES: CredibilitySignalCategory[] = [
   "execution",
   "reputation",
   "external",
+  // Was missing, so the ERC-8257 tooling signal always failed validation and the dashboard fell back to raw signals.
+  "tooling",
 ]
 
 export type SignalValidationResult = {
@@ -203,6 +206,34 @@ export function buildEthosSignal(
   })
 }
 
+/**
+ * Hive chat ratings (ERC-8004 Reputation Registry, tag "hive-chat") for the Credibility Framework.
+ * How good chats with the agent were — not a trust score for the owner. Score is the ranked 0–100 value,
+ * present only once enough different wallets have rated.
+ */
+export function buildChatRatingsSignal(
+  chatRatings: ChatRatingsSummary | undefined,
+  agentId?: string | number
+): CredibilitySignal {
+  return normalizeSignal({
+    id: `chat-ratings-${agentId ?? "unknown"}`,
+    source: "erc8004",
+    category: "reputation",
+    title: "Chat rating (Hive)",
+    description:
+      "Star ratings from people who chatted with this agent on normies.art. Ranked signal over noise: one vote per wallet, holders and established wallets count more.",
+    score: chatRatings?.ranked && chatRatings.score != null ? chatRatings.score : undefined,
+    verifiable: !!chatRatings?.available && chatRatings.raw.ratings > 0,
+    metadata: chatRatings
+      ? {
+          ratings: chatRatings.raw.ratings,
+          uniqueRaters: chatRatings.raw.unique_raters,
+          ranked: chatRatings.ranked,
+        }
+      : undefined,
+  })
+}
+
 /** External trust / AgentCheck signal for the Credibility Framework. */
 export function buildExternalSignal(
   snapshot: NormieSnapshot | undefined
@@ -259,8 +290,9 @@ export function getCurrentSignals(input: {
   snapshot?: NormieSnapshot
   ethos?: EthosScoreResult
   ownerAddress?: string
+  chatRatings?: ChatRatingsSummary
 }): CredibilitySignal[] {
-  const { snapshot, ethos, ownerAddress } = input
+  const { snapshot, ethos, ownerAddress, chatRatings } = input
 
   return [
     buildIdentitySignal(snapshot),
@@ -270,6 +302,8 @@ export function getCurrentSignals(input: {
     buildExternalSignal(snapshot),
     buildWirePlaceholderSignal(getResolvedAgentId(snapshot?.agent, snapshot?.binding)),
     buildToolRegistryPlaceholderSignal(getResolvedAgentId(snapshot?.agent, snapshot?.binding)),
+    // Appended last so existing positional consumers keep their order.
+    buildChatRatingsSignal(chatRatings, getResolvedAgentId(snapshot?.agent, snapshot?.binding)),
   ]
 }
 

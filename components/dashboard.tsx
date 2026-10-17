@@ -14,8 +14,10 @@ import { useActiveNormie } from "@/components/active-normie-provider"
 import { MyAgentsPanel } from "@/components/my-agents-panel"
 import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
 import { AgentCheckCard } from "@/components/agentcheck-card"
+import { ChatRatingsCard } from "@/components/chat-ratings-card"
+import { useChatRatings } from "@/hooks/use-chat-ratings"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, Palette, Search, ShieldCheck, Wallet, Wrench } from "lucide-react"
+import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, MessageSquareText, Palette, Search, ShieldCheck, Wallet, Wrench } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -86,7 +88,13 @@ export function Dashboard() {
   const isAwakened = isAwakenedFromSnapshot(snapshot)
   const resolvedAgentId = getResolvedAgentId(snapshot?.agent, snapshot?.binding)
 
-  const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress })
+  const {
+    data: chatRatings,
+    isLoading: chatRatingsLoading,
+    isError: chatRatingsError,
+  } = useChatRatings(resolvedAgentId)
+
+  const rawFrameworkSignals = getCurrentSignals({ snapshot, ethos, ownerAddress, chatRatings })
   const { validSignals, invalidSignals } = validateSignals(rawFrameworkSignals)
   // Use validated signals when all pass; otherwise keep trusted builders to avoid UI regressions
   const frameworkSignals =
@@ -108,6 +116,7 @@ export function Dashboard() {
     externalSignal,
     wireSignal,
     toolRegistrySignal,
+    chatRatingsSignal,
   ] = frameworkSignals
 
   const delegate = snapshot?.canvas?.delegate
@@ -443,6 +452,18 @@ export function Dashboard() {
                       error={ethosError}
                       address={ownerAddress ?? ""}
                       isMyAgent={isMyAgent}
+                    />
+                  ),
+                },
+                {
+                  signal: chatRatingsSignal,
+                  icon: MessageSquareText,
+                  content: (
+                    <ChatRatingsCard
+                      summary={chatRatings}
+                      isLoading={isLoading || chatRatingsLoading}
+                      isError={chatRatingsError}
+                      agentId={resolvedAgentId}
                     />
                   ),
                 },

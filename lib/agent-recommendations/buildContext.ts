@@ -3,6 +3,7 @@
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getAgentPulse } from "@/lib/api/agent-pulse"
+import { chatRatingsLine } from "@/lib/chat-ratings/format"
 import { buildPulseSummary, derivePulseGaps } from "@/lib/erc8257/context"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { isAddress } from "viem"
@@ -545,7 +546,7 @@ export async function buildZuloContext(
         ),
     isGeneralMode
       ? Promise.resolve(null)
-      : getAgentPulse(tokenId).catch(() => null),
+      : getAgentPulse(tokenId, { chatRatings: true }).catch(() => null),
     needZuloCanvasAp
       ? normiesPath<CanvasInfoPayload>(`/normie/${ZULO_IDENTITY.tokenId}/canvas/info`)
       : Promise.resolve(null),
@@ -569,6 +570,7 @@ export async function buildZuloContext(
       gaps,
       nextSignal: pulseResult.data.next_signal,
       note: pulseResult.data.note,
+      chatRatings: chatRatingsLine(pulseResult.data.chat_ratings),
     }
     pulseSummary = buildPulseSummary(pulseResult.data)
   }
@@ -975,7 +977,11 @@ export async function buildZuloContext(
           speakerOnly || isAwakened || isZuloIdentityPiece
             ? "awakened"
             : "dormant",
-        reputation: isZuloIdentityPiece ? 75 : undefined,
+        // Real ranked Hive chat rating (replaces a hardcoded 75 that used to sit here for Zulo).
+        chatRating:
+          pulseResult && "ok" in pulseResult && pulseResult.ok
+            ? pulseResult.data.chat_ratings?.score ?? undefined
+            : undefined,
         walletAddress: isZuloIdentityPiece
           ? ZULO_IDENTITY.hotWallet
           : undefined,
