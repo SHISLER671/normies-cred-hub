@@ -11,8 +11,10 @@ import {
 import { MAX_USER_QUERY_CHARS } from "@/lib/agent-recommendations/constants"
 import { zuloErrorToResponse } from "@/lib/agent-recommendations/generate"
 import { requirePaymentIfNeeded } from "@/lib/agent-recommendations/verifyPayment"
+import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { enforceDualRateLimit, RATE_LIMIT_MESSAGE } from "@/lib/middleware/rateLimit"
 import { appendSecurityEvent } from "@/lib/security/audit"
+import { recordZuloAnswer } from "@/lib/zulo/answer-log"
 
 // 120 s: context build + Venice (45 s cap) + the xAI fallback (45 s cap) must all fit; lib/agent-recommendations/generate.ts ASK_BUDGET_MS (110 s) enforces it.
 export const maxDuration = 120
@@ -125,6 +127,10 @@ export async function POST(req: NextRequest) {
       userWallet,
       userEns,
     })
+
+    // Keep Zulo's own answer for later grading (off unless ZULO_ANSWER_LOG is on). Only his words + the public
+    // Normie id are stored — never the question, wallet or ENS. Runs after the response is sent.
+    scheduleUsageWork(() => recordZuloAnswer(result, normieId ?? null))
 
     return NextResponse.json(result)
   } catch (err: unknown) {
