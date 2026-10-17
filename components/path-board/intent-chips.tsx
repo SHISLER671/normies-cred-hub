@@ -1,6 +1,8 @@
 "use client"
 
-import { INTENT_CHIPS, type IntentTag } from "@/lib/path-ranker"
+// Import the leaf modules, not the @/lib/path-ranker barrel: the barrel pulls the server-only ranker (registry fetch, SSRF guard) into the client bundle.
+import { INTENT_CHIPS } from "@/lib/path-ranker/intents"
+import type { IntentTag } from "@/lib/path-ranker/types"
 import { cn } from "@/lib/utils"
 
 type IntentChipsProps = {

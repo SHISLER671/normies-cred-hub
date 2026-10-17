@@ -9,7 +9,7 @@ import { appendSecurityEvent } from "@/lib/security/audit"
 
 export const RATE_LIMIT_MESSAGE = "Rate limit exceeded. Patience compounds."
 
-export type RateLimitProfile = "default" | "payment" | "security"
+export type RateLimitProfile = "default" | "ask" | "payment" | "security"
 
 const PROFILES: Record<
   RateLimitProfile,
@@ -17,6 +17,8 @@ const PROFILES: Record<
 > = {
   /** Per IP 60/min, per wallet 30/min */
   default: { ip: 60, wallet: 30, windowSec: 60 },
+  /** Ask spends inference credits on every call: 12/min per IP, 12/min per wallet (3/min each without Upstash in prod). */
+  ask: { ip: 12, wallet: 12, windowSec: 60 },
   /** Stricter for payment verification */
   payment: { ip: 10, wallet: 10, windowSec: 60 },
   /** Vulnerability reports */

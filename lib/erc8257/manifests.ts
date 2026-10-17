@@ -1,5 +1,5 @@
 import { computeManifestHash } from "@opensea/tool-sdk"
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { safeFetchText } from "@/lib/security/ssrf"
 import { safeHttpsUrl } from "./trust"
 
 export type ToolManifest = {
@@ -45,10 +45,11 @@ export async function fetchAndVerifyManifest(
   if (!metadataURI?.startsWith("https://")) return fallback
 
   try {
-    const res = await fetchWithTimeout(metadataURI, {}, 5_000)
+    // metadataURI is attacker-controlled (anyone can register a tool): SSRF-guarded, size-capped, redirects re-checked.
+    const res = await safeFetchText(metadataURI, { timeoutMs: 5_000 })
     if (!res.ok) return fallback
 
-    const manifest = (await res.json()) as ToolManifest
+    const manifest = JSON.parse(res.text) as ToolManifest
     const computed = computeManifestHash(manifest)
     const manifestVerified =
       onchainHash.toLowerCase() !== ZERO_HASH &&
