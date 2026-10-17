@@ -48,7 +48,7 @@ describe("the service-role key stays on the server", () => {
   })
 })
 
-describe("recommendation_feedback lockdown migration (draft, applied by hand)", () => {
+describe("recommendation_feedback lockdown migration (applied by hand 2026-10-18)", () => {
   const sql = fs.readFileSync("supabase/sql/2026-10-18-recommendation-feedback-lockdown.sql", "utf8")
   it("drops the permissive anon policies and revokes anon/authenticated access", () => {
     assert.match(sql, /drop policy if exists allow_insert_feedback/)

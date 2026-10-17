@@ -3,7 +3,7 @@
 > **ANGLE LOCK — Agent trading (2026-10-18, Ryan):** Zulo = the smartest Normie by being the reputation layer, not a trader. CredHub ranks which Normie agents trade best by *verified proof of profit*: on-chain trades from the agent's ERC-6551 wallet or official Normies records/API only. Self-reported P&L, screenshots, swarm chat = labeled "self-reported", zero weight. Rank on realized P&L + trade count + win rate + max drawdown + liquidations + time window (no one-hour leaderboards). Track record, never a trade tip or copy-trade call; DYOR on every ranking. Read-only; plain signMessage only. Agent trading itself stays TEASER until official URL + docs/API.
 
 
-Drafted 2026-10-18 (ChST). Based on normies-cred-hub main **73f8e75** (PRs #91, #92, #94, #95 merged). Status: **agent swarm trading = TEASER, NOT LIVE** (see the thesis lock addendum). This is a plan only: no code, pushes, deploys, wallets or posts.
+Drafted 2026-10-18 (ChST). Based on normies-cred-hub main **73f8e75** (PRs #91, #92, #94, #95 merged). Status: **agent swarm trading = TEASER, NOT LIVE** (see `thesis-lock.md` §5). This is a plan only: no code, pushes, deploys, wallets or posts.
 
 ## a) What to watch, and what counts as "officially live"
 - **Official surfaces:** the normies.art Lab (badges: Live / Limited / Coming Soon), `/docs/lab`, `/docs/agentic`, `https://api.normies.art/llms.txt` (diff it weekly for new `/agents/*`, `/hive/*`, `/swarm/*`, `/trade*` or `/arena/*` routes), and `api.normies.art` OpenAPI/route list.
@@ -39,7 +39,7 @@ Drafted 2026-10-18 (ChST). Based on normies-cred-hub main **73f8e75** (PRs #91, 
 | ERC-6551 wallet, read-only (balances, positions, history) | Pulse transparency | Yes, if it's on-chain and verifiable. Read only, never prompt a deposit |
 | ERC-8004 identity link to agent/6551 wallet | Pulse identity check | Yes. It's the verification anchor |
 
-**Labelling:** anything not from an official endpoint or verifiable on-chain shows **"Unverified · self-reported"** and gets no Pulse weight. Teaser screenshots are never indexed as data. Show a record next to its time window and a "past ≠ future" note. Cache with a source and fetched-at timestamp. Before the first index, put new API hosts through the manifest-fetch private-URL block and make sure Supabase RLS is applied (see e).
+**Labelling:** anything not from an official endpoint or verifiable on-chain shows **"Unverified · self-reported"** and gets no Pulse weight. Teaser screenshots are never indexed as data. Show a record next to its time window and a "past ≠ future" note. Cache with a source and fetched-at timestamp. Before the first index, put new API hosts through the manifest-fetch private-URL block. The feedback table's RLS lockdown is already applied (2026-10-18); any new trading table needs the same server-only setup before launch.
 
 ## d) Launch-day copy for Zulo Voice (drafts; Ryan pastes manually)
 **On official launch (only once the official URL plus docs exist):**
@@ -58,5 +58,5 @@ Drafted 2026-10-18 (ChST). Based on normies-cred-hub main **73f8e75** (PRs #91, 
 - Sage is a closed-beta third-party model. Its availability, terms and data provenance are unknown.
 - How it relates to Arena (same Hive? same levels/AP?) is unknown. Don't merge the two in copy.
 - Data shape unknown: per-agent vs swarm-level records, and whether ERC-8004 identity links to 6551 wallets.
-- **Supabase RLS migration (`supabase/sql/2026-10-18-recommendation-feedback-lockdown.sql`) is still NOT applied**, so the feedback table is still publicly readable. Apply it before adding any trading-related intents or feedback.
+- Supabase: the feedback lockdown (`supabase/sql/2026-10-18-recommendation-feedback-lockdown.sql`) was applied 2026-10-18 and verified (anon read and insert denied). Any new table for trading records must ship server-only (service-role client, no anon policies) from day one.
 - Third-party "agent trading" tools may flood the ERC-8257 registry. The `trust.ts` allowlist keeps them unvetted, but Paths copy must hold the same line.
