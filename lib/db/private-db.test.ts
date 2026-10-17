@@ -30,10 +30,37 @@ describe("the service-role key stays on the server", () => {
   })
   it("the floor, burn and workflow tables are only reached through the private client", () => {
     const src = fs.readFileSync("lib/db/supabase.ts", "utf8")
-    for (const fn of ["saveFloorPrice", "getHistoricalFloor", "getBurnOpportunities", "saveBurnOpportunity", "logWorkflowRun"]) {
+    for (const fn of [
+      "saveFloorPrice",
+      "getHistoricalFloor",
+      "getBurnOpportunities",
+      "saveBurnOpportunity",
+      "logWorkflowRun",
+      // recommendation_feedback holds wallets + intents: server-only since 2026-10-18
+      "saveRecommendationFeedback",
+      "getZuloHelpfulStats",
+      "getRecommendationFeedbackRows",
+    ]) {
       const body = src.slice(src.indexOf("export async function " + fn), src.indexOf("export async function " + fn) + 700)
       assert.match(body, /getPrivateDb\(\)/, fn)
       assert.doesNotMatch(body.split(".from(")[0], /getSupabase\(\)/, fn)
     }
+  })
+})
+
+describe("recommendation_feedback lockdown migration (draft, applied by hand)", () => {
+  const sql = fs.readFileSync("supabase/sql/2026-10-18-recommendation-feedback-lockdown.sql", "utf8")
+  it("drops the permissive anon policies and revokes anon/authenticated access", () => {
+    assert.match(sql, /drop policy if exists allow_insert_feedback/)
+    assert.match(sql, /drop policy if exists allow_select_feedback/)
+    assert.match(sql, /revoke all on table public\.recommendation_feedback from anon, authenticated/)
+    assert.doesNotMatch(sql.split("-- Rollback")[0]!, /create policy[\s\S]*to anon/i)
+  })
+  it("stores wallets as unverified by default", () => {
+    assert.match(sql, /wallet_verified boolean not null default false/)
+  })
+  it("the original setup script no longer re-opens anon access", () => {
+    const setup = fs.readFileSync("docs/sql/001_recommendation_feedback.sql", "utf8")
+    assert.doesNotMatch(setup, /to anon/)
   })
 })
