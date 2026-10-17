@@ -43,35 +43,16 @@ create index if not exists recommendation_feedback_zulo_up_idx
 create index if not exists recommendation_feedback_path_id_idx
   on public.recommendation_feedback (path_id);
 
--- Aggregates: service role / server key only in production app.
--- If using anon key with RLS, allow insert for anon + select aggregates via RPC later.
+-- Server-only table: the app reads and writes it with the service-role key (lib/db/supabase.ts getPrivateDb), which bypasses RLS.
+-- RLS on with NO policies = the public (anon) key can neither read nor insert. Do not add anon policies: rows hold wallets + intents.
+-- (Until 2026-10-18 this script granted anon insert + select; see supabase/sql/2026-10-18-recommendation-feedback-lockdown.sql.)
 alter table public.recommendation_feedback enable row level security;
+alter table public.recommendation_feedback force row level security;
+revoke all on table public.recommendation_feedback from anon, authenticated;
 
--- Server uses service/secret key and bypasses RLS. For anon-key envs, allow insert + count.
-do $$
-begin
-  if not exists (
-    select 1 from pg_policies
-    where tablename = 'recommendation_feedback' and policyname = 'allow_insert_feedback'
-  ) then
-    create policy allow_insert_feedback
-      on public.recommendation_feedback
-      for insert
-      to anon, authenticated
-      with check (true);
-  end if;
-
-  if not exists (
-    select 1 from pg_policies
-    where tablename = 'recommendation_feedback' and policyname = 'allow_select_feedback'
-  ) then
-    create policy allow_select_feedback
-      on public.recommendation_feedback
-      for select
-      to anon, authenticated
-      using (true);
-  end if;
-end $$;
+alter table public.recommendation_feedback
+  add column if not exists wallet_verified boolean not null default false,
+  add column if not exists wallet_proof_checked_at timestamptz;
 
 comment on table public.recommendation_feedback is
   'Path Board 👍/👎. Stores up+down; public UI shows helpful (up) counts for Zulo #32626 only.';

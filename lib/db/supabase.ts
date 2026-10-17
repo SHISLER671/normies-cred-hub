@@ -397,6 +397,9 @@ export type ZuloHelpfulStats = {
 /**
  * Persist Path Board feedback. Returns null if Supabase missing or insert fails.
  * Phase 1: store up+down; public UI shows helpful (up) only.
+ * Server-only: uses the service-role client (getPrivateDb). After supabase/sql/2026-10-18-recommendation-feedback-lockdown.sql
+ * the public key has no access to this table. The wallet is self-reported and stored UNVERIFIED (column default
+ * wallet_verified = false); only a server-checked plain signMessage proof may ever set it true.
  */
 export async function saveRecommendationFeedback(input: {
   rating: "up" | "down"
@@ -414,7 +417,7 @@ export async function saveRecommendationFeedback(input: {
   wallet?: string | null
   context?: string
 }): Promise<RecommendationFeedbackRow | null> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase) {
     console.error(
       "[supabase] saveRecommendationFeedback failed — SUPABASE_URL/KEY required",
@@ -460,7 +463,7 @@ export async function saveRecommendationFeedback(input: {
 export async function getZuloHelpfulStats(
   zuloAgentId: number = 32626,
 ): Promise<ZuloHelpfulStats | null> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase) {
     console.error(
       "[supabase] getZuloHelpfulStats failed — SUPABASE_URL/KEY required",
@@ -515,7 +518,7 @@ export async function getRecommendationFeedbackRows(
   pathIds: string[],
   days = 90,
 ): Promise<Array<{ path_id: string; rating: "up" | "down" }>> {
-  const supabase = getSupabase()
+  const supabase = getPrivateDb()
   if (!supabase || pathIds.length === 0) return []
 
   const lookback = Math.max(1, Math.min(365, Math.floor(days) || 90))

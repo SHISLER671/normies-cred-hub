@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Could not store feedback. Ensure recommendation_feedback table exists (docs/sql/001_recommendation_feedback.sql).",
+            "Could not store feedback. Ensure recommendation_feedback exists (docs/sql/001_recommendation_feedback.sql) and SUPABASE_SERVICE_ROLE_KEY is set on the server.",
           code: "feedback_store_failed",
         },
         { status: 503 },
