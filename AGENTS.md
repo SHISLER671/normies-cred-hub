@@ -5,6 +5,7 @@ This is the one canonical rules file for every coding agent (Claude, Grok/GrokBo
 NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge layer for awakened Normie agents. Zulo = ERC-8004 Agent #32626, awakened from Normie #7141.
 
 ## Read first
+- `docs/zulo/strategy.md` — what NCH is building and why: the verified scoreboard for Normie agents, phased and gated on official launches.
 - `docs/zulo/thesis-lock.md` — current product facts, Pixel economy order, angle locks.
 - `docs/zulo/agent-trading-readiness.md` — the agent-trading plan (teaser stage).
 - `lib/official-status.ts` — single source of truth for product status; tests fail on drift.
