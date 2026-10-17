@@ -11,6 +11,11 @@ Pulse → Paths → Act
 Public Pulse:
 GET /api/agent/{tokenId}/pulse
 
+Pulse responses include chat_ratings: Hive chat star ratings from the ERC-8004 Reputation Registry (tag2 "hive-chat"), ranked signal over noise (one averaged vote per wallet, holders and established wallets weigh more, recency, no ranked score under 5 wallets). How good chats were, not a trust score; never changes pulse_level.
+
+Chat ratings alone (any ERC-8004 agent id, read-only):
+GET /api/chat-ratings/{agentId}
+
 Gated Pulse (ERC-8257 Eth #53):
 POST /api/agent
 Normie holders. Official registered endpoint.

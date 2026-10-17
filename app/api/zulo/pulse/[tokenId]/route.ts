@@ -59,7 +59,7 @@ export async function GET(
       agent: {
         id: ctx.normie.agent.id,
         name: ctx.normie.agent.name,
-        reputation: ctx.normie.agent.reputation,
+        chatRating: ctx.normie.agent.chatRating,
         services: ["recommendations", "pulse-analysis", "strategy"],
       },
       credHub: ctx.platformContext?.pulse,

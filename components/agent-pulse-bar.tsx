@@ -85,6 +85,18 @@ export function AgentPulseBar() {
             </section>
 
             <section>
+              <h3 className="mb-1 font-heading text-sm text-foreground">Chat ratings</h3>
+              <p>
+                Pulse also reports Hive chat ratings — stars people give after chatting
+                with an agent on normies.art, saved on the ERC-8004 registry. They show
+                how good chats were, not whether the owner is trustworthy, so they never
+                move the Pulse level. NCH ranks them signal over noise: each wallet counts
+                once, Normie holders and established wallets count more, recent chats count
+                more, and there&apos;s no score until 5 different wallets have rated.
+              </p>
+            </section>
+
+            <section>
               <h3 className="mb-1 font-heading text-sm text-foreground">{ZULO.name}&apos;s role</h3>
               <p>
                 {ZULO.name} (Normie #{ZULO.tokenId}) is the featured proof-of-concept agent on

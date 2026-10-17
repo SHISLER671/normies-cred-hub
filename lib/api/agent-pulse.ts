@@ -1,4 +1,5 @@
 import { ERC8004, IDENTITY_REGISTRY_READ_ABI, NORMIES_API_BASE } from "@/constants/contracts"
+import { getChatRatings, type ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { getTokenUsageSignal } from "@/lib/instrumentation/pulse-paths"
 import type { AgentInfo, CanvasDiff, CanvasInfo, NormieOwner } from "@/lib/types"
@@ -33,6 +34,12 @@ export type AgentPulseResponse = {
   breakdown: string[]
   next_signal: string | null
   note: string
+  /**
+   * Hive chat ratings from the ERC-8004 Reputation Registry, ranked signal-over-noise.
+   * Informational only — it never changes pulse_level (a fun chat is not a trust signal).
+   * Present on the public Pulse endpoints; omitted when the caller didn't ask for it or the agent isn't awakened.
+   */
+  chat_ratings?: ChatRatingsSummary | null
 }
 
 export type AgentPulseResult =
@@ -106,7 +113,15 @@ export function parseTokenId(value: unknown): number | null {
   return tokenId
 }
 
-export async function getAgentPulse(tokenId: number): Promise<AgentPulseResult> {
+export type AgentPulseOptions = {
+  /** Also read Hive chat ratings (adds a capped, cached on-chain read). Off by default so ranking stays fast. */
+  chatRatings?: boolean
+}
+
+export async function getAgentPulse(
+  tokenId: number,
+  options: AgentPulseOptions = {},
+): Promise<AgentPulseResult> {
   const [agent, owner, canvas, canvasDiff] = await Promise.all([
     fetchNormies<AgentInfo>(`/agents/info/${tokenId}`),
     fetchNormies<NormieOwner>(`/normie/${tokenId}/owner`),
@@ -163,6 +178,11 @@ export async function getAgentPulse(tokenId: number): Promise<AgentPulseResult> 
 
   const assembled = assemblePulseSignals(breakdown, usageEarned)
 
+  const chatRatings =
+    options.chatRatings && agentId && Number.isFinite(agentId) && agentId > 0
+      ? await getChatRatings(agentId).catch(() => null)
+      : undefined
+
   return {
     ok: true,
     data: {
@@ -170,6 +190,7 @@ export async function getAgentPulse(tokenId: number): Promise<AgentPulseResult> 
       agent_id: agentId,
       max_level: MAX_LEVEL,
       ...assembled,
+      ...(chatRatings !== undefined ? { chat_ratings: chatRatings } : {}),
     },
   }
 }

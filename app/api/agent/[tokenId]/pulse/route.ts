@@ -25,7 +25,7 @@ export async function GET(
     return NextResponse.json({ error: "Invalid token ID (must be 0–9999)" }, { status: 400 })
   }
 
-  const result = await getAgentPulse(tokenId)
+  const result = await getAgentPulse(tokenId, { chatRatings: true })
 
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status })

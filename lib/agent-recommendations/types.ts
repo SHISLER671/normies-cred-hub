@@ -96,7 +96,10 @@ export interface ZuloRecommendationContext {
       id: number
       name: string
       status: "awakened" | "dormant"
+      /** Deprecated — was a hardcoded placeholder. Use chatRating (a real, ranked on-chain number). */
       reputation?: number
+      /** Ranked Hive chat rating 0–100 from the ERC-8004 Reputation Registry, when enough wallets have rated. */
+      chatRating?: number
       walletAddress?: string
       ens?: string
       type?: string
@@ -758,6 +761,11 @@ export interface CredHubPulseData {
   gaps: string[]
   nextSignal: string | null
   note: string
+  /**
+   * Hive chat rating line (e.g. "Chat rating 4.6★ (92/100) from 7 wallets, 9 ratings").
+   * How good chats with this agent were — never a trust score. Null/absent when unavailable.
+   */
+  chatRatings?: string | null
 }
 
 export type ZuloServiceCurrency = "AP" | "PIXEL" | "FREE"
@@ -885,7 +893,10 @@ export interface ZuloPulseView {
   agent: {
     id: number
     name: string
+    /** Deprecated — was a hardcoded placeholder; always undefined now. */
     reputation?: number
+    /** Ranked Hive chat rating 0–100, when enough wallets have rated. Not a trust score. */
+    chatRating?: number
     services?: string[]
   }
   /** CredHub Tool #53 pulse level / signals when available */
