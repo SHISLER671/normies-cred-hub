@@ -7,18 +7,14 @@ import {
   runCanvasWatch,
 } from "@/lib/agent-recommendations/canvasEvolution"
 import { checkRateLimit } from "@/lib/ratelimit"
+import { isAuthorizedCron } from "@/lib/security/cron-auth"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 export async function GET(req: NextRequest) {
-  // Vercel Cron sends Authorization: Bearer <CRON_SECRET> when configured
-  const cronSecret = process.env.CRON_SECRET?.trim()
-  const auth = req.headers.get("authorization") || ""
-  const isCron =
-    !!cronSecret &&
-    (auth === `Bearer ${cronSecret}` ||
-      req.headers.get("x-vercel-cron") === "1")
+  // Vercel Cron sends Authorization: Bearer <CRON_SECRET> when configured. x-vercel-cron alone is spoofable and is ignored.
+  const isCron = isAuthorizedCron(req.headers.get("authorization"), process.env.CRON_SECRET)
 
   if (!isCron) {
     const rl = await checkRateLimit(req, "canvas-watch", 10, 60)
@@ -32,7 +28,8 @@ export async function GET(req: NextRequest) {
 
   try {
     const url = new URL(req.url)
-    const force = url.searchParams.get("force") === "1" || isCron
+    // Only the authorized cron may force a full rescan; public callers get the cached / throttled path.
+    const force = isCron
     const rawIds = url.searchParams.get("tokens")
     const tokenIds = rawIds
       ? rawIds

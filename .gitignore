@@ -40,3 +40,4 @@ package-lock.json
 yarn.lock
 # indexer error log
 index-errors.json
+!.env.example

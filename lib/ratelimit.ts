@@ -10,8 +10,9 @@ import type { NextRequest } from "next/server"
  * (client IP by default).
  *
  * If Upstash env vars are missing (e.g. local dev without the integration),
- * `getRateLimiter` returns null and callers should fail open so the app still
- * works — production always has the vars set by the integration.
+ * `getRateLimiter` returns null and an in-process limit is used. In production
+ * that fallback is strict (a quarter of the normal limit) because it is only
+ * per-instance.
  */
 
 let redis: Redis | null = null
@@ -85,7 +86,15 @@ export async function checkRateLimitById(
   windowSec: number,
 ): Promise<{ ok: true } | { ok: false; retryAfter: number }> {
   const limiter = getRateLimiter(bucket, limit, windowSec)
-  if (!limiter) return checkMemoryRateLimit(id, bucket, limit, windowSec)
+  if (!limiter) {
+    // No Upstash. In production the in-process limit is per serverless instance (easy to multiply by fanning out), so it
+    // runs at a strict fraction of the normal limit instead of failing open at the full budget.
+    if (isProductionRuntime()) {
+      warnNoUpstashOnce()
+      return checkMemoryRateLimit(id, bucket, strictFallbackLimit(limit), windowSec)
+    }
+    return checkMemoryRateLimit(id, bucket, limit, windowSec)
+  }
 
   // Fail OPEN on a limiter error (Upstash auth, DNS, 5xx, timeout). A limiter outage must never take the page down:
   // we fall back to the in-process limit for this instance instead of throwing a 500.
@@ -100,7 +109,7 @@ export async function checkRateLimitById(
     ])
   } catch (err) {
     console.warn(`[ratelimit] ${bucket}: limiter unavailable, using in-process fallback`, err instanceof Error ? err.message : err)
-    return checkMemoryRateLimit(id, bucket, limit, windowSec)
+    return checkMemoryRateLimit(id, bucket, isProductionRuntime() ? strictFallbackLimit(limit) : limit, windowSec)
   } finally {
     if (timer) clearTimeout(timer)
   }
@@ -115,6 +124,26 @@ const LIMITER_TIMEOUT_MS = 1_500
 
 // In-process fallback when Upstash isn't configured (dev / edge cases).
 const memoryBuckets = new Map<string, number[]>()
+/** Hard cap on tracked keys so a flood of spoofed identifiers cannot grow memory without bound. */
+const MAX_MEMORY_KEYS = 10_000
+
+/** Production = Vercel production, or NODE_ENV=production outside Vercel previews. */
+export function isProductionRuntime(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (env.VERCEL_ENV) return env.VERCEL_ENV === "production"
+  return env.NODE_ENV === "production"
+}
+
+/** A quarter of the normal limit, at least 1. */
+export function strictFallbackLimit(limit: number): number {
+  return Math.max(1, Math.floor(limit / 4))
+}
+
+let warnedNoUpstash = false
+function warnNoUpstashOnce() {
+  if (warnedNoUpstash) return
+  warnedNoUpstash = true
+  console.error("[ratelimit] KV_REST_API_URL/KV_REST_API_TOKEN missing in production: strict in-process limits apply")
+}
 
 function checkMemoryRateLimit(
   id: string,
@@ -134,6 +163,11 @@ function checkMemoryRateLimit(
   }
 
   timestamps.push(now)
+  if (!memoryBuckets.has(key) && memoryBuckets.size >= MAX_MEMORY_KEYS) {
+    // Evict the oldest-inserted key (Map preserves insertion order).
+    const first = memoryBuckets.keys().next().value
+    if (first !== undefined) memoryBuckets.delete(first)
+  }
   memoryBuckets.set(key, timestamps)
   return { ok: true }
 }

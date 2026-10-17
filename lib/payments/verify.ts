@@ -7,6 +7,7 @@ import { mainnet } from "viem/chains"
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { appendSecurityEvent } from "@/lib/security/audit"
 import { isPaymentsPaused } from "@/lib/security/circuitBreaker"
+import { resolvePaymentRailStatus } from "@/lib/payments/rail-policy"
 import { getReceiverAddress } from "@/lib/treasury"
 import { txHashSchema } from "@/lib/validation/schemas"
 import { Redis } from "@upstash/redis"
@@ -63,10 +64,8 @@ function getRedis(): Redis | null {
 }
 
 function railStatus(): "planned" | "scaffold" | "live" {
-  const env = process.env.ZULO_PAYMENT_RAIL_STATUS?.trim().toLowerCase()
-  if (env === "live") return "live"
-  if (env === "scaffold") return "scaffold"
-  return "planned"
+  // "live" is hard-blocked (no crypto as income): see lib/payments/rail-policy.ts
+  return resolvePaymentRailStatus(process.env.ZULO_PAYMENT_RAIL_STATUS)
 }
 
 function rpcUrl(): string {

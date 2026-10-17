@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
     }
 
-    const rl = await enforceDualRateLimit(req, "default", {
+    const rl = await enforceDualRateLimit(req, "ask", {
       body,
       bucketPrefix: "zulo-ask",
     })
