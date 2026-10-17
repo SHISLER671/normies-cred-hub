@@ -1,7 +1,7 @@
 # Pixel Currency — Zulo Knowledge Base (Scaffolding)
 
 > **Status:** Scaffolded preparation for PIXEL MARKET.  
-> **Official framing (@normiesART, Aug 2026):** **Pixel = Action Points (AP)**; market **announced / technical WIP — not live trading**.  
+> **Official framing (@normiesART, Aug 2026):** **Pixel = Action Points (AP)**; market: **Pixel Market = LIVE since 2026-10-05 (official)**.  
 > **Source of truth for live Canvas mechanics:** AP (Pixel) Canvas-local budget.  
 > **Feature flag:** `PIXEL_CURRENCY_ENABLED` (default `false`).  
 > **Default settlement:** `DEFAULT_CURRENCY=AP`.  
@@ -13,10 +13,10 @@ This document does **not** replace `pixel-economy.md` or dual-evaluation doctrin
 
 ## 1. Pixel vs AP distinction
 
-| Concept | Today (live) | PIXEL MARKET (announced / WIP) |
+| Concept | Today (live) | PIXEL MARKET (live since 2026-10-05) |
 |---------|----------------|-------------------------|
 | **Action Points (AP)** | Canvas-local transform budget on a specific Normie | Same unit as Pixel per official announcement |
-| **Pixel (PIXEL)** | Market-facing name for AP (not a separate live ledger here) | Future buy/sell venue for edit-budget units — **not live trading yet** |
+| **Pixel (PIXEL)** | Market-facing name for AP (not a separate live ledger here) | Sell-side listings in ETH per pixel on the official Pixel Market (live) |
 
 **Working assumptions:**
 

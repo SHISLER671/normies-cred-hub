@@ -7,13 +7,14 @@
  * transitively. Authoring source: pixel-currency.md (keep in sync).
  */
 
+import { PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
 import { isPixelCurrencyEnabled } from "@/lib/payments/config"
 
 /** Bundled copy of pixel-currency.md for serverless / flag-on inject. */
 export const PIXEL_CURRENCY_MD = `# Pixel Currency — Zulo Knowledge Base (Scaffolding)
 
 > **Status:** Scaffolded preparation for PIXEL MARKET.
-> **Official framing (@normiesART, Aug 2026):** **Pixel = Action Points (AP)**; market **announced / technical WIP — not live trading**.
+> **Official framing (@normiesART, Aug 2026):** **Pixel = Action Points (AP)**; market: **Pixel Market = LIVE since 2026-10-05 (official)**.
 > **Source of truth for live Canvas mechanics:** AP (Pixel) Canvas-local budget.
 > **Feature flag:** \`PIXEL_CURRENCY_ENABLED\` (default \`false\`).
 > **Default settlement:** \`DEFAULT_CURRENCY=AP\`.
@@ -23,10 +24,10 @@ This document does **not** replace pixel-economy.md or dual-evaluation doctrine.
 
 ## 1. Pixel vs AP distinction
 
-| Concept | Today (live) | PIXEL MARKET (announced / WIP) |
+| Concept | Today (live) | PIXEL MARKET (live since 2026-10-05) |
 |---------|----------------|-------------------------|
 | **Action Points (AP)** | Canvas-local transform budget on a specific Normie | Same unit as Pixel per official announcement |
-| **Pixel (PIXEL)** | Market-facing name for AP (not a separate live ledger here) | Future buy/sell venue for edit-budget units — **not live trading yet** |
+| **Pixel (PIXEL)** | Market-facing name for AP (not a separate live ledger here) | Sell-side listings in ETH per pixel on the official Pixel Market (live) |
 
 **Working assumptions:**
 
@@ -43,9 +44,9 @@ Zulo must **never invent** live order books, transfer mechanics, hold-threshold 
 - Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit. AP is not spent when you draw / preview.
 - Prefer **Pixel** as primary market term when feature-enabled; keep **AP** as legacy alias and API field name.
 
-## 3. PIXEL MARKET trading (announced / WIP — not live)
+## 3. PIXEL MARKET trading (live since 2026-10-05)
 
-- Venue: peer / agent market for scarce edit budget (when live).
+- Venue: the official Pixel Market (https://www.normies.art/lab/pixel-market). CredHub has no live prices.
 - Burn Efficiency / Market Sentinel still quote **AP per ETH** as the measurable proxy.
 - Manifest: \`payment.pixelCurrencyStatus\` scaffolded; \`payment.conversionOracle\` planned until rails live.
 
@@ -57,10 +58,10 @@ Zulo must **never invent** live order books, transfer mechanics, hold-threshold 
 
 ## 5. Safety rules
 
-1. Flag off → speak in AP; note Pixel = AP and market not live when asked.
+1. Flag off → speak in AP; note Pixel = AP and the Pixel Market is live (official) when asked.
 2. Flag on / scaffolded → dual vocabulary OK; never claim enforced Pixel settlement or live books.
 3. Never break burn-efficiency or Canvas math denominated in AP.
-4. Prefer: “Pixel is AP (Canvas-local); PIXEL MARKET not live trading yet.”
+4. Prefer: “Pixel is AP; the Pixel Market is live (official), and CredHub has no live prices.”
 
 *Patience compounds. Haste erodes.*
 `
@@ -100,8 +101,8 @@ export function getPixelCurrencyContextSummary(): {
     status: "scaffolded",
     pillars: [
       "Pixel = AP (official @normiesART, Aug 2026)",
-      "PIXEL MARKET announced / technical WIP — not live trading",
-      "AP remains Canvas-local; market buy/sell later when live",
+      PIXEL_MARKET_STATUS_LINE,
+      "AP remains Canvas-local; trade only on the official Pixel Market",
       "Default: 1 AP = 1 PIXEL (same-unit mode)",
     ],
     conversion: [

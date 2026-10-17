@@ -10,6 +10,8 @@ import {
   scoreToolForAgent,
   type ZuloToolContext,
 } from "@/lib/erc8257/context"
+import { NORMIES_CRED_PULSE } from "@/lib/erc8257/our-tools"
+import { classifyRegistryTool, safeHttpsUrl, trustLabel } from "@/lib/erc8257/trust"
 import type { RegistryTool } from "@/lib/erc8257/types"
 import { tools as normiesTools, type Tool } from "@/lib/tools"
 import {
@@ -251,45 +253,57 @@ export function candidatesFromRegistryTools(
   cap = 12,
 ): PathCandidate[] {
   const mapped = tools.map((tool) => {
-    const access = mapRegistryAccess(tool)
+    const baseAccess = mapRegistryAccess(tool)
     const tags = tagsForRegistryTool(tool)
     const affinity = scoreToolForAgent(tool, ctx)
+    // Registry entries are permissionless: only allowlisted tools whose manifest verified and whose endpoint matches
+    // the reviewed endpoint may be offered as callable. Everything else is a labelled link to its public listing.
+    const decision = classifyRegistryTool(tool)
+    const trusted = decision.executable
+    const isPulse = trusted && decision.reviewed?.name === NORMIES_CRED_PULSE.name
+    const listingUrl = safeHttpsUrl(tool.openseaUrl) ?? undefined
+    const access = {
+      status: baseAccess.status,
+      note: trusted ? baseAccess.note : `${trustLabel(decision.trust)}: ${decision.reason}. ${baseAccess.note}`,
+    }
     return {
       pathId: `registry:${tool.chain}:${tool.toolId}`,
       kind: "erc8257-tool" as const,
       title: tool.name,
       description: tool.description,
       publisher: {
-        name: "ERC-8257 registry",
+        name: trusted ? `ERC-8257 registry · ${trustLabel(decision.trust)}` : `ERC-8257 registry · ${trustLabel("unvetted")}`,
       },
       tags,
       keywords: [tool.name, ...tool.tags, tool.description.slice(0, 60)],
       access,
-      nextStep: {
-        label:
-          tool.toolId === CRED_HUB_PULSE.toolId
-            ? `POST CredHub Pulse (Tool #${tool.toolId})`
-            : tool.endpoint
-              ? `POST Tool #${tool.toolId}`
-              : `Open Tool #${tool.toolId}`,
-        href: tool.endpoint || tool.openseaUrl,
-        method: tool.endpoint ? ("POST" as const) : ("link" as const),
-        endpoint: tool.endpoint || undefined,
-        toolId: tool.toolId,
-        chain: tool.chain,
-        inputSchema: tool.endpoint
-          ? {
+      trust: decision.trust,
+      nextStep: trusted
+        ? {
+            label: isPulse ? `POST CredHub Pulse (Tool #${tool.toolId})` : `POST Tool #${tool.toolId}`,
+            href: decision.reviewed!.endpoint,
+            method: "POST" as const,
+            endpoint: decision.reviewed!.endpoint,
+            toolId: tool.toolId,
+            chain: tool.chain,
+            inputSchema: {
               type: "object",
               description: "See the tool manifest inputs at the metadata URI",
-            }
-          : undefined,
-        body:
-          tool.toolId === CRED_HUB_PULSE.toolId && ctx?.tokenId != null
-            ? { tokenId: ctx.tokenId }
-            : undefined,
-        executable: Boolean(tool.endpoint),
-      },
-      pulseAffinity: affinity,
+            },
+            body: isPulse && ctx?.tokenId != null ? { tokenId: ctx.tokenId } : undefined,
+            trust: decision.trust,
+            executable: true,
+          }
+        : {
+            label: `View Tool #${tool.toolId} listing (unvetted)`,
+            href: listingUrl,
+            method: "link" as const,
+            toolId: tool.toolId,
+            chain: tool.chain,
+            trust: decision.trust,
+            executable: false,
+          },
+      pulseAffinity: trusted ? affinity : Math.min(affinity, 10),
     }
   })
 

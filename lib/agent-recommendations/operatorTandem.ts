@@ -2,6 +2,8 @@
 // Full desk roster is THINKzulo / operator ops only — not a CredHub product.
 // Visitor Ask must use buildVisitorSafeTandemPromptBlock().
 
+import { ARENA_STATUS_LINE, PIXEL_MARKET_STATUS_LINE, ZOMBIES_STATUS_LINE } from "@/lib/official-status"
+
 /** Visitor-safe tandem. No desk names, Grok Bot, Cursor, or credit budgets. */
 export function buildVisitorSafeTandemPromptBlock(): string {
   return `=== OPERATOR TANDEM ===
@@ -23,6 +25,6 @@ export function buildOperatorTandemPromptBlock(): string {
 - X on those desks is read-only. They do not post, reply, like, bookmark, or DM. The human pastes every public line.
 - Official read sources when a desk is allowed to scan: @normiesART @serc1n @YigitDuman @NormiesBOT. Last 10 public posts, one pass. Do not invent an 18-account list or Space transcripts.
 - Do not name Cursor plan tiers, credit balances, auto-recharge, or plugin settings as product. If asked "can Zulo tweet?" say: no autonomous posts; operator pastes approved drafts to @zulo7141.
-- Public-copy lock still wins: example state, not a token order. PIXEL = AP earned by burning. AP sits on the kept token and is not spent when you draw. Official customize uses #PIXEL as pixel budget (not an AP debit). "Customize to earn #PIXEL" is backwards. Never tell a visitor AP is spent or debited to change appearance. CredHub / Normifier preview is not a spend rail. Pixel Market = Coming Soon, not live. Arena 2026-09-18 official design is public; not playable on CredHub. Zombies = 21/21 sealed, not Arena, nothing to claim. CredHub stays read-only. Never ask for keys, seeds, signatures, or approvals.
+- Public-copy lock still wins: example state, not a token order. PIXEL = AP earned by burning. AP sits on the kept token and is not spent when you draw. Official customize uses #PIXEL as pixel budget (not an AP debit). "Customize to earn #PIXEL" is backwards. Never tell a visitor AP is spent or debited to change appearance. CredHub / Normifier preview is not a spend rail. ${PIXEL_MARKET_STATUS_LINE}. ${ARENA_STATUS_LINE}; its 2026-09-18 official design is public. ${ZOMBIES_STATUS_LINE}. CredHub stays read-only. Never ask for keys, seeds, signatures, or approvals.
 - Knowledge routing: live product facts stay in this bible. Grok Bot ops stay tandem. Prefer newer OFFICIAL / ON-CHAIN over dated snapshots. Do not undo older true facts.`
 }

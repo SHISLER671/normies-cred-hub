@@ -42,7 +42,9 @@ export type PathNextStep = {
   inputSchema?: Record<string, unknown>
   toolId?: number
   chain?: string
-  /** True when endpoint + GET/POST is meant to be called by an agent. */
+  /** ERC-8257 tools only: official / reviewed / unvetted (see lib/erc8257/trust.ts). */
+  trust?: "official" | "reviewed" | "unvetted"
+  /** True when endpoint + GET/POST is meant to be called by an agent. Never true for an unvetted third-party tool. */
   executable?: boolean
 }
 
@@ -83,6 +85,8 @@ export type PathCandidate = {
     note: string
   }
   nextStep: PathNextStep
+  /** ERC-8257 tools only: trust tier from lib/erc8257/trust.ts. */
+  trust?: "official" | "reviewed" | "unvetted"
   /**
    * Affinity to pulse gaps / level from existing scorers (0–100-ish).
    * Higher = better fit for current pulse state.
