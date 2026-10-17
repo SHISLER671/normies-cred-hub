@@ -2,12 +2,37 @@
 // Blocks localhost, RFC1918, CGNAT, link-local (incl. cloud metadata 169.254.169.254), loopback, multicast, reserved, IPv6
 // ULA/link-local and IPv4-mapped forms, checked AFTER DNS resolution, and re-checked on every redirect hop.
 // Residual risk: DNS rebinding between our lookup and fetch's own lookup. Closing that fully needs a pinned-IP dispatcher.
-import { lookup as dnsLookup } from "node:dns/promises"
-import { isIP } from "node:net"
+//
+// No static node: imports on purpose: lib/erc8257 is (wrongly) reachable from client bundles through lib/signals.ts and the
+// path-ranker barrel, and Turbopack refuses node: built-ins there. DNS is loaded at call time on the server; if it is not
+// available the guard fails closed.
 
 export type LookupFn = (host: string) => Promise<Array<{ address: string; family: number }>>
 
-const defaultLookup: LookupFn = (host) => dnsLookup(host, { all: true, verbatim: true })
+type DnsPromises = { lookup: (host: string, opts: { all: true; verbatim: boolean }) => Promise<Array<{ address: string; family: number }>> }
+
+const defaultLookup: LookupFn = async (host) => {
+  const getBuiltin = (globalThis as { process?: { getBuiltinModule?: (id: string) => unknown } }).process?.getBuiltinModule
+  const dns = getBuiltin?.("node:dns/promises") as DnsPromises | undefined
+  if (!dns) throw new Error("DNS resolver unavailable")
+  return dns.lookup(host, { all: true, verbatim: true })
+}
+
+const V4_RE = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/
+
+/** 4, 6 or 0, like node:net isIP (IPv6 check is structural; the URL parser has already normalized hostnames). */
+function isIP(raw: string): 0 | 4 | 6 {
+  if (V4_RE.test(raw)) return 4
+  if (raw.includes(":") && /^[0-9a-f:.]+(%[\w.-]+)?$/i.test(raw)) {
+    try {
+      new URL(`https://[${raw.split("%")[0]}]/`)
+      return 6
+    } catch {
+      return 0
+    }
+  }
+  return 0
+}
 
 const BLOCKED_HOSTNAMES = [/^localhost$/i, /\.localhost$/i, /\.local$/i, /\.internal$/i, /^metadata(\.|$)/i]
 
