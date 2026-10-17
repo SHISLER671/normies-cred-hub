@@ -1,5 +1,6 @@
--- Recommendation feedback lockdown (DRAFT, 2026-10-18). NOT APPLIED. Ryan applies this by hand after the code change that
--- moves feedback reads/writes to the service-role client is deployed and verified (otherwise ratings stop saving).
+-- Recommendation feedback lockdown — APPLIED 2026-10-18 (~08:53 ChST) by Ryan in the Supabase SQL editor. Do not re-run.
+-- Verified after apply: anon SELECT and anon INSERT both fail with permission denied; a Path Board 👍 still saves through
+-- the server (service-role client, SUPABASE_SERVICE_ROLE_KEY set in Vercel Production + Preview).
 --
 -- Problem: docs/sql/001_recommendation_feedback.sql created `allow_insert_feedback` and `allow_select_feedback` for anon and
 -- authenticated with `true`. The anon key ships to every browser, so anyone could insert arbitrary rows and read every row,
