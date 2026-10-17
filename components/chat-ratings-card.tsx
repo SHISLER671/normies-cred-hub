@@ -129,6 +129,7 @@ export function ChatRatingsCard({
           <div className="flex flex-wrap gap-1.5 text-[11px]">
             <span className={cn("border px-1.5 py-px", weighting.holders > 0 ? "border-primary/40 text-primary" : "border-border text-muted-foreground")}>
               {weighting.holders} holder{weighting.holders === 1 ? "" : "s"}
+              {weighting.delegated_holders > 0 ? ` (${weighting.delegated_holders} via delegate.xyz)` : ""}
             </span>
             <span className="border border-border px-1.5 py-px text-muted-foreground">
               {weighting.fresh_wallets} new wallet{weighting.fresh_wallets === 1 ? "" : "s"}
@@ -145,7 +146,7 @@ export function ChatRatingsCard({
 
       <p className="text-xs leading-relaxed text-muted-foreground text-pretty">
         How good chats with this agent were — not a trust score for its owner. Each wallet counts once (its ratings are
-        averaged); Normie holders and established wallets count more, and recent chats count more than old ones.
+        averaged); Normie holders (including vaults delegated through delegate.xyz) and established wallets count more, and recent chats count more than old ones.
       </p>
 
       <div className="text-xs text-muted-foreground">

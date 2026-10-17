@@ -20,8 +20,10 @@ export type RawChatRating = {
 }
 
 export type RaterInfo = {
-  /** Holds at least one Normie. undefined = unknown (neutral). */
+  /** Holds at least one Normie, directly or through delegate.xyz. undefined = unknown (neutral). */
   holder?: boolean
+  /** How holding was established: in the rater's own wallet, or via a delegate.xyz vault. */
+  holderVia?: "wallet" | "delegate"
   /** Sent-transaction count. undefined = unknown (neutral). */
   txCount?: number
 }
@@ -56,8 +58,10 @@ export type ChatRatingsScore = {
   }
   min_unique_raters: number
   weighting: {
-    /** Raters that hold a Normie. */
+    /** Raters that hold a Normie (in their own wallet or through delegate.xyz). */
     holders: number
+    /** Of those, raters whose Normies sit in a delegated vault (counted as holders). */
+    delegated_holders: number
     /** Raters with fewer transactions than the established threshold. */
     fresh_wallets: number
     /** Raters seen more than once (their ratings were averaged into one vote). */
@@ -128,6 +132,7 @@ export function rankChatRatings(
   const ranked = uniqueRaters >= tuning.minUniqueRaters
 
   let holders = 0
+  let delegatedHolders = 0
   let fresh = 0
   let repeats = 0
   let num = 0
@@ -136,6 +141,7 @@ export function rankChatRatings(
   for (const [wallet, list] of byWallet) {
     const info = raterInfo.get(wallet)
     if (info?.holder === true) holders++
+    if (info?.holder === true && info.holderVia === "delegate") delegatedHolders++
     if (info?.txCount != null && info.txCount < tuning.weights.establishedTxCount) fresh++
     if (list.length > 1) repeats++
 
@@ -164,6 +170,7 @@ export function rankChatRatings(
     min_unique_raters: tuning.minUniqueRaters,
     weighting: {
       holders,
+      delegated_holders: delegatedHolders,
       fresh_wallets: fresh,
       repeat_raters: repeats,
       excluded_self: excludedSelf,

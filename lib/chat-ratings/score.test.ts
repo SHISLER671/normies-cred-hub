@@ -111,6 +111,16 @@ describe("rankChatRatings", () => {
     assert.equal(s.raw.average, 50)
   })
 
+  it("delegated-vault holders count as holders and are reported separately", () => {
+    const ratings = [1, 2, 3, 4, 5].map((n) => rate(w(n), 100))
+    const info = new Map<string, RaterInfo>()
+    info.set(w(1), { holder: true, holderVia: "wallet" })
+    info.set(w(2), { holder: true, holderVia: "delegate" })
+    const s = rankChatRatings(ratings, info)
+    assert.equal(s.weighting.holders, 2)
+    assert.equal(s.weighting.delegated_holders, 1)
+  })
+
   it("old ratings fade but never vanish", () => {
     const fresh = [1, 2, 3, 4, 5].map((n) => rate(w(n), 100, 0))
     const ancient = [6, 7, 8, 9, 10].map((n) => rate(w(n), 0, 3650))

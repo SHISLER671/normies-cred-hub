@@ -11,9 +11,11 @@ import {
   REPUTATION_REGISTRY_DEPLOY_BLOCK,
   REPUTATION_REGISTRY_READ_ABI,
 } from "@/constants/contracts"
+import { registryReaders } from "@/lib/delegations"
 import { publicClient } from "@/lib/viem-client"
 
 import { CHAT_RATINGS_CONFIG } from "./config"
+import { holdsViaDelegate, type DelegatedHolderDeps } from "./delegated"
 import { rankChatRatings, type ChatRatingsScore, type RaterInfo, type RawChatRating } from "./score"
 
 /** Mainnet seconds per block since the Merge. Used to turn a block number into an age without a getBlock per rating. */
@@ -104,6 +106,35 @@ async function readFeedbackBlocks(agentId: number): Promise<Map<string, bigint> 
   }
 }
 
+const ERC721_OWNER_OF_ABI = [
+  {
+    type: "function",
+    name: "ownerOf",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }],
+  },
+] as const
+
+/** Read-only delegate.xyz lookups for raters whose own wallet holds no Normie. */
+const delegatedDeps: DelegatedHolderDeps = {
+  ...registryReaders(publicClient),
+  vaultBalance: async (vault) =>
+    (await publicClient.readContract({
+      address: NORMIES_NFT,
+      abi: ERC721_ENUMERABLE_ABI,
+      functionName: "balanceOf",
+      args: [vault],
+    })) as bigint,
+  tokenOwner: async (tokenId) =>
+    (await publicClient.readContract({
+      address: NORMIES_NFT,
+      abi: ERC721_OWNER_OF_ABI,
+      functionName: "ownerOf",
+      args: [BigInt(tokenId)],
+    })) as string,
+}
+
 async function readRaterInfo(raters: string[]): Promise<Map<string, RaterInfo>> {
   const out = new Map<string, RaterInfo>()
   const list = raters.filter(isAddr).slice(0, CHAT_RATINGS_CONFIG.limits.maxRatersEnriched)
@@ -124,10 +155,21 @@ async function readRaterInfo(raters: string[]): Promise<Map<string, RaterInfo>> 
     Promise.all(list.map((a) => publicClient.getTransactionCount({ address: a }).catch(() => undefined))),
   ])
 
-  list.forEach((a, i) => {
+  const own = list.map((_, i) => {
     const bal = balances?.[i]
+    return bal && bal.status === "success" ? (bal.result as bigint) > BigInt(0) : undefined
+  })
+
+  // Only raters whose own wallet was read and holds nothing get the delegate.xyz check.
+  const viaDelegate = await Promise.all(
+    list.map((a, i) => (own[i] === false ? holdsViaDelegate(a, delegatedDeps).catch(() => undefined) : Promise.resolve(undefined))),
+  )
+
+  list.forEach((a, i) => {
+    const holder = own[i] === true ? true : viaDelegate[i] === true ? true : own[i] === false ? viaDelegate[i] : undefined
     out.set(a.toLowerCase(), {
-      holder: bal && bal.status === "success" ? (bal.result as bigint) > BigInt(0) : undefined,
+      holder,
+      holderVia: own[i] === true ? "wallet" : viaDelegate[i] === true ? "delegate" : undefined,
       txCount: counts[i],
     })
   })
