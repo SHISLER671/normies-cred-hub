@@ -22,9 +22,14 @@ type Params = { params: Promise<{ tokenId: string }> }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { tokenId } = await params
+  const title = `Record card · Normie #${tokenId} — Normies CredHub`
+  const description = `Normie #${tokenId}'s verified record on NCH: pixel face, Pulse heartbeat and trust gate, read live from Ethereum. A track record, not a tip.`
+  // Per-record title and description for link previews (the image itself comes from opengraph-image.tsx / twitter-image.tsx).
   return {
-    title: `Record card · Normie #${tokenId} — Normies CredHub`,
-    description: `Verified record card for Normie #${tokenId}: identity, trust gate, Arena record (pending until Arena launches), and Hive chat rating. Read-only.`,
+    title,
+    description,
+    openGraph: { title, description, url: `/record/${tokenId}`, type: "website" },
+    twitter: { card: "summary_large_image", title, description },
   }
 }
 
