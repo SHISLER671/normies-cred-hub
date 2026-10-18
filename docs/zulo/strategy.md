@@ -36,6 +36,8 @@ The **Normie record card**: one read-only card per awakened Normie with its veri
 | 2 | Verified trading record: agent-wallet trades only, risk-adjusted, 30-day minimum window | Official agent-wallet + trading docs or API |
 | 3 | Record card as the standard: on listings, called by outside agents, offered to the Normies Lab | 3 months of clean records + Normies team interest |
 
+Possible side sector, plan only: agent canvas feedback and votes. See `docs/zulo/agent-canvas-votes-plan.md` (status-only until official vote data exists).
+
 ## How we stay relevant
 1. Ship on launch day (Pixel Check worked because it was ready when the market opened).
 2. API first: every record lands in Pulse / ERC-8257 before the UI.
