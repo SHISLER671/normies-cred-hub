@@ -53,23 +53,41 @@ export function pulseBeats(breakdown: readonly string[] | null | undefined): Lit
   return PULSE_BEATS.map((b) => ({ ...b, lit: have.has(b.signal) }))
 }
 
+/** Pixel grid for the trace: 20 columns per beat, 24 rows, baseline on row 14 (0 = top). Pixels stay square. */
+export const PIXEL_COLS_PER_BEAT = 20
+export const PIXEL_ROWS = 24
+export const PIXEL_BASELINE = 14
+export const PIXEL_COLS = PIXEL_COLS_PER_BEAT * 5
+
+/** One earned beat, as the row the line sits on in each of its 20 columns (a stepped ECG: P wave, QRS spike, T wave). */
+const LIT_ROWS: readonly number[] = [14, 14, 14, 14, 14, 14, 13, 12, 13, 16, 2, 22, 14, 13, 12, 12, 13, 14, 14, 14]
+
 /**
- * SVG path for the heartbeat trace: one 100-unit segment per beat in a 0..500 × 0..100 box, baseline at y=60.
- * Lit beats spike; unlit beats stay flat. Returned per segment so each can be styled on its own.
+ * The pixels for one beat as [column, row] pairs in the 100 × 24 grid. Earned beats are a connected stepped line
+ * (each column fills the run from the previous row to its own); missing beats are a dotted baseline.
  */
-export function beatSegmentPath(index: number, lit: boolean): string {
-  const x = index * 100
-  if (!lit) return `M${x} 60 L${x + 100} 60`
-  return [
-    `M${x} 60`,
-    `L${x + 30} 60`,
-    `L${x + 38} 52`,
-    `L${x + 44} 66`,
-    `L${x + 50} 8`,
-    `L${x + 57} 88`,
-    `L${x + 63} 60`,
-    `L${x + 72} 54`,
-    `L${x + 80} 60`,
-    `L${x + 100} 60`,
-  ].join(" ")
+export function beatPixels(index: number, lit: boolean): Array<[number, number]> {
+  const x0 = index * PIXEL_COLS_PER_BEAT
+  const out: Array<[number, number]> = []
+  if (!lit) {
+    for (let c = 0; c < PIXEL_COLS_PER_BEAT; c += 2) out.push([x0 + c, PIXEL_BASELINE])
+    return out
+  }
+  let prev = PIXEL_BASELINE
+  LIT_ROWS.forEach((row, c) => {
+    const lo = Math.min(prev, row)
+    const hi = Math.max(prev, row)
+    for (let y = lo; y <= hi; y++) {
+      // Skip the previous column's end pixel when the line moves, so steps read as one pixel wide.
+      if (hi !== lo && y === prev) continue
+      out.push([x0 + c, y])
+    }
+    prev = row
+  })
+  return out
+}
+
+/** Pixels → one SVG path of 1×1 squares (crisp at any size with shape-rendering="crispEdges"). */
+export function pixelPath(pixels: Array<[number, number]>): string {
+  return pixels.map(([x, y]) => `M${x} ${y}h1v1h-1z`).join("")
 }
