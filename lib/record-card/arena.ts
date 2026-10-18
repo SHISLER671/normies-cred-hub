@@ -3,7 +3,7 @@
 // The rest of the record card is built on data that exists today. Arena is not live, and nobody outside the Normies
 // team knows yet whether results will come from an API or from contract events. So this file defines the slot:
 //   - while Arena is not LIVE in lib/official-status.ts, every Arena field is `pending: Arena not live`;
-//   - once Arena is LIVE but no official source is wired here, fields say `pending: official Arena data not wired yet`;
+//   - once lib/official-status.ts marks Arena launched but no official source is wired here, fields say `pending: official Arena data not wired yet`;
 //   - on launch day, add ONE ArenaSource that reads the official data, register it below, and nothing else changes.
 // Never put guessed or self-reported Arena numbers here.
 
@@ -42,7 +42,7 @@ export function pendingArenaRecord(reason: string, asOf: string): ArenaRecord {
   }
 }
 
-export function arenaIsLive(status: string = OFFICIAL_STATUS.arena.status): boolean {
+export function isArenaOpen(status: string = OFFICIAL_STATUS.arena.status): boolean {
   return status === "LIVE"
 }
 
@@ -55,7 +55,7 @@ export async function loadArenaSector(
   asOf: string,
   opts: { status?: string; sources?: ArenaSource[] } = {},
 ): Promise<ArenaSector> {
-  if (!arenaIsLive(opts.status)) {
+  if (!isArenaOpen(opts.status)) {
     return {
       status: "not_live",
       status_text: "Arena isn't live yet, so there's no record",
@@ -68,7 +68,7 @@ export async function loadArenaSector(
   if (!source) {
     return {
       status: "source_pending",
-      status_text: "Arena is live; official Arena data isn't connected here yet",
+      status_text: "Arena has launched; official Arena data isn't connected here yet",
       record: pendingArenaRecord("official Arena data not wired yet", asOf),
       rank: { ranked: false, score: null, reason: "official Arena data not wired yet" },
     }
