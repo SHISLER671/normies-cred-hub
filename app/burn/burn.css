@@ -1,13 +1,14 @@
 /* /burn: the Normies look. Built on the .zulo-chrome tokens (mono type, square boxes, tags notched into the border,
    cyan accent on the active thing). Mobile first. Everything wordy folds away; nothing here changes the answer. */
-.burn-page { --body: var(--font-ui); --accent: var(--zulo-accent); --gap: 18px;
+.burn-page { --body: var(--font-ui); --accent: var(--text-primary); --cta: var(--zulo-accent); --gap: 18px;
   /* captions: lighter than the site's muted grey so they stay readable (about 7:1 on dark, 6:1 on light) */
   --mute: color-mix(in srgb, var(--text-primary) 72%, var(--bg-primary)); }
 /* CYAN ACCENT FIX (2026-10-05). In dark mode `.dark .zulo-chrome` (two classes) set --accent to #e5e5e5 and beat the
    one-class `.burn-page` rule above, so the cyan never showed: every "accent" was plain grey. These selectors are
    stronger in both themes. Light mode uses a deeper cyan so borders and arrows stay visible on white. */
-.dark .zulo-chrome.burn-page { --accent: var(--zulo-accent); }
-html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
+.dark .zulo-chrome.burn-page { --accent: var(--text-primary); --cta: var(--zulo-accent); }
+html:not(.dark) .zulo-chrome.burn-page { --accent: var(--text-primary); --cta: #0891b2; }
+/* PIXEL PASS (2026-10-18): --accent is ink for decoration; --cta is the only cyan (the Go button, focus, the answer box). */
 .burn-page .burn-main { max-width: 720px; margin: 0 auto; padding: 8px 16px 72px; overflow-wrap: anywhere; }
 .burn-page .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .burn-page .burn-mono { font-family: var(--font-mono); font-size: 0.92em; }
@@ -66,8 +67,8 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
   content: attr(data-tag); position: absolute; top: -10px; left: 14px; padding: 3px 10px; background: var(--bg-primary);
   border: 1px solid var(--border); font: 600 11px/1 var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-primary);
 }
-.burn-page .burn-answer { border-color: var(--accent); }
-.burn-page .burn-answer[data-tag]::before { border-color: var(--accent); }
+.burn-page .burn-answer { border-color: var(--cta); }
+.burn-page .burn-answer[data-tag]::before { border-color: var(--cta); }
 
 /* form */
 .burn-page .burn-inputrow { display: flex; gap: 0; }
@@ -80,7 +81,7 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
   font: 700 14px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase;
   background: var(--text-primary); color: var(--bg-primary); border: 1px solid var(--text-primary);
 }
-.burn-page .burn-go:hover { background: var(--accent); border-color: var(--accent); color: #1a1b1c; }
+.burn-page .burn-go:hover { background: var(--cta); border-color: var(--cta); color: #1a1b1c; }
 .burn-page .burn-safeline { margin: 10px 0 18px; font: 12px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
 .burn-page .burn-tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; padding: 0; border: 1px solid var(--border); min-width: 0; }
 .burn-page .burn-tab { position: relative; display: grid; place-items: center; text-align: center; min-height: 52px; padding: 6px 4px; cursor: pointer;
@@ -88,7 +89,7 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-tab + .burn-tab { border-left: 1px solid var(--border); }
 .burn-page .burn-tab input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 .burn-page .burn-tab:has(input:checked) { background: var(--text-primary); color: var(--bg-primary); box-shadow: inset 0 -3px 0 var(--accent); }
-.burn-page .burn-tab:has(input:focus-visible), .burn-page .burn-input:focus-visible, .burn-page .burn-go:focus-visible, .burn-page a:focus-visible, .burn-page summary:focus-visible, .burn-page .burn-mini:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.burn-page .burn-tab:has(input:focus-visible), .burn-page .burn-input:focus-visible, .burn-page .burn-go:focus-visible, .burn-page a:focus-visible, .burn-page summary:focus-visible, .burn-page .burn-mini:focus-visible { outline: 2px solid var(--cta); outline-offset: 2px; }
 .burn-page .burn-hint { margin: 12px 0 0; font: 13px var(--font-ui); color: var(--mute); text-align: center; min-height: 1.4em; }
 
 /* small helpers */
@@ -246,8 +247,8 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 .burn-page .burn-tagline { font-size: 12px; letter-spacing: 0.16em; color: var(--text-secondary); }
 .burn-page .burn-box { background: var(--panel-bg); border-color: var(--panel-line); }
 .burn-page .burn-box[data-tag]::before { background: var(--bg-primary); border-color: var(--panel-line); }
-.burn-page .burn-answer { border-color: var(--accent); }
-.burn-page .burn-answer[data-tag]::before { border-color: var(--accent); }
+.burn-page .burn-answer { border-color: var(--cta); }
+.burn-page .burn-answer[data-tag]::before { border-color: var(--cta); }
 .burn-page .burn-link, .burn-page .burn-example, .burn-page .burn-hint { text-align: left; }
 .burn-page .burn-delegates { margin: 4px 0 14px; }
 

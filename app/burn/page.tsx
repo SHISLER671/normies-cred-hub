@@ -101,7 +101,7 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
       <div className="header-spacer" aria-hidden />
       <main className="burn-main" id="main">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(burnJsonLd(DEFAULT_SITE_ORIGIN)) }} />
-        <header className="burn-hero">
+        <header className="burn-hero nb-grid-bg">
           <span className="burn-face" aria-hidden="true" />
           <h1 className="burn-title">Burn or keep?</h1>
           <p className="burn-tagline">Look twice. Burn once.</p>

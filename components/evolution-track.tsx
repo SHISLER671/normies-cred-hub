@@ -1,3 +1,4 @@
+import { Chip, Eyebrow, StepLabel } from "@/components/brand"
 import { OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
 
 /** "COMING SOON" → "Coming soon": the official tag word, in sentence case. */
@@ -24,6 +25,7 @@ export function EvolutionTrack({
 
   return (
     <section className="ev-track" aria-labelledby="ev-title">
+      <Eyebrow>The record</Eyebrow>
       <h2 id="ev-title" className="ev-title">How an agent&apos;s record grows</h2>
       <p className="ev-lede">
         Trust first, then a record anyone can check, then skill. Each step only counts if the one before it holds.
@@ -31,33 +33,33 @@ export function EvolutionTrack({
 
       <ol className="ev-steps">
         <li className="ev-step" data-state="live">
-          <span className="ev-num" aria-hidden>1</span>
+          <span className="ev-node" aria-hidden />
           <div className="ev-body">
-            <h3 className="ev-name">Trust</h3>
+            <h3 className="ev-name"><StepLabel>Step 1 · Trust</StepLabel></h3>
             <p>Pulse: five checks read live from Ethereum and the Normies API. Measures trust, never skill.</p>
             <p className="ev-here">
               {level === null ? `#${tokenId}: no reading yet` : `#${tokenId}: ${level} of ${maxLevel}`}
             </p>
           </div>
-          <span className="ev-status">Live</span>
+          <span className="ev-status"><Chip tone="live">Live</Chip></span>
         </li>
 
         <li className="ev-step" data-state="live">
-          <span className="ev-num" aria-hidden>2</span>
+          <span className="ev-node" aria-hidden />
           <div className="ev-body">
-            <h3 className="ev-name">Record</h3>
+            <h3 className="ev-name"><StepLabel>Step 2 · Record</StepLabel></h3>
             <p>The record card: identity, trust gate and chat rating on one page, each value labelled with its source.</p>
             <p className="ev-here">
               <a href={`/record/${tokenId}`} className="ev-link">Open #{tokenId}&apos;s record card</a>
             </p>
           </div>
-          <span className="ev-status">Live</span>
+          <span className="ev-status"><Chip tone="live">Live</Chip></span>
         </li>
 
         <li className="ev-step" data-state="waiting">
-          <span className="ev-num" aria-hidden>3</span>
+          <span className="ev-node" aria-hidden />
           <div className="ev-body">
-            <h3 className="ev-name">Skill</h3>
+            <h3 className="ev-name"><StepLabel dim>Step 3 · Skill</StepLabel></h3>
             <p>
               Ranks per sector from verified results only, each with a minimum sample. Open only to agents past the
               trust gate.
@@ -88,7 +90,7 @@ export function EvolutionTrack({
                   : `#${tokenId}: not past the trust gate yet`}
             </p>
           </div>
-          <span className="ev-status">Waiting</span>
+          <span className="ev-status"><Chip>Waiting</Chip></span>
         </li>
       </ol>
     </section>

@@ -96,3 +96,24 @@ export function Stat({ label, value, note, highlight }: { label: React.ReactNode
     </div>
   )
 }
+
+/** A row of square pixels, `value` of `max` filled (the ■■■□ meter from the official Pixel Market visuals). */
+export function PixelMeter({ value, max, large, className }: { value: number; max: number; large?: boolean; className?: string }) {
+  const on = Math.max(0, Math.min(max, Math.round(value)))
+  return (
+    <span className={cn("nb-pixels", large && "nb-pixels-lg", className)} role="img" aria-label={`${on} of ${max}`}>
+      {Array.from({ length: max }, (_, i) => (
+        <i key={i} data-on={i < on} />
+      ))}
+    </span>
+  )
+}
+
+/** A solid step label ("STEP 1 · TRUST"). `dim` for a step that hasn't started. */
+export function StepLabel({ children, dim, className }: { children: React.ReactNode; dim?: boolean; className?: string }) {
+  return (
+    <span className={cn("nb-step", className)} data-dim={dim ? "true" : undefined}>
+      {children}
+    </span>
+  )
+}

@@ -161,7 +161,7 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
       <ZuloChromeHeader active="pixels" />
       <div className="header-spacer" aria-hidden />
       <main className="burn-main" id="main">
-        <header className="burn-hero">
+        <header className="burn-hero nb-grid-bg">
           <h1 className="burn-title">Pixel Check</h1>
           <p className="burn-tagline">Check the pixels before you trust the offer.</p>
         </header>
