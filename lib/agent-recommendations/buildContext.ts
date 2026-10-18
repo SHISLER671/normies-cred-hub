@@ -4,6 +4,8 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getAgentPulse } from "@/lib/api/agent-pulse"
 import { chatRatingsLine } from "@/lib/chat-ratings/format"
+import { recordCardLine } from "@/lib/record-card/ask-line"
+import { siteOrigin } from "@/lib/site-origin"
 import { buildPulseSummary, derivePulseGaps } from "@/lib/erc8257/context"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { isAddress } from "viem"
@@ -571,6 +573,7 @@ export async function buildZuloContext(
       nextSignal: pulseResult.data.next_signal,
       note: pulseResult.data.note,
       chatRatings: chatRatingsLine(pulseResult.data.chat_ratings),
+      recordCard: recordCardLine(pulseResult.data.token_id, pulseResult.data.breakdown, siteOrigin()),
     }
     pulseSummary = buildPulseSummary(pulseResult.data)
   }
