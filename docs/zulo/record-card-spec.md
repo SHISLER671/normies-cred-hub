@@ -222,7 +222,7 @@ Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026
 - **Arena is not live until an official URL plus docs or an API exist** and `lib/official-status.ts` is flipped. Until then, no "enter Arena" step and no Arena numbers, not even from teasers.
 - **No Pulse changes in this spec.** Decided (Ryan, 2026-10-18): a *verified* Arena record **may** later move Pulse, but only as proof of real, verified activity (e.g. a "verified Arena activity" signal), never by win count. That change gets its own PR. Self-reported and chat-rating data never move Pulse.
 - **No chat-ratings changes** (owned by Claude this week). No edits to `public/.well-known/ai-tool/*.json` (manifest hashes are pinned on-chain). When the card ships, it adds response fields in code only.
-- No endpoints are built here. The serving route (proposed `GET /api/zulo/record-card/{tokenId}`, then ERC-8257 and Pulse as optional fields) is decided in the build PR.
+- **Built 2026-10-18 (Claude):** `lib/record-card/` (types, pure `build.ts`, server `load.ts`), `GET /api/zulo/record-card/{tokenId}` (JSON) and the page `/record/{tokenId}`. Identity, context, Pulse trust gate and chat rating are live; the Arena sector is pending. **Launch day:** add one `ArenaSource` adapter for the official data in `lib/record-card/arena.ts` (`ARENA_SOURCES`) and flip `lib/official-status.ts`; nothing else changes. Ranking (minimum sample, Wilson bound) lands with that adapter. ERC-8257 / Pulse fields stay a later step.
 
 ## 8. Open questions
 
