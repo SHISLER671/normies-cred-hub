@@ -547,7 +547,7 @@ export function Dashboard() {
                     subtitle={section.signal.description}
                   >
                     <div className="flex gap-3 min-w-0">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-primary bg-primary/10">
+                      <div className="cred-icon flex h-8 w-8 shrink-0 items-center justify-center border border-primary bg-primary/10">
                         <Icon className="size-4 text-primary" />
                       </div>
                       <div className="min-w-0 flex-1 cred-data">{section.content}</div>

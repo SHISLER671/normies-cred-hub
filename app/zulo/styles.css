@@ -3786,3 +3786,29 @@
     gap: 56px;
   }
 }
+
+/* PULSE page cyan (Ryan, 2026-10-18): more Zulo cyan on /dashboard only. Scoped to .dash-shell so the rest of the
+   site keeps one cyan accent. Light theme uses a darker cyan so text and lines stay readable on paper. */
+.zulo-chrome.dash-shell { --pulse-cyan: #0e7490; --pulse-cyan-line: #0891b2; }
+.dark .zulo-chrome.dash-shell { --pulse-cyan: #22d3ee; --pulse-cyan-line: #22d3ee; }
+
+.zulo-chrome.dash-shell .moves-kicker { border-left-color: var(--pulse-cyan-line); color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .dash-hero .moves-title { text-decoration: underline; text-decoration-color: var(--pulse-cyan-line); text-decoration-thickness: 2px; text-underline-offset: 8px; }
+
+/* accordion: the open section gets a cyan rail, chevron and focus ring */
+.zulo-chrome.dash-shell .pulse-acc-item.is-open { box-shadow: inset 2px 0 0 var(--pulse-cyan-line); }
+.zulo-chrome.dash-shell .pulse-acc-item.is-open .pulse-acc-title { color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .pulse-acc-chevron.is-open { color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .pulse-acc-trigger:focus-visible { outline-color: var(--pulse-cyan-line); }
+
+/* the Pulse meter: cyan glyphs and a cyan breathing glow (the glow math in globals.css reads --primary) */
+.zulo-chrome.dash-shell .pulse-bar { --primary: var(--pulse-cyan-line); }
+.zulo-chrome.dash-shell .pulse-bar-glyphs { color: var(--pulse-cyan); }
+
+/* section icons and the chat-rating highlights */
+.zulo-chrome.dash-shell .cred-icon { border-color: var(--pulse-cyan-line); background: color-mix(in oklab, var(--pulse-cyan-line) 12%, transparent); }
+.zulo-chrome.dash-shell .cred-icon svg { color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .chat-star-fill { color: var(--pulse-cyan); fill: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .chat-score { color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .chat-holders { border-color: color-mix(in oklab, var(--pulse-cyan-line) 50%, transparent); color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .cred-data a:hover { color: var(--pulse-cyan); }
