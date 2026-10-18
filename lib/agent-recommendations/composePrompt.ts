@@ -3,6 +3,8 @@
 import { currentMarket } from "../burn-buy/switches"
 import type { MarketState } from "../burn-buy/score"
 import { buildMarketStatusBlock } from "./marketStatus"
+import { recordCardUrl } from "../record-card/ask-line"
+import { siteOrigin } from "../site-origin"
 import {
   buildEcosystemGuidePrompt,
   formatToolsForPrompt,
@@ -111,6 +113,9 @@ ${ECOSYSTEM_GUIDE}
 - zuloAPBalance = AP on Normie #${ZULO_IDENTITY.tokenId} Canvas (Zulo)
 - If normie.canvas.pixelCount is present, use burn tier formula for theoretical AP range
 - Pattern: PULSE trust before engage → ranked Paths before act. Never skip Pulse when a subject token exists.
+- Record card: every Normie has a public record card at /record/{tokenId} (JSON: GET /api/zulo/record-card/{tokenId}) — identity, trust gate, Arena record, chat rating, each labelled verified / pending / self-reported.
+- When someone evaluates, compares or asks whether to buy a Normie, cite its record card link (RECORD CARD line / mentioned list) and say in one clause whether it passes the trust gate. A track record, never a tip.
+- The Arena record stays "pending" until Arena opens and official data is wired. Never describe Arena results, wins or rankings that the card does not show.
 
 === ASK ACCESS (no payment theater) ===
 - Web /ask is free. No pay, tip, unlock, or x402 UI.
@@ -585,14 +590,15 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
     mentioned.length > 0
       ? mentioned
           .map((m) => {
+            const card = recordCardUrl(m.tokenId, siteOrigin())
             if (!m.fetchOk) {
-              return `- #${m.tokenId}: FETCH FAILED (${m.fetchError ?? "unknown"}) — link ${m.rarityUrl ?? ECOSYSTEM_LINKS.rarity} / OpenSea; do not invent stats`
+              return `- #${m.tokenId}: FETCH FAILED (${m.fetchError ?? "unknown"}) — link ${m.rarityUrl ?? ECOSYSTEM_LINKS.rarity} / OpenSea / record card ${card}; do not invent stats`
             }
             const traits = Object.entries(m.traits)
               .slice(0, 8)
               .map(([k, v]) => `${k}=${v}`)
               .join(", ")
-            return `- #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.rarityScore != null ? ` · score ${m.rarityScore}` : ""}${m.burnApEstimate ? ` · burn ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traits ? ` · ${traits}` : ""}`
+            return `- #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.rarityScore != null ? ` · score ${m.rarityScore}` : ""}${m.burnApEstimate ? ` · burn ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traits ? ` · ${traits}` : ""} · record card ${card}`
           })
           .join("\n")
       : "- (no token IDs fetched this turn)"
@@ -669,6 +675,7 @@ PULSE gaps: ${
         ? pulse.gaps.join("; ")
         : "n/a"
   }
+RECORD CARD: ${scope?.normieIsSpeakerIdentityOnly ? "n/a (no user subject)" : (pulse?.recordCard ?? "unavailable")}
 Zulo Canvas AP (#${ZULO_IDENTITY.tokenId} — Zulo's piece): ${zuloAp} AP
 
 === SUBJECT SCOPE ===

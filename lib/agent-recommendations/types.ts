@@ -766,6 +766,11 @@ export interface CredHubPulseData {
    * How good chats with this agent were — never a trust score. Null/absent when unavailable.
    */
   chatRatings?: string | null
+  /**
+   * Record card line (link + trust gate + Arena status), e.g. "Record card: …/record/1217 — Passes the trust gate … · Arena record: pending".
+   * Built from the Pulse breakdown; no extra network call.
+   */
+  recordCard?: string | null
 }
 
 export type ZuloServiceCurrency = "AP" | "PIXEL" | "FREE"

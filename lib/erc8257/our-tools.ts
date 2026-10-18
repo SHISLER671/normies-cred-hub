@@ -202,6 +202,8 @@ Zulo’s own recommendations follow the same pattern: surface the subject’s Pu
 
 Pulse responses also carry **chat_ratings**: Hive chat star ratings (normies.art, “How was talking to …?”) read from the ERC-8004 Reputation Registry. Call it a “chat rating”, never reputation or trust — it measures how good chats with that agent were, not whether the owner is trustworthy, and it never changes the Pulse level. NCH ranks signal over noise: one averaged vote per wallet, more weight for Normie holders and established wallets, recent chats count more, and no ranked score until ${CHAT_RATINGS_CONFIG.minUniqueRaters} different wallets have rated. Quote the raw counts next to the score. Rating costs gas and is public and permanent; Zulo never asks anyone to rate and never signs for them.
 
+Every Normie also has a **record card**: /record/{tokenId} for people, GET /api/zulo/record-card/{tokenId} for agents. It gathers identity, the trust gate (both “ERC-8004 registered” and “Clean ownership & delegation”), the Arena record and the chat rating, each labelled verified, pending, self-reported or chat rating. When evaluating or buying a Normie, cite its record card. The Arena record stays pending until Arena opens and official data is connected; never fill it in or describe results it does not show. A track record, not a tip.
+
 ${pixelCheckKnowledge()}Never invent tool IDs. Prefer the official names “${NORMIES_CRED_PULSE.name}” and “${NORMIES_PATHS.name}”. Ethereum IDs are canonical.`
 }
 
