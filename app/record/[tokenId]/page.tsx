@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { tokenId } = await params
   return {
     title: `Record card · Normie #${tokenId} — Normies CredHub`,
-    description: `Verified record card for Normie #${tokenId}: identity, trust gate, Arena record (pending until Arena is live), and Hive chat rating. Read-only.`,
+    description: `Verified record card for Normie #${tokenId}: identity, trust gate, Arena record (pending until Arena launches), and Hive chat rating. Read-only.`,
   }
 }
 
