@@ -11,37 +11,17 @@ import {
 import { ZULO } from "@/constants/contracts"
 import { Activity } from "lucide-react"
 
-const PULSE_LEVEL = 4
-const MAX_LEVEL = 5
-
-function renderPulseGlyphs(level: number, max: number) {
-  return "▓".repeat(level) + "░".repeat(max - level)
-}
-
-export function AgentPulseBar() {
+/**
+ * "How Pulse works" — a text button that opens the Pulse explainer. The live score itself is drawn by
+ * components/pulse-hero.tsx from the record card; this file no longer shows any number of its own.
+ */
+export function PulseExplainer({ className, label = "How Pulse works" }: { className?: string; label?: string }) {
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inner-box pulse-bar mt-6 w-full cursor-pointer rounded-none px-5 py-4 text-center transition-colors hover:bg-secondary/20 focus-visible:outline-none"
-        style={
-          {
-            "--pulse-level": PULSE_LEVEL,
-            "--pulse-max": MAX_LEVEL,
-          } as React.CSSProperties
-        }
-        aria-label="Learn how Agent Pulse is calculated"
-      >
-        <strong className="text-sm tracking-[1.5px]">Agent Pulse</strong>
-        <div className="pulse-bar-glyphs mt-2 font-mono text-2xl tracking-widest text-primary">
-          {renderPulseGlyphs(PULSE_LEVEL, MAX_LEVEL)}
-        </div>
-        <div className="mt-1 font-heading text-xl tabular-nums">
-          {PULSE_LEVEL} / {MAX_LEVEL}
-        </div>
+      <button type="button" onClick={() => setOpen(true)} className={className ?? "pulse-explainer-btn"}>
+        {label}
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -81,6 +61,16 @@ export function AgentPulseBar() {
               <p className="mt-2">
                 Level 5 (Luminous) is earned from recent Pulse checks and
                 Pulse-conditioned Paths activity.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="mb-1 font-heading text-sm text-foreground">The trust gate</h3>
+              <p>
+                Two of those checks form the trust gate: registered on-chain, and clean
+                ownership &amp; delegation. Pulse measures trust, not skill. Skill ranks (Arena,
+                trading, tools) will only list agents that pass the gate, and they use
+                verified data only.
               </p>
             </section>
 

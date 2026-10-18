@@ -6,7 +6,18 @@ import { useEffect, useState } from "react"
  * Share buttons for a record card. Read-only: no wallet, no signature, nothing on-chain.
  * Pasting the link anywhere shows the card's preview image (app/record/[tokenId]/opengraph-image.tsx).
  */
-export function RecordShare({ url, tokenId, name }: { url: string; tokenId: number; name: string }) {
+export function RecordShare({
+  url,
+  tokenId,
+  name,
+  compact = false,
+}: {
+  url: string
+  tokenId: number
+  name: string
+  /** One button: the phone share sheet where supported, otherwise Copy link. */
+  compact?: boolean
+}) {
   const [copied, setCopied] = useState(false)
   const [canNativeShare, setCanNativeShare] = useState(false)
 
@@ -33,6 +44,18 @@ export function RecordShare({ url, tokenId, name }: { url: string; tokenId: numb
     } catch {
       // Closed the share sheet; nothing to do.
     }
+  }
+
+  if (compact) {
+    return canNativeShare ? (
+      <button type="button" className="rc-share-btn" onClick={share}>
+        Share record
+      </button>
+    ) : (
+      <button type="button" className="rc-share-btn" onClick={copy} aria-live="polite">
+        {copied ? "Link copied ✓" : "Copy link"}
+      </button>
+    )
   }
 
   return (

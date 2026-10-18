@@ -27,7 +27,7 @@ export type RecordCardInputs = {
   } | null
   owner: { owner?: string | null } | null
   zombie: { info?: { isZombie?: boolean | null } | null } | null
-  pulse: { pulse_level: number; max_level: number; status: string; breakdown: string[] } | null
+  pulse: { pulse_level: number; max_level: number; status: string; breakdown: string[]; next_signal?: string | null } | null
   chatRatings: ChatRatingsSummary | null | undefined
   arena: ArenaSector
 }
@@ -122,6 +122,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
       max_level: i.pulse?.max_level ?? 5,
       status: i.pulse?.status ?? null,
       breakdown: i.pulse?.breakdown ?? [],
+      next_signal: i.pulse?.next_signal ?? null,
       gate,
       available: !!i.pulse,
     },

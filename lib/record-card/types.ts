@@ -50,6 +50,8 @@ export type RecordCard = {
     max_level: number
     status: string | null
     breakdown: string[]
+    /** What earns the next Pulse level, in plain words. Null at max level or when Pulse is unavailable. */
+    next_signal: string | null
     gate: {
       passed: boolean
       registered: boolean

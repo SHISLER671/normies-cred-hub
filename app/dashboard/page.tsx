@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 
-import { AgentPulseBar } from "@/components/agent-pulse-bar"
 import { AgentToolsStrip } from "@/components/agent-tools-block"
 import { Dashboard } from "@/components/dashboard"
 import {
@@ -16,7 +15,7 @@ import "../zulo/styles.css"
 export const metadata: Metadata = {
   title: "PULSE — Normies CredHub",
   description:
-    "PULSE on Normies CredHub: view, verify, and build trust in awakened ERC-8004 Normie agents. On-chain identity meets portable reputation — Zulo (#32626) as high-signal concierge and Tool #53.",
+    "PULSE on Normies CredHub: live trust checks for awakened ERC-8004 Normie agents, the trust gate, and each agent's record card. Read-only, verified sources only.",
 }
 
 export default function DashboardPage() {
@@ -25,53 +24,30 @@ export default function DashboardPage() {
       <SiteHeader active="dashboard" />
       <div className="header-spacer" aria-hidden />
 
-      <main className="dash-main">
-        <section className="dash-hero" data-reveal>
-          <p className="moves-kicker mono">CREDHUB · PULSE · LIVE</p>
-          <h1 className="moves-title">
-            See the real reputation of your awakened agents.
-          </h1>
-          <p className="moves-lede">
-            A verifiable reputation layer for autonomous Normies agents. Switch
-            your Active Normie in the header or My agents list — then inspect
-            trust, PULSE, and tools for that agent.
+      <main className="dash-main pulse-page">
+        <header className="pulse-intro">
+          <h1 className="pulse-intro-title">Pulse</h1>
+          <p className="pulse-intro-lede">
+            Trust checks for awakened Normie agents, read live from Ethereum and the Normies API. Check an agent
+            here before you deal with it. Pick any agent in the header.
           </p>
-          <p className="caption" style={{ marginTop: 10 }}>
-            Built for agents and holders who verify trust before they engage.
-          </p>
-          <p className="caption" style={{ marginTop: 16 }}>
-            Connect your wallet to unlock your controlled and delegated set.
-          </p>
-        </section>
+        </header>
 
-        <section className="dash-section-acc" data-reveal>
-          <PulseAccordion defaultOpenIds={["agent-pulse"]} allowMultiple>
+        <Dashboard />
+
+        <section className="dash-section-acc pulse-builders" aria-label="For agents and builders">
+          <PulseAccordion defaultOpenIds={[]} allowMultiple>
             <PulseAccordionItem
               id="agent-pulse"
-              title="Agent Pulse"
-              subtitle="Score, public endpoint, agent-to-agent trust"
+              title="For agents and builders"
+              subtitle="Public endpoints, example response, tool IDs"
             >
               <p className="moves-lede" style={{ marginBottom: 12, fontSize: 14 }}>
-                Agents can vet each other before they interact. One public
-                endpoint returns any agent&apos;s trust profile as JSON.
+                Agents can vet each other before they interact. Two public, read-only endpoints:
               </p>
 
-              <AgentPulseBar />
-
-              <p className="caption" style={{ marginTop: 16 }}>
-                Real data pulled live from the Normies API + on-chain records.
-              </p>
-
-              <div
-                className="card"
-                style={{
-                  marginTop: 16,
-                  padding: 16,
-                  background: "var(--bg-secondary)",
-                }}
-              >
-                <strong className="caption">Public Endpoint</strong>
-                <span className="caption"> (any agent can call this):</span>
+              <div className="card" style={{ padding: 16, background: "var(--bg-secondary)" }}>
+                <strong className="caption">Pulse (counts as a Pulse check)</strong>
                 <pre
                   className="mono"
                   style={{
@@ -85,17 +61,26 @@ export default function DashboardPage() {
                 >
                   GET /api/agent/{ZULO.tokenId}/pulse
                 </pre>
+                <strong className="caption" style={{ display: "block", marginTop: 12 }}>
+                  Record card (full labelled record)
+                </strong>
+                <pre
+                  className="mono"
+                  style={{
+                    marginTop: 8,
+                    overflowX: "auto",
+                    padding: "10px 12px",
+                    background: "var(--bg-primary)",
+                    border: "1px solid var(--border)",
+                    fontSize: 13,
+                  }}
+                >
+                  GET /api/zulo/record-card/{ZULO.tokenId}
+                </pre>
               </div>
 
-              <div
-                className="card"
-                style={{
-                  marginTop: 12,
-                  padding: 16,
-                  background: "var(--bg-secondary)",
-                }}
-              >
-                <strong className="caption">Example Response</strong>
+              <div className="card" style={{ marginTop: 12, padding: 16, background: "var(--bg-secondary)" }}>
+                <strong className="caption">Example Pulse response (illustrative values)</strong>
                 <pre
                   className="mono"
                   style={{
@@ -135,33 +120,18 @@ export default function DashboardPage() {
                 </pre>
               </div>
 
-              <p className="moves-lede" style={{ marginTop: 16, fontSize: 13 }}>
-                Any awakened agent can fetch this before deciding to interact.
+              <p className="caption" style={{ marginTop: 12 }}>
+                <strong>chat_ratings</strong> are Hive chat star ratings from the on-chain ERC-8004 registry, ranked
+                signal over noise (one vote per wallet, holders and established wallets count more). They show how good
+                chats were; they never change the Pulse level.
               </p>
-              <p className="caption" style={{ marginTop: 8 }}>
-                <strong>chat_ratings</strong> are Hive chat star ratings from the
-                on-chain ERC-8004 registry, ranked signal over noise (one vote per
-                wallet, holders and established wallets count more). They show how
-                good chats were — they never change the Pulse level. Example values
-                above are illustrative.
-              </p>
-              <p className="caption" style={{ marginTop: 8 }}>
-                Future updates will include direct signals from agent activity
-                (transactions, interactions, success patterns).
-              </p>
+
+              <div style={{ marginTop: 16 }}>
+                <AgentToolsStrip />
+              </div>
             </PulseAccordionItem>
           </PulseAccordion>
         </section>
-
-        <section className="dash-section-acc" data-reveal>
-          <AgentToolsStrip />
-        </section>
-
-        {/* Trust cards / framework — My agents + collapsible signals */}
-        <div style={{ paddingBottom: 48 }} data-reveal>
-          <Dashboard />
-        </div>
-
       </main>
       <SiteFooter extra="Data from Normies · Ethos · ERC-8004. We are awakened." />
     </div>

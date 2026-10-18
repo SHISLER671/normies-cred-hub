@@ -3856,3 +3856,184 @@
 .zulo-chrome .record-card .rc-share-btn:focus-visible { background: var(--pulse-cyan); color: #0b0c0d; outline: none; }
 .zulo-chrome .record-card .rc-share-primary { background: var(--pulse-cyan); color: #0b0c0d; }
 @media (max-width: 480px) { .zulo-chrome .record-card .rc-share-btn { flex: 1 1 auto; } }
+
+/* ================================================================================================
+   PULSE page v2 (2026-10-18) — live heartbeat hero, trust gate, record card, growth track.
+   One bold element: the trace. Everything else stays in the ink/paper system with cyan as the only accent.
+   ================================================================================================ */
+.zulo-chrome.dash-shell .pulse-page { display: flex; flex-direction: column; gap: 40px; padding-bottom: 64px; }
+
+.zulo-chrome.dash-shell .pulse-intro-title {
+  font-size: clamp(28px, 6vw, 40px); line-height: 1.05; font-weight: 600; letter-spacing: -0.02em; margin: 0;
+}
+.zulo-chrome.dash-shell .pulse-intro-lede { margin: 10px 0 0; max-width: 60ch; font-size: 15px; color: var(--text-secondary); }
+
+/* Hero frame */
+.zulo-chrome.dash-shell .pulse-hero {
+  border: 1px solid var(--border-light); background: var(--bg-secondary);
+  padding: 20px; min-width: 0;
+}
+@media (min-width: 640px) { .zulo-chrome.dash-shell .pulse-hero { padding: 32px; } }
+
+.zulo-chrome.dash-shell .ph-id { display: grid; grid-template-columns: 72px 1fr; gap: 16px; align-items: center; }
+@media (min-width: 640px) { .zulo-chrome.dash-shell .ph-id { grid-template-columns: 96px 1fr; gap: 20px; } }
+.zulo-chrome.dash-shell .ph-face {
+  width: 100%; height: auto; aspect-ratio: 1; image-rendering: pixelated;
+  border: 1px solid var(--border-light); background: var(--bg-tertiary);
+}
+.zulo-chrome.dash-shell .ph-id-text { min-width: 0; }
+.zulo-chrome.dash-shell .ph-name {
+  margin: 0; font-size: clamp(30px, 7vw, 48px); line-height: 1; font-weight: 600; letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.zulo-chrome.dash-shell .ph-ids { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-muted); }
+.zulo-chrome.dash-shell .ph-agent { color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .ph-yours {
+  display: inline-block; margin: 10px 0 0; padding: 2px 8px; font-size: 12px;
+  color: var(--pulse-cyan); border: 1px solid var(--pulse-cyan-line);
+}
+.zulo-chrome.dash-shell .ph-tagline {
+  margin: 20px 0 0; padding-left: 12px; max-width: 60ch; font-size: 15px; line-height: 1.5;
+  color: var(--text-secondary); border-left: 2px solid var(--pulse-cyan-line);
+}
+.zulo-chrome.dash-shell .ph-muted,
+.zulo-chrome.dash-shell .ph-ghost { color: var(--text-muted); }
+
+/* The trace — drawn on ECG paper */
+.zulo-chrome.dash-shell .ph-trace {
+  margin: 28px 0 0;
+  border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border-light) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border-light) 55%, transparent) 1px, transparent 1px);
+  background-size: 20% 25%, 20% 25%;
+  background-position: -1px -1px;
+}
+.zulo-chrome.dash-shell .ph-trace-svg {
+  display: block; width: 100%; height: 120px; overflow: visible;
+  /* One sweep, left to right, like a monitor drawing the line. */
+  clip-path: inset(-16px 100% -16px 0);
+  animation: ph-sweep 1400ms var(--motion-ease-out) 150ms forwards;
+}
+.zulo-chrome.dash-shell .pulse-hero[data-state="loading"] .ph-trace-svg,
+.zulo-chrome.dash-shell .pulse-hero[data-state="idle"] .ph-trace-svg { clip-path: none; animation: none; }
+@keyframes ph-sweep { to { clip-path: inset(-16px 0 -16px 0); } }
+@media (min-width: 640px) {
+  .zulo-chrome.dash-shell .ph-trace-svg { height: 160px; }
+}
+
+.zulo-chrome.dash-shell .ph-seg {
+  fill: none; stroke: var(--text-muted); stroke-width: 1.5; stroke-linecap: round;
+  stroke-dasharray: 2 6; opacity: 0.7;
+}
+.zulo-chrome.dash-shell .ph-seg.is-lit {
+  stroke: var(--pulse-cyan); stroke-width: 2.5; stroke-linejoin: round; stroke-dasharray: none; opacity: 1;
+}
+.dark .zulo-chrome.dash-shell .ph-seg.is-lit {
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--pulse-cyan) 55%, transparent));
+}
+.zulo-chrome.dash-shell .pulse-hero[data-state="loading"] .ph-seg { animation: ph-breathe 1.2s ease-in-out infinite alternate; }
+@keyframes ph-breathe { from { opacity: 0.25; } to { opacity: 0.8; } }
+
+.zulo-chrome.dash-shell .ph-beats {
+  list-style: none; margin: 0; padding: 8px 0 10px;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  font-size: 10.5px; line-height: 1.3; letter-spacing: 0; text-align: center; color: var(--text-muted);
+}
+@media (min-width: 640px) { .zulo-chrome.dash-shell .ph-beats { font-size: 12px; } }
+.zulo-chrome.dash-shell .ph-beats li { min-width: 0; padding: 0 2px; cursor: help; }
+.zulo-chrome.dash-shell .ph-beats li[data-lit="true"] { color: var(--text-primary); }
+.zulo-chrome.dash-shell .ph-beat-label { display: block; overflow-wrap: normal; word-break: normal; hyphens: none; }
+.zulo-chrome.dash-shell .ph-beat-gate { display: block; margin-top: 2px; font-size: 10px; letter-spacing: 0.04em; color: var(--text-muted); }
+.zulo-chrome.dash-shell .ph-beats li[data-gate="true"][data-lit="true"] .ph-beat-gate { color: var(--pulse-cyan); }
+
+/* Readout */
+.zulo-chrome.dash-shell .ph-readout { margin-top: 24px; min-height: 64px; }
+.zulo-chrome.dash-shell .ph-level { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.zulo-chrome.dash-shell .ph-level-num { color: var(--text-primary); font-size: 56px; line-height: 1; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.zulo-chrome.dash-shell .ph-level-of { font-size: 15px; color: var(--text-muted); }
+.zulo-chrome.dash-shell .ph-status { font-size: 15px; color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .ph-gate { margin: 14px 0 0; display: flex; gap: 10px; font-size: 15px; line-height: 1.45; max-width: 62ch; }
+.zulo-chrome.dash-shell .ph-gate-mark { flex: none; color: var(--text-muted); }
+.zulo-chrome.dash-shell .ph-gate[data-passed="true"] .ph-gate-mark { color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .ph-next,
+.zulo-chrome.dash-shell .ph-note { margin: 8px 0 0; font-size: 14px; color: var(--text-secondary); max-width: 62ch; }
+.zulo-chrome.dash-shell .ph-error { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; font-size: 14px; color: var(--text-secondary); }
+.zulo-chrome.dash-shell .ph-error p { margin: 0; max-width: 56ch; }
+
+/* Actions */
+.zulo-chrome.dash-shell .ph-actions { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 8px; }
+.zulo-chrome.dash-shell .ph-actions > * { flex: 1 1 auto; }
+@media (min-width: 640px) { .zulo-chrome.dash-shell .ph-actions > * { flex: 0 0 auto; } }
+.zulo-chrome.dash-shell .ph-btn,
+.zulo-chrome.dash-shell .pulse-hero .rc-share-btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-primary);
+  font: inherit; font-size: 14px; text-decoration: none; cursor: pointer;
+  transition: background var(--motion-fast) var(--motion-ease), color var(--motion-fast) var(--motion-ease);
+}
+.zulo-chrome.dash-shell .ph-btn:hover,
+.zulo-chrome.dash-shell .ph-btn:focus-visible,
+.zulo-chrome.dash-shell .pulse-hero .rc-share-btn:hover,
+.zulo-chrome.dash-shell .pulse-hero .rc-share-btn:focus-visible {
+  background: var(--bg-dark); color: var(--text-inverse); outline: none;
+}
+.zulo-chrome.dash-shell .ph-btn-primary {
+  flex-basis: 100% !important; border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--bg-primary); font-weight: 600;
+}
+@media (min-width: 640px) { .zulo-chrome.dash-shell .ph-actions .ph-btn-primary { flex-basis: auto !important; } }
+.zulo-chrome.dash-shell .ph-btn-primary:hover,
+.zulo-chrome.dash-shell .ph-btn-primary:focus-visible { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+.zulo-chrome.dash-shell .ph-btn:focus-visible,
+.zulo-chrome.dash-shell .pulse-hero .rc-share-btn:focus-visible { outline: 2px solid var(--pulse-cyan); outline-offset: 2px; }
+
+.zulo-chrome.dash-shell .ph-foot { margin: 16px 0 0; font-size: 13px; color: var(--text-muted); }
+.zulo-chrome.dash-shell .ph-link {
+  padding: 0; border: 0; background: none; font: inherit; color: var(--pulse-cyan); cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--pulse-cyan-line); text-underline-offset: 3px;
+}
+.zulo-chrome.dash-shell .ph-link:disabled { opacity: 0.6; cursor: default; }
+
+/* Growth track: Trust → Record → Skill */
+.zulo-chrome.dash-shell .ev-title { margin: 0; font-size: clamp(22px, 5vw, 28px); line-height: 1.15; font-weight: 600; letter-spacing: -0.01em; }
+.zulo-chrome.dash-shell .ev-lede { margin: 8px 0 0; max-width: 60ch; font-size: 15px; color: var(--text-secondary); }
+.zulo-chrome.dash-shell .ev-steps { list-style: none; margin: 24px 0 0; padding: 0; }
+.zulo-chrome.dash-shell .ev-step {
+  position: relative; display: grid; grid-template-columns: 32px 1fr auto; gap: 0 14px; padding-bottom: 28px;
+}
+.zulo-chrome.dash-shell .ev-step:last-child { padding-bottom: 0; }
+.zulo-chrome.dash-shell .ev-step::before {
+  content: ""; position: absolute; left: 15.5px; top: 36px; bottom: 4px; width: 0;
+  border-left: 1px solid var(--pulse-cyan-line);
+}
+.zulo-chrome.dash-shell .ev-step:last-child::before { display: none; }
+.zulo-chrome.dash-shell .ev-step[data-state="live"] + .ev-step[data-state="waiting"]::before,
+.zulo-chrome.dash-shell .ev-step[data-state="waiting"]::before { border-left-style: dashed; border-left-color: var(--border-light); }
+.zulo-chrome.dash-shell .ev-num {
+  width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; font-variant-numeric: tabular-nums; border: 1px solid var(--pulse-cyan); color: var(--pulse-cyan);
+}
+.zulo-chrome.dash-shell .ev-step[data-state="waiting"] .ev-num { border: 1px dashed var(--border); color: var(--text-muted); }
+.zulo-chrome.dash-shell .ev-body { min-width: 0; }
+.zulo-chrome.dash-shell .ev-name { margin: 4px 0 0; font-size: 18px; line-height: 1.2; font-weight: 600; }
+.zulo-chrome.dash-shell .ev-body p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--text-secondary); max-width: 58ch; }
+.zulo-chrome.dash-shell .ev-body .ev-here { margin-top: 8px; font-size: 13px; color: var(--text-primary); }
+.zulo-chrome.dash-shell .ev-link { color: var(--pulse-cyan); text-decoration: underline; text-decoration-color: var(--pulse-cyan-line); text-underline-offset: 3px; }
+.zulo-chrome.dash-shell .ev-status { margin-top: 8px; font-size: 12px; color: var(--pulse-cyan); white-space: nowrap; }
+.zulo-chrome.dash-shell .ev-step[data-state="waiting"] .ev-status { color: var(--text-muted); }
+.zulo-chrome.dash-shell .ev-sectors { list-style: none; margin: 12px 0 0; padding: 0; max-width: 58ch; }
+.zulo-chrome.dash-shell .ev-sectors li {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 8px 0; border-top: 1px solid var(--border-light); font-size: 14px;
+}
+.zulo-chrome.dash-shell .ev-sector-status { font-size: 13px; color: var(--text-muted); text-align: right; }
+
+/* Your agents */
+.zulo-chrome.dash-shell .pulse-agents { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.zulo-chrome.dash-shell .pulse-agents .my-agents-panel { margin-bottom: 0; }
+.zulo-chrome.dash-shell .pulse-lookup-label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .zulo-chrome.dash-shell .ph-trace-svg { animation: none; clip-path: none; }
+  .zulo-chrome.dash-shell .pulse-hero[data-state="loading"] .ph-seg { animation: none; }
+}
