@@ -4,7 +4,9 @@ import { notFound } from "next/navigation"
 import { Chip, Eyebrow, Stat, StatGrid } from "@/components/brand"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
+import { PulseTrace } from "@/components/pulse-trace"
 import { RecordShare } from "@/components/record-share"
+import { pulseBeats } from "@/lib/pulse/beats"
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { loadRecordCard } from "@/lib/record-card/load"
@@ -78,6 +80,9 @@ export default async function RecordCardPage({ params }: Params) {
         <section className="rc-section" aria-labelledby="rc-trust">
           <Eyebrow n="01"><span id="rc-trust">Trust (Pulse)</span></Eyebrow>
           <p className="rc-lead">{pulse.gate.text}.</p>
+          {pulse.available && card.card_status !== "not_awakened" && (
+            <PulseTrace className="rc-trace" beats={pulseBeats(pulse.breakdown)} drawKey={`rc-${tokenId}`} hasReading />
+          )}
           <ul className="rc-checks">
             <li data-ok={pulse.gate.registered}>{pulse.gate.registered ? "✓" : "✗"} Registered on-chain (ERC-8004)</li>
             <li data-ok={pulse.gate.clean_ownership}>{pulse.gate.clean_ownership ? "✓" : "✗"} Clean ownership and delegation</li>

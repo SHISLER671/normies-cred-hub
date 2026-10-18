@@ -13,6 +13,7 @@ import {
   getManifestCurrencies,
   getPixelCurrencyStatus,
 } from "@/lib/payments/config"
+import { resolvePaymentRailStatus } from "@/lib/payments/rail-policy"
 
 import {
   ZULO_IDENTITY,
@@ -30,6 +31,19 @@ function siteBase(): string {
 }
 
 /**
+ * Payments are dormant (#WillWork4PIXEL, parked): lib/payments/rail-policy.ts hard-blocks "live" until Ryan changes the
+ * no-crypto-as-income rule. While dormant the public manifest lists every service as FREE and carries no payment block,
+ * no receiver wallet and no how-to-pay steps. The paid shape below stays in code, ready for the day it is allowed.
+ */
+function paymentsOffered(): boolean {
+  return resolvePaymentRailStatus(process.env.ZULO_PAYMENT_RAIL_STATUS) === "live"
+}
+
+function servicePrice(ap: number): { amount: number; currency: "AP" | "FREE" } {
+  return paymentsOffered() ? { amount: ap, currency: "AP" } : { amount: 0, currency: "FREE" }
+}
+
+/**
  * Zulo service manifest for marketplace discovery.
  * Exposed at GET /api/zulo/manifest
  */
@@ -41,6 +55,7 @@ export async function getManifest(): Promise<ZuloManifest> {
     chainId: ZULO_IDENTITY.chainId,
   })
   const mode = getPaymentReceiverMode()
+  const offered = paymentsOffered()
 
   return {
     agent: {
@@ -56,7 +71,7 @@ export async function getManifest(): Promise<ZuloManifest> {
         id: "pulse-analysis",
         name: "PULSE Analysis",
         description: "Interpret Normies Cred Pulse data and current on-chain state",
-        price: { amount: ZULO_SERVICE_PRICES["pulse-analysis"] ?? 1, currency: "AP" },
+        price: servicePrice(ZULO_SERVICE_PRICES["pulse-analysis"] ?? 1),
         endpoint: "/api/zulo/ask",
       },
       {
@@ -64,35 +79,35 @@ export async function getManifest(): Promise<ZuloManifest> {
         name: "Strategic Architecture",
         description:
           "Personalized strategy from PULSE + rarity + Canvas + burn/market/canvas skills",
-        price: { amount: ZULO_SERVICE_PRICES.strategy ?? 2, currency: "AP" },
+        price: servicePrice(ZULO_SERVICE_PRICES.strategy ?? 2),
         endpoint: "/api/zulo/ask",
       },
       {
         id: "urgent",
         name: "Urgent Consultation",
         description: "Priority framing for time-sensitive decisions",
-        price: { amount: ZULO_SERVICE_PRICES.urgent ?? 2, currency: "AP" },
+        price: servicePrice(ZULO_SERVICE_PRICES.urgent ?? 2),
         endpoint: "/api/zulo/ask",
       },
       {
         id: "burn-efficiency",
         name: "Burn Efficiency Scan",
         description: "Top burn fodder by expected AP per ETH",
-        price: { amount: ZULO_SERVICE_PRICES.strategy ?? 2, currency: "AP" },
+        price: servicePrice(ZULO_SERVICE_PRICES.strategy ?? 2),
         endpoint: "/api/zulo/ask",
       },
       {
         id: "market-sentinel",
         name: "PIXEL MARKET Sentinel",
         description: "Floor / burn / whale intelligence brief",
-        price: { amount: ZULO_SERVICE_PRICES.strategy ?? 2, currency: "AP" },
+        price: servicePrice(ZULO_SERVICE_PRICES.strategy ?? 2),
         endpoint: "/api/zulo/ask",
       },
       {
         id: "canvas-preview",
         name: "Canvas Evolution Preview",
         description: "Simulate edits, official #PIXEL pixel budget, PROCEED/MODIFY/ABANDON — not an AP debit",
-        price: { amount: ZULO_SERVICE_PRICES["pulse-analysis"] ?? 1, currency: "AP" },
+        price: servicePrice(ZULO_SERVICE_PRICES["pulse-analysis"] ?? 1),
         endpoint: "/api/zulo/ask",
       },
       {
@@ -124,12 +139,14 @@ export async function getManifest(): Promise<ZuloManifest> {
     acceptedCurrencies: getAcceptedCurrencies(),
     version: "1.5.0",
     endpoint: base,
-    pitch:
-      "Zulo is the Normies Strategic Architect: PULSE, burn efficiency, PIXEL MARKET signals, canvas evolution, and (when live) gacha/raffle EV. Free web chat today; A2A tips in AP when marketplace rails go live.",
+    pitch: offered
+      ? "Zulo is the Normies Strategic Architect: PULSE, burn efficiency, PIXEL MARKET signals, canvas evolution, and (when live) gacha/raffle EV. Free web chat; paid A2A services listed below."
+      : "Zulo is the Normies Strategic Architect: PULSE, record cards, burn efficiency, PIXEL MARKET signals and canvas evolution. Every service is free. Zulo takes no payments.",
     freeAccess: {
       path: "/ask",
-      description:
-        "Web chat at /ask is free for holders and visitors today. Paid A2A services activate when Normies marketplace verifies AP transfers.",
+      description: offered
+        ? "Web chat at /ask is free for holders and visitors."
+        : "Everything is free: web chat at /ask, POST /api/zulo/ask and /api/zulo/paths. No payment, no wallet transfer.",
     },
     integrations: {
       normiesApi: "https://api.normies.art",
@@ -143,8 +160,8 @@ export async function getManifest(): Promise<ZuloManifest> {
       },
       ethos: "optional reputation enrichment",
     },
-    payment: {
-      status: "planned",
+    ...(offered ? { payment: {
+      status: "live" as const,
       // Settlement default remains AP (backward compatible)
       currency: "AP",
       currencies: getManifestCurrencies(),
@@ -184,7 +201,7 @@ export async function getManifest(): Promise<ZuloManifest> {
         "5. Zulo verifies payment then returns the recommendation JSON.",
         "Until status is \"live\", skip payment and use free /ask or /api/zulo/ask without txHash.",
       ],
-    },
+    } } : {}),
     health: `${base}/api/zulo/health`,
   }
 }
@@ -206,8 +223,8 @@ export function getManifestSyncHotWallet(): ZuloManifest {
     acceptedCurrencies: getAcceptedCurrencies(),
     version: "1.5.0-sync",
     endpoint: base,
-    payment: {
-      status: "planned",
+    ...(paymentsOffered() ? { payment: {
+      status: "live" as const,
       currency: "AP",
       currencies: getManifestCurrencies(),
       default: getDefaultCurrency(),
@@ -220,7 +237,7 @@ export function getManifestSyncHotWallet(): ZuloManifest {
       tipAssetPriority: tipAssetPriorityIds(),
       notes: ["Sync fallback — use async getManifest() for TBA-aware receiver."],
       howToPayWhenLive: [],
-    },
+    } } : {}),
   }
 }
 

@@ -88,6 +88,26 @@ describe("no crypto as income: payment rail live is hard-blocked", () => {
   })
 })
 
+describe("parked payments are never advertised", () => {
+  it("the public manifest drops prices, the payment block and how-to-pay while payments are parked", () => {
+    const src = fs.readFileSync("lib/agent-recommendations/manifest.ts", "utf8")
+    assert.match(src, /\.\.\.\(offered \? \{ payment:/)
+    assert.match(src, /price: servicePrice\(/)
+    assert.doesNotMatch(src, /price: \{ amount: ZULO_SERVICE_PRICES/)
+  })
+  it("the verify endpoint answers 404 unless the rail is live", () => {
+    const src = fs.readFileSync("app/api/zulo/payments/verify/route.ts", "utf8")
+    assert.match(src, /resolvePaymentRailStatus\(process\.env\.ZULO_PAYMENT_RAIL_STATUS\) !== "live"/)
+    assert.match(src, /status: 404/)
+  })
+  it("no page tells anyone how to pay Zulo", () => {
+    for (const f of ["app/page.tsx", "components/home-future-plans.tsx"]) {
+      const src = fs.readFileSync(f, "utf8")
+      assert.doesNotMatch(src, /how to pay|Transfer AP|txHash|hotWallet/i, f)
+    }
+  })
+})
+
 describe("on-chain stays read-only", () => {
   it("no writeContract / sendTransaction / signTypedData calls anywhere in app code", () => {
     const walk = (d: string, out: string[] = []): string[] => {

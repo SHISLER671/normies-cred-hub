@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
+import { resolvePaymentRailStatus } from "@/lib/payments/rail-policy"
 import { verifyPayment7Step } from "@/lib/payments/verify"
 import { appendSecurityEvent } from "@/lib/security/audit"
 import {
@@ -15,6 +16,12 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
+  // Dormant (#WillWork4PIXEL, parked): payments are hard-blocked by lib/payments/rail-policy.ts. Until Ryan lifts the
+  // no-crypto-as-income rule this endpoint does not exist publicly. The verification code below stays for that day.
+  if (resolvePaymentRailStatus(process.env.ZULO_PAYMENT_RAIL_STATUS) !== "live") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
   let body: unknown
   try {
     body = await req.json()
