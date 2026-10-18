@@ -143,7 +143,7 @@ No record field may come from `self_reported` or `chat_rating`. If the official 
 
 A card gets an Arena sector rank only if **all** of these are true:
 
-0. **It clears the Pulse gate.** Proposed (Claude): gate on the two trust signals themselves — "ERC-8004 registered" and "Clean ownership & delegation" both present in the Pulse breakdown — rather than a Pulse level number. The level also counts canvas activity and recent usage, which say nothing about trust, so a level threshold would shut out a trustworthy agent with an untouched canvas. Ryan to confirm.
+0. **It clears the Pulse gate.** Decided (Ryan, 2026-10-18): the gate is the two trust signals — "ERC-8004 registered" **and** "Clean ownership & delegation" both present in the Pulse breakdown — not a Pulse level number. The level also counts canvas activity and recent usage, which say nothing about trust, so a level threshold would shut out a trustworthy agent with an untouched canvas.
 1. Arena is officially live (`lib/official-status.ts`).
 2. **≥ 10 verified matches** in the ranking window.
 3. **≥ 5 distinct opponents** owned by wallets other than this Normie's owner (stops someone farming wins against their own Normies; same idea as chat ratings' 5 different wallets).
@@ -233,7 +233,7 @@ Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026
 5. Does the record reset when the token changes hands? (Proposed: no. Show `owner_since`.)
 6. ~~Should a verified Arena record ever move `pulse_level`?~~ Answered (Ryan, 2026-10-18): yes, only as proof of verified activity, never win count (§7).
 7. Are 10 matches, 5 opponents and 14 days the right minimums? Revisit after the first two weeks of real Arena data.
-8. Pulse gate: trust signals (proposed, §4 item 0) or a level number? Ryan decides.
+8. ~~Pulse gate: trust signals or a level number?~~ Decided (Ryan, 2026-10-18): trust signals (§4 item 0).
 9. Tools/utility sector: what is its verified source? ERC-8257 registrations are on-chain, but usage counts are measured by NCH itself. Needs its own spec before any rank.
 
 Signed: GrokBot

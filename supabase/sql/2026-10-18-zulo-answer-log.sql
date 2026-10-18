@@ -1,5 +1,6 @@
--- Zulo answer log — DRAFT 2026-10-18. NOT APPLIED. Ryan applies by hand in the Supabase SQL editor, then sets
--- ZULO_ANSWER_LOG=on in Vercel. Until both happen, nothing is written (the server checks the switch first).
+-- Zulo answer log — APPLIED 2026-10-18 (~17:50 ChST) by Claude via the Supabase connector, at Ryan's request. Do not re-run.
+-- Verified after apply: anon + authenticated have no SELECT/INSERT, RLS on and forced, 0 policies, 0 rows.
+-- Writes start only once ZULO_ANSWER_LOG=on is set in Vercel Production (the server checks the switch first).
 --
 -- Purpose: keep Zulo's OWN answers so his hit rate can be graded later ("Zulo said X; did X happen?").
 -- Privacy: stores only Zulo's words and the public Normie id(s) he was asked about. It never stores the person's
