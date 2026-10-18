@@ -14,7 +14,7 @@ export const NOTE =
   "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is reached through Pulse/Paths interaction history."
 
 export const NEXT_SIGNAL =
-  "Earn Luminous with recent Pulse checks and Pulse-conditioned Paths activity."
+  "Reach Luminous with recent Pulse checks and Pulse-conditioned Paths activity."
 
 const STATUS_BY_LEVEL: Record<number, string> = {
   0: "Dormant",

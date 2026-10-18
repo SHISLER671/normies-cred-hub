@@ -147,7 +147,7 @@ Example pulse response:
     "Canvas activity detected",
     "Clean ownership & delegation"
   ],
-  "next_signal": "Earn Luminous with recent Pulse checks and Pulse-conditioned Paths activity.",
+  "next_signal": "Reach Luminous with recent Pulse checks and Pulse-conditioned Paths activity.",
   "note": "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history.",
   "chat_ratings": {
     "agent_id": 32626,
