@@ -31,8 +31,8 @@ export type RecordCardInputs = {
   pulse: { pulse_level: number; max_level: number; status: string; breakdown: string[]; next_signal?: string | null } | null
   chatRatings: ChatRatingsSummary | null | undefined
   arena: ArenaSector
-  /** Defaults to the pending Agents Canvas sector (no official source yet). */
-  canvas?: CanvasSector
+  /** Agents Canvas sector. Defaults to pending (no official source yet). */
+  canvasSector?: CanvasSector
 }
 
 const num = (v: unknown): number | null => {
@@ -129,7 +129,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
       gate,
       available: !!i.pulse,
     },
-    sectors: { arena: i.arena, canvas: i.canvas ?? pendingCanvasSector(at) },
+    sectors: { arena: i.arena, canvas: i.canvasSector ?? pendingCanvasSector(at) },
     chat_rating: cr
       ? {
           label: "Chat rating",
