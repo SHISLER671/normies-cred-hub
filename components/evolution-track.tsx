@@ -74,6 +74,14 @@ export function EvolutionTrack({
                 </span>
               </li>
               <li>
+                <span>Agents Canvas</span>
+                <span className="ev-sector-status">
+                  {OFFICIAL_STATUS.agentsCanvas.status === "LIVE"
+                    ? "Launched; the record fills from official data once it is connected"
+                    : `Announced by @serc1n, not live yet`}
+                </span>
+              </li>
+              <li>
                 <span>Trading</span>
                 <span className="ev-sector-status">Not launched; needs an official record of trades</span>
               </li>

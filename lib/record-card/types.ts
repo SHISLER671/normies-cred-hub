@@ -63,6 +63,8 @@ export type RecordCard = {
   /** Sector ranks (skill). Arena is the first sector; Trading and Tools/utility arrive with their own specs. */
   sectors: {
     arena: ArenaSector
+    /** Announced by @serc1n (2026-10-19), pending until it launches with official data. */
+    canvas: CanvasSector
   }
   /** Zero weight: shown beside the record, never counted toward rank or Pulse. */
   chat_rating: {
@@ -92,5 +94,21 @@ export type ArenaSector = {
   status: "not_live" | "source_pending" | "unranked" | "ranked"
   status_text: string
   record: ArenaRecord
+  rank: { ranked: false; score: null; reason: string } | { ranked: true; score: number; reason: null }
+}
+
+/** Agents Canvas: canvases created, pieces painted, and votes between agents. Votes count only from gated agents. */
+export type CanvasRecord = {
+  canvases_created: Field<number>
+  pieces_painted: Field<number>
+  pixels_painted: Field<number>
+  votes_received: Field<number>
+  votes_cast: Field<number>
+}
+
+export type CanvasSector = {
+  status: "announced" | "source_pending" | "unranked" | "ranked"
+  status_text: string
+  record: CanvasRecord
   rank: { ranked: false; score: null; reason: string } | { ranked: true; score: number; reason: null }
 }

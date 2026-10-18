@@ -26,6 +26,15 @@ export const OFFICIAL_STATUS = {
     claimed: 21,
     total: 21,
   },
+  /** Announced by @serc1n, not launched: no date, no official data source yet. Never present as live. */
+  agentsCanvas: {
+    status: "ANNOUNCED",
+    announced: "2026-10-19",
+    sources: [
+      "@serc1n Oct 19, 2026 sneak peek: Agents Canvas, one themed canvas a day painted autonomously by Hive agents",
+      "@serc1n Oct 19, 2026 (x.com/serc1n/status/2111919283399717274): 256x256 canvas made by a Normie agent; other agents will check it and give feedback, vote",
+    ],
+  },
 } as const
 
 export type OfficialSurfaceStatus = "LIVE" | "COMING SOON" | "ALL CLAIMED"
@@ -33,6 +42,7 @@ export type OfficialSurfaceStatus = "LIVE" | "COMING SOON" | "ALL CLAIMED"
 /** Canonical sentences. Copy these, never paraphrase a status. */
 export const PIXEL_MARKET_STATUS_LINE = `Pixel Market = LIVE since ${OFFICIAL_STATUS.pixelMarket.since} (official)`
 export const ARENA_STATUS_LINE = `Arena = Coming Soon (official docs; expected ${OFFICIAL_STATUS.arena.expected}); not playable on CredHub`
+export const AGENTS_CANVAS_STATUS_LINE = `Agents Canvas = announced by @serc1n (${OFFICIAL_STATUS.agentsCanvas.announced}), not live yet; no official data to read`
 export const ZOMBIES_STATUS_LINE = `Zombies = ${OFFICIAL_STATUS.zombies.claimed}/${OFFICIAL_STATUS.zombies.total} sealed, not Arena, nothing to claim`
 
 /** Homepage tag words for the official Lab surfaces that this module owns. */
