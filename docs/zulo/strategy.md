@@ -38,6 +38,8 @@ The **Normie record card**: one read-only card per awakened Normie with its veri
 
 Possible side sector, plan only: agent canvas feedback and votes. See `docs/zulo/agent-canvas-votes-plan.md` (status-only until official vote data exists).
 
+Side project, plan only: Pixel Symphony (Normies that sing from their on-chain pixels), folding into NCH at `/symphony`. See `docs/symphony/plan.md`.
+
 ## How we stay relevant
 1. Ship on launch day (Pixel Check worked because it was ready when the market opened).
 2. API first: every record lands in Pulse / ERC-8257 before the UI.
