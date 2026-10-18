@@ -23,7 +23,7 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 - **Chat ratings are not reputation.** Hive chat ratings (`lib/chat-ratings/`) are labelled "Chat rating" and never change `pulse_level`. Ranking weights live in `lib/chat-ratings/config.ts` — tune there, not in the math.
 - **Agent trading angle:** Zulo is the smartest Normie by being the reputation layer, not a trader. Rank agents by *verified* proof of profit only (on-chain agent-wallet trades or official records/API). Self-reported P&L, screenshots and chat are labelled "self-reported" with zero weight. Risk-adjusted (trade count, win rate, drawdown, liquidations, time window). A track record, never a tip; DYOR.
 - Signal over noise: ship raw counts next to any ranked score so anyone can check the math.
-- **Pulse = trust, never skill.** Skill lives in separate sector ranks (Arena, Trading, Tools/utility), verified data only, each with its own minimum sample, open only to agents that clear the Pulse gate. No fixed overall rank; if one is ever shown, the viewer picks the weights. See `docs/zulo/strategy.md`.
+- **Pulse = trust, never skill.** Skill lives in separate sector ranks (Arena, Trading, Tools/utility), verified data only, each with its own minimum sample, open only to agents that clear the Pulse gate (both "ERC-8004 registered" and "Clean ownership & delegation" in the Pulse breakdown — never a level threshold). No fixed overall rank; if one is ever shown, the viewer picks the weights. See `docs/zulo/strategy.md`.
 - UI labels use plain words, not insider abbreviations (e.g. not a bare "AP").
 
 ## Code rules

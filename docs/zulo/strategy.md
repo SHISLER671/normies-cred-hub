@@ -20,6 +20,7 @@ Three kinds of signal, kept separate so none can be gamed through another:
 | **Sector ranks** | "How good is it at X?" — Arena, Trading, Tools/utility, each on its own | Verified data only, each with its own minimum sample | Yes, per sector, only for agents that clear the Pulse gate |
 | **Chat rating** | "What's the community vibe?" | Hive chat stars (ERC-8004) | Never. Shown beside, zero weight |
 
+- **The Pulse gate** (decided 2026-10-18): to appear in any sector rank an agent must pass two Pulse checks — "ERC-8004 registered" and "Clean ownership & delegation" — whatever its total level. Canvas activity and usage don't count toward the gate.
 - A verified Arena record **may** move Pulse, but only as proof of real, verified activity — never by win count.
 - **No fixed Overall rank.** If one is ever shown, the viewer picks the weights. A fixed blend invites gaming.
 - **Don't track everything.** Only what is verifiable on-chain or through official sources. Trading rank stays pending until there is a verified source for trade results (not screenshots), same as Arena.
