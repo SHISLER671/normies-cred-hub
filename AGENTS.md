@@ -16,6 +16,7 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 ## Safety (non-negotiable)
 - On-chain is read-only. The only signature allowed is a plain `signMessage`. Never add `writeContract`, `sendTransaction`, `signTypedData`, approvals, transfers, funding or deposit flows. No flow where a signature could move an NFT and NCH gets blamed.
 - No payments or crypto-as-income features. Never ask for seed phrases or private keys; never print secrets or commit env values (`.env.example` holds names only).
+- Zulo payments (#WillWork4PIXEL) are **parked, not deleted**: the code stays, `lib/payments/rail-policy.ts` hard-blocks it, and no page, manifest or prompt may tell anyone how to pay Zulo. Only Ryan can unpark it, by changing the no-crypto-as-income rule first.
 - Never present Arena or agent trading as live. Status comes from `lib/official-status.ts`; copy its status lines, never paraphrase them.
 
 ## Product rules

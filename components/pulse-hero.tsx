@@ -4,7 +4,8 @@ import { PulseExplainer } from "@/components/agent-pulse-bar"
 import { RecordShare } from "@/components/record-share"
 import { useRecordCard } from "@/hooks/use-record-card"
 import { normieImageUrl } from "@/lib/api/normies"
-import { beatSegmentPath, pulseBeats } from "@/lib/pulse/beats"
+import { pulseBeats } from "@/lib/pulse/beats"
+import { PulseTrace } from "@/components/pulse-trace"
 import { recordCardUrl } from "@/lib/record-card/ask-line"
 import { siteOrigin } from "@/lib/site-origin"
 
@@ -77,38 +78,7 @@ export function PulseHero({
 
       {tagline && !notAwakened && <p className="ph-tagline">{tagline}</p>}
 
-      <figure className="ph-trace">
-        <svg
-          key={`${tokenId}-${level ?? "x"}`}
-          className="ph-trace-svg"
-          viewBox="0 0 500 100"
-          preserveAspectRatio="none"
-          role="img"
-          aria-label={
-            level === null
-              ? "Pulse trace: no reading"
-              : `Pulse trace: ${beats.filter((b) => b.lit).length} of 5 checks earned`
-          }
-        >
-          {beats.map((b, i) => (
-            <path
-              key={b.signal}
-              d={beatSegmentPath(i, b.lit)}
-              className={b.lit ? "ph-seg is-lit" : "ph-seg"}
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-        </svg>
-        <ol className="ph-beats">
-          {beats.map((b) => (
-            <li key={b.signal} data-lit={b.lit} data-gate={b.gate} title={b.meaning}>
-              <span className="ph-beat-label">{b.label}</span>
-              <span className="sr-only">{b.lit ? ": earned. " : ": not yet. "}{b.meaning}</span>
-              {b.gate && <span className="ph-beat-gate" aria-hidden>gate</span>}
-            </li>
-          ))}
-        </ol>
-      </figure>
+      <PulseTrace beats={beats} drawKey={`${tokenId}-${level ?? "x"}`} hasReading={level !== null} />
 
       <div className="ph-readout" aria-live="polite">
         {isLoading ? (

@@ -4,103 +4,62 @@ import {
   PulseAccordion,
   PulseAccordionItem,
 } from "@/components/pulse-accordion"
+import { OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
 
-type HomeFuturePlansProps = {
-  tokenId: number
-  ens: string
-  hotWallet: string
+/** "COMING SOON" → "Coming soon": the official tag word, in sentence case. */
+function sentence(tag: string): string {
+  return tag.charAt(0) + tag.slice(1).toLowerCase()
 }
 
 /**
- * Homepage Future Plans — single collapsed shell with nested prepared items.
- * Reuses PULSE monochrome accordion language.
+ * Homepage "What's next": the record grows from trust to skill. Statuses come from lib/official-status.ts.
+ * Payments are parked (lib/payments/rail-policy.ts) and are deliberately not mentioned here.
  */
-export function HomeFuturePlans({
-  tokenId,
-  ens,
-  hotWallet,
-}: HomeFuturePlansProps) {
+export function HomeFuturePlans() {
   return (
     <section className="section section-bordered">
       <div className="container home-future-wrap">
         <PulseAccordion defaultOpenIds={[]} allowMultiple className="home-future-outer">
           <PulseAccordionItem
             id="future-plans"
-            title="Future Plans"
-            subtitle="Tips, PULSE expansion, how to pay when live"
+            title="What's next"
+            subtitle="Record cards grow from trust to skill"
           >
-            <PulseAccordion
-              defaultOpenIds={[]}
-              allowMultiple
-              className="home-future-nested"
-            >
+            <PulseAccordion defaultOpenIds={[]} allowMultiple className="home-future-nested">
               <PulseAccordionItem
-                id="tips-tba"
-                title="On-chain tips & TBA"
-                subtitle="Prepared"
+                id="next-arena"
+                title="Arena record"
+                subtitle={
+                  SURFACE_TAGS.arena === "LIVE"
+                    ? "Arena has launched"
+                    : `${sentence(SURFACE_TAGS.arena)}, expected ${OFFICIAL_STATUS.arena.expected}`
+                }
               >
                 <p className="card-body" style={{ margin: 0 }}>
-                  Scaffold ready for A2A tips and #{tokenId} TBA when serc
-                  enables x402 + ERC-6551. No autonomous transactions today. See{" "}
-                  <a href="/api/zulo/manifest" className="mono">
-                    /api/zulo/manifest
-                  </a>{" "}
-                  for payment how-to when status flips to live.
+                  Every record card already has an Arena slot. It fills from official Arena data only, the day that data
+                  exists: matches, wins, losses. No guesses, no screenshots.
                 </p>
               </PulseAccordionItem>
 
-              <PulseAccordionItem
-                id="pulse-expansion"
-                title="PULSE Expansion"
-                subtitle="In development"
-              >
+              <PulseAccordionItem id="next-trading" title="Trading record" subtitle="Not launched">
                 <p className="card-body" style={{ margin: 0 }}>
-                  Real-time PULSE data for all Normies. Every awakened agent
-                  connected, every opportunity surfaced — across CredHub, not
-                  only one agent.
+                  If Normie agents ever trade, the record counts verified trades only, adjusted for risk. Self-reported
+                  profit is labelled and gets no weight. A track record, never a tip.
                 </p>
               </PulseAccordionItem>
 
-              <PulseAccordionItem
-                id="how-to-pay"
-                title="How to pay Zulo (when live)"
-                subtitle="A2A tips · planned"
-              >
-                <ol
-                  className="card-body"
-                  style={{ paddingLeft: 20, margin: 0, lineHeight: 1.8 }}
-                >
-                  <li>
-                    Discover services via{" "}
-                    <a href="/api/zulo/manifest">
-                      <code className="mono">GET /api/zulo/manifest</code>
-                    </a>
-                  </li>
-                  <li>Pick a paid service (1 AP analysis · 2 AP strategy)</li>
-                  <li>
-                    Transfer AP to <code className="mono">{hotWallet}</code>{" "}
-                    (or the Canvas path Normies A2A specifies)
-                  </li>
-                  <li>
-                    Call <code className="mono">POST /api/zulo/ask</code> with{" "}
-                    <code className="mono">service</code> +{" "}
-                    <code className="mono">txHash</code>
-                  </li>
-                  <li>
-                    Until rails are live: free Moves at /paths and free chat at
-                    /ask — no payment required
-                  </li>
-                </ol>
-                <p className="caption" style={{ marginTop: 16, marginBottom: 0 }}>
-                  Receiver wallet · {ens} · Normie #{tokenId}
+              <PulseAccordionItem id="next-ranks" title="Skill ranks" subtitle="After the first sector opens">
+                <p className="card-body" style={{ margin: 0 }}>
+                  Ranks per sector, each with a minimum sample, open only to agents that pass the trust gate. No single
+                  overall score: Pulse stays trust, never skill.
                 </p>
               </PulseAccordionItem>
             </PulseAccordion>
 
             <p className="home-future-manifest caption">
-              Service manifest for agents and A2A clients:{" "}
-              <a href="/api/zulo/manifest" className="mono">
-                /api/zulo/manifest
+              Agents can read any record as JSON:{" "}
+              <a href="/api/zulo/record-card/7141" className="mono">
+                /api/zulo/record-card/7141
               </a>
             </p>
           </PulseAccordionItem>

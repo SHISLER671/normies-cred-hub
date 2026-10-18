@@ -19,12 +19,15 @@ async function fetchRecordCard(tokenId: number): Promise<RecordCard> {
  * A Normie's record card (live Pulse, trust gate, identity, Arena slot, chat rating). Read-only.
  * Uses the record-card endpoint, not the Pulse endpoint, so viewing the page never counts as a Pulse check.
  */
-export function useRecordCard(tokenId?: number | null) {
+export function useRecordCard(tokenId?: number | null, initial?: RecordCard | null) {
   const enabled = typeof tokenId === "number" && Number.isSafeInteger(tokenId) && tokenId >= 0 && tokenId <= 9999
   return useQuery({
     queryKey: ["record-card", enabled ? tokenId : null],
     queryFn: () => fetchRecordCard(tokenId as number),
     enabled,
+    // Server-rendered card for this token (homepage first paint), so the first reading needs no request.
+    initialData: initial && enabled && initial.token_id === tokenId ? initial : undefined,
+    initialDataUpdatedAt: initial ? Date.parse(initial.generated_at) || undefined : undefined,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     retry: 1,

@@ -3900,7 +3900,7 @@
 .zulo-chrome.dash-shell .ph-ghost { color: var(--text-muted); }
 
 /* The trace — drawn on ECG paper */
-.zulo-chrome.dash-shell .ph-trace {
+.zulo-chrome .ph-trace {
   margin: 28px 0 0;
   border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);
   background-image:
@@ -3909,43 +3909,43 @@
   background-size: 20% 25%, 20% 25%;
   background-position: -1px -1px;
 }
-.zulo-chrome.dash-shell .ph-trace-svg {
+.zulo-chrome .ph-trace-svg {
   display: block; width: 100%; height: 120px; overflow: visible;
   /* One sweep, left to right, like a monitor drawing the line. */
   clip-path: inset(-16px 100% -16px 0);
   animation: ph-sweep 1400ms var(--motion-ease-out) 150ms forwards;
 }
-.zulo-chrome.dash-shell .pulse-hero[data-state="loading"] .ph-trace-svg,
-.zulo-chrome.dash-shell .pulse-hero[data-state="idle"] .ph-trace-svg { clip-path: none; animation: none; }
+.zulo-chrome [data-state="loading"] .ph-trace-svg,
+.zulo-chrome [data-state="idle"] .ph-trace-svg { clip-path: none; animation: none; }
 @keyframes ph-sweep { to { clip-path: inset(-16px 0 -16px 0); } }
 @media (min-width: 640px) {
-  .zulo-chrome.dash-shell .ph-trace-svg { height: 160px; }
+  .zulo-chrome .ph-trace-svg { height: 160px; }
 }
 
-.zulo-chrome.dash-shell .ph-seg {
+.zulo-chrome .ph-seg {
   fill: none; stroke: var(--text-muted); stroke-width: 1.5; stroke-linecap: round;
   stroke-dasharray: 2 6; opacity: 0.7;
 }
-.zulo-chrome.dash-shell .ph-seg.is-lit {
+.zulo-chrome .ph-seg.is-lit {
   stroke: var(--pulse-cyan); stroke-width: 2.5; stroke-linejoin: round; stroke-dasharray: none; opacity: 1;
 }
-.dark .zulo-chrome.dash-shell .ph-seg.is-lit {
+.dark .zulo-chrome .ph-seg.is-lit {
   filter: drop-shadow(0 0 6px color-mix(in oklab, var(--pulse-cyan) 55%, transparent));
 }
-.zulo-chrome.dash-shell .pulse-hero[data-state="loading"] .ph-seg { animation: ph-breathe 1.2s ease-in-out infinite alternate; }
+.zulo-chrome [data-state="loading"] .ph-seg { animation: ph-breathe 1.2s ease-in-out infinite alternate; }
 @keyframes ph-breathe { from { opacity: 0.25; } to { opacity: 0.8; } }
 
-.zulo-chrome.dash-shell .ph-beats {
+.zulo-chrome .ph-beats {
   list-style: none; margin: 0; padding: 8px 0 10px;
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   font-size: 10.5px; line-height: 1.3; letter-spacing: 0; text-align: center; color: var(--text-muted);
 }
-@media (min-width: 640px) { .zulo-chrome.dash-shell .ph-beats { font-size: 12px; } }
-.zulo-chrome.dash-shell .ph-beats li { min-width: 0; padding: 0 2px; cursor: help; }
-.zulo-chrome.dash-shell .ph-beats li[data-lit="true"] { color: var(--text-primary); }
-.zulo-chrome.dash-shell .ph-beat-label { display: block; overflow-wrap: normal; word-break: normal; hyphens: none; }
-.zulo-chrome.dash-shell .ph-beat-gate { display: block; margin-top: 2px; font-size: 10px; letter-spacing: 0.04em; color: var(--text-muted); }
-.zulo-chrome.dash-shell .ph-beats li[data-gate="true"][data-lit="true"] .ph-beat-gate { color: var(--pulse-cyan); }
+@media (min-width: 640px) { .zulo-chrome .ph-beats { font-size: 12px; } }
+.zulo-chrome .ph-beats li { min-width: 0; padding: 0 2px; cursor: help; }
+.zulo-chrome .ph-beats li[data-lit="true"] { color: var(--text-primary); }
+.zulo-chrome .ph-beat-label { display: block; overflow-wrap: normal; word-break: normal; hyphens: none; }
+.zulo-chrome .ph-beat-gate { display: block; margin-top: 2px; font-size: 10px; letter-spacing: 0.04em; color: var(--text-muted); }
+.zulo-chrome .ph-beats li[data-gate="true"][data-lit="true"] .ph-beat-gate { color: var(--pulse-cyan); }
 
 /* Readout */
 .zulo-chrome.dash-shell .ph-readout { margin-top: 24px; min-height: 64px; }
@@ -4034,6 +4034,121 @@
 .zulo-chrome.dash-shell .pulse-lookup-label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-muted); }
 
 @media (prefers-reduced-motion: reduce) {
-  .zulo-chrome.dash-shell .ph-trace-svg { animation: none; clip-path: none; }
-  .zulo-chrome.dash-shell .pulse-hero[data-state="loading"] .ph-seg { animation: none; }
+  .zulo-chrome .ph-trace-svg { animation: none; clip-path: none; }
+  .zulo-chrome [data-state="loading"] .ph-seg { animation: none; }
 }
+
+/* Shared trace pieces (homepage, Pulse, record card) */
+.zulo-chrome.zulo-home { --pulse-cyan: #0e7490; --pulse-cyan-line: #0891b2; }
+.dark .zulo-chrome.zulo-home { --pulse-cyan: #22d3ee; --pulse-cyan-line: #22d3ee; }
+.zulo-chrome .ph-trace-wrap { position: relative; }
+.zulo-chrome .ph-blip {
+  position: absolute; right: 12px; top: 60%; width: 8px; height: 8px; margin: -4px 0 0 0;
+  background: var(--pulse-cyan); border-radius: 50%;
+  opacity: 0; animation: ph-blip-in 200ms ease-out 1550ms forwards, ph-blip 1.6s ease-out 1750ms infinite;
+}
+@keyframes ph-blip-in { to { opacity: 1; } }
+@keyframes ph-blip {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--pulse-cyan) 70%, transparent); }
+  70% { box-shadow: 0 0 0 12px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zulo-chrome .ph-blip { animation: none; opacity: 1; }
+}
+
+/* ================================================================================================
+   HOME v2 (2026-10-18) — the live heart monitor. Big type, a full-bleed trace, one input.
+   ================================================================================================ */
+.zulo-chrome.zulo-home .hh-brand {
+  max-width: 1000px; margin: 0 auto; padding: 32px var(--space-md) 0;
+  display: flex; align-items: center; gap: 12px;
+}
+.zulo-chrome.zulo-home .hh-brand-logo { width: 40px; height: 40px; }
+.zulo-chrome.zulo-home .hh-brand-text { margin: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.zulo-chrome.zulo-home .hh-brand-name { font-size: 15px; font-weight: 600; }
+.zulo-chrome.zulo-home .hh-brand-tag { font-size: 13px; color: var(--text-muted); }
+
+.zulo-chrome.zulo-home .hh { padding: 40px 0 0; }
+@media (min-width: 768px) { .zulo-chrome.zulo-home .hh { padding-top: 64px; } }
+.zulo-chrome.zulo-home .hh-head { max-width: 1000px; margin: 0 auto; padding: 0 var(--space-md); }
+.zulo-chrome.zulo-home .hh-title {
+  margin: 0; max-width: 13ch;
+  font-size: clamp(42px, 10vw, 84px); line-height: 0.96; font-weight: 600; letter-spacing: -0.035em;
+  text-transform: none; text-wrap: balance;
+}
+.zulo-chrome.zulo-home .hh-lede { margin: 18px 0 0; max-width: 46ch; font-size: 17px; line-height: 1.5; color: var(--text-secondary); }
+
+/* The input reads like a big token number */
+.zulo-chrome.zulo-home .hh-form {
+  margin-top: 32px; display: flex; align-items: center; gap: 8px; max-width: 420px;
+  border-bottom: 2px solid var(--text-primary);
+  transition: border-color var(--motion-base) var(--motion-ease);
+}
+.zulo-chrome.zulo-home .hh-form:focus-within { border-bottom-color: var(--pulse-cyan); }
+.zulo-chrome.zulo-home .hh-hash { font-size: clamp(32px, 8vw, 52px); line-height: 1; font-weight: 600; color: var(--text-muted); }
+.zulo-chrome.zulo-home .hh-input {
+  flex: 1; min-width: 0; width: 5ch; padding: 6px 0; border: 0; outline: none; background: transparent; color: var(--text-primary);
+  font: inherit; font-size: clamp(40px, 10vw, 64px); line-height: 1; font-weight: 600; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.zulo-chrome.zulo-home .hh-input[aria-invalid="true"] { color: var(--text-muted); }
+.zulo-chrome.zulo-home .hh-go {
+  flex: none; min-height: 44px; padding: 0 18px; border: 1px solid var(--pulse-cyan); background: var(--pulse-cyan);
+  color: var(--bg-primary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.zulo-chrome.zulo-home .hh-go:disabled { opacity: 0.45; cursor: default; }
+.zulo-chrome.zulo-home .hh-go:focus-visible { outline: 2px solid var(--pulse-cyan); outline-offset: 3px; }
+.zulo-chrome.zulo-home .hh-hint {
+  margin: 12px 0 0; min-height: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-muted);
+}
+.zulo-chrome.zulo-home .hh-chip {
+  min-height: 32px; padding: 0 10px; border: 1px solid var(--border-light); background: transparent;
+  color: var(--text-secondary); font: inherit; font-size: 13px; cursor: pointer;
+}
+.zulo-chrome.zulo-home .hh-chip:hover,
+.zulo-chrome.zulo-home .hh-chip:focus-visible { border-color: var(--pulse-cyan); color: var(--pulse-cyan); outline: none; }
+
+/* Full-bleed monitor */
+.zulo-chrome.zulo-home .hh-trace { margin: 36px 0 0; }
+.zulo-chrome.zulo-home .hh-trace .ph-trace-svg { height: clamp(150px, 26vw, 300px); }
+.zulo-chrome.zulo-home .hh-trace .ph-beats { max-width: none; font-size: 11px; }
+@media (min-width: 768px) { .zulo-chrome.zulo-home .hh-trace .ph-beats { font-size: 13px; } }
+
+/* The reading */
+.zulo-chrome.zulo-home .hh-result {
+  max-width: 1000px; margin: 0 auto; padding: 20px var(--space-md) 8px;
+  display: grid; grid-template-columns: 64px 1fr; gap: 14px 16px; align-items: center;
+}
+@media (min-width: 768px) { .zulo-chrome.zulo-home .hh-result { grid-template-columns: 64px 1fr auto; } }
+.zulo-chrome.zulo-home .hh-face {
+  width: 64px; height: 64px; image-rendering: pixelated; border: 1px solid var(--border-light); background: var(--bg-secondary);
+}
+.zulo-chrome.zulo-home .hh-result-text { min-width: 0; }
+.zulo-chrome.zulo-home .hh-name { color: var(--text-primary); margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 22px; font-weight: 600; line-height: 1.2; }
+.zulo-chrome.zulo-home .hh-agent { font-size: 13px; font-weight: 400; color: var(--pulse-cyan); }
+.zulo-chrome.zulo-home .hh-line { margin: 4px 0 0; font-size: 15px; line-height: 1.45; color: var(--text-secondary); }
+.zulo-chrome.zulo-home .hh-level { color: var(--text-primary); font-weight: 600; }
+.zulo-chrome.zulo-home .hh-gate[data-passed="true"] { color: var(--pulse-cyan); }
+.zulo-chrome.zulo-home .hh-muted { color: var(--text-muted); }
+.zulo-chrome.zulo-home .hh-link {
+  padding: 0; border: 0; background: none; font: inherit; color: var(--pulse-cyan); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.zulo-chrome.zulo-home .hh-actions { grid-column: 1 / -1; display: flex; gap: 8px; }
+@media (min-width: 768px) { .zulo-chrome.zulo-home .hh-actions { grid-column: auto; } }
+.zulo-chrome.zulo-home .hh-btn {
+  flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-primary);
+  font: inherit; font-size: 14px; text-decoration: none; cursor: pointer;
+  transition: background var(--motion-fast) var(--motion-ease), color var(--motion-fast) var(--motion-ease);
+}
+.zulo-chrome.zulo-home .hh-btn:hover,
+.zulo-chrome.zulo-home .hh-btn:focus-visible { background: var(--bg-dark); color: var(--text-inverse); outline: none; }
+.zulo-chrome.zulo-home .hh-btn-primary { border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--bg-primary); font-weight: 600; }
+.zulo-chrome.zulo-home .hh-btn-primary:hover,
+.zulo-chrome.zulo-home .hh-btn-primary:focus-visible { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
+
+/* Record card page: the same heartbeat under the trust verdict */
+.zulo-chrome .record-card .rc-trace { margin: 16px 0 8px; }

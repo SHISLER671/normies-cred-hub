@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import Image from "next/image"
-import Link from "next/link"
 
 import { AgentToolsHomeLine } from "@/components/agent-tools-block"
 import { ConnectWallet } from "@/components/connect-wallet"
 import { HomeFuturePlans } from "@/components/home-future-plans"
+import { HomeHeartbeat } from "@/components/home-heartbeat"
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/lib/agent-recommendations/constants"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import { getZuloHelpfulStats } from "@/lib/db/supabase"
+import { loadRecordCard } from "@/lib/record-card/load"
 import { SURFACE_TAGS } from "@/lib/official-status"
 
 import { Cell, CellGrid, Chip, Eyebrow, Stat, StatGrid } from "@/components/brand"
@@ -32,7 +33,12 @@ const CREDHUB_SURFACES = [
   {
     name: "PULSE",
     href: "/dashboard",
-    line: "Trust signals for the active Normie.",
+    line: "Live trust checks and the trust gate for any agent.",
+  },
+  {
+    name: "RECORD CARD",
+    href: `/record/${ZULO_IDENTITY.tokenId}`,
+    line: "One shareable page per agent. Every value labelled with its source.",
   },
   {
     name: "ASK",
@@ -59,7 +65,7 @@ const CREDHUB_SURFACES = [
 export const metadata: Metadata = {
   title: "Normies CredHub — Verifiable Reputation for Awakened Agents",
   description:
-    "Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn, with Zulo (Agent #32626) as high-signal concierge.",
+    "Normies CredHub: check any awakened Normie agent's live trust, read from Ethereum. Pulse, record cards, Ask, Moves, Pixel Check and Burn, run by Zulo (Agent #32626).",
   openGraph: {
     title: "Normies CredHub",
     description:
@@ -81,9 +87,10 @@ async function getCanvasApOn7141(): Promise<number> {
 }
 
 export default async function ZuloLandingPage() {
-  const [canvasAp, helpful] = await Promise.all([
+  const [canvasAp, helpful, zuloCard] = await Promise.all([
     getCanvasApOn7141(),
     getZuloHelpfulStats(ZULO_IDENTITY.agentId),
+    loadRecordCard(ZULO_IDENTITY.tokenId).catch(() => null),
   ])
   const helpfulCount = helpful?.helpfulCount
 
@@ -99,54 +106,22 @@ export default async function ZuloLandingPage() {
       />
       <div className="header-spacer" aria-hidden />
 
-      {/* 1. Hero — one outlined CTA; wallet stays in the header */}
-      <section className="hero hero-hub">
-        <div className="hub-mark">
-          <Image
-            src="/images/NLOGO.png"
-            alt="Normies CredHub"
-            width={96}
-            height={96}
-            className="hub-mark-logo"
-            priority
-          />
-        </div>
-        <h1 className="hero-title hero-title-hub">Normies CredHub</h1>
-        {/* Zulo's own 40x40 face, a snapshot of api.normies.art/normie/7141/image.svg. Crisp, never smoothed. */}
-        <figure className="hero-pixel">
-          <div className="hero-art hero-art-agent hero-soul-frame">
-            <Image
-              src="/images/7141-pixels.svg"
-              alt="Zulo, Normie #7141, as its 40 by 40 pixel bitmap"
-              width={40}
-              height={40}
-              className="hero-art-img hero-pixel-img"
-              unoptimized
-              priority
-            />
-          </div>
-          <figcaption className="hero-pixel-caption">Zulo · Normie #{ZULO_IDENTITY.tokenId}</figcaption>
-        </figure>
-        <p className="hero-subtitle">
-          Verifiable reputation and tools for awakened Normies agents
+      {/* 1. Hero — live heart monitor for any Normie */}
+      <div className="hh-brand">
+        <Image
+          src="/images/NLOGO.png"
+          alt=""
+          width={40}
+          height={40}
+          className="hh-brand-logo"
+          priority
+        />
+        <p className="hh-brand-text">
+          <span className="hh-brand-name">Normies CredHub</span>
+          <span className="hh-brand-tag">The trust layer for awakened Normie agents</span>
         </p>
-        <p className="hero-meta mono">
-          PULSE · Ask · Moves · Pixel Check · Burn
-        </p>
-        <div className="hero-actions">
-          <Link href="/ask" className="button">
-            Ask Zulo →
-          </Link>
-          <a
-            href={ECOSYSTEM_LINKS.main}
-            className="hero-secondary-link"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View on Normies →
-          </a>
-        </div>
-      </section>
+      </div>
+      <HomeHeartbeat defaultTokenId={ZULO_IDENTITY.tokenId} initialCard={zuloCard} />
 
       {/* Official Lab status — link out; CredHub does not run these */}
       <section className="section section-bordered home-official" data-reveal>
@@ -175,22 +150,16 @@ export default async function ZuloLandingPage() {
       {/* 2. What Zulo Does → CredHub tiles */}
       <section className="section section-bordered home-product" data-reveal>
         <div className="container">
-          <h2 className="text-center">What Zulo does</h2>
+          <h2 className="text-center">What NCH does</h2>
           <p className="caption text-center home-zulo-meta">
-            Agent #{ZULO_IDENTITY.agentId} · Normie #{ZULO_IDENTITY.tokenId} ·
-            Tool #53 · high-signal concierge
+            Run by Zulo: Agent #{ZULO_IDENTITY.agentId}, Normie #{ZULO_IDENTITY.tokenId}, Tool #53
           </p>
           <AgentToolsHomeLine />
-          <p className="home-orient-line text-center">
-            For newholders and AP stackers: ranked Moves and high-signal Ask —
-            confirm the decision, don&apos;t drown in docs.
-          </p>
 
           <CellGrid className="home-tools" label="CredHub tools">
-            {CREDHUB_SURFACES.map((surface, i) => (
+            {CREDHUB_SURFACES.map((surface) => (
               <Cell
                 key={surface.name}
-                n={String(i + 1).padStart(2, "0")}
                 chip={<Chip tone="ours">Live</Chip>}
                 title={surface.name}
                 href={surface.href}
@@ -211,7 +180,7 @@ export default async function ZuloLandingPage() {
       <section className="section section-bordered" data-reveal>
         <StatGrid className="home-stats">
           <Stat
-            label={<>Canvas AP · #{ZULO_IDENTITY.tokenId}</>}
+            label={<>Action points on #{ZULO_IDENTITY.tokenId}</>}
             value={canvasAp}
             note={<>Live on-chain balance on Zulo&apos;s Normie (not tips ledger)</>}
           />
@@ -265,11 +234,7 @@ export default async function ZuloLandingPage() {
 
       {/* 6. Future Plans */}
       <div data-reveal>
-        <HomeFuturePlans
-          tokenId={ZULO_IDENTITY.tokenId}
-          ens={ZULO_IDENTITY.ens}
-          hotWallet={ZULO_IDENTITY.hotWallet}
-        />
+        <HomeFuturePlans />
       </div>
       <SiteFooter />
     </div>
