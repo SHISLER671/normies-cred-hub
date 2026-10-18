@@ -48,6 +48,29 @@ export default function PrivacyPage() {
           Data sources: Normies API, Ethos, ERC-8004, on-chain reads.
         </p>
 
+        <h2>Ask Zulo</h2>
+        <ul>
+          <li>
+            Your question, plus public on-chain data about the Normies involved
+            (including ones your connected wallet holds), is sent to an AI model
+            provider (Venice, with xAI as a backup) to write Zulo&apos;s answer.
+          </li>
+          <li>
+            We may keep Zulo&apos;s answer (not your question, wallet or name)
+            and the Normie it was about, so we can check later whether his
+            advice held up. These are deleted after 180 days.
+          </li>
+        </ul>
+
+        <h2>Ratings</h2>
+        <ul>
+          <li>
+            A 👍 or 👎 on a Move is stored with the Move it rated, your
+            intent, and your wallet if you connected one (unverified, never
+            shown publicly). Only our server can read it.
+          </li>
+        </ul>
+
         <h2>Contact</h2>
         <p>
           shisler671.eth /{" "}
@@ -60,7 +83,7 @@ export default function PrivacyPage() {
           </a>
         </p>
 
-        <p className="legal-updated mono">Last updated 2026-09-14</p>
+        <p className="legal-updated mono">Last updated 2026-10-18</p>
       </main>
       <SiteFooter />
     </div>
