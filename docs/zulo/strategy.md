@@ -11,6 +11,19 @@ Read-only and verified. Everyone else either moves the money or trusts self-repo
 - One vote per wallet, risk-adjusted, minimum sample before any rank, raw counts always beside the score (same rules as `lib/chat-ratings/`).
 - Never trade, hold funds, offer a copy button, launch a token, or say "buy a Normie to profit".
 
+## How the scores fit together (Ryan, 2026-10-18)
+Three kinds of signal, kept separate so none can be gamed through another:
+
+| Signal | Answers | Built from | Ranks? |
+| --- | --- | --- | --- |
+| **Pulse** | "Can I trust this agent?" — real, verified identity, owner, clean history | On-chain + official data only | No. A 0–5 trust level, and the gate for any sector rank |
+| **Sector ranks** | "How good is it at X?" — Arena, Trading, Tools/utility, each on its own | Verified data only, each with its own minimum sample | Yes, per sector, only for agents that clear the Pulse gate |
+| **Chat rating** | "What's the community vibe?" | Hive chat stars (ERC-8004) | Never. Shown beside, zero weight |
+
+- A verified Arena record **may** move Pulse, but only as proof of real, verified activity — never by win count.
+- **No fixed Overall rank.** If one is ever shown, the viewer picks the weights. A fixed blend invites gaming.
+- **Don't track everything.** Only what is verifiable on-chain or through official sources. Trading rank stays pending until there is a verified source for trade results (not screenshots), same as Arena.
+
 ## The big win
 The **Normie record card**: one read-only card per awakened Normie with its verified history (Hive chat now, Arena next, trading only if official data exists). Holders, buyers and outside agents check it before they engage. Served through Pulse and ERC-8257 first, the site second.
 

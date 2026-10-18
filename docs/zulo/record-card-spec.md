@@ -1,6 +1,6 @@
 # Normie record card — data shape (spec, docs only)
 
-Drafted 2026-10-18 (ChST) by GrokBot. Status: **DRAFT spec, nothing built.** No code, no Pulse changes, no chat-ratings changes.
+Drafted 2026-10-18 (ChST) by GrokBot; score model folded in by Claude the same day (Ryan's note on PR #100). Status: **DRAFT spec, nothing built.** No code, no Pulse changes, no chat-ratings changes.
 
 Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` (the verified scoreboard; "Phase 1: Arena record card"), `docs/zulo/thesis-lock.md` §5–§7, `lib/official-status.ts`.
 
@@ -20,6 +20,13 @@ One read-only card per Normie that has been awakened as an agent, built from dat
 4. **Side panels that are never counted**: "Chat rating" (Hive) and "Self-reported" claims. They are shown, and they carry zero weight toward rank or the Pulse level.
 
 The card is a **track record, never a tip.** DYOR appears on every ranked view.
+
+**Scores on the card** (Ryan's score model, 2026-10-18; see `docs/zulo/strategy.md` "How the scores fit together"):
+
+- **Pulse = trust, not skill.** It answers "can I trust this agent?" and is the **gate** for any sector rank.
+- **Sector ranks = skill**, one per sector (Arena, Trading, Tools/utility), verified data only, each with its own minimum sample. This spec defines the **Arena** sector; Trading and Tools/utility get their own specs once a verified source exists.
+- **Chat rating = community vibe**, shown beside the record, never a rank.
+- **No fixed Overall rank.** If one is ever shown, the viewer picks the weights.
 
 ## 2. Sources and labels
 
@@ -43,7 +50,7 @@ Every field carries one plain-word label:
 - **`pending`**: no official source exists yet. Value is `null`, and `pending_reason` says why (for example `"Arena not live"`).
 - **`unavailable`**: the source exists but the read failed or timed out. Value is `null`. Show "unavailable", never 0. This copies `available: false` in chat ratings.
 
-Rule: a value never gets promoted. A self-reported number does not become verified by being repeated, cached, or matched against a screenshot. Third-party indexers (8004scan, Levanter Labs "Sage", unnamed venues) count as `self_reported` until the Normies team names them as official.
+Rule: a value never gets promoted. A self-reported number does not become verified by being repeated, cached, or matched against a screenshot. Third-party indexers (8004scan, Levanto Labs "Sage", unnamed venues) count as `self_reported` until the Normies team names them as official.
 
 ### 2.3 Card label (`card_status`)
 
@@ -132,10 +139,11 @@ No record field may come from `self_reported` or `chat_rating`. If the official 
 
 **Outside signals** (Ethos, AgentCheck in `lib/api/ethos.ts` and `lib/api/agentcheck.ts`) describe the owner's wallet, not the Normie's record. They stay out of the card in v1.
 
-## 4. Minimum sample before ranking (proposed numbers, tune later)
+## 4. Arena sector rank: gate and minimum sample (proposed numbers, tune later)
 
-A card becomes `ranked` only if **all** of these are true:
+A card gets an Arena sector rank only if **all** of these are true:
 
+0. **It clears the Pulse gate.** Proposed (Claude): gate on the two trust signals themselves — "ERC-8004 registered" and "Clean ownership & delegation" both present in the Pulse breakdown — rather than a Pulse level number. The level also counts canvas activity and recent usage, which say nothing about trust, so a level threshold would shut out a trustworthy agent with an untouched canvas. Ryan to confirm.
 1. Arena is officially live (`lib/official-status.ts`).
 2. **≥ 10 verified matches** in the ranking window.
 3. **≥ 5 distinct opponents** owned by wallets other than this Normie's owner (stops someone farming wins against their own Normies; same idea as chat ratings' 5 different wallets).
@@ -143,6 +151,8 @@ A card becomes `ranked` only if **all** of these are true:
 5. Every ranked input is `verified` and fresh (§5).
 
 The proposed ranked score is the lower bound of the Wilson 95% interval on the win rate, so thin records can't top the board. Ties are broken by `pixels_net`, then by `matches`. The score always ships with raw `matches / wins / losses / draws / pixels_net` beside it. On launch these knobs move into a proposed `lib/record-card/config.ts`, the same pattern as `lib/chat-ratings/config.ts`, and tuning happens there, not in the math.
+
+There is no Overall rank across sectors. A Normie can be ranked in Arena and unranked everywhere else; each sector shows its own rank or its own "building a record" line.
 
 **Unranked display:** show raw counts with the line "Building a record: X of 10 verified matches, Y of 5 opponents, Z of 14 days". No rank number and no stars. Unranked cards are left off leaderboards entirely, not sorted to the bottom.
 
@@ -210,7 +220,7 @@ Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026
 - **No trading signals, tips, copy buttons or "buy a Normie to profit" framing.** Agent trading is a TEASER (thesis lock §5). A trading record is Phase 2 and needs its own spec once official agent-wallet docs or an API exist.
 - **Read-only.** No writes of any kind. The only signature allowed anywhere in NCH is a plain `signMessage` for wallet linkage. No transfers, approvals, deposits or typed-data. The card never links to a funding flow.
 - **Arena is not live until an official URL plus docs or an API exist** and `lib/official-status.ts` is flipped. Until then, no "enter Arena" step and no Arena numbers, not even from teasers.
-- **No Pulse changes.** Whether a *verified* Arena record should ever feed `pulse_level` is an open question for Ryan. Self-reported and chat-rating data never do.
+- **No Pulse changes in this spec.** Decided (Ryan, 2026-10-18): a *verified* Arena record **may** later move Pulse, but only as proof of real, verified activity (e.g. a "verified Arena activity" signal), never by win count. That change gets its own PR. Self-reported and chat-rating data never move Pulse.
 - **No chat-ratings changes** (owned by Claude this week). No edits to `public/.well-known/ai-tool/*.json` (manifest hashes are pinned on-chain). When the card ships, it adds response fields in code only.
 - No endpoints are built here. The serving route (proposed `GET /api/zulo/record-card/{tokenId}`, then ERC-8257 and Pulse as optional fields) is decided in the build PR.
 
@@ -221,7 +231,9 @@ Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026
 3. Do Arena pixel moves show up as new event kinds in `/canvas/token/{id}/activity`? That would give a second verified source for `pixels_won` / `pixels_lost`.
 4. Can non-awakened Normies or Zombies fight? If they can, do they get a card? (Thesis lock open question 5.)
 5. Does the record reset when the token changes hands? (Proposed: no. Show `owner_since`.)
-6. Should a verified Arena record ever move `pulse_level`, or stay a separate panel like chat ratings?
+6. ~~Should a verified Arena record ever move `pulse_level`?~~ Answered (Ryan, 2026-10-18): yes, only as proof of verified activity, never win count (§7).
 7. Are 10 matches, 5 opponents and 14 days the right minimums? Revisit after the first two weeks of real Arena data.
+8. Pulse gate: trust signals (proposed, §4 item 0) or a level number? Ryan decides.
+9. Tools/utility sector: what is its verified source? ERC-8257 registrations are on-chain, but usage counts are measured by NCH itself. Needs its own spec before any rank.
 
 Signed: GrokBot
