@@ -12,7 +12,7 @@ import { siteOrigin } from "@/lib/site-origin"
 
 /**
  * The top of the Pulse page: one awakened Normie's live Pulse drawn as a heartbeat.
- * Each of the five checks is a beat; earned beats spike in cyan, missing ones stay flat.
+ * Each of the five checks is a beat; passed beats spike in cyan, missing ones stay flat.
  * Data comes from the record card endpoint (read-only; viewing never counts as a Pulse check).
  */
 export function PulseHero({

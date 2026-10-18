@@ -33,6 +33,19 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   }
 }
 
+/**
+ * A wallet as 0x1234…abcd. The page is made to be shared, so it never prints a full address; the full one is in the
+ * tooltip and the Etherscan link. The JSON API keeps full addresses (record-card-spec: `owner` is an `address`, public
+ * on-chain data).
+ */
+function AddressLink({ address }: { address: string }) {
+  return (
+    <a href={etherscanAddress(address)} target="_blank" rel="noopener noreferrer" className="mono" title={address}>
+      {shortenAddress(address, 4)}
+    </a>
+  )
+}
+
 /** A field's value, or its label in plain words when there is no value. */
 function show<T>(f: Field<T>, fmt: (v: T) => React.ReactNode = (v) => String(v)): React.ReactNode {
   if (f.value !== null) return fmt(f.value)
@@ -152,11 +165,11 @@ export default async function RecordCardPage({ params }: Params) {
           <dl className="rc-dl">
             <div>
               <dt>Owner</dt>
-              <dd>{context.owner.value ? <a href={etherscanAddress(context.owner.value)} target="_blank" rel="noopener noreferrer" className="mono">{shortenAddress(context.owner.value, 6)}</a> : show(context.owner)}</dd>
+              <dd>{context.owner.value ? <AddressLink address={context.owner.value} /> : show(context.owner)}</dd>
             </div>
             <div>
               <dt>Canvas delegate</dt>
-              <dd>{context.canvas_delegate.value ? <a href={etherscanAddress(context.canvas_delegate.value)} target="_blank" rel="noopener noreferrer" className="mono">{shortenAddress(context.canvas_delegate.value, 6)}</a> : context.canvas_delegate.label === "verified" ? "None" : show(context.canvas_delegate)}</dd>
+              <dd>{context.canvas_delegate.value ? <AddressLink address={context.canvas_delegate.value} /> : context.canvas_delegate.label === "verified" ? "None" : show(context.canvas_delegate)}</dd>
             </div>
             <div>
               <dt>Canvas</dt>

@@ -59,7 +59,7 @@ export function PulseExplainer({ className, label = "How Pulse works" }: { class
                 <li>Clean ownership &amp; delegation</li>
               </ul>
               <p className="mt-2">
-                Level 5 (Luminous) is earned from recent Pulse checks and
+                Level 5 (Luminous) is reached through recent Pulse checks and
                 Pulse-conditioned Paths activity.
               </p>
             </section>

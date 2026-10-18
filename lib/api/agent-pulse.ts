@@ -11,7 +11,7 @@ export const USAGE_BREAKDOWN_SIGNAL =
   "Recent agent usage / interaction signal"
 
 export const NOTE =
-  "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history."
+  "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is reached through Pulse/Paths interaction history."
 
 export const NEXT_SIGNAL =
   "Earn Luminous with recent Pulse checks and Pulse-conditioned Paths activity."

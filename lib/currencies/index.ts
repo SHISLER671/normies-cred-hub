@@ -1,12 +1,14 @@
 /**
- * Zulo / Normies currency definitions (additive scaffolding).
+ * Zulo / Normies currency definitions (descriptive; Zulo takes no payments).
  *
- * AP remains the live Canvas unit. PIXEL is prepared for PIXEL MARKET
- * (Serc hint that "Pixel" may be the market currency name for what is
- * currently called Action Points). Conversion is 1:1 until an oracle exists.
+ * #PIXEL is the official name for Action Points (the same unit, 1 PIXEL = 1 pixel). The Pixel Market status comes from
+ * lib/official-status.ts. PIXEL is earned only by burning a Normie, or bought on the Pixel Market. Painting never spends
+ * it and customizing never earns it. Zulo payments are parked (lib/payments/rail-policy.ts).
  *
  * Feature flag: PIXEL_CURRENCY_ENABLED (default false) — see lib/payments/config.ts
  */
+
+import { PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
 
 export type CurrencyCode = "AP" | "PIXEL"
 
@@ -47,7 +49,7 @@ export const CURRENCIES: Record<CurrencyCode, CurrencyDef> = {
     notes: [
       "Canvas-local transform budget bound to a specific Normie.",
       "Earned by burning; spent 1:1 per pixel add/remove on 40×40.",
-      "Legacy alias if PIXEL becomes the official PIXEL MARKET name.",
+      "Legacy name: #PIXEL is the official name for the same unit.",
     ],
   },
   PIXEL: {
@@ -59,9 +61,9 @@ export const CURRENCIES: Record<CurrencyCode, CurrencyDef> = {
     primaryTerm: "Pixel",
     legacyAlias: "AP",
     notes: [
-      "Scaffolded currency name for PIXEL MARKET (Serc hint).",
-      "May be the same unit as AP (1:1) or a distinct tradeable unit.",
-      "Not enforced until PIXEL_CURRENCY_ENABLED and official Normies docs.",
+      `${PIXEL_MARKET_STATUS_LINE}.`,
+      "Earned only by burning a Normie, or bought on the Pixel Market. Painting never spends it; customizing never earns it.",
+      "Same unit as Action Points (1 PIXEL = 1 pixel). Zulo takes no payments in PIXEL or anything else.",
     ],
   },
 } as const

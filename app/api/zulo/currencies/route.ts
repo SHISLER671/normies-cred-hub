@@ -13,8 +13,8 @@ import { getPaymentCurrencyConfig } from "@/lib/payments/config"
 export const dynamic = "force-dynamic"
 
 /**
- * Public scaffold status for PIXEL MARKET currency prep.
- * Does not enforce payments. Defaults: Pixel disabled, default currency AP.
+ * What #PIXEL / AP are, for agents. Descriptive only: Zulo takes no payments (parked, lib/payments/rail-policy.ts).
+ * Pixel Market status comes from lib/official-status.ts.
  */
 export async function GET() {
   const config = getPaymentCurrencyConfig()
@@ -47,7 +47,7 @@ export async function GET() {
         PIXEL: CURRENCIES.PIXEL,
       },
       notes: [
-        "Scaffolding only — payment verification remains AP-based until product gates open.",
+        "Descriptive only. Zulo takes no payments; payments are parked and nothing here is a way to pay.",
         "Set PIXEL_CURRENCY_ENABLED=true to enable dual acceptance and knowledge inject.",
         "DEFAULT_CURRENCY stays AP unless flag on and DEFAULT_CURRENCY=PIXEL.",
       ],

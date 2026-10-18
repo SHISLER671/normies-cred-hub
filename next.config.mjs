@@ -96,6 +96,12 @@ const nextConfig = {
 
   async redirects() {
     return [
+      // The Pulse page lives at /dashboard; /pulse is the name people type. Temporary so /pulse can become a real page later.
+      {
+        source: "/pulse",
+        destination: "/dashboard",
+        permanent: false,
+      },
       {
         source: "/zulo",
         destination: "/ask",

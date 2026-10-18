@@ -136,7 +136,6 @@ export async function GET() {
         health: "/api/zulo/health",
         security: "/api/zulo/security",
         securityReport: "/api/zulo/security/report",
-        paymentVerify: "/api/zulo/payments/verify",
       },
       asOf: new Date().toISOString(),
     },

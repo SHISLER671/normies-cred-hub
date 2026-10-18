@@ -51,3 +51,11 @@ test("a missing beat is a dotted baseline", () => {
   assert.ok(px.every(([x, y]) => y === PIXEL_BASELINE && x % 2 === 0))
   assert.equal(pixelPath([[3, 4]]), "M3 4h1v1h-1z")
 })
+
+test("Pulse check wording never says 'earned' (a passed check earns nothing, least of all PIXEL)", () => {
+  for (const b of PULSE_BEATS) {
+    assert.doesNotMatch(`${b.label} ${b.meaning}`, /\bearn(s|ed|ing)?\b/i, b.signal)
+  }
+  const trace = fs.readFileSync(path.join(__dirname, "../../components/pulse-trace.tsx"), "utf8")
+  assert.doesNotMatch(trace, /\bearned\b/i, "components/pulse-trace.tsx")
+})
