@@ -5,7 +5,7 @@
 
 export type PaymentRailStatus = "planned" | "scaffold" | "live"
 
-/** Do not flip without Ryan's explicit, written change to the no-crypto-as-income rule. Pinned by rail-policy.test.ts. */
+/** Do not flip without Ryan's explicit, written change to the no-crypto-as-income rule. Pinned by lib/security/hardening.test.ts. */
 export const PAYMENT_RAIL_LIVE_ALLOWED = false as const
 
 let warned = false

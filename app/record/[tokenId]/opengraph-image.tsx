@@ -52,7 +52,9 @@ function Tag({ children, solid }: { children: React.ReactNode; solid?: boolean }
 
 export default async function Image({ params }: { params: Promise<{ tokenId: string }> }) {
   const { tokenId: raw } = await params
-  const tokenId = parseTokenId(raw) ?? 0
+  const tokenId = parseTokenId(raw)
+  // Bad id: 404 like the page itself, never a card for Normie #0.
+  if (tokenId === null) return new Response("Not found", { status: 404 })
   const [card, bitmap] = await Promise.all([loadRecordCard(tokenId).catch(() => null), loadBitmap(tokenId)])
 
   const name = (card?.identity.agent_name.value ?? `Normie #${tokenId}`).toUpperCase()

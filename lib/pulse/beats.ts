@@ -40,14 +40,14 @@ export const PULSE_BEATS: readonly PulseBeat[] = [
   {
     signal: "Recent agent usage / interaction signal",
     label: "Recent use",
-    meaning: "Other agents and holders checked it recently (earns Luminous).",
+    meaning: "Other agents and holders checked it recently (unlocks Luminous).",
     gate: false,
   },
 ] as const
 
 export type LitBeat = PulseBeat & { lit: boolean }
 
-/** Which beats this agent has earned. Unknown signals in the breakdown are ignored, never invented. */
+/** Which beats this agent has passed. Unknown signals in the breakdown are ignored, never invented. */
 export function pulseBeats(breakdown: readonly string[] | null | undefined): LitBeat[] {
   const have = new Set(breakdown ?? [])
   return PULSE_BEATS.map((b) => ({ ...b, lit: have.has(b.signal) }))
@@ -59,11 +59,11 @@ export const PIXEL_ROWS = 24
 export const PIXEL_BASELINE = 14
 export const PIXEL_COLS = PIXEL_COLS_PER_BEAT * 5
 
-/** One earned beat, as the row the line sits on in each of its 20 columns (a stepped ECG: P wave, QRS spike, T wave). */
+/** One passed beat, as the row the line sits on in each of its 20 columns (a stepped ECG: P wave, QRS spike, T wave). */
 const LIT_ROWS: readonly number[] = [14, 14, 14, 14, 14, 14, 13, 12, 13, 16, 2, 22, 14, 13, 12, 12, 13, 14, 14, 14]
 
 /**
- * The pixels for one beat as [column, row] pairs in the 100 × 24 grid. Earned beats are a connected stepped line
+ * The pixels for one beat as [column, row] pairs in the 100 × 24 grid. Passed beats are a connected stepped line
  * (each column fills the run from the previous row to its own); missing beats are a dotted baseline.
  */
 export function beatPixels(index: number, lit: boolean): Array<[number, number]> {
