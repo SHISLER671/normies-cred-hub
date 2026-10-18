@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react"
 
+import { recordCardImageFilename, recordCardImagePath, recordShareXText } from "@/lib/record-card/share-image"
+
 /**
  * Share buttons for a record card. Read-only: no wallet, no signature, nothing on-chain.
- * Pasting the link anywhere shows the card's preview image (app/record/[tokenId]/opengraph-image.tsx).
+ * Pasting the link anywhere shows the card's preview image (app/record/[tokenId]/opengraph-image.tsx); Download PNG saves
+ * that same 1200×630 image. Only the token id goes into links and filenames.
  */
 export function RecordShare({
   url,
@@ -26,7 +29,7 @@ export function RecordShare({
   }, [])
 
   const text = `${name}'s record card on NCH: verified identity and trust gate. A track record, not a tip.`
-  const xHref = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+  const xHref = `https://x.com/intent/post?text=${encodeURIComponent(recordShareXText(name, tokenId))}&url=${encodeURIComponent(url)}`
 
   async function copy() {
     try {
@@ -71,6 +74,15 @@ export function RecordShare({
       <button type="button" className="rc-share-btn" onClick={copy} aria-live="polite">
         {copied ? "Link copied ✓" : "Copy link"}
       </button>
+      <a
+        className="rc-share-btn"
+        href={recordCardImagePath(tokenId)}
+        download={recordCardImageFilename(tokenId)}
+        type="image/png"
+        aria-label={`Download the record card image for Normie #${tokenId} (PNG)`}
+      >
+        Download PNG
+      </a>
     </div>
   )
 }
