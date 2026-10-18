@@ -379,6 +379,7 @@ export function Dashboard() {
                         <span>Registered on-chain</span>
                       </div>
                       <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{resolvedAgentId} recognized</div>
+                      <a href={`/record/${tokenId}`} className="rc-open-link mt-2 inline-block text-xs underline underline-offset-4">Open the record card for #{tokenId} →</a>
                       <div className="mt-2 text-xs text-muted-foreground">
                         Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
                       </div>

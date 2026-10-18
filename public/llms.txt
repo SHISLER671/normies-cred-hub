@@ -16,6 +16,10 @@ Pulse responses include chat_ratings: Hive chat star ratings from the ERC-8004 R
 Chat ratings alone (any ERC-8004 agent id, read-only):
 GET /api/chat-ratings/{agentId}
 
+Record card (read-only, every value labelled verified / pending / unavailable with its source; Arena = pending until live):
+GET /api/zulo/record-card/{tokenId}
+Human page: /record/{tokenId}
+
 Gated Pulse (ERC-8257 Eth #53):
 POST /api/agent
 Normie holders. Official registered endpoint.

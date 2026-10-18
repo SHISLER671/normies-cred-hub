@@ -3812,3 +3812,27 @@
 .zulo-chrome.dash-shell .chat-score { color: var(--pulse-cyan); }
 .zulo-chrome.dash-shell .chat-holders { border-color: color-mix(in oklab, var(--pulse-cyan-line) 50%, transparent); color: var(--pulse-cyan); }
 .zulo-chrome.dash-shell .cred-data a:hover { color: var(--pulse-cyan); }
+/* Record card page (/record/[tokenId]) — brand cell system + PULSE cyan. */
+.zulo-chrome .record-card .rc-head { display: flex; align-items: center; gap: 20px; margin: 4px 0 16px; }
+.zulo-chrome .record-card .rc-face { width: 120px; height: 120px; image-rendering: pixelated; border: 1px solid var(--pulse-cyan-line, var(--border-light)); background: var(--bg-secondary); flex: none; }
+.zulo-chrome .record-card .rc-head .moves-title { margin: 0 0 10px; }
+.zulo-chrome .record-card .rc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.zulo-chrome .record-card .rc-section { padding: 28px 0; border-bottom: 1px solid var(--border-light); }
+.zulo-chrome .record-card .rc-section .caption { margin-top: 12px; max-width: 40rem; }
+.zulo-chrome .record-card .rc-lead { margin: 0 0 14px; font: 400 16px/1.5 var(--font-ui); color: var(--text-primary); max-width: 40rem; }
+.zulo-chrome .record-card .rc-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font: 500 14px/1.5 var(--font-ui); }
+.zulo-chrome .record-card .rc-checks li[data-ok="true"] { color: var(--pulse-cyan, var(--text-primary)); }
+.zulo-chrome .record-card .rc-checks li[data-ok="false"] { color: var(--text-muted); }
+.zulo-chrome .record-card .rc-pending { color: var(--text-muted); }
+.zulo-chrome .record-card .nb-stat-value { font-size: 32px; }
+.zulo-chrome .record-card .rc-dl { margin: 0; border-top: 1px solid var(--border-light); }
+.zulo-chrome .record-card .rc-dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-light); font: 400 14px/1.4 var(--font-ui); }
+.zulo-chrome .record-card .rc-dl dt { color: var(--text-secondary); }
+.zulo-chrome .record-card .rc-dl dd { margin: 0; color: var(--text-primary); text-align: right; }
+.zulo-chrome .record-card a { color: inherit; text-decoration: underline; text-decoration-color: var(--pulse-cyan-line, currentColor); text-underline-offset: 3px; }
+.zulo-chrome .record-card .rc-foot { border-bottom: 0; }
+@media (max-width: 480px) {
+  .zulo-chrome .record-card .rc-face { width: 80px; height: 80px; }
+  .zulo-chrome .record-card .nb-stat-value { font-size: 26px; }
+}
+.zulo-chrome.dash-shell .rc-open-link { color: var(--pulse-cyan); text-decoration-color: var(--pulse-cyan-line); }
