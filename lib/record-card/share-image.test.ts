@@ -44,3 +44,11 @@ test("Post on X text: pixel squares first, official tag last, same shape for eve
   )
   assert.equal(recordShareXText("  ", 42), recordShareXText(undefined, 42))
 })
+
+test("the phone share sheet and Post on X use the same builder, with the url as its own field", () => {
+  const src = fs.readFileSync(path.join(__dirname, "../../components/record-share.tsx"), "utf8")
+  assert.match(src, /const text = recordShareXText\(name, tokenId\)/)
+  assert.match(src, /navigator\.share\(\{.*\btext, url \}\)/)
+  assert.match(src, /intent\/post\?text=\$\{encodeURIComponent\(text\)\}&url=/)
+  assert.doesNotMatch(src, /record card on NCH/, "share text must come only from recordShareXText")
+})
