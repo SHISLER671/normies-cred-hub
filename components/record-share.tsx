@@ -28,8 +28,9 @@ export function RecordShare({
     setCanNativeShare(typeof navigator !== "undefined" && typeof navigator.share === "function")
   }, [])
 
-  const text = `${name}'s record card on NCH: verified identity and trust gate. A track record, not a tip.`
-  const xHref = `https://x.com/intent/post?text=${encodeURIComponent(recordShareXText(name, tokenId))}&url=${encodeURIComponent(url)}`
+  // One text for Post on X and the phone share sheet; the link always travels separately as `url`.
+  const text = recordShareXText(name, tokenId)
+  const xHref = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
 
   async function copy() {
     try {
