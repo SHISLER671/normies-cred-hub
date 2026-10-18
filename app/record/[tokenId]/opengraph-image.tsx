@@ -13,7 +13,6 @@ const BG = "#1a1b1c"
 const INK = "#e3e5e4"
 const MUTED = "#a7a8a8"
 const LINE = "#38393a"
-const CYAN = "#22d3ee"
 
 function Stat({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
   return (
@@ -42,7 +41,7 @@ export default async function Image({ params }: { params: Promise<{ tokenId: str
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: BG, color: INK, padding: 56, border: `2px solid ${LINE}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 24, letterSpacing: 6, color: MUTED }}>
           <div style={{ display: "flex" }}>NORMIES CREDHUB · RECORD CARD</div>
-          <div style={{ display: "flex", color: CYAN }}>#{tokenId}</div>
+          <div style={{ display: "flex", color: INK }}>#{tokenId}</div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 48 }}>
@@ -52,15 +51,15 @@ export default async function Image({ params }: { params: Promise<{ tokenId: str
             width={220}
             height={220}
             alt=""
-            style={{ border: `3px solid ${CYAN}`, background: "#242526", imageRendering: "pixelated" }}
+            style={{ border: `3px solid ${INK}`, background: "#242526", imageRendering: "pixelated" }}
           />
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex", fontSize: 96, lineHeight: 1, letterSpacing: -2 }}>{name}</div>
             <div style={{ display: "flex", gap: 14, fontSize: 24, letterSpacing: 3 }}>
               {agentId != null && (
-                <div style={{ display: "flex", padding: "12px 16px", border: `2px solid ${CYAN}`, color: CYAN }}>AGENT #{agentId}</div>
+                <div style={{ display: "flex", padding: "12px 16px", border: `2px solid ${INK}`, color: INK }}>AGENT #{agentId}</div>
               )}
-              <div style={{ display: "flex", padding: "12px 16px", border: `2px solid ${gate ? CYAN : MUTED}`, color: gate ? CYAN : MUTED }}>
+              <div style={{ display: "flex", padding: "12px 16px", border: `2px solid ${gate ? INK : MUTED}`, color: gate ? INK : MUTED }}>
                 {gate ? "TRUST GATE PASSED" : "TRUST GATE NOT PASSED"}
               </div>
             </div>
