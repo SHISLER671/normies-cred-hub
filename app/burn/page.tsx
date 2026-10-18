@@ -312,18 +312,18 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
       {model.fodder.length > 0 && (
         <details className="burn-box burn-fold" data-tag="Buying?">
           <summary><span>Cheapest #PIXEL per ETH</span><span className="burn-sub">{model.fodder.length} listings</span></summary>
-          <table className="burn-table">
+          <table className="burn-table burn-table-stack">
             <caption className="sr-only">Cheapest ways to get #PIXEL by burning a bought Normie</caption>
-            <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Pays</th><th scope="col">Per ETH</th><th scope="col">ETH per #PIXEL</th>{model.marketLine && <th scope="col">Versus the ask</th>}</tr></thead>
+            <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Pays</th><th scope="col">#PIXEL per ETH</th><th scope="col">ETH per #PIXEL</th>{model.marketLine && <th scope="col">Versus the ask</th>}</tr></thead>
             <tbody>
               {model.fodder.map((f) => (
                 <tr key={f.tokenId}>
-                  <th scope="row">{f.url ? <a href={f.url} target="_blank" rel="noopener noreferrer">#{f.tokenId}</a> : <>#{f.tokenId}</>}</th>
-                  <td>{f.priceEth} ETH</td>
-                  <td>{f.range ? "~" : ""}{f.pays}</td>
-                  <td>{f.perEth}</td>
-                  <td>{f.ethPerPixelRange ? `${f.ethPerPixelRange.low} to ${f.ethPerPixelRange.high}` : f.ethPerPixel}</td>
-                  {model.marketLine && <td>{f.vsAsk ?? ""}{f.breakEven && <><br /><span className="burn-small">Buying #PIXEL beats this Normie above {f.breakEven}</span></>}</td>}
+                  <th scope="row" data-label="Normie">{f.url ? <a href={f.url} target="_blank" rel="noopener noreferrer">#{f.tokenId}</a> : <>#{f.tokenId}</>}</th>
+                  <td data-label="Price">{f.priceEth} ETH</td>
+                  <td data-label="Pays">{f.range ? "~" : ""}{f.pays} #PIXEL</td>
+                  <td data-label="#PIXEL per ETH">{f.perEth}</td>
+                  <td data-label="ETH per #PIXEL">{f.ethPerPixelRange ? `${f.ethPerPixelRange.low} to ${f.ethPerPixelRange.high}` : f.ethPerPixel}</td>
+                  {model.marketLine && <td data-label="Versus the ask" className="burn-vs">{f.vsAsk ?? ""}{f.breakEven && <><br /><span className="burn-small">Buying #PIXEL beats this Normie above {f.breakEven}</span></>}</td>}
                 </tr>
               ))}
             </tbody>

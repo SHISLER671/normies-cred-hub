@@ -17,7 +17,7 @@ function Stars({ value }: { value: number }) {
           <span key={i} className="relative inline-block size-4">
             <Star className="absolute inset-0 size-4 text-muted-foreground/40" />
             <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
-              <Star className="size-4 fill-primary text-primary" />
+              <Star className="chat-star-fill size-4 fill-primary text-primary" />
             </span>
           </span>
         )
@@ -98,7 +98,7 @@ export function ChatRatingsCard({
             </div>
           </div>
           <div className="text-right">
-            <div className="font-heading text-xl tabular-nums text-primary">{summary.score}</div>
+            <div className="chat-score font-heading text-xl tabular-nums text-primary">{summary.score}</div>
             <div className="text-[11px] text-muted-foreground">out of 100</div>
           </div>
         </div>
@@ -127,7 +127,7 @@ export function ChatRatingsCard({
           </div>
 
           <div className="flex flex-wrap gap-1.5 text-[11px]">
-            <span className={cn("border px-1.5 py-px", weighting.holders > 0 ? "border-primary/40 text-primary" : "border-border text-muted-foreground")}>
+            <span className={cn("border px-1.5 py-px", weighting.holders > 0 ? "chat-holders border-primary/40 text-primary" : "border-border text-muted-foreground")}>
               {weighting.holders} holder{weighting.holders === 1 ? "" : "s"}
               {weighting.delegated_holders > 0 ? ` (${weighting.delegated_holders} via delegate.xyz)` : ""}
             </span>

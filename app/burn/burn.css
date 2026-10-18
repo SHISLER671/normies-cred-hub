@@ -281,3 +281,17 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: #0891b2; }
 @media (prefers-reduced-motion: reduce) {
   .burn-page .burn-tile { transition: none; }
 }
+
+/* Number columns never break mid-number; on phones the buying table becomes one card per Normie (labels from data-label). */
+.burn-page .burn-table td, .burn-page .burn-table th { font-variant-numeric: tabular-nums; }
+.burn-page .burn-table-stack td:not(.burn-vs), .burn-page .burn-table-stack tbody th { white-space: nowrap; }
+.burn-page .burn-table-stack thead th { white-space: nowrap; }
+@media (max-width: 640px) {
+  .burn-page .burn-table-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .burn-page .burn-table-stack, .burn-page .burn-table-stack tbody, .burn-page .burn-table-stack tr { display: block; width: 100%; }
+  .burn-page .burn-table-stack tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 12px 0; border-top: 1px solid var(--border-light); }
+  .burn-page .burn-table-stack tbody th, .burn-page .burn-table-stack td { display: grid; gap: 2px; padding: 6px 0; border-top: 0; white-space: normal; }
+  .burn-page .burn-table-stack tbody th { grid-column: 1 / -1; font-size: 15px; }
+  .burn-page .burn-table-stack td::before { content: attr(data-label); font: 10px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+  .burn-page .burn-table-stack td.burn-vs { grid-column: 1 / -1; }
+}
