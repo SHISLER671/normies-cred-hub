@@ -1,0 +1,52 @@
+# Daily watch for new official Normies data surfaces (Arena results, Hive activity, Agents Canvas votes/feedback).
+# Read-only: fetches the public llms.txt route index and opens ONE issue when a matching route appears, so NCH can wire
+# the pending record-card slots on launch day. Never writes anything else. Owner: Claude (docs/zulo/agent-canvas-votes-plan.md).
+name: Watch Normies API for new data
+
+on:
+  schedule:
+    - cron: "17 21 * * *" # daily, 07:17 Guam
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch llms.txt and look for new data routes
+        id: scan
+        run: |
+          set -euo pipefail
+          curl -fsSL --max-time 30 https://api.normies.art/llms.txt -o llms.txt || { echo "found=" >> "$GITHUB_OUTPUT"; exit 0; }
+          # Route-like lines that mention the surfaces we are waiting on.
+          # Only URL paths (e.g. /arena/..., /canvas/{id}/votes), not words in prose.
+          grep -oiE '/[a-z0-9_{}./-]*(vote|feedback|critic|agents?-canvas|arena|hive)[a-z0-9_{}./-]*' llms.txt | sort -u | head -40 > hits.txt || true
+          if [ -s hits.txt ]; then
+            echo "found=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open one issue (no duplicates)
+        if: steps.scan.outputs.found == 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          title="Normies API: new Arena / Hive / Agents Canvas routes in llms.txt"
+          existing=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq 'length')
+          if [ "$existing" != "0" ]; then echo "Issue already open"; exit 0; fi
+          {
+            echo "The daily watch found route paths in https://api.normies.art/llms.txt that look like data NCH is waiting for. Check they are new (not an existing ERC-8004 reputation route) before building."
+            echo
+            echo '```'
+            cat hits.txt
+            echo '```'
+            echo
+            echo "Next: confirm the launch is official (lib/official-status.ts), then wire the pending record-card slot"
+            echo "(lib/record-card/arena.ts or lib/record-card/canvas.ts). Official data only."
+          } > body.md
+          gh issue create --repo "$REPO" --title "$title" --body-file body.md

@@ -68,6 +68,7 @@ export default async function RecordCardPage({ params }: Params) {
   const { identity, context, pulse, sectors, chat_rating: chat } = card
   const name = identity.agent_name.value ?? `Normie #${tokenId}`
   const arena = sectors.arena
+  const canvas = sectors.canvas
   const asOf = new Date(card.generated_at).toUTCString().replace(" GMT", " UTC")
 
   return (
@@ -140,8 +141,23 @@ export default async function RecordCardPage({ params }: Params) {
           </p>
         </section>
 
+        <section className="rc-section" aria-labelledby="rc-canvas">
+          <Eyebrow n="04"><span id="rc-canvas">Agents Canvas</span></Eyebrow>
+          <p className="rc-lead">{canvas.status_text}.</p>
+          <StatGrid>
+            <Stat label="Canvases created" value={show(canvas.record.canvases_created)} note={note(canvas.record.canvases_created)} />
+            <Stat label="Pieces painted" value={show(canvas.record.pieces_painted)} note={note(canvas.record.pieces_painted)} />
+            <Stat label="Votes received" value={show(canvas.record.votes_received)} note={note(canvas.record.votes_received)} />
+            <Stat label="Votes cast" value={show(canvas.record.votes_cast)} note={note(canvas.record.votes_cast)} />
+          </StatGrid>
+          <p className="caption">
+            Filled from official Agents Canvas data only, once it exists. Votes will count only from agents past the trust
+            gate, one per agent; written feedback is shown, never scored.
+          </p>
+        </section>
+
         <section className="rc-section" aria-labelledby="rc-chat">
-          <Eyebrow n="04"><span id="rc-chat">Chat rating (not counted)</span></Eyebrow>
+          <Eyebrow n="05"><span id="rc-chat">Chat rating (not counted)</span></Eyebrow>
           {!chat || !chat.available ? (
             <p className="rc-lead">Chat ratings are unavailable right now.</p>
           ) : chat.raw.ratings === 0 ? (
@@ -161,7 +177,7 @@ export default async function RecordCardPage({ params }: Params) {
         </section>
 
         <section className="rc-section" aria-labelledby="rc-context">
-          <Eyebrow n="05"><span id="rc-context">Who controls it</span></Eyebrow>
+          <Eyebrow n="06"><span id="rc-context">Who controls it</span></Eyebrow>
           <dl className="rc-dl">
             <div>
               <dt>Owner</dt>

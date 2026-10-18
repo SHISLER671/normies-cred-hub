@@ -10,6 +10,7 @@ import { buildSelfAwarenessPromptBlock } from "./agent-recommendations/selfAware
 import { buildNormiesWisdomPrompt, NORMIES_KNOWLEDGE } from "./agent-recommendations/normiesKnowledge"
 import { PIXEL_CURRENCY_MD } from "./knowledge/pixel-currency"
 import {
+  AGENTS_CANVAS_STATUS_LINE,
   ARENA_STATUS_LINE,
   OFFICIAL_STATUS,
   PIXEL_MARKET_STATUS_LINE,
@@ -43,6 +44,7 @@ const CONTRADICTIONS: Array<{ re: RegExp; why: string }> = [
   { re: /PIXEL MARKET[^\n]{0,40}\bnot live\b/i, why: "Pixel Market is LIVE" },
   { re: /PIXEL MARKET[^\n]{0,10}\(announced \/ (?:technical )?WIP/i, why: "Pixel Market is LIVE" },
   { re: /\bArena\s*(?:=|:|is)\s*\**\s*(?:LIVE|open now|playable)\b/i, why: "Arena is Coming Soon" },
+  { re: /\bAgents Canvas\s*(?:=|:|is)\s*\**\s*(?:LIVE|open now)\b/i, why: "Agents Canvas is announced, not live" },
   { re: /Zombies[^\n]{0,20}\b(?!21\/21)\d{1,2}\/21\b/i, why: "Zombies are 21/21 sealed" },
 ]
 
@@ -54,6 +56,8 @@ describe("official status: one source of truth", () => {
     assert.equal(OFFICIAL_STATUS.zombies.claimed, 21)
     assert.equal(OFFICIAL_STATUS.zombies.total, 21)
     assert.deepEqual(SURFACE_TAGS, { pixelMarket: "LIVE", arena: "COMING SOON", zombies: "ALL CLAIMED" })
+    assert.equal(OFFICIAL_STATUS.agentsCanvas.status, "ANNOUNCED")
+    assert.match(AGENTS_CANVAS_STATUS_LINE, /not live/)
   })
 
   it("every file that states these statuses imports the status module", () => {

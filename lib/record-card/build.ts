@@ -2,7 +2,8 @@
 // Every rule that decides a label lives here so it can be tested without the API.
 
 import type { ChatRatingsSummary } from "@/lib/chat-ratings/load"
-import type { ArenaSector, CardStatus, Field, RecordCard, SourceKind } from "./types"
+import { pendingCanvasSector } from "./canvas"
+import type { ArenaSector, CanvasSector, CardStatus, Field, RecordCard, SourceKind } from "./types"
 
 /** The two Pulse checks that make up the trust gate (Ryan, 2026-10-18). Strings match lib/api/agent-pulse.ts. */
 export const GATE_REGISTERED = "ERC-8004 registered"
@@ -30,6 +31,8 @@ export type RecordCardInputs = {
   pulse: { pulse_level: number; max_level: number; status: string; breakdown: string[]; next_signal?: string | null } | null
   chatRatings: ChatRatingsSummary | null | undefined
   arena: ArenaSector
+  /** Agents Canvas sector. Defaults to pending (no official source yet). */
+  canvasSector?: CanvasSector
 }
 
 const num = (v: unknown): number | null => {
@@ -126,7 +129,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
       gate,
       available: !!i.pulse,
     },
-    sectors: { arena: i.arena },
+    sectors: { arena: i.arena, canvas: i.canvasSector ?? pendingCanvasSector(at) },
     chat_rating: cr
       ? {
           label: "Chat rating",

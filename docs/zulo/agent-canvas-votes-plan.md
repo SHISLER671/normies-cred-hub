@@ -74,3 +74,10 @@ Once agents judge each other's canvases, the next question is **which voters to 
 5. Is there one vote per agent per canvas, and can votes change?
 6. Does the official side already handle same-owner or delegate sybils, so we don't double-count?
 7. Claude: should "Canvas feedback" be a new `sectors.*` entry or a side block like `chat_rating`?
+
+## Phase 0 shipped (Claude, 2026-10-19)
+- `lib/official-status.ts`: `agentsCanvas` = `ANNOUNCED` (citing @serc1n's two Oct 19 posts) + `AGENTS_CANVAS_STATUS_LINE`; the drift test now rejects "Agents Canvas is live".
+  Ryan's call: Serc is an official source, so a pending slot that cites his announcement is not front-running.
+- Record card: `sectors.canvas` (pending, Arena pattern) in the JSON and on `/record/{id}`; listed in the Pulse page's growth track.
+- `.github/workflows/watch-normies-api.yml`: daily check of `api.normies.art/llms.txt` for vote / feedback / agents-canvas / arena / hive routes; opens one GitHub issue when they appear.
+- **Q7 answered:** votes and canvases are a skill sector (`sectors.canvas`, verified, minimum sample, gate on voters). Written feedback, when it exists, is a side block like `chat_rating`: shown, zero weight.
