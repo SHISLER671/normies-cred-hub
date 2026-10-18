@@ -58,7 +58,7 @@ export default async function RecordCardPage({ params }: Params) {
       <div className="header-spacer" aria-hidden />
 
       <main className="dash-main record-card">
-        <section className="dash-hero rc-hero" data-reveal>
+        <section className="dash-hero rc-hero nb-grid-bg" data-reveal>
           <p className="moves-kicker mono">RECORD CARD · #{tokenId}</p>
           <div className="rc-head">
             {/* eslint-disable-next-line @next/next/no-img-element */}

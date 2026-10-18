@@ -689,7 +689,7 @@
 }
 
 .zulo-chrome .header-nav a.nav-ask.is-active {
-  color: var(--zulo-accent);
+  color: var(--text-primary);
 }
 
 .zulo-chrome .header-nav a:focus-visible {
@@ -943,7 +943,7 @@
 .zulo-chrome .site-footer a.footer-zulo,
 .zulo-chrome .site-footer a.footer-zulo:hover,
 .zulo-chrome .site-footer a.footer-zulo:focus-visible {
-  color: var(--zulo-accent);
+  color: var(--text-primary);
 }
 
 /* Avatar */
@@ -3778,7 +3778,7 @@
   text-underline-offset: 3px;
 }
 .zulo-chrome .home-art-credit a:hover {
-  color: var(--zulo-accent);
+  color: var(--text-primary);
 }
 @media (min-width: 900px) {
   .zulo-chrome .home-art-inner {
@@ -3924,20 +3924,24 @@
 .zulo-chrome .ph-beats {
   list-style: none; margin: 0; padding: 8px 0 10px;
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
-  font-size: 10.5px; line-height: 1.3; letter-spacing: 0; text-align: center; color: var(--text-muted);
+  font-size: 9.5px; line-height: 1.35; letter-spacing: 0.14em; text-transform: uppercase; text-align: center; color: var(--text-muted);
 }
 @media (min-width: 640px) { .zulo-chrome .ph-beats { font-size: 12px; } }
 .zulo-chrome .ph-beats li { min-width: 0; padding: 0 2px; cursor: help; }
 .zulo-chrome .ph-beats li[data-lit="true"] { color: var(--text-primary); }
 .zulo-chrome .ph-beat-label { display: block; overflow-wrap: normal; word-break: normal; hyphens: none; }
-.zulo-chrome .ph-beat-gate { display: block; margin-top: 2px; font-size: 10px; letter-spacing: 0.04em; color: var(--text-muted); }
-.zulo-chrome .ph-beats li[data-gate="true"][data-lit="true"] .ph-beat-gate { color: var(--text-primary); }
+.zulo-chrome .ph-beat-gate {
+  display: inline-block; margin-top: 4px; padding: 1px 4px; font-size: 8.5px; letter-spacing: 0.2em;
+  color: var(--text-muted); box-shadow: inset 0 0 0 1px var(--border-light);
+}
+.zulo-chrome .ph-beats li[data-gate="true"][data-lit="true"] .ph-beat-gate { background: var(--text-primary); color: var(--bg-primary); box-shadow: none; }
 
 /* Readout */
 .zulo-chrome.dash-shell .ph-readout { margin-top: 24px; min-height: 64px; }
-.zulo-chrome.dash-shell .ph-level { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.zulo-chrome.dash-shell .ph-level-num { color: var(--text-primary); font-size: 56px; line-height: 1; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-.zulo-chrome.dash-shell .ph-level-of { font-size: 15px; color: var(--text-muted); }
+.zulo-chrome.dash-shell .ph-level { margin: 0; display: flex; align-items: center; gap: 16px; }
+.zulo-chrome.dash-shell .ph-level-side { display: flex; flex-direction: column; gap: 8px; }
+.zulo-chrome.dash-shell .ph-level-num { color: var(--text-primary); font-size: 64px; line-height: 1; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.zulo-chrome.dash-shell .ph-level-of { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-secondary); }
 .zulo-chrome.dash-shell .ph-status { font-size: 15px; color: var(--text-primary); }
 .zulo-chrome.dash-shell .ph-gate { margin: 14px 0 0; display: flex; gap: 10px; font-size: 15px; line-height: 1.45; max-width: 62ch; }
 .zulo-chrome.dash-shell .ph-gate-mark { flex: none; color: var(--text-muted); }
@@ -4129,3 +4133,65 @@
 
 /* Record card page: the same heartbeat under the trust verdict */
 .zulo-chrome .record-card .rc-trace { margin: 16px 0 8px; }
+
+/* ================================================================================================
+   PIXEL PASS (2026-10-18) — official Normies vocabulary on the new pieces: tracked uppercase labels,
+   boxed tags, solid step labels, square-pixel meters, dotted connectors with square nodes.
+   ================================================================================================ */
+.zulo-chrome .hh-tags { margin: 0 0 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+.zulo-chrome.dash-shell .pulse-intro .hh-tags { margin-bottom: 18px; }
+.zulo-chrome.dash-shell .pulse-intro { padding-top: 8px; }
+.zulo-chrome.dash-shell .ph-ids { gap: 6px; margin-top: 10px; }
+
+/* Buttons: tracked uppercase, like CONNECT → and VIEW COLLECTION */
+.zulo-chrome .ph-btn,
+.zulo-chrome .hh-btn,
+.zulo-chrome .hh-go,
+.zulo-chrome .rc-share-btn {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+}
+.zulo-chrome .hh-chip {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+}
+
+/* Home reading line: meter, level, gate */
+.zulo-chrome.zulo-home .hh-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.zulo-chrome.zulo-home .hh-level { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; }
+.zulo-chrome.zulo-home .hh-gate { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); }
+.zulo-chrome.zulo-home .hh-gate[data-passed="true"] { color: var(--text-primary); }
+.zulo-chrome.zulo-home .hh-gate[data-passed="true"]::before { content: "■ "; }
+
+/* Growth track: dotted connector of square pixels, square nodes, solid step labels */
+.zulo-chrome.dash-shell .ev-step { grid-template-columns: 14px 1fr auto; gap: 0 16px; }
+.zulo-chrome.dash-shell .ev-step::before,
+.zulo-chrome.dash-shell .ev-step[data-state="waiting"]::before,
+.zulo-chrome.dash-shell .ev-step[data-state="live"] + .ev-step[data-state="waiting"]::before {
+  left: 6px; top: 22px; bottom: 2px; width: 2px; border: 0;
+  background: repeating-linear-gradient(to bottom, var(--text-primary) 0 2px, transparent 2px 7px);
+}
+.zulo-chrome.dash-shell .ev-step[data-state="live"] + .ev-step[data-state="waiting"]::before,
+.zulo-chrome.dash-shell .ev-step[data-state="waiting"]::before {
+  background: repeating-linear-gradient(to bottom, var(--border) 0 2px, transparent 2px 7px);
+}
+.zulo-chrome.dash-shell .ev-node {
+  width: 14px; height: 14px; margin-top: 4px; background: var(--text-primary);
+}
+.zulo-chrome.dash-shell .ev-step[data-state="waiting"] .ev-node { background: transparent; box-shadow: inset 0 0 0 2px var(--border); }
+.zulo-chrome.dash-shell .ev-name { margin: 2px 0 0; font-size: inherit; line-height: 1; }
+.zulo-chrome.dash-shell .ev-status { margin-top: 0; }
+.zulo-chrome.dash-shell .ev-sectors li > span:first-child { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-primary); }
+
+/* Narrow screens: tracked beat labels need less spacing to fit five columns */
+@media (max-width: 520px) {
+  .zulo-chrome .ph-beats { font-size: 8.5px; letter-spacing: 0.03em; }
+  .zulo-chrome .ph-beat-gate { letter-spacing: 0.12em; }
+}
+.zulo-chrome .ph-btn,
+.zulo-chrome .hh-btn,
+.zulo-chrome .hh-go,
+.zulo-chrome .rc-share-btn { white-space: nowrap; }
+@media (max-width: 520px) {
+  .zulo-chrome .ph-btn,
+  .zulo-chrome .hh-btn,
+  .zulo-chrome .rc-share-btn { font-size: 11px; letter-spacing: 0.12em; padding: 0 12px; }
+}

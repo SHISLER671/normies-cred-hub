@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { AgentToolsStrip } from "@/components/agent-tools-block"
+import { Chip } from "@/components/brand"
 import { Dashboard } from "@/components/dashboard"
 import {
   PulseAccordion,
@@ -26,6 +27,10 @@ export default function DashboardPage() {
 
       <main className="dash-main pulse-page">
         <header className="pulse-intro">
+          <p className="hh-tags">
+            <Chip>Live trust checks</Chip>
+            <Chip>Read-only</Chip>
+          </p>
           <h1 className="pulse-intro-title">Pulse</h1>
           <p className="pulse-intro-lede">
             Trust checks for awakened Normie agents, read live from Ethereum and the Normies API. Check an agent

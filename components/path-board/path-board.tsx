@@ -120,7 +120,7 @@ export function PathBoard({
 
   return (
     <div className="moves-board">
-      <header className="moves-header" data-reveal>
+      <header className="moves-header nb-grid-bg" data-reveal>
         <p className="moves-kicker mono">MOVES · FREE</p>
         <ActiveNormieBadge />
         <h1 className="moves-title">

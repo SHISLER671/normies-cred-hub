@@ -1,6 +1,7 @@
 "use client"
 
 import { PulseExplainer } from "@/components/agent-pulse-bar"
+import { Chip, PixelMeter } from "@/components/brand"
 import { RecordShare } from "@/components/record-share"
 import { useRecordCard } from "@/hooks/use-record-card"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -48,7 +49,7 @@ export function PulseHero({
   const traceState = isLoading ? "loading" : isError || (card && !pulseReady) ? "idle" : "ready"
 
   return (
-    <section className="pulse-hero" aria-labelledby="pulse-hero-name" data-state={traceState}>
+    <section className="pulse-hero nb-grid-bg" aria-labelledby="pulse-hero-name" data-state={traceState}>
       <div className="ph-id">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -63,16 +64,14 @@ export function PulseHero({
             {isLoading ? <span className="ph-ghost">Reading #{tokenId}…</span> : name}
           </h2>
           <p className="ph-ids">
-            <span>Normie #{tokenId}</span>
+            <Chip>Normie #{tokenId}</Chip>
             {agentId !== null ? (
-              <span className="ph-agent">Agent #{agentId}</span>
+              <Chip tone="ours">Agent #{agentId}</Chip>
             ) : notAwakened ? (
-              <span className="ph-muted">Not awakened yet</span>
+              <Chip>Not awakened</Chip>
             ) : null}
+            {isMyAgent && <Chip tone="live">{viaDelegate ? "Yours · delegate" : "Yours"}</Chip>}
           </p>
-          {isMyAgent && (
-            <p className="ph-yours">{viaDelegate ? "Your agent, via delegate" : "Your agent"}</p>
-          )}
         </div>
       </div>
 
@@ -101,11 +100,15 @@ export function PulseHero({
           <p className="ph-note">Pulse is unavailable for this Normie right now.</p>
         ) : (
           <>
-            <p className="ph-level">
+            <div className="ph-level">
               <span className="ph-level-num">{level}</span>
-              <span className="ph-level-of">of {max}</span>
-              <span className="ph-status">{pulse!.status}</span>
-            </p>
+              <span className="ph-level-side">
+                <PixelMeter value={level ?? 0} max={max} large />
+                <span className="ph-level-of">
+                  of {max} · {pulse!.status}
+                </span>
+              </span>
+            </div>
             <p className="ph-gate" data-passed={gate?.passed}>
               <span className="ph-gate-mark" aria-hidden>{gate?.passed ? "✓" : "○"}</span>
               {gate?.passed
@@ -118,7 +121,7 @@ export function PulseHero({
       </div>
 
       <div className="ph-actions">
-        <a className="ph-btn ph-btn-primary" href={`/record/${tokenId}`}>
+        <a className="ph-btn ph-btn-primary nb-cta-arrow" href={`/record/${tokenId}`}>
           Open record card
         </a>
         <RecordShare compact url={recordCardUrl(tokenId, siteOrigin())} tokenId={tokenId} name={name} />
