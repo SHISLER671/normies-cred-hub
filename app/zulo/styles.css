@@ -3836,3 +3836,23 @@
   .zulo-chrome .record-card .nb-stat-value { font-size: 26px; }
 }
 .zulo-chrome.dash-shell .rc-open-link { color: var(--pulse-cyan); text-decoration-color: var(--pulse-cyan-line); }
+
+/* Record card: dashboard button + share buttons (cyan accent, read-only actions) */
+.zulo-chrome.dash-shell .rc-action-btn { border-color: var(--pulse-cyan-line); text-decoration: none; }
+.zulo-chrome.dash-shell .rc-action-btn .pulse-action-btn-title,
+.zulo-chrome.dash-shell .rc-action-btn svg { color: var(--pulse-cyan); }
+.zulo-chrome.dash-shell .rc-action-btn:hover .pulse-action-btn-title,
+.zulo-chrome.dash-shell .rc-action-btn:hover svg,
+.zulo-chrome.dash-shell .rc-action-btn:focus-visible .pulse-action-btn-title,
+.zulo-chrome.dash-shell .rc-action-btn:focus-visible svg { color: inherit; }
+.zulo-chrome .record-card .rc-share { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.zulo-chrome .record-card .rc-share-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 16px;
+  border: 1px solid var(--pulse-cyan-line); background: transparent; color: var(--pulse-cyan);
+  font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; cursor: pointer;
+}
+.zulo-chrome .record-card .rc-share-btn:hover,
+.zulo-chrome .record-card .rc-share-btn:focus-visible { background: var(--pulse-cyan); color: #0b0c0d; outline: none; }
+.zulo-chrome .record-card .rc-share-primary { background: var(--pulse-cyan); color: #0b0c0d; }
+@media (max-width: 480px) { .zulo-chrome .record-card .rc-share-btn { flex: 1 1 auto; } }

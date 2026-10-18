@@ -4,10 +4,13 @@ import { notFound } from "next/navigation"
 import { Chip, Eyebrow, Stat, StatGrid } from "@/components/brand"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
+import { RecordShare } from "@/components/record-share"
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { loadRecordCard } from "@/lib/record-card/load"
 import type { Field } from "@/lib/record-card/types"
+import { recordCardUrl } from "@/lib/record-card/ask-line"
+import { siteOrigin } from "@/lib/site-origin"
 
 import "../../zulo/styles.css"
 
@@ -69,6 +72,7 @@ export default async function RecordCardPage({ params }: Params) {
           </div>
           <p className="moves-lede">{card.card_status_text}</p>
           <p className="caption">A track record, not a tip. Verified sources only; anything else is labelled. Read-only.</p>
+          <RecordShare url={recordCardUrl(tokenId, siteOrigin())} tokenId={tokenId} name={name} />
         </section>
 
         <section className="rc-section" aria-labelledby="rc-trust">

@@ -348,6 +348,20 @@ export function Dashboard() {
                   Explore community-built tools for Normies.
                 </p>
               </button>
+
+              {/* Record Card — public, read-only, shareable */}
+              <a href={`/record/${tokenId}`} className="pulse-action-btn rc-action-btn md:col-span-2">
+                <div className="pulse-action-btn-head">
+                  <Award className="size-4 shrink-0" />
+                  <span className="pulse-action-btn-title">Record Card</span>
+                  <span className="pulse-action-btn-arrow" aria-hidden>
+                    →
+                  </span>
+                </div>
+                <p className="pulse-action-btn-desc">
+                  The verified record for #{tokenId}: trust gate, identity, Arena slot. Share it anywhere.
+                </p>
+              </a>
             </div>
           )}
 
