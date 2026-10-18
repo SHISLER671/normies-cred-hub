@@ -1,6 +1,6 @@
 # Pixel Symphony revival plan: Normies that sing, inside NCH
 
-Drafted 2026-10-19 (ChST) by GrokBot for Ryan. **Plan only, no code.** It follows `AGENTS.md`, `docs/zulo/strategy.md` and `lib/official-status.ts`. The old repo is [SHISLER671/pixelsymphony](https://github.com/SHISLER671/pixelsymphony) (live at pixelsymphony.vercel.app, last commit 2026-07-12). This plan leaves it untouched.
+Drafted 2026-10-19 (ChST) by GrokBot for Ryan; Ryan's decisions recorded 2026-10-19 (see **Decisions**). **Plan only, no code.** It follows `AGENTS.md`, `docs/zulo/strategy.md` and `lib/official-status.ts`. The old repo is [SHISLER671/pixelsymphony](https://github.com/SHISLER671/pixelsymphony) (live at pixelsymphony.vercel.app, last commit 2026-07-12). This plan leaves it untouched.
 
 ## Thesis
 The Normies hive mind is like mycelium under a forest. Every mushroom is unique, and all of them are connected. **One Normie makes a blip**: a short motif read from its live on-chain pixels. **Layer many Normies** and you get music: a holder's set, a sweep, the Hive, a canvas.
@@ -13,8 +13,7 @@ The Normies hive mind is like mycelium under a forest. Every mushroom is unique,
   - To play a token at block N, use the newest version whose `blockNumber` ≤ N. If none exists, use `/normie/{id}/original/pixels`.
   - Traits are fixed at mint, so they're stable.
   - Ownership and burn counts at a block can come from `/rarity/historical/{block}/…`, which "recomputes ownership, burn counts, traits and ranks at an Ethereum block number".
-- **Share link:** `/symphony/{id}?block=N`. The room version is `/symphony/room?ids=…&block=N`.
-- **Snapshots** go in NCH's shared Supabase in one table, with a TTL (proposed 30 days, purged by a cron or scheduled query). A snapshot is a cache, not the source of truth: the API can always rebuild it. Ryan applies the SQL by hand, and the file's first line says DRAFT.
+- **Share links are stateless:** `/symphony/{id}?block=N`, and the room version is `/symphony/room?ids=…&block=N`. Opening a link recomputes the song from the official API at that block. Nothing is saved: no database, no table, no migration, no saved user songs.
 - **No minting, no wallet writes, no tokens.** NCH stays read-only. The only signature allowed is a plain `signMessage`.
 
 ## Mapping (pixel-themed, deterministic)
@@ -26,7 +25,7 @@ The Normies hive mind is like mycelium under a forest. Every mushroom is unique,
 | **Burns** (`/history/burns/receiver/{tokenId}`, `/canvas/token/{id}/activity`) | Percussion hit per burn event | |
 | **Awakened agents** (ERC-8004 binding, already on the record card) | Arpeggio voice | Agent or not is a fact. Agent activity (Arena, Agents Canvas) stays pending. |
 | **Traits** (Type, Expression, Age, Eyes…) | Instrument family, scale, phrasing | Reuse the old `fallback.ts` mapping. |
-| **Mycelium view**: links between Normies (same holder, same Canvas delegate, same NormiesBOT sweep) | Pixel threads that **light up cyan when that pair plays** | Use only the owner and delegate data NCH already reads. Never map wallets to people. |
+| **Mycelium view**: links between Normies (same holder, same Canvas delegate, same NormiesBOT sweep) | Pixel threads that **brighten (white/inverted) when that pair plays**; no cyan | Use only the owner and delegate data NCH already reads. Never map wallets to people. |
 
 Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noise percussion, short envelopes).
 
@@ -39,9 +38,11 @@ Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noi
 - **Tie-ins:** a "Listen" button on the record card. An Agents Canvas mode only once it's official.
 
 ## Visual
-- The official 1-bit pixel look (black and white grid) with **cyan as the Symphony accent**. Reuse NCH's existing token `--zulo-accent` (`#22d3ee`) and don't add a new cyan.
-- **Note:** NCH's current rule (Ryan, 2026-10-18) is "cyan only on calls to action, never decoration". The playing-pixel highlight and the mycelium threads would be a Symphony-only exception, scoped to `/symphony` (see Open questions).
-- Drop the old skins (Classic 90s grey, CRT green `#39ff14`, Pixel Forest green). There will be one look: 1-bit + cyan.
+- **90s media-player skin, Winamp-style:** classic skinned player chrome with bevels, an LCD-style readout (Normie #, block, time), a spectrum/EQ visualizer, and a playlist panel (the room / sweep list).
+- **Monochrome, pixel feel** consistent with the official 1-bit Normies look (black, white, greys). One skin, no skin switcher.
+- **Cyan (`#22d3ee`, existing token `--zulo-accent`) is buttons / calls-to-action only**, per the existing NCH rule (Ryan, 2026-10-18). No Symphony exception. Don't add a new cyan.
+- **Optional, super minimal effect:** at most a faint cyan glow on the currently playing pixel. Nothing else (chrome, visualizer, threads, text) is cyan.
+- Drop the old green skins (CRT green `#39ff14`, Pixel Forest green). The old WMP-style chrome is reference only; rebuild it fresh as the Winamp-style skin.
 
 ## Data rules
 - Use the official API (`api.normies.art`, listed in `llms.txt`) or on-chain reads only. Never invent endpoints.
@@ -57,13 +58,13 @@ Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noi
 ## Phases
 | Phase | Ships | Gate |
 | --- | --- | --- |
-| **P0** | Port the engine into NCH under `/symphony` with the 1-bit + cyan look and a **single-Normie blip** (type a number, play, download WAV). Make the engine pure and unit-tested (same input → same score). | none (Claude claims it) |
-| P1 | Layering and room mode, block-pinned share links (`?block=N` via `/history/normie/{id}/versions`), Supabase snapshots with TTL, PNG pixel score, MP4 for X | P0 merged, plus Ryan applies the SQL |
-| P2 | Mycelium view (cyan threads), "Listen" button on the record card, "Play my Normies" (read-only) | P1 merged |
+| **P0** | Port the engine into NCH under `/symphony` with the monochrome Winamp-style skin (cyan on buttons only) and a **single-Normie blip** (type a number, play, download WAV). Make the engine pure and unit-tested (same input → same score). | none (Claude claims it) |
+| P1 | Layering and room mode with the playlist panel, stateless block-pinned share links (`?block=N` via `/history/normie/{id}/versions`, recomputed on open), PNG pixel score, MP4 for X. No DB work. | P0 merged |
+| P2 | Mycelium view (monochrome threads), "Listen" button on the record card, "Play my Normies" (read-only) | P1 merged |
 | P3 | Agents Canvas or 256×256 voice | Official, readable data only |
 
-## Migration notes
-- **Port** these, adapting them to NCH's `lib/` and `components/`:
+## Porting notes (from the old repo)
+- **Build fresh** inside NCH at `/symphony`. Port only the reusable engine pieces below, as reference, adapting them to NCH's `lib/` and `components/`:
   - `lib/fallback.ts` + `lib/compose.ts`, the pixel and trait → score engine, about 700 lines
   - `lib/audio.ts`, Tone.js playback and offline WAV
   - `lib/blip-export.ts`, WAV export and the X compose URL
@@ -76,7 +77,7 @@ Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noi
   - Old `lib/ownership.ts` and `app/api/delegates`. Use NCH's `lib/normie-control.ts` and `lib/delegations`.
   - Old `ConnectWallet.tsx`, wagmi and RainbowKit. NCH already has them.
 - **Retire:**
-  - The 90s Windows Media Player chrome and the skins (`SkinSwitcher.tsx`, the classic, CRT and pixel-forest CSS)
+  - The old skins and `SkinSwitcher.tsx` (classic, CRT and pixel-forest CSS). The old 90s chrome is design reference only; the new Winamp-style skin is built fresh.
   - The unused `@ffmpeg/ffmpeg` and `@ffmpeg/util` deps (no imports found)
   - The duplicate shadcn `components/ui/*`, if NCH already has them
 - **New dependencies in NCH:** `tone` (and `mp4-muxer` in P1).
@@ -84,21 +85,26 @@ Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noi
   - Load Tone.js on the client and lazily, only on `/symphony`, so other pages don't grow.
 - **Env vars:**
   - Old repo: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_RPC_URL`. NCH already has its own equivalents.
-  - P1 adds nothing new: it reuses NCH's existing Supabase vars.
+  - No new env vars in any phase. Symphony uses no Supabase or database.
   - Names only go in `.env.example`.
 - **Tests:** the new `lib/symphony/*.test.ts` files go into `test:all` and `test:unit`. Cover determinism, n×n grids, and the block → version pick.
-- **Old Vercel project** `pixelsymphony` (prj_ELzSjwDP1C7z7sMPRm7UjP9XovWm, last production deploy 2026-07-12) can be archived or redirected to `normiescredhub.vercel.app/symphony` once P0 ships. **That's Ryan's call.** Don't change Vercel before then.
+- **Old Vercel project** `pixelsymphony` (prj_ELzSjwDP1C7z7sMPRm7UjP9XovWm, last production deploy 2026-07-12): **archive it, no redirect** (Ryan, 2026-10-19), once P0 ships. Don't change Vercel before then; Ryan does the archive.
 - Don't edit `public/.well-known/ai-tool/*.json`, because those hashes are pinned.
 
-## Open questions
-**For Ryan**
-1. Is the cyan exception OK inside `/symphony` only (playing-pixel highlight, mycelium threads)?
-2. When P0 ships, should we archive pixelsymphony.vercel.app or redirect it to `/symphony`?
-3. Is a 30-day snapshot TTL right?
-4. Is the "Pixel Symphony" name kept inside NCH?
+## Decisions (Ryan, 2026-10-19)
+1. **Cyan:** buttons / calls-to-action only, per the existing NCH rule. **No exception.** Optional effect only if super minimal (e.g. a faint glow on the currently playing pixel).
+2. **Design:** 90s media-player skin, Winamp-style (skinned chrome, bevels, LCD readouts, spectrum/EQ visualizer, playlist panel), monochrome/pixel feel consistent with Normies.
+3. **Old site:** archive pixelsymphony.vercel.app, **no redirect**. Build fresh in NCH at `/symphony`, porting only the reusable engine pieces as reference.
+4. **No saved user songs:** no Supabase snapshots, no TTL/retention, no hand-applied SQL. Share links are stateless block-pinned URLs that recompute from the official API. **No DB or migration anywhere in this plan.**
+5. **Name:** keep "Pixel Symphony".
 
-**For Claude**
-5. Grid sizes: how do `/normie/{id}/pixels` and the version pixels return 50–80 px grids? Confirm before hardcoding n.
-6. Is `/history/normie/{id}/versions` enough for exact block replay (is the active state at block N the composited version with `blockNumber` ≤ N), or do zombie or legendary states need extra reads?
-7. Is a room capped (e.g. 16 Normies) for performance and API rate limits? Should requests go through NCH's existing `fetchWithRetry`?
-8. Should the "Listen" share text reuse the record-card share helpers (`lib/record-card/share-image.ts`)?
+## Must-nots (unchanged)
+- Arena is not live (Coming Soon). Agents Canvas is ANNOUNCED, not live. Copy status lines from `lib/official-status.ts`.
+- Painting never earns PIXEL; PIXEL comes from burns or buying on the Pixel Market.
+- No profit, price or token talk. No minting, no wallet writes, no custody.
+
+## Open questions (for Claude)
+1. Grid sizes: how do `/normie/{id}/pixels` and the version pixels return 50–80 px grids? Confirm before hardcoding n.
+2. Is `/history/normie/{id}/versions` enough for exact block replay (is the active state at block N the composited version with `blockNumber` ≤ N), or do zombie or legendary states need extra reads?
+3. Is a room capped (e.g. 16 Normies) for performance and API rate limits? Should requests go through NCH's existing `fetchWithRetry`?
+4. Should the "Listen" share text reuse the record-card share helpers (`lib/record-card/share-image.ts`)?
