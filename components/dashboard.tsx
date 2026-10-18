@@ -1,6 +1,8 @@
 "use client"
 
-import { AgentCard } from "@/components/agent-card"
+import { EvolutionTrack } from "@/components/evolution-track"
+import { PulseHero } from "@/components/pulse-hero"
+import { useRecordCard } from "@/hooks/use-record-card"
 import { Erc8004Card } from "@/components/erc8004-card"
 import { EthosReputation } from "@/components/ethos-reputation"
 import { LinkageProofModal } from "@/components/linkage-proof-modal"
@@ -17,7 +19,7 @@ import { AgentCheckCard } from "@/components/agentcheck-card"
 import { ChatRatingsCard } from "@/components/chat-ratings-card"
 import { useChatRatings } from "@/hooks/use-chat-ratings"
 import { fetchEthosByUsername } from "@/lib/api/ethos"
-import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Fingerprint, Layers, MessageSquareText, Palette, Search, ShieldCheck, Wallet, Wrench } from "lucide-react"
+import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Layers, MessageSquareText, Palette, ShieldCheck, Wallet, Wrench } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAccount, useSignMessage } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
@@ -67,6 +69,7 @@ export function Dashboard() {
   const [showLinkageModal, setShowLinkageModal] = useState(false)
 
   const { data: snapshot, isLoading, isError } = useNormie(tokenId)
+  const { data: recordCard } = useRecordCard(tokenId)
   const ownerAddress = snapshot?.owner.owner
   const {
     data: ethos,
@@ -194,188 +197,114 @@ export function Dashboard() {
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6 pixel-texture sm:gap-10">
-      {/* Search bar — manual Normie lookup */}
-      {isConnected && (
-        <div className="rounded-none border border-border bg-card/70 p-4 sm:p-5">
-          <div className="flex w-full max-w-sm items-center gap-2">
-            <label htmlFor="token-id-input" className="sr-only">Normie token ID</label>
-            <input
-              id="token-id-input"
-              value={myInput}
-              onChange={(e) => setMyInput(e.target.value)}
-              inputMode="numeric"
-              placeholder="Enter token id"
-              aria-label="Normie token ID"
-              className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none border-b border-border py-2 focus:border-primary transition-colors"
-            />
-            <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-sm">LOAD</Button>
-          </div>
-        </div>
-      )}
+    <div className="flex w-full min-w-0 flex-col gap-10 sm:gap-14">
+      {/* Hero — live Pulse heartbeat, trust gate, record card */}
+      <PulseHero
+        tokenId={tokenId}
+        tagline={snapshot?.agent?.tagline ?? null}
+        isMyAgent={isMyAgent}
+        viaDelegate={isDelegateMatch && !isOwnerMatch}
+        isConnected={isConnected}
+        onConnect={() => promptConnect("Connect your wallet to see the Normies you own or control.")}
+        onProveLinkage={
+          snapshot && !isError
+            ? () =>
+                requireWallet(
+                  () => setShowLinkageModal(true),
+                  "Proving linkage signs a message with your wallet to verify you control this agent.",
+                )
+            : undefined
+        }
+        onBrowseTools={() => {
+          setToolsModalTab("normies")
+          setShowToolsModal(true)
+        }}
+      />
 
-      {/* My agents — controlled / delegated multi-Normie switcher */}
-      <MyAgentsPanel />
+      {/* Trust → Record → Skill */}
+      <EvolutionTrack
+        tokenId={tokenId}
+        level={recordCard?.pulse.available ? recordCard.pulse.level : null}
+        maxLevel={recordCard?.pulse.max_level ?? 5}
+        gatePassed={recordCard?.pulse.available ? recordCard.pulse.gate.passed : null}
+      />
 
-      {/* Profile Bridge UI - sexy linked profiles */}
-      {(bridgeUsername || bridgeAddress) && (
-        <div className="border border-primary/30 bg-card p-5">
-          <SectionLabel className="text-primary mb-2">Profile Bridge</SectionLabel>
-          {bridgeUser && (
-            <div className="mb-2">
-              <a href={bridgeUser.links?.profile || `https://app.ethos.network/profile/x/${bridgeUser.username}`} target="_blank" className="text-primary">
-                @{bridgeUser.username} (score {bridgeUser.score})
-              </a>
-              {bridgeUser.avatarUrl && <img src={bridgeUser.avatarUrl || "/placeholder.svg"} alt={`${bridgeUser.username} avatar`} className="inline size-6 ml-2" width={24} height={24} />}
+      {/* Your agents — switcher, manual lookup, profile bridge */}
+      <section className="pulse-agents" aria-label="Your agents">
+        <MyAgentsPanel />
+
+        {isConnected && (
+          <div className="pulse-lookup">
+            <label htmlFor="token-id-input" className="pulse-lookup-label">Look up any Normie</label>
+            <div className="flex w-full max-w-sm items-center gap-2">
+              <input
+                id="token-id-input"
+                value={myInput}
+                onChange={(e) => setMyInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") loadMyAgent() }}
+                inputMode="numeric"
+                placeholder="Token id, 0–9999"
+                className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none border-b border-border py-2 focus:border-primary transition-colors"
+              />
+              <Button onClick={loadMyAgent} variant="ghost" size="sm" className="text-sm">Load</Button>
             </div>
-          )}
-          {bridgeAgents.length > 0 && (
-            <div>
-              <SectionLabel className="mb-1">Agents</SectionLabel>
-              <div className="flex flex-wrap gap-1.5">
-                {bridgeAgents.map((normie) => {
-                  const isActive = tokenId === normie.tokenId
-                  return (
-                    <button
-                      key={normie.tokenId}
-                      onClick={() => { selectNormie(normie.tokenId) }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
-                    >
-                      <img src={normieImageUrl(normie.tokenId)} alt={`Normie #${normie.tokenId}`} className="size-5 pixel-frame" width={20} height={20} />
-                      <span className="font-mono">#{normie.tokenId}</span>
-                    </button>
-                  )
-                })}
+          </div>
+        )}
+
+        {/* Profile Bridge */}
+        {(bridgeUsername || bridgeAddress) && (
+          <div className="border border-primary/30 bg-card p-5">
+            <SectionLabel className="text-primary mb-2">Profile Bridge</SectionLabel>
+            {bridgeUser && (
+              <div className="mb-2">
+                <a href={bridgeUser.links?.profile || `https://app.ethos.network/profile/x/${bridgeUser.username}`} target="_blank" className="text-primary">
+                  @{bridgeUser.username} (score {bridgeUser.score})
+                </a>
+                {bridgeUser.avatarUrl && <img src={bridgeUser.avatarUrl || "/placeholder.svg"} alt={`${bridgeUser.username} avatar`} className="inline size-6 ml-2" width={24} height={24} />}
               </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {isMyAgent && (
-        <div>
-          <div className="inline-block text-sm tracking-[1.5px] border border-primary/60 px-4 py-1 rounded-none text-primary">
-            Your Awakened Agent
-            {isDelegateMatch && !isOwnerMatch && <span className="ml-1.5 text-[10px] normal-case tracking-normal text-primary/60">• via delegate</span>}
+            )}
+            {bridgeAgents.length > 0 && (
+              <div>
+                <SectionLabel className="mb-1">Agents</SectionLabel>
+                <div className="flex flex-wrap gap-1.5">
+                  {bridgeAgents.map((normie) => {
+                    const isActive = tokenId === normie.tokenId
+                    return (
+                      <button
+                        key={normie.tokenId}
+                        onClick={() => { selectNormie(normie.tokenId) }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
+                      >
+                        <img src={normieImageUrl(normie.tokenId)} alt={`Normie #${normie.tokenId}`} className="size-5 pixel-frame" width={20} height={20} />
+                        <span className="font-mono">#{normie.tokenId}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-
-      {!isConnected && (
-        <div className="flex max-w-md flex-col items-start gap-3 text-left">
-          <p className="text-sm text-muted-foreground">
-            Connect your wallet to unlock your agent&apos;s full view. Use Moves or Ask for Zulo guidance.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() =>
-              promptConnect("Connect your wallet to unlock your agent's full dashboard view.")
-            }
-          >
-            <Wallet className="size-4" />
-            Connect wallet
-          </Button>
-        </div>
-      )}
+        )}
+      </section>
 
       {isError ? (
         <Card className="border-destructive/40">
           <CardContent className="flex flex-col items-start gap-3 py-12 text-left">
             <AlertTriangle className="size-8 text-destructive" />
-            <p className="font-medium">Could not load Normie #{tokenId}</p>
-            <p className="max-w-sm text-sm text-muted-foreground">Try another token ID.</p>
+            <p className="font-medium">Couldn&apos;t load the details for Normie #{tokenId}</p>
+            <p className="max-w-sm text-sm text-muted-foreground">Check the token id, or pick another agent above.</p>
           </CardContent>
         </Card>
       ) : (
         <div style={{ display: 'contents' }}>
-          {/* Your Agent + Zulo — core focused block */}
-          <div className="space-y-6">
-            <AgentCard
-              snapshot={snapshot}
-              isLoading={isLoading}
-              isMyAgent={isMyAgent}
-              ownerEthosUsername={ownerUsername}
-              delegateAddress={delegate}
-              delegateEnsName={delegateEnsName}
-            />
-          </div>
-
-          {/* Key Actions — card style buttons */}
-          {snapshot && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pulse-action-grid">
-              {/* Prove Linkage Card */}
-              <button
-                type="button"
-                onClick={() =>
-                  requireWallet(
-                    () => setShowLinkageModal(true),
-                    "Proving linkage signs a message with your wallet to verify you control this agent.",
-                  )
-                }
-                className="pulse-action-btn"
-              >
-                <div className="pulse-action-btn-head">
-                  <Fingerprint className="size-4 shrink-0" />
-                  <span className="pulse-action-btn-title">Prove Linkage</span>
-                  <span className="pulse-action-btn-arrow" aria-hidden>
-                    →
-                  </span>
-                </div>
-                <p className="pulse-action-btn-desc">
-                  Unlock full features by verifying your agent.
-                </p>
-              </button>
-
-              {/* Browse Tools Card */}
-              <button
-                type="button"
-                onClick={() => {
-                  setToolsModalTab("normies")
-                  setShowToolsModal(true)
-                }}
-                className="pulse-action-btn"
-              >
-                <div className="pulse-action-btn-head">
-                  <Search className="size-4 shrink-0" />
-                  <span className="pulse-action-btn-title">Browse Tools</span>
-                  <span className="pulse-action-btn-arrow" aria-hidden>
-                    →
-                  </span>
-                </div>
-                <p className="pulse-action-btn-desc">
-                  Explore community-built tools for Normies.
-                </p>
-              </button>
-
-              {/* Record Card — public, read-only, shareable */}
-              <a href={`/record/${tokenId}`} className="pulse-action-btn rc-action-btn md:col-span-2">
-                <div className="pulse-action-btn-head">
-                  <Award className="size-4 shrink-0" />
-                  <span className="pulse-action-btn-title">Record Card</span>
-                  <span className="pulse-action-btn-arrow" aria-hidden>
-                    →
-                  </span>
-                </div>
-                <p className="pulse-action-btn-desc">
-                  The verified record for #{tokenId}: trust gate, identity, Arena slot. Share it anywhere.
-                </p>
-              </a>
-            </div>
-          )}
-
           {/* Credibility Framework — collapsible signal sections */}
-          <div className="cred-framework-acc mt-10 w-full min-w-0">
+          <div className="cred-framework-acc w-full min-w-0">
             <div className="cred-framework-intro">
               <h2 className="cred-framework-heading">
-                Zulo&apos;s Credibility Framework
+                Every signal, in detail
               </h2>
               <p className="cred-framework-sub">
-                On-chain signals that establish credibility for awakened agents.
-              </p>
-              <p className="caption" style={{ marginTop: 10 }}>
-                Analyzed by Zulo · tap a section to expand
+                What sits behind each beat, plus outside reputation. Open a section to see the source.
               </p>
             </div>
 
@@ -393,10 +322,18 @@ export function Dashboard() {
                         <span>Registered on-chain</span>
                       </div>
                       <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{resolvedAgentId} recognized</div>
-                      <a href={`/record/${tokenId}`} className="rc-open-link mt-2 inline-block text-xs underline underline-offset-4">Open the record card for #{tokenId} →</a>
                       <div className="mt-2 text-xs text-muted-foreground">
                         Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
                       </div>
+                      {snapshot?.traits?.attributes?.length ? (
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {snapshot.traits.attributes.slice(0, 8).map((t: any, i: number) => (
+                            <div key={i} className="bg-secondary/60 px-2 py-px text-xs text-muted-foreground">
+                              {t.trait_type}: <span className="text-foreground">{t.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 text-amber-400">
@@ -602,12 +539,6 @@ export function Dashboard() {
             );
           })()}
 
-          <ToolsModal
-            isOpen={showToolsModal}
-            onClose={() => setShowToolsModal(false)}
-            initialTab={toolsModalTab}
-            walletAddress={walletForAccess}
-          />
           <LinkageProofModal 
             tokenId={tokenId} 
             ownerAddress={snapshot?.owner.owner || ""} 
@@ -617,6 +548,13 @@ export function Dashboard() {
           />
         </div>
       )}
+
+      <ToolsModal
+        isOpen={showToolsModal}
+        onClose={() => setShowToolsModal(false)}
+        initialTab={toolsModalTab}
+        walletAddress={walletForAccess}
+      />
     </div>
   )
 }
