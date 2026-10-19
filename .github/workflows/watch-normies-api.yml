@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           title="Normies API: new Arena / Hive / Agents Canvas routes in llms.txt"
-          existing=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq 'length')
+          existing=$(gh issue list --repo "$REPO" --state all --search "\"$title\" in:title" --json number --jq 'length')
           if [ "$existing" != "0" ]; then echo "Issue already open"; exit 0; fi
           {
             echo "The daily watch found route paths in https://api.normies.art/llms.txt that look like data NCH is waiting for. Check they are new (not an existing ERC-8004 reputation route) before building."

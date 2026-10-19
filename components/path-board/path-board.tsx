@@ -166,7 +166,7 @@ export function PathBoard({
               maxLength={MAX_INTENT}
               value={intent}
               disabled={loading}
-              placeholder="e.g. efficient burn fodder for AP"
+              placeholder="e.g. efficient burn fodder for action points"
               onChange={(e) => setIntent(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -242,8 +242,8 @@ export function PathBoard({
           </div>
           <p className="moves-footnote">
             Rate any move 👍/👎 — credits the tool/agent and Zulo #32626.
-            Ratings build trackable CredHub reputation today; on-chain tips when
-            rails enable.
+            Ratings are stored by NCH and shown as ratings. They never change
+            Pulse.
           </p>
           <p className="moves-disclaimer">
             We do not endorse these tools. We are building a system so the

@@ -14,12 +14,13 @@ It is not only a dashboard. It exposes **public, agent-queryable APIs** so any a
 
 **Zulo (Agent #32626)** is the high-signal Normies concierge. Primary job: help people make better **burns**, **trait/tool choices**, and **Canvas moves** — the daily group-chat topics.
 
-- **Burn ROI (AP/pixels)** is a **highlight skill**, not the whole brand.
+- **Burn ROI (action points / pixels)** is a **highlight skill**, not the whole brand.
 - Recommendations should be clear, data-backed, easy to try, and easy to rate **👍/👎**.
 - Ratings credit the **recommended tool/agent** and **Zulo #32626** (store + display only in Phase 1 — no ranker influence).
 - Scope: **Normies / Pixel Economy only** (no broader agentic-NFT alpha).
 - **Moves** (formerly Path Board; route `/paths`) stays **fully free**. No autonomous transaction layer.
-- Ratings build Zulo’s trackable reputation in CredHub today. On-chain tips and TBA rails activate when serc enables x402 + ERC-6551 for #7141.
+- Ratings are stored by NCH and shown as ratings. They are not reputation and never change Pulse.
+- Every service is free. Zulo payments are **parked** (`lib/payments/rail-policy.ts` blocks them); nothing here explains how to pay Zulo.
 
 ---
 
@@ -31,8 +32,14 @@ It is not only a dashboard. It exposes **public, agent-queryable APIs** so any a
 | **`/paths`** | **Moves** — free intent → 3–5 Pulse-weighted actions + 👍/👎 feedback |
 | **`/ask`** | **Legacy concierge chat** — banner + job line only for Phase 1 (no prompt rewrite) |
 | **`/dashboard`** | **PULSE** — full trust profile UI (search Normie, Ethos, ERC-8257, CredHub Pulse) |
-| **`/zulo`** | Permanent redirect → `/ask` |
-| **`/agent-recommendations`** | Permanent redirect → `/ask` |
+| **`/record/{tokenId}`** | Record card — identity, trust gate, chat rating, each value labelled with its source; share image |
+| **`/burn`** | Burn helper — what to burn for #PIXEL ahead of the Pixel Market |
+| **`/pixels`** | Pixel Check — #PIXEL approvals and offers for a wallet (read-only) |
+| **`/symphony`** | Pixel Symphony — a Normie's on-chain pixels as music; rooms of up to 12; block-pinned share links |
+| **`/privacy`**, **`/terms`** | Privacy notice and terms |
+| **`/zulo`**, **`/agent-recommendations`**, **`/pulse`** | Permanent redirects (→ `/ask`, `/ask`, `/dashboard`) |
+
+API routes live under `app/api/`. Public ones include `agent/{id}/pulse`, `zulo/paths`, `zulo/ask`, `zulo/record-card/{id}`, `zulo/manifest`, `burn-buy`, `ap-check`, `symphony/voice/{id}`, `symphony/card`, `my-normies`, `erc8257/tools`, `chat-ratings/{agentId}`. Every route that calls an outside service is rate-limited.
 
 ### Moves API (`/api/zulo/paths` — ranking engine unchanged)
 
@@ -237,7 +244,7 @@ curl -X POST "https://normiescredhub.vercel.app/api/zulo/paths" \
 curl "https://normiescredhub.vercel.app/api/zulo/paths?intentTag=burn&tokenId=7141"
 ```
 
-Ranking weights: Pulse 0.45 · Access 0.30 · Relevance 0.25. No payment enforcement yet. Designed so agents can trust-then-act without human intervention.
+Ranking weights: Pulse 0.40 · Access 0.25 · Relevance 0.25 · Feedback 0.10 (`lib/path-ranker/types.ts`). Free; no payments. Designed so agents can trust-then-act without human intervention.
 
 ---
 
@@ -253,28 +260,17 @@ Search any Normie by token ID and view its credibility profile. Combines Normies
 - Ethos reputation  
 - Trust & Gate signals (AgentCheck + live ERC-8257 registry)  
 - Gas-free linkage proof via wallet signature  
-- **Zulo Horizon** and **Zulo Recommends** (dashboard AI — Venice / OpenRouter)  
-- Modular Credibility Framework for future signal sources  
 
 ### Zulo concierge (`/` + `/ask`)
 
 Zulo is the **ecosystem guide** for Normies strategy:
 
 - Live **PULSE** snapshot (CredHub pulse + canvas + rarity + opportunities)  
-- Conversational recommendations via **xAI Grok** (`XAI_API_KEY`)  
+- Conversational recommendations via **Venice** (primary) with **xAI Grok** as fallback  
 - **Normies bible** — Canvas burn tiers, type roles, ERC-8004 agentics  
-- **Strategy skills** — burn AP estimates (live burn history), floors framing, trait premiums, wallet burn/keep candidates  
+- **Strategy skills** — burn action-point estimates (live burn history), floors framing, trait premiums, wallet burn/keep candidates  
 - **Community tools** — Burn Tracker, PixelSymphony, Archive, Terminal, Multisend, Rarity, etc. (1–2 tools per answer when relevant)  
-- **A2A-ready** pricing (1 AP analysis / 2 AP strategy), manifest, payment scaffold — free web chat today  
-
-**Economy pitch:** Zulo isn’t only a chatbot — he’s designed as a self-sustaining agentic concierge. Free chat now; when Normies A2A payment rails go live, agents tip in AP. He evolves, tips others, and the agent economy compounds.
-
-Landing stats distinguish:
-
-| Label | Meaning |
-|-------|---------|
-| **Canvas AP · #7141** | Live transform budget on Zulo’s Normie (not tip income) |
-| **Tips Received** | Planned A2A tips ledger (1–2 AP) — not live yet |
+- Every service is **free**. Payment code is parked and hard-blocked (see AGENTS.md).
 
 ---
 
@@ -306,7 +302,7 @@ POST /api/zulo/ask
 
 ```json
 {
-  "userQuery": "Should I burn a common Normie for AP?",
+  "userQuery": "Should I burn a common Normie for action points?",
   "normieId": 7141,
   "sessionHistory": [],
   "userWallet": "0x…",
@@ -314,7 +310,7 @@ POST /api/zulo/ask
 }
 ```
 
-Payment hooks for A2A (`service`, `txHash`) are **scaffolded but not enforced**. Holder/visitor web chat remains free until marketplace rails go live.
+Free for everyone. Payment fields in the parked code are ignored while `lib/payments/rail-policy.ts` blocks them.
 
 ### UI PULSE snapshot
 
@@ -322,7 +318,7 @@ Payment hooks for A2A (`service`, `txHash`) are **scaffolded but not enforced**.
 GET /api/zulo/pulse/{tokenId}
 ```
 
-Returns a UI-facing PULSE view: status, canvas, rarity tier/rank/score, CredHub pulse, opportunities, Canvas AP.
+Returns a UI-facing PULSE view: status, canvas, rarity tier/rank/score, CredHub pulse, opportunities, canvas action points.
 
 ### Service manifest (A2A discovery)
 
@@ -330,7 +326,7 @@ Returns a UI-facing PULSE view: status, canvas, rarity tier/rank/score, CredHub 
 GET /api/zulo/manifest
 ```
 
-Advertises agent identity, services (1–2 AP pricing), free `/ask` access, payment receiver wallet, and **how to pay when live**. See `payment.status` (`planned` until rails activate).
+Advertises agent identity and services. Every service is listed as free; there is no payment block while payments are parked.
 
 ### Pulse (read-only)
 
@@ -375,12 +371,12 @@ Standalone module CredHub imports — designed not to break existing dashboard f
 | `types.ts` | Context, response, PULSE view, strategy, manifest types |
 | `buildContext.ts` | Normies + rarity + pulse + pixels + strategy snapshot |
 | `composePrompt.ts` | System prompt (bible + tools + strategy + PULSE) |
-| `generate.ts` | xAI chat completions |
+| `generate.ts` | Chat completions (Venice primary, xAI fallback) |
 | `postProcess.ts` | JSON parse + graceful fallback |
 | `normiesKnowledge.ts` | Normies “bible” (Canvas tiers, types, ERC-8004) |
 | `burnData.ts` / `marketData.ts` / `traitAnalysis.ts` / `strategy.ts` | Strategic skills |
 | `communityTools.ts` | Ecosystem concierge tool catalog |
-| `manifest.ts` / `verifyPayment.ts` | A2A discovery + payment scaffold |
+| `manifest.ts` / `verifyPayment.ts` | A2A discovery (payments parked; every service free) |
 
 ---
 
@@ -390,7 +386,7 @@ NormiesCredHub discovers registered agent tools from the on-chain ERC-8257 regis
 
 The dashboard surfaces a live registry panel and a **Browse Tools** modal (Normies Ecosystem | ERC-8257) with access badges: **Open access**, **You can use**, **Gated for you**, or **Not checked**.
 
-When a connected wallet controls the loaded Normie (owner or Canvas delegate), wallet-aware access checks run automatically in the UI and in Zulo Recommends / Horizon ranking.
+When a connected wallet controls the loaded Normie (owner or Canvas delegate), wallet-aware access checks run automatically in the UI and in Moves ranking.
 
 ---
 
@@ -398,14 +394,7 @@ When a connected wallet controls the loaded Normie (owner or Canvas delegate), w
 
 Verifiable reputation will be essential as AI agents become autonomous economic actors. This project explores how on-chain signals establish trust without prior relationships.
 
-**Zulo’s economic loop (when A2A is live):**
-
-1. User/agent asks Zulo for guidance  
-2. Zulo delivers strategy + tool recommendations  
-3. Tip 1–2 AP (non-holder A2A)  
-4. Treasury grows → evolve #7141 / tip other agents / reputation  
-
-The Credibility Framework remains extensible for **Wire Network** and other cross-chain execution signals. The reserved 5th Pulse level is already reserved for richer activity metrics.
+NCH is the verified scoreboard for Normie agents: trust first (Pulse), then a record anyone can check (record cards), then skill ranks per sector once official data exists (Arena, Agents Canvas, trading). See `docs/zulo/strategy.md`. Status of every official surface comes from `lib/official-status.ts`.
 
 ---
 
@@ -417,8 +406,7 @@ The Credibility Framework remains extensible for **Wire Network** and other cros
 - Live data: Normies API, Ethos, ERC-8004, ERC-8257  
 - Ownership, delegation, Canvas, Ethos, AgentCheck  
 - Public pulse + Zulo concierge + manifest APIs  
-- Zulo Horizon & Recommends for dashboard users  
-- Prepared for A2A tips and Wire Network signals  
+- Record cards, Burn helper, Pixel Check, Pixel Symphony  
 
 ---
 
@@ -431,7 +419,8 @@ The Credibility Framework remains extensible for **Wire Network** and other cros
 - Sonner (toasts)  
 - `@opensea/tool-sdk` (ERC-8257)  
 - `@upstash/ratelimit` + Upstash Redis  
-- **xAI Grok** (concierge), **Venice** (Recommends), **OpenRouter** (Horizon)  
+- **Venice** (concierge, primary), **xAI Grok** (fallback)  
+- Supabase (indexes, ratings), Upstash Redis (rate limits, usage counters)  
 - Deployed on Vercel  
 
 ---
@@ -459,14 +448,12 @@ Open:
 | `KV_REST_API_TOKEN` | Production | Upstash Redis |
 | `AUDIT_LOG_HMAC_SECRET` | Production | Security audit log HMAC |
 | `CIRCUIT_BREAKER_UNPAUSE_KEYS` | Production | Multisig-style unpause operator keys |
-| `ZULO_PAYMENT_RAIL_STATUS` | Optional | `planned` (default) / `scaffold` / `live` |
-| `ZULO_PAYMENT_RECEIVER` | Optional | Tip destination: `hot-wallet` (default) / `tba` (#7141 ERC-6551) — see `lib/treasury` |
-| `ZULO_TBA_PROVIDER_STATUS` | Optional | ERC-6551 **account plane** only: `disabled` (default) / `scaffold` / `live` — independent of payment receiver |
-| `ETH_RPC_URL` | When payments live | Ethereum RPC for confirmations |
+| `CRON_SECRET` | Production | Bearer secret for cron/operator routes |
+| Supabase (`NEXT_PUBLIC_SUPABASE_*`, service key) | Production | Indexes, ratings, answer log |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Optional | WalletConnect |
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_SITE_URL` | Optional | Canonical URL (manifest base, wallets) |
 
-Rate limiting fails open locally when Upstash vars are missing; production should set them via the Vercel integration.
+`.env.example` is the full list (names only). Rate limiting is strict in production without Upstash and relaxed locally; production should set the Upstash vars via the Vercel integration. Payment variables exist only for the parked payment code and have no effect while `lib/payments/rail-policy.ts` blocks it.
 
 **Never commit API keys.** Use `.env.local` locally and Vercel env for production.
 
@@ -478,31 +465,19 @@ Zulo assumes breach: **every transaction is adversarial.**
 
 ### Defense in depth (7 layers)
 
-1. Crypto format validation (txHash, signatures)  
-2. 7-step payment verification (`lib/payments/verify.ts`)  
+1. Read-only by design: no transactions, approvals or typed-data signatures anywhere; the only signature is a plain `signMessage`  
+2. Input validation (strict token ids, addresses, allowlisted upstream paths)  
 3. Dual-key rate limits — IP + wallet (`lib/middleware/rateLimit.ts`)  
 4. Strict Zod schemas (`lib/validation/schemas.ts`)  
 5. Security headers (HSTS, nosniff, DENY frames, CSP)  
 6. Append-only HMAC-chained audit log (`lib/security/audit.ts`)  
-7. Payment circuit breaker with multisig-style unpause (`lib/security/circuitBreaker.ts`)  
+7. Parked payment code stays hard-blocked (`lib/payments/rail-policy.ts`), with its own verification and circuit breaker for if it is ever unparked  
 
 Knowledge base: `lib/agent-recommendations/knowledge/payment-security.md`, `treasury.md`, `erc-6551.md`
 
-### Treasury abstraction (payment receiver)
+### Parked payment code
 
-Tips and A2A payments use a thin **payment receiver** layer (`lib/treasury`), separate from identity and Canvas AP:
-
-| Concern | Default | Future |
-|---------|---------|--------|
-| **EVM tip destination** | Hot wallet | #7141 ERC-6551 TBA (`ZULO_PAYMENT_RECEIVER=tba`) |
-| **Primary tip asset** | Canvas AP (Normies A2A) | Then x402 USDC → ETH L1 → ETH Base → Wire Network later |
-| **AP balance** | Normies Canvas API per token | Never `balanceOf(TBA)` |
-
-- `verify.ts` resolves `expectedRecipient` via `getReceiverAddress()`.
-- Manifest exposes `payment.receiverWallet`, `receiverMode`, `tipAssetPriority`.
-- Live AP verification stays **blocked** until Normies publishes official A2A docs.
-- ERC-6551 address resolution lives in `lib/erc6551` (account plane); treasury only wraps it for the TBA receiver.
-- **Later work (AP oracle, x402, ETH, TBA flip):** follow `lib/treasury/TIER-B-PLAYBOOK.md` when Normies docs / product gates open.
+`lib/payments`, `lib/treasury`, `lib/erc6551` and `app/api/zulo/payments/verify` are kept for the future but **parked**: `PAYMENT_RAIL_LIVE_ALLOWED = false`, the verify route returns 404, and no page, manifest or prompt tells anyone how to pay. Only Ryan can unpark it (AGENTS.md).
 
 ### Public security endpoints
 
@@ -511,13 +486,13 @@ Tips and A2A payments use a thin **payment receiver** layer (`lib/treasury`), se
 | `GET /api/zulo/security` | Public posture, bug bounty, disclosure process |
 | `POST /api/zulo/security/report` | Vulnerability intake (rate-limited) |
 | `GET /api/zulo/health` | Readiness + security status |
-| `POST /api/zulo/payments/verify` | 7-step payment verification |
+| `POST /api/zulo/payments/verify` | Parked: returns 404 |
 
 ### Bug bounty & responsible disclosure
 
 - **Status:** Informal / best-effort rewards at operator discretion  
-- **Report:** `POST /api/zulo/security/report` or email **security@normiescredhub.example** (placeholder — replace with project mailbox)  
-- **Scope:** This app’s APIs and payment verification surface  
+- **Report:** `POST /api/zulo/security/report`, or a private GitHub security advisory on this repo  
+- **Scope:** This app’s APIs and pages  
 - **Out of scope:** Social engineering holders, third-party markets, physical attacks  
 - Do not publish SEV 1 issues until operators confirm mitigation  
 
@@ -536,13 +511,9 @@ Covers validation edge cases, replay claim, circuit breaker trip, audit HMAC.
 | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Rate limit, replay store, audit, circuit |
 | `AUDIT_LOG_HMAC_SECRET` | HMAC key for audit signatures |
 | `CIRCUIT_BREAKER_UNPAUSE_KEYS` | Comma-separated operator secrets (3-of-5 style) |
-| `ZULO_PAYMENT_RAIL_STATUS` | `planned` \| `scaffold` \| `live` |
-| `ZULO_PAYMENT_RECEIVER` | `hot-wallet` (default) \| `tba` — EVM tip sink; independent of TBA account plane |
-| `ZULO_TBA_PROVIDER_STATUS` | `disabled` \| `scaffold` \| `live` (ERC-6551 account plane; identity stays ERC-8004) |
-| `ETH_RPC_URL` | Mainnet RPC for live payment confirmations |
-| `ZULO_FORCE_LOCKDOWN` | Set `1` to trip payment circuit |
+| `ZULO_FORCE_LOCKDOWN` | Set `1` to trip the (parked) payment circuit |
 
-Dependencies are **version-pinned** in `package.json` (no `^` / `~`). Keep `pnpm-lock.yaml` committed. Optional SBOM: `pnpm sbom`.
+Dependencies are version-pinned in `package.json` except `@supabase/supabase-js` (`^`); keep `pnpm-lock.yaml` committed. Optional SBOM: `pnpm sbom`.
 
 ---
 

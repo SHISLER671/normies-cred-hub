@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import type { RegistryTool } from "@/lib/erc8257/types"
+import { classifyRegistryTool, trustLabel } from "@/lib/erc8257/trust"
 import { accessBadgeClass, getAccessBadge } from "@/lib/erc8257/ui"
 import { ExternalLink, Loader2 } from "lucide-react"
 
@@ -81,6 +82,7 @@ export function Erc8257RegistryPanel({
         {preview.map((tool) => {
           const badge = getAccessBadge(tool.access)
           const href = tool.endpoint || tool.openseaUrl
+          const trust = classifyRegistryTool(tool)
           return (
             <li
               key={`${tool.chain}-${tool.toolId}`}
@@ -92,6 +94,9 @@ export function Erc8257RegistryPanel({
                   className={`rounded-none border px-1.5 py-0.5 text-[10px] tracking-wide ${accessBadgeClass(badge.variant)}`}
                 >
                   {badge.label}
+                </span>
+                <span className="rounded-none border border-border px-1.5 py-0.5 text-[10px] tracking-wide" title={trust.reason}>
+                  {trustLabel(trust.trust)}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
                   #{tool.toolId} · {tool.chain}

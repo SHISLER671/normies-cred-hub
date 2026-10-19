@@ -13,9 +13,10 @@ Normies: 10,000 on-chain 40×40 monochrome faces on Ethereum (token IDs 0–9999
 
 ## 2. Status (mirror of `lib/official-status.ts` — copy its lines, never paraphrase)
 - Canvas: LIVE.
-- Pixel Market: LIVE since 2026-10-05 (official).
-- Arena: Coming Soon, expected mid-November 2026 per @serc1n; not playable on CredHub. No "enter Arena" nextStep until the Lab ships a URL.
-- Zombies: 21/21 sealed, not Arena, nothing to claim.
+- Pixel Market = LIVE since 2026-10-05 (official)
+- Arena = Coming Soon (official docs; expected mid-November 2026 (per @serc1n, Oct 15 broadcast)); not playable on CredHub. No "enter Arena" nextStep until the Lab ships a URL.
+- Agents Canvas = announced by @serc1n (2026-10-19), not live yet; no official data to read
+- Zombies = 21/21 sealed, not Arena, nothing to claim
 - Agent (swarm) trading: TEASER, not live — see §5.
 
 ## 3. Pixel economy (correct order — never reverse)

@@ -24,7 +24,7 @@ function ToolId({ listing }: { listing: AgentToolListing }) {
       href={href}
       className="agent-tool-id-link"
       target="_blank"
-      rel="noreferrer"
+      rel="noopener noreferrer"
     >
       {id}
     </a>

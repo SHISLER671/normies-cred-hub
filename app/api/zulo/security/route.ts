@@ -39,14 +39,14 @@ export async function GET() {
       },
       bugBounty: {
         status: "informal",
-        scope: "normiescredhub.vercel.app API + payment verification surface",
+        scope: "normiescredhub.vercel.app pages and APIs",
         outOfScope: ["social engineering of holders", "physical attacks", "third-party NFT markets"],
         report: "POST /api/zulo/security/report",
-        email: "security@normiescredhub.example",
-        note: "Replace email with project mailbox. No public SEV1 disclosure until mitigated.",
+        privateAdvisory: "https://github.com/SHISLER671/normies-cred-hub/security/advisories/new",
+        note: "No public SEV1 disclosure until mitigated.",
       },
       responsibleDisclosure: [
-        "1. Report via POST /api/zulo/security/report or security email.",
+        "1. Report via POST /api/zulo/security/report or a private GitHub security advisory.",
         "2. Allow reasonable time for mitigation before public write-up.",
         "3. Do not exploit beyond minimal PoC; no user fund theft.",
       ],

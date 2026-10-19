@@ -1,6 +1,6 @@
 # Pixel Symphony revival plan: Normies that sing, inside NCH
 
-Drafted 2026-10-19 (ChST) by GrokBot for Ryan; Ryan's decisions recorded 2026-10-19 (see **Decisions**). **Plan only, no code.** It follows `AGENTS.md`, `docs/zulo/strategy.md` and `lib/official-status.ts`. The old repo is [SHISLER671/pixelsymphony](https://github.com/SHISLER671/pixelsymphony) (live at pixelsymphony.vercel.app, last commit 2026-07-12). This plan leaves it untouched.
+Drafted 2026-10-19 (ChST) by GrokBot for Ryan; Ryan's decisions recorded 2026-10-19 (see **Decisions**). **Built through P2** (PRs #120–#127; big-grid prep in #126). P3 waits for official, readable data. It follows `AGENTS.md`, `docs/zulo/strategy.md` and `lib/official-status.ts`. The old repo is [SHISLER671/pixelsymphony](https://github.com/SHISLER671/pixelsymphony) (live at pixelsymphony.vercel.app, last commit 2026-07-12). This plan leaves it untouched.
 
 ## Thesis
 The Normies hive mind is like mycelium under a forest. Every mushroom is unique, and all of them are connected. **One Normie makes a blip**: a short motif read from its live on-chain pixels. **Layer many Normies** and you get music: a holder's set, a sweep, the Hive, a canvas.
@@ -13,7 +13,7 @@ The Normies hive mind is like mycelium under a forest. Every mushroom is unique,
   - To play a token at block N, use the newest version whose `blockNumber` ≤ N. If none exists, use `/normie/{id}/original/pixels`.
   - Traits are fixed at mint, so they're stable.
   - Ownership and burn counts at a block can come from `/rarity/historical/{block}/…`, which "recomputes ownership, burn counts, traits and ranks at an Ethereum block number".
-- **Share links are stateless:** `/symphony/{id}?block=N`, and the room version is `/symphony/room?ids=…&block=N`. Opening a link recomputes the song from the official API at that block. Nothing is saved: no database, no table, no migration, no saved user songs.
+- **Share links are stateless:** `/symphony?ids=7141&block=N` (one or more ids, up to 12; `lib/symphony/pin.ts`). Opening a link recomputes the song from the official API at that block. Nothing is saved: no database, no table, no migration, no saved user songs.
 - **No minting, no wallet writes, no tokens.** NCH stays read-only. The only signature allowed is a plain `signMessage`.
 
 ## Mapping (pixel-themed, deterministic)
@@ -59,9 +59,9 @@ Sound: the browser's built-in Web Audio (no Tone.js, no new package), 8-bit or c
 ## Phases
 | Phase | Ships | Gate |
 | --- | --- | --- |
-| **P0** | Port the engine into NCH under `/symphony` with the monochrome Winamp-style skin (cyan on buttons only) and a **single-Normie blip** (type a number, play, download WAV). Make the engine pure and unit-tested (same input → same score). | none (Claude claims it) |
-| P1 | Layering and room mode with the playlist panel, stateless block-pinned share links (`?block=N` via `/history/normie/{id}/versions`, recomputed on open), PNG pixel score, MP4 for X. No DB work. | P0 merged |
-| P2 | Mycelium view (monochrome threads), "Listen" button on the record card, "Play my Normies" (read-only) | P1 merged |
+| **P0** | Port the engine into NCH under `/symphony` with the monochrome Winamp-style skin (cyan on buttons only) and a **single-Normie blip** (type a number, play, download WAV). Make the engine pure and unit-tested (same input → same score). | none · **built** (#120) |
+| P1 | Layering and room mode with the playlist panel, stateless block-pinned share links (`?block=N` via `/history/normie/{id}/versions`, recomputed on open), PNG pixel score, MP4 for X. No DB work. | P0 merged · **built** (#120, MP4 #121) |
+| P2 | Mycelium view (monochrome threads), "Listen" button on the record card, "Play my Normies" (read-only) | P1 merged · **built** (#125) |
 | P3 | Agents Canvas or 256×256 voice | Official, readable data only |
 
 ## Porting notes (from the old repo)

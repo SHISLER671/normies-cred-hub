@@ -70,7 +70,7 @@
   background: var(--bg-secondary, #242526);
 }
 .nb-cell-link:focus-visible {
-  outline: 1px solid var(--zulo-accent, #22d3ee);
+  outline: 2px solid var(--cta-cyan, #0e7490);
   outline-offset: -1px;
 }
 .nb-cell-top {

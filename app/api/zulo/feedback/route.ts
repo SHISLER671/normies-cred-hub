@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
             }
           : null,
         note:
-          "Ratings build Zulo’s trackable reputation in CredHub today. On-chain tips and TBA rails activate when serc enables x402 + ERC-6551 for #7141.",
+          "Ratings are stored by NCH and shown as ratings. They are not reputation and never change Pulse.",
       },
       { headers: { "Cache-Control": "no-store" } },
     )
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
         label: `Helpful ratings · Zulo #${stats.zuloAgentId}`,
         asOf: stats.asOf,
         note:
-          "Ratings build Zulo’s trackable reputation in CredHub today. On-chain tips and TBA rails activate when serc enables x402 + ERC-6551 for #7141.",
+          "Ratings are stored by NCH and shown as ratings. They are not reputation and never change Pulse.",
         // totalRatings kept server-side only in response meta for ops (not "down" breakdown)
         _meta: { totalRatings: stats.totalRatings },
       },

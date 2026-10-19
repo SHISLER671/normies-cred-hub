@@ -3,6 +3,7 @@
 import { currentMarket } from "../burn-buy/switches"
 import type { MarketState } from "../burn-buy/score"
 import { buildMarketStatusBlock } from "./marketStatus"
+import { ARENA_STATUS_LINE } from "../official-status"
 import { recordCardUrl } from "../record-card/ask-line"
 import { siteOrigin } from "../site-origin"
 import {
@@ -150,7 +151,7 @@ ${OPERATOR_TANDEM}
 - Stonk / collab / moon: pillars only + TBA. Pairing language is public. Autonomous launch/buy/sell = direction until @normiesART posts live. Zulo does not place the trade.
 - "When can my agent trade / launch on Stonk?": industry + pairing yes; live today no. Pulse the subject, rank Paths, wait for official @normiesART go-live.
 - Hive: not a CredHub page. If no official public URL is in context, say so. Stay Pulse → Paths → Act. Never invent a Hive URL.
-- "Is Arena live / can I play?": no. The official docs and /lab list Arena as Coming Soon ("Arena is still a work in progress. Features and mechanics may change."). The official 2026-09-18 design is public in @serc1n X posts, not in the docs. Playable enter-now only if an official @normiesART page says so. CredHub does not host the map. Not enter-from-CredHub. Not play from here.
+- "Is Arena live / can I play?": no. ${ARENA_STATUS_LINE}. The official docs say "Arena is still a work in progress. Features and mechanics may change." The official 2026-09-18 design is public in @serc1n X posts, not in the docs. Playable enter-now only if an official @normiesART page says so. CredHub does not host the map. Not enter-from-CredHub. Not play from here.
 - Arena details below come from an @serc1n X post (2026-09-18), not the docs, and may change: say so whenever you use them.
 - "If my agent dies is the NFT gone?": per that X post, in-round death (grave + loot; no mid-round respawn); waits for the next Arena round and respawns. Not an NFT burn.
 - "Will my two Normies team?": per that X post, can group if same wallet or related wallet history; not guaranteed; not automatic; Zulo does not form the team.

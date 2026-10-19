@@ -1,5 +1,5 @@
 import { Chip, Eyebrow, StepLabel } from "@/components/brand"
-import { OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
+import { AGENTS_CANVAS_STATUS_LINE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
 import { isAgentsCanvasLive } from "@/lib/record-card/canvas"
 
 /** "COMING SOON" → "Coming soon": the official tag word, in sentence case. */
@@ -79,7 +79,7 @@ export function EvolutionTrack({
                 <span className="ev-sector-status">
                   {isAgentsCanvasLive()
                     ? "Launched; the record fills from official data once it is connected"
-                    : `Announced by @serc1n, not live yet`}
+                    : AGENTS_CANVAS_STATUS_LINE}
                 </span>
               </li>
               <li>

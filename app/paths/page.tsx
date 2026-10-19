@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   title: "Moves — Normies CredHub",
   description:
     "Free Moves on Normies CredHub: intent → ranked Normies actions for burns, tools, and Canvas. Rate 👍/👎 — credits the move and Zulo #32626.",
+  alternates: { canonical: "/paths" },
+  openGraph: { title: "Moves — Normies CredHub", url: "/paths", siteName: "Normies CredHub", type: "website", images: [{ url: "/og.png", width: 1200, height: 630 }] },
 }
 
 export default function PathsPage() {

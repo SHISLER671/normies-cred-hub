@@ -22,13 +22,16 @@ export const revalidate = 300
 type Params = { params: Promise<{ tokenId: string }> }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { tokenId } = await params
+  const { tokenId: raw } = await params
+  const tokenId = parseTokenId(raw)
+  if (tokenId === null) return { title: "Record card not found — Normies CredHub", robots: { index: false } }
   const title = `Record card · Normie #${tokenId} — Normies CredHub`
   const description = `Normie #${tokenId}'s verified record on NCH: pixel face, Pulse heartbeat and trust gate, read live from Ethereum. A track record, not a tip.`
   // Per-record title and description for link previews (the image itself comes from opengraph-image.tsx / twitter-image.tsx).
   return {
     title,
     description,
+    alternates: { canonical: `/record/${tokenId}` },
     openGraph: { title, description, url: `/record/${tokenId}`, type: "website" },
     twitter: { card: "summary_large_image", title, description },
   }

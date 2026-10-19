@@ -28,7 +28,7 @@ const DESCRIPTION =
   "Paste a wallet. Get a plain answer: which Normies to burn for #PIXEL, which to keep, and what to buy. Read-only; nothing here can sign or move anything."
 
 export const metadata: Metadata = {
-  alternates: { types: { "application/json": "/api/burn-buy" } },
+  alternates: { canonical: "/burn", types: { "application/json": "/api/burn-buy" } },
   title: TITLE,
   description: DESCRIPTION,
   // Link previews: say what this page does (the site-wide card is about Pulse, Ask and Moves). The card image comes from opengraph-image.tsx.

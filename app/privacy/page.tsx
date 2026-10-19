@@ -9,7 +9,9 @@ import "../zulo/styles.css"
 export const metadata: Metadata = {
   title: "Privacy — Normies CredHub",
   description:
-    "How Normies CredHub uses an optional wallet connect, gas-free signMessage proof, and public data sources. No keys, no custody, no token approvals.",
+    "What Normies CredHub keeps, for how long, and who else sees it. Optional wallet connect, no keys, no custody, no token approvals.",
+  alternates: { canonical: "/privacy" },
+  openGraph: { title: "Privacy — Normies CredHub", url: "/privacy", siteName: "Normies CredHub", type: "website", images: [{ url: "/og.png", width: 1200, height: 630 }] },
 }
 
 export default function PrivacyPage() {
@@ -32,42 +34,69 @@ export default function PrivacyPage() {
 
         <h2>Wallet</h2>
         <ul>
+          <li>Connecting a wallet is optional. It is used to find the Normies that wallet controls.</li>
           <li>
-            Wallet connect is optional and used to scope Normies the visitor
-            controls.
+            The only signature we ever ask for is a gas-free <span className="mono">signMessage</span>. No
+            transactions, no token approvals, no custody. We never ask for keys or seed phrases.
           </li>
-          <li>
-            Only a gas-free <span className="mono">signMessage</span> for
-            proof. No token approvals. No custody.
-          </li>
-          <li>We do not ask for keys or seeds.</li>
+          <li>We never look up a wallet from a username or link wallets to people.</li>
         </ul>
 
-        <h2>Data</h2>
-        <p>
-          Data sources: Normies API, Ethos, ERC-8004, on-chain reads.
-        </p>
-
-        <h2>Ask Zulo</h2>
+        <h2>What we keep, and for how long</h2>
         <ul>
           <li>
-            Your question, plus public on-chain data about the Normies involved
-            (including ones your connected wallet holds), is sent to an AI model
-            provider (Venice, with xAI as a backup) to write Zulo&apos;s answer.
+            <strong>Usage counters</strong> (Upstash Redis): when Pulse or Moves is called we keep the token id, the
+            time, a short intent text for Moves (up to 200 characters), the caller&apos;s wallet if one was sent,
+            and a one-way hash of the IP address (never the IP itself). Day counters expire after 16 days; the
+            event list keeps the latest 10,000 entries. Wallets are never shown in reports.
           </li>
           <li>
-            We may keep Zulo&apos;s answer (not your question, wallet or name)
-            and the Normie it was about, so we can check later whether his
-            advice held up. These are deleted after 180 days.
+            <strong>Rate limits and security log</strong> (Upstash Redis): IP addresses are used briefly to rate
+            limit requests. When a limit is hit, or a security report is sent, the IP, any wallet sent and any
+            contact you give are kept in a tamper-evident security log.
+          </li>
+          <li>
+            <strong>Ratings</strong> (Supabase): a 👍 or 👎 on a Move is stored with the Move, your intent, and your
+            wallet if you connected one (unverified, never shown publicly). Only our server can read it.
+          </li>
+          <li>
+            <strong>Zulo&apos;s answers</strong> (Supabase): we may keep an answer (not your question, wallet or
+            name) and the Normie it was about, to check later whether the advice held up. Deleted after 180 days.
+          </li>
+          <li>
+            <strong>Hosting logs</strong> (Vercel): like any website, requests are logged by our host, including the
+            page address, which can contain a wallet address you looked up. They are kept for the host&apos;s
+            standard log period.
+          </li>
+          <li>
+            <strong>Your browser</strong>: wagmi remembers your wallet connection, and we remember the last Normie
+            you picked (local storage) and cache delegate lookups for 10 minutes (session storage). No tracking
+            cookies, no ads, no analytics.
           </li>
         </ul>
 
-        <h2>Ratings</h2>
+        <h2>Who else sees data</h2>
         <ul>
           <li>
-            A 👍 or 👎 on a Move is stored with the Move it rated, your
-            intent, and your wallet if you connected one (unverified, never
-            shown publicly). Only our server can read it.
+            <strong>Ask Zulo:</strong> your question, your connected wallet address or ENS name, and public on-chain
+            data about the Normies involved go to an AI model provider (Venice, with xAI as a backup) to write the
+            answer.
+          </li>
+          <li>
+            <strong>Looking up a wallet</strong> sends that address to the services that answer it: the Normies
+            API, Ethos, AgentCheck, OpenSea (offers, on Pixel Check) and a public Ethereum RPC. Market data (floor
+            prices, listings) comes from OpenSea, Moralis and the Normies rarity site without any wallet.
+          </li>
+          <li>
+            <strong>Burn helper</strong> may send the Normies and goal you picked (no wallet) to TypeSafe for a
+            second opinion.
+          </li>
+          <li>
+            <strong>Wallet connect</strong> uses RainbowKit and WalletConnect (Reown), which see that you connected.
+          </li>
+          <li>
+            Infrastructure: Vercel (hosting), Supabase (database), Upstash (rate limits, counters). We don&apos;t
+            sell data.
           </li>
         </ul>
 
@@ -83,7 +112,7 @@ export default function PrivacyPage() {
           </a>
         </p>
 
-        <p className="legal-updated mono">Last updated 2026-10-18</p>
+        <p className="legal-updated mono">Last updated 2026-10-19</p>
       </main>
       <SiteFooter />
     </div>
