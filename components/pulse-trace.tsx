@@ -29,7 +29,7 @@ export function PulseTrace({
           viewBox={`0 0 ${PIXEL_COLS} ${PIXEL_ROWS}`}
           shapeRendering="crispEdges"
           role="img"
-          aria-label={hasReading ? `Pulse trace: ${passed} of 5 checks passed` : "Pulse trace: no reading"}
+          aria-label={hasReading ? `Pulse trace: ${passed} of ${beats.length} checks passed` : "Pulse trace: no reading"}
         >
           {beats.map((b, i) => (
             <path key={b.signal} d={pixelPath(beatPixels(i, b.lit))} className={b.lit ? "ph-px is-lit" : "ph-px"} />

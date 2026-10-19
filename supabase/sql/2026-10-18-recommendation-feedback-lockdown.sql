@@ -2,7 +2,7 @@
 -- Verified after apply: anon SELECT and anon INSERT both fail with permission denied; a Path Board 👍 still saves through
 -- the server (service-role client, SUPABASE_SERVICE_ROLE_KEY set in Vercel Production + Preview).
 --
--- Problem: docs/sql/001_recommendation_feedback.sql created `allow_insert_feedback` and `allow_select_feedback` for anon and
+-- Problem: supabase/sql/2026-10-10-recommendation-feedback.sql created `allow_insert_feedback` and `allow_select_feedback` for anon and
 -- authenticated with `true`. The anon key ships to every browser, so anyone could insert arbitrary rows and read every row,
 -- including wallet addresses and free-text intents.
 --

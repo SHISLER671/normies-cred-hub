@@ -60,7 +60,7 @@ describe("recommendation_feedback lockdown migration (applied by hand 2026-10-18
     assert.match(sql, /wallet_verified boolean not null default false/)
   })
   it("the original setup script no longer re-opens anon access", () => {
-    const setup = fs.readFileSync("docs/sql/001_recommendation_feedback.sql", "utf8")
+    const setup = fs.readFileSync("supabase/sql/2026-10-10-recommendation-feedback.sql", "utf8")
     assert.doesNotMatch(setup, /to anon/)
   })
 })

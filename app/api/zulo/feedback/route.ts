@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
+import { purgeExpiredRows } from "@/lib/db/retention"
 import {
   getZuloHelpfulStats,
   isSupabaseConfigured,
@@ -80,13 +81,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Could not store feedback. Ensure recommendation_feedback exists (docs/sql/001_recommendation_feedback.sql) and SUPABASE_SERVICE_ROLE_KEY is set on the server.",
+            "Could not store feedback right now.",
           code: "feedback_store_failed",
         },
         { status: 503 },
       )
     }
 
+    // Retention promised on /privacy (180 days). Runs before the count so the public number matches what is kept.
+    await purgeExpiredRows()
     const stats = await getZuloHelpfulStats(ZULO_IDENTITY.agentId)
 
     return NextResponse.json(
@@ -101,7 +104,7 @@ export async function POST(req: NextRequest) {
         },
         helpful: stats
           ? {
-              label: `Helpful ratings · Zulo #${ZULO_IDENTITY.agentId}`,
+              label: `Helpful ratings, last 180 days · Zulo #${ZULO_IDENTITY.agentId}`,
               count: stats.helpfulCount,
             }
           : null,
@@ -139,6 +142,8 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    // Retention promised on /privacy (180 days). Runs before the count so the public number matches what is kept.
+    await purgeExpiredRows()
     const stats = await getZuloHelpfulStats(ZULO_IDENTITY.agentId)
     if (!stats) {
       return NextResponse.json(
@@ -156,7 +161,7 @@ export async function GET(req: NextRequest) {
         ok: true as const,
         zuloAgentId: stats.zuloAgentId,
         helpfulCount: stats.helpfulCount,
-        label: `Helpful ratings · Zulo #${stats.zuloAgentId}`,
+        label: `Helpful ratings, last 180 days · Zulo #${stats.zuloAgentId}`,
         asOf: stats.asOf,
         note:
           "Ratings are stored by NCH and shown as ratings. They are not reputation and never change Pulse.",

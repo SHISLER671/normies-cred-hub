@@ -28,7 +28,14 @@ export type RecordCardInputs = {
   } | null
   owner: { owner?: string | null } | null
   zombie: { info?: { isZombie?: boolean | null } | null } | null
-  pulse: { pulse_level: number; max_level: number; status: string; breakdown: string[]; next_signal?: string | null } | null
+  pulse: {
+    pulse_level: number
+    max_level: number
+    status: string
+    breakdown: string[]
+    next_signal?: string | null
+    popularity?: { pulse_checkers: number; paths_users: number; lookback_days: number; popular: boolean } | null
+  } | null
   chatRatings: ChatRatingsSummary | null | undefined
   arena: ArenaSector
   /** Agents Canvas sector. Defaults to pending (no official source yet). */
@@ -126,6 +133,15 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
       status: i.pulse?.status ?? null,
       breakdown: i.pulse?.breakdown ?? [],
       next_signal: i.pulse?.next_signal ?? null,
+      popularity: i.pulse?.popularity
+        ? {
+            label: "Popularity",
+            pulse_checkers: i.pulse.popularity.pulse_checkers,
+            paths_users: i.pulse.popularity.paths_users,
+            lookback_days: i.pulse.popularity.lookback_days,
+            popular: i.pulse.popularity.popular,
+          }
+        : null,
       gate,
       available: !!i.pulse,
     },

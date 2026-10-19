@@ -115,7 +115,14 @@ export function PulseHero({
                 ? "Passes the trust gate: registered and clean ownership. Eligible for skill ranks when they open."
                 : `${gate?.text ?? "Not yet past the trust gate"}.`}
             </p>
-            {pulse!.next_signal && <p className="ph-next">Next level: {pulse!.next_signal}</p>}
+            {pulse!.next_signal && <p className="ph-next">{pulse!.next_signal}</p>}
+            {pulse!.popularity && (
+              <p className="ph-next" title="Distinct callers, not raw calls. Popularity only counts once all four trust checks pass.">
+                Popularity: checked by {pulse!.popularity.pulse_checkers}{" "}
+                {pulse!.popularity.pulse_checkers === 1 ? "person" : "people"}, used in Paths by{" "}
+                {pulse!.popularity.paths_users} in the last {pulse!.popularity.lookback_days} days.
+              </p>
+            )}
           </>
         )}
       </div>

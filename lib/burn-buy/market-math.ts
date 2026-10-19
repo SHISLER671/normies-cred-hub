@@ -1,7 +1,6 @@
 // Pixel Market arithmetic. Pure functions, no I/O. Every figure comes from the live order book (api.normies.art /market/*) plus the
 // published score formula; nothing here forecasts a price or says whether a trade is "worth it". Prices are ETH per #PIXEL.
 
-import { ARTICLE_WINDOW } from "./advise"
 import { walletScore } from "./score"
 
 export interface DepthLevel {
@@ -106,39 +105,8 @@ export function breakEvenNormieEth(pays: number, askEth: number): number {
   return round(pays * askEth, 4)
 }
 
-export interface PaybackRow {
-  label: string
-  /** Monthly pool (ETH) assumed. Illustrative, not a forecast. */
-  poolEthPerMonth: number
-  monthlyEth: number
-  /** Months to earn back `costEth`. Null when there is no gain to earn it back from. */
-  months: number | null
-}
-
-/**
- * The pool paid to holders is 50% of market fees plus 50% of royalties (official). The monthly total is NOT known yet, so these are three
- * labelled scenarios around the one published pace: the Sep 23 article's pool over its window (OpenSea only, 216 days).
- */
-export function monthlyPoolScenarios(): Array<{ label: string; poolEthPerMonth: number }> {
-  const article = (ARTICLE_WINDOW.poolEth / ARTICLE_WINDOW.days) * 30
-  return [
-    { label: "quiet (a quarter of the article's pace)", poolEthPerMonth: round(article / 4, 2) },
-    { label: "the article's pace", poolEthPerMonth: round(article, 2) },
-    { label: "busy (double the article's pace)", poolEthPerMonth: round(article * 2, 2) },
-  ]
-}
-
-/** What an added score would earn per month in each scenario, and how long the cost takes to earn back. */
-export function paybackScenarios(costEth: number, held: number, pixelBefore: number, pixelAfter: number, othersScore: number): PaybackRow[] {
-  const before = walletScore(held, pixelBefore)
-  const after = walletScore(held, pixelAfter)
-  const share = (s: number) => s / Math.max(1e-9, othersScore + s)
-  const gainShare = Math.max(0, share(after) - share(before))
-  return monthlyPoolScenarios().map((sc) => {
-    const monthly = sc.poolEthPerMonth * gainShare
-    return { label: sc.label, poolEthPerMonth: sc.poolEthPerMonth, monthlyEth: round(monthly, 5), months: monthly > 0 ? round(costEth / monthly, 1) : null }
-  })
-}
+/** Kept in the API shape for compatibility; always empty since 2026-10-19 (payback estimates retired as income framing). */
+export type PaybackRow = never
 
 export interface SellRow {
   label: string
@@ -202,12 +170,12 @@ export interface CliffCost {
   scoreGain: number
   /** ETH per point of score gained. Null when the book cannot fill the whole step. */
   costPerScorePoint: number | null
-  /** Empty when the book cannot fill the whole step (no honest cost to pay back). */
+  /** Always empty: payback / "months to earn it back" estimates were retired on 2026-10-19 (income framing). */
   payback: PaybackRow[]
 }
 
 /** What reaching the next boost would cost if every #PIXEL were bought off the book today. Null when there is no next step or no book. */
-export function cliffCost(held: number, pixel: number, next: { at: number; needMore: number; value: number } | null, depth: DepthLevel[], othersScore: number): CliffCost | null {
+export function cliffCost(held: number, pixel: number, next: { at: number; needMore: number; value: number } | null, depth: DepthLevel[], _othersScore: number): CliffCost | null {
   if (!next || depth.length === 0 || held < 1) return null
   const buy = buyCost(depth, next.needMore)
   if (buy.filled === 0) return null
@@ -224,7 +192,7 @@ export function cliffCost(held: number, pixel: number, next: { at: number; needM
     scoreAfter: round(after, 2),
     scoreGain: round(gain, 2),
     costPerScorePoint: full && gain > 0 ? round(buy.costEth / gain, 4) : null,
-    payback: full && gain > 0 ? paybackScenarios(buy.costEth, held, pixel, next.at, othersScore) : [],
+    payback: [],
   }
 }
 

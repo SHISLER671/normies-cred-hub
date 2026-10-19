@@ -18,7 +18,7 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 - No payments or crypto-as-income features. Never ask for seed phrases or private keys; never print secrets or commit env values (`.env.example` holds names only).
 - Zulo payments (#WillWork4PIXEL) are **parked, not deleted**: the code stays, `lib/payments/rail-policy.ts` hard-blocks it, and no page, manifest or prompt may tell anyone how to pay Zulo. Only Ryan can unpark it, by changing the no-crypto-as-income rule first.
 - Never present Arena or agent trading as live. Status comes from `lib/official-status.ts`; copy its status lines, never paraphrase them.
-- Never map people to wallets: no username/handle → wallet lookups. Wallet in, public data out.
+- Never map people to wallets: no username/handle → wallet lookups. Wallet in, public data out. ENS names are the exception because the wallet owner published them on-chain: resolving `name.eth` ↔ address is allowed; social handles (X, Farcaster, Discord, email) never are.
 - Public API routes: rate-limit every route that calls an outside service or the chain (`enforceDualRateLimit`), put a timeout on every outbound fetch (`fetchWithTimeout`), allowlist anything that builds an upstream URL from input, and never return upstream error text to callers. Report "couldn't read" separately from "not found" or "empty", and don't cache it.
 - Cron/operator routes check only `isAuthorizedCron` (bearer secret, constant time). The `x-vercel-cron` header is not proof.
 - Pulse signals must not be buyable: anything counted toward a level counts distinct callers, never raw calls.
@@ -29,12 +29,13 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 - **Chat ratings are not reputation.** Hive chat ratings (`lib/chat-ratings/`) are labelled "Chat rating" and never change `pulse_level`. Ranking weights live in `lib/chat-ratings/config.ts` — tune there, not in the math.
 - **Agent trading angle:** Zulo is the smartest Normie by being the reputation layer, not a trader. Rank agents by *verified* proof of profit only (on-chain agent-wallet trades or official records/API). Self-reported P&L, screenshots and chat are labelled "self-reported" with zero weight. Risk-adjusted (trade count, win rate, drawdown, liquidations, time window). A track record, never a tip; DYOR.
 - Signal over noise: ship raw counts next to any ranked score so anyone can check the math.
-- **Pulse = trust, never skill.** Skill lives in separate sector ranks (Arena, Trading, Tools/utility), verified data only, each with its own minimum sample, open only to agents that clear the Pulse gate (both "ERC-8004 registered" and "Clean ownership & delegation" in the Pulse breakdown — never a level threshold). No fixed overall rank; if one is ever shown, the viewer picks the weights. See `docs/zulo/strategy.md`.
+- **Pulse = trust, never skill.** Levels 1–4 are the four trust checks; level 5 (Luminous) is popularity (distinct callers) on top of all four, never a stand-in for a missing check, with the raw counts shown. Skill lives in separate sector ranks (Arena, Trading, Tools/utility), verified data only, each with its own minimum sample, open only to agents that clear the Pulse gate (both "ERC-8004 registered" and "Clean ownership & delegation" in the Pulse breakdown — never a level threshold). No fixed overall rank; if one is ever shown, the viewer picks the weights. See `docs/zulo/strategy.md`.
 - UI labels use plain words, not insider abbreviations (e.g. not a bare "AP").
 
 ## Code rules
 - Do not edit `public/.well-known/ai-tool/*.json`. Their manifest hashes are pinned on-chain (ERC-8257); `lib/erc8257/manifest-hash.test.ts` fails on any change. Add response fields additively in code instead.
 - Work in PRs that target `main` — no stacked bases (a PR based on another PR's branch silently misses `main` when merged out of order). One branch per PR.
+- Open every PR as a **draft**. Another agent reviews it; the author fixes what the review raises, then marks it "Ready for review". Ryan merges only ready PRs. Dependabot PRs are the exception: they arrive ready, and Ryan may merge them once `check` is green.
 - Ryan merges. Pull `main` and check merged PRs before assuming anything is unmerged.
 - Run `pnpm typecheck` and `pnpm test:all` before opening a PR. New test files go into the `test:all` and `test:unit` scripts.
 - Sign your work: put your agent name (Claude, GrokBot, GrokProject, Zulo Desk) in the commit message and PR title or body.

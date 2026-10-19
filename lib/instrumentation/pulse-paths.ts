@@ -9,11 +9,12 @@ import type { NextRequest } from "next/server"
 import { getClientId } from "@/lib/ratelimit"
 
 export const PULSE_RECENT_WINDOW_SEC = 900
-/** Rolling window for Pulse level-5 usage signal. */
+/** Rolling window for popularity (Luminous, level 5, once all four trust checks pass). */
 export const USAGE_LOOKBACK_DAYS = 14
 /**
- * Level 5 counts DISTINCT callers (hashed IP), not raw calls: one script calling Pulse 8 times must not raise a
- * token's trust level. A caller counts once per token, however often it calls.
+ * Popularity counts DISTINCT callers (keyed hash of the IP), not raw calls: one script calling Pulse 8 times must not inflate a
+ * token's count. A caller counts once per token, however often it calls. Popularity only lifts an agent that already
+ * passes all four trust checks to Luminous; it never stands in for a trust check.
  */
 export const USAGE_PULSE_CALLS_THRESHOLD = 8
 export const USAGE_CONDITIONED_PATHS_THRESHOLD = 3
@@ -33,7 +34,7 @@ const KEY = {
     `usage:pulse:day:${tokenId}:${day}`,
   conditionedDay: (tokenId: number, day: string) =>
     `usage:paths:conditioned:day:${tokenId}:${day}`,
-  /** Set of hashed callers that called Pulse for this token on this day (the level-5 signal reads these). */
+  /** Set of hashed callers that called Pulse for this token on this day (popularity reads these). */
   pulseCallers: (tokenId: number, day: string) =>
     `usage:pulse:callers:${tokenId}:${day}`,
   conditionedCallers: (tokenId: number, day: string) =>
@@ -69,7 +70,7 @@ export type PulseCallInput = {
   source: PulseCallSource
   callerWallet?: string | null
   pulseLevel?: number | null
-  /** Hashed caller (usageCallerKey). Without it the call is logged but never counts toward the level-5 signal. */
+  /** Hashed caller (usageCallerKey). Without it the call is logged but never counts toward popularity. */
   callerKey?: string | null
 }
 
@@ -80,7 +81,7 @@ export type PathsCallInput = {
   pathCount: number
   pulseLevelAtTime?: number | null
   callerWallet?: string | null
-  /** Hashed caller (usageCallerKey). Without it the call never counts toward the level-5 signal. */
+  /** Hashed caller (usageCallerKey). Without it the call never counts toward popularity. */
   callerKey?: string | null
 }
 
@@ -128,7 +129,7 @@ function memUnionSize(keys: string[]): number {
   return all.size
 }
 
-/** Server secret for caller keys. Without one, nothing counts toward level 5 (fail closed). */
+/** Server secret for caller keys. Without one, no caller is counted toward popularity (fail closed). */
 function usageHashSecret(): string | null {
   return process.env.USAGE_HASH_SECRET?.trim() || process.env.AUDIT_LOG_HMAC_SECRET?.trim() || null
 }
@@ -271,13 +272,16 @@ async function incrDaily(
 export type TokenUsageSignal = {
   pulseCalls: number
   conditionedPaths: number
+  /** Popularity threshold met. Lifts to Luminous only when all four trust checks pass (lib/api/agent-pulse.ts). */
   earned: boolean
   lookbackDays: number
+  /** False when the counters couldn't be read: show nothing rather than a false zero. */
+  readable: boolean
 }
 
 /**
- * Fail-open usage read for Pulse level 5.
- * Earned when recent Pulse calls or Pulse-conditioned Paths meet thresholds.
+ * Popularity read for Pulse (distinct callers over the lookback window): raw counts plus whether Luminous is earned.
+ * Never throws; a failed read returns `readable: false`.
  */
 export async function getTokenUsageSignal(
   tokenId: number,
@@ -287,6 +291,7 @@ export async function getTokenUsageSignal(
     conditionedPaths: 0,
     earned: false,
     lookbackDays: USAGE_LOOKBACK_DAYS,
+    readable: true,
   }
   try {
     if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId > 9999) {
@@ -318,10 +323,11 @@ export async function getTokenUsageSignal(
       conditionedPaths,
       earned,
       lookbackDays: USAGE_LOOKBACK_DAYS,
+      readable: true,
     }
   } catch (err) {
     console.warn("[instrumentation] getTokenUsageSignal failed", err)
-    return empty
+    return { ...empty, readable: false }
   }
 }
 

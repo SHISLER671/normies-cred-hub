@@ -87,12 +87,13 @@ describe("live numbers on the page", () => {
     assert.equal(m.marketLine, null)
     for (const f of m.fodder) assert.deepEqual([f.vsAsk, f.breakEven], [null, null])
   })
-  it("the cliff-cost sentence states the cost, the rising price and labelled-illustrative payback", () => {
+  it("the cliff-cost sentence states the cost and the rising price, with no payback or earn-it-back figures", () => {
     const c = cliffCost(2, 10, { at: 15, needMore: 5, value: 0.15 }, book().depth, 28_000)
     const s = cliffCostSentences(c).join(" ")
     assert.match(s, /buying 5 more: about 0\.0845 ETH off the book today/)
     assert.match(s, /the price rises as you buy/)
-    assert.match(s, /illustrative scenarios.*NOT forecasts/)
+    assert.doesNotMatch(s, /payback|earn it back|a month for you/i)
+    assert.deepEqual(c?.payback, [])
     assert.deepEqual(cliffCostSentences(null), [])
   })
   it("a book too thin for the step says so and shows no payback", () => {

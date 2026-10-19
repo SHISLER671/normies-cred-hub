@@ -175,7 +175,7 @@ describe("metrics + fail-open", () => {
   })
 })
 
-describe("level-5 usage signal", () => {
+describe("popularity signal for Luminous (distinct callers only)", () => {
   it("does not earn with sparse Pulse calls", async () => {
     __resetUsageMemoryForTests()
     await recordPulseCall({ tokenId: 200, source: "get", callerKey: "c1" })
@@ -194,7 +194,7 @@ describe("level-5 usage signal", () => {
     assert.equal(s.earned, true)
   })
 
-  it("one caller hammering Pulse cannot raise a token's level", async () => {
+  it("one caller hammering Pulse cannot make a token popular", async () => {
     __resetUsageMemoryForTests()
     for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD * 5; i++) {
       await recordPulseCall({ tokenId: 203, source: "tool", callerKey: "same-script" })
@@ -204,7 +204,7 @@ describe("level-5 usage signal", () => {
     assert.equal(s.earned, false)
   })
 
-  it("calls without a caller key are logged but never count toward level 5", async () => {
+  it("calls without a caller key are logged but never count toward popularity", async () => {
     __resetUsageMemoryForTests()
     for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD * 2; i++) {
       await recordPulseCall({ tokenId: 204, source: "get" })
