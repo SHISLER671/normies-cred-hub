@@ -48,8 +48,7 @@ export async function GET() {
       },
       notes: [
         "Descriptive only. Zulo takes no payments; payments are parked and nothing here is a way to pay.",
-        "Set PIXEL_CURRENCY_ENABLED=true to enable dual acceptance and knowledge inject.",
-        "DEFAULT_CURRENCY stays AP unless flag on and DEFAULT_CURRENCY=PIXEL.",
+        "#PIXEL is the official name for action points: earned by burning or bought on the Pixel Market; painting never spends it.",
       ],
       asOf: new Date().toISOString(),
     },

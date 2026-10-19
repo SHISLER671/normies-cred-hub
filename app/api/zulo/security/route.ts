@@ -3,18 +3,14 @@
 import { NextResponse } from "next/server"
 
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
-import { getCircuitState } from "@/lib/security/circuitBreaker"
-import { getPaymentRailStatus } from "@/lib/agent-recommendations/verifyPayment"
-import { HIGH_VALUE_AP, MIN_CONFIRMATIONS } from "@/lib/payments/verify"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  const circuit = await getCircuitState()
 
   return NextResponse.json(
     {
-      posture: "I assume breach. Every transaction is adversarial.",
+      posture: "I assume breach. Every request is adversarial.",
       agent: {
         name: ZULO_IDENTITY.name,
         ens: ZULO_IDENTITY.ens,
@@ -22,21 +18,15 @@ export async function GET() {
         role: "strategic-architect",
       },
       layers: [
-        "crypto-format-validation",
-        "7-step-payment-verification",
+        "read-only (no transactions, approvals or typed-data signatures)",
+        "strict-input-validation",
         "dual-key-rate-limits",
-        "strict-input-schemas",
+        "allowlisted-upstream-paths",
         "security-headers",
         "append-only-audit-log",
-        "payment-circuit-breaker",
       ],
-      payment: {
-        railStatus: getPaymentRailStatus(),
-        minConfirmations: MIN_CONFIRMATIONS,
-        highValueApThreshold: HIGH_VALUE_AP,
-        paymentsPaused: circuit.paymentsPaused,
-        circuit: circuit.state,
-      },
+      // Parked: Zulo takes no payments, and this endpoint doesn't describe how payments would work.
+      payments: "parked",
       bugBounty: {
         status: "informal",
         scope: "normiescredhub.vercel.app pages and APIs",
