@@ -3,7 +3,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { test } from "node:test"
 
-import { MAX_ROOM, checkIds, symphonyPath } from "./pin"
+import { MAX_ROOM, checkIds, parseIds, symphonyPath } from "./pin"
 
 const root = path.join(__dirname, "../..")
 const read = (p: string) => fs.readFileSync(path.join(root, p), "utf8")
@@ -28,7 +28,7 @@ test("typed ids: out of range", () => {
 test("typed ids: over the cap", () => {
   const r = checkIds(Array.from({ length: 15 }, (_, i) => i).join(","))
   assert.equal(r.ids.length, MAX_ROOM)
-  assert.match(r.hint, new RegExp(`up to ${MAX_ROOM}`))
+  assert.match(r.hint, new RegExp(`cap of ${MAX_ROOM}`))
 })
 test("typed ids: junk and empty never throw", () => {
   for (const bad of ["", "   ", "abc", "-5", "1.5", "0x1234", "<script>", null, undefined, "💥"]) {
@@ -53,4 +53,27 @@ test("wallet connection is site-wide and persists (one WagmiProvider in the root
   assert.doesNotMatch(read("app/symphony/page.tsx"), /WagmiProvider|Providers/)
   const cfg = read("lib/wagmi.ts")
   assert.doesNotMatch(cfg, /reconnectOnMount:\s*false|storage:\s*null/)
+})
+test("one parser: parseIds is exactly checkIds().ids, and share links parse the same", () => {
+  for (const s of ["7141,42,1", "7141, 42, 1", "1.5", "-5", "7141 7141 42", "10000,3", "abc,42", "", null]) {
+    assert.deepEqual(parseIds(s as string), checkIds(s as string).ids, String(s))
+  }
+  assert.deepEqual(parseIds("7141,42,1"), [7141, 42, 1])
+})
+test("'1.5' is not split into #1 and #5; it gets a separator hint", () => {
+  const r = checkIds("1.5")
+  assert.deepEqual(r.ids, [])
+  assert.match(r.hint, /commas or spaces/)
+  const m = checkIds("1.5, 42")
+  assert.deepEqual(m.ids, [42])
+  assert.match(m.hint, /commas or spaces/)
+  assert.match(checkIds("abc, 42").hint, /couldn't read some entries/)
+})
+test("one typed-id box: play-mine has no input; the main # box uses checkIds", () => {
+  const mine = read("components/symphony/play-mine.tsx")
+  assert.doesNotMatch(mine, /<input|<form|Play these|checkIds\(/)
+  const player = read("components/symphony/player.tsx")
+  assert.match(player, /checkIds\(raw\)/)
+  assert.doesNotMatch(player, /parseIds/)
+  assert.doesNotMatch(read("app/symphony/symphony.css").split("Phase 1")[1] ?? "", /cyan/)
 })

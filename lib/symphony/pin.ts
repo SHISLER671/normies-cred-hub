@@ -5,22 +5,19 @@
 /** Most Normies layered in one room (browser CPU and API politeness). */
 export const MAX_ROOM = 12
 
-/** "7141, 1 42;7141" → [7141, 1, 42]. Keeps order, drops duplicates and anything outside 0–9999, caps at MAX_ROOM. */
+/**
+ * "7141, 1 42;7141" → [7141, 1, 42]. The one parser for share links, the card route and the main # box: it is exactly
+ * checkIds(raw).ids, so every surface follows the same rules (commas, spaces or semicolons between ids; keeps order;
+ * drops duplicates, anything outside 0–9999 and anything that isn't a plain number such as "1.5" or "-5"; caps at MAX_ROOM).
+ */
 export function parseIds(raw: string | null | undefined): number[] {
-  const out: number[] = []
-  for (const part of (raw ?? "").split(/[^\d]+/)) {
-    if (!part || part.length > 4) continue
-    const n = Number(part)
-    if (Number.isInteger(n) && n >= 0 && n <= 9999 && !out.includes(n)) out.push(n)
-    if (out.length === MAX_ROOM) break
-  }
-  return out
+  return checkIds(raw).ids
 }
 
 export type IdCheck = { ids: number[]; hint: string }
 
 /**
- * Typed ids for the "Type Normie ids" box. Never throws. Returns the ids to load (same rules as parseIds) plus a gentle
+ * Typed ids for the main # box (and, via parseIds, every link). Never throws. Returns the ids to load (same rules as parseIds) plus a gentle
  * plain-words hint when something was dropped or nothing usable was typed. An empty hint means the input was clean.
  */
 export function checkIds(raw: string | null | undefined): IdCheck {
@@ -29,11 +26,16 @@ export function checkIds(raw: string | null | undefined): IdCheck {
   if (!tokens.length) return { ids: [], hint: "Type one or more Normie numbers, like 7141, 42, 1." }
   const ids: number[] = []
   let junk = 0
+  let dots = 0
   let range = 0
   let dupes = 0
   let over = 0
   for (const t of tokens) {
-    if (!/^\d+$/.test(t)) { junk++; continue }
+    if (!/^\d+$/.test(t)) {
+      if (/^[\d.]+$/.test(t) && t.includes(".")) dots++
+      else junk++
+      continue
+    }
     const n = t.length > 5 ? Infinity : Number(t)
     if (!(n >= 0 && n <= 9999)) { range++; continue }
     if (ids.includes(n)) { dupes++; continue }
@@ -41,10 +43,11 @@ export function checkIds(raw: string | null | undefined): IdCheck {
     ids.push(n)
   }
   const notes: string[] = []
-  if (junk) notes.push("only numbers work")
+  if (dots) notes.push("use commas or spaces between ids")
+  if (junk) notes.push("couldn't read some entries")
   if (range) notes.push("Normies run from 0 to 9999")
   if (dupes) notes.push("repeats were skipped")
-  if (over) notes.push(`a room holds up to ${MAX_ROOM}, so the rest were left out`)
+  if (over) notes.push(`over the cap of ${MAX_ROOM}, so the rest were left out`)
   if (!ids.length) return { ids, hint: notes.length ? `Nothing to play yet: ${notes.join("; ")}.` : "Type one or more Normie numbers, like 7141, 42, 1." }
   return { ids, hint: notes.length ? `Playing ${ids.length}: ${notes.join("; ")}.` : "" }
 }
