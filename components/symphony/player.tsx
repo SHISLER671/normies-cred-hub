@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { composeScore, gridSide } from "@/lib/symphony/compose"
+import { MAX_ROOM, parseIds, symphonyPath, symphonyShareText } from "@/lib/symphony/pin"
 import { playheadColumn } from "@/lib/symphony/timeline"
 import type { NormieTrait, VoiceScore } from "@/lib/symphony/types"
 
-type Voice = { tokenId: number; name: string; pixels: string; gridSize: number; traits: NormieTrait[] }
+type Voice = { tokenId: number; name: string; pixels: string; gridSize: number; traits: NormieTrait[]; block: number | null }
 type Player = { stop: () => void; elapsed: () => number; spectrum: (out: Uint8Array<ArrayBuffer>) => void; bins: number }
 
 const PART_LABEL: Record<string, string> = { pad: "PAD", bass: "BASS", primary: "LEAD", harmony: "HARMONY", arp: "ARP", counter: "COUNTER" }
@@ -17,18 +18,24 @@ function mmss(s: number): string {
 }
 
 /**
- * Pixel Symphony P0: one Normie, one blip. Type a number, press play, hear its pixels; download the loop as a WAV.
- * Read-only: one cached GET for pixels + traits, everything else runs in the browser. Nothing is saved.
+ * Pixel Symphony. One Normie makes a blip; up to 12 layer into a room. Every song is computed in the browser from the
+ * Normies' official on-chain pixels and traits. Share links pin an Ethereum block, so the song can be replayed exactly
+ * by anyone, forever, without anything being saved. Read-only.
  */
-export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: number }) {
-  const [raw, setRaw] = useState(String(defaultTokenId))
-  const [voice, setVoice] = useState<Voice | null>(null)
+export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: number[]; initialBlock: number | null }) {
+  const [raw, setRaw] = useState(initialIds.join(", "))
+  const [voices, setVoices] = useState<Voice[]>([])
   const [score, setScore] = useState<VoiceScore | null>(null)
+  const [block, setBlock] = useState<number | null>(initialBlock)
+  const [pinned, setPinned] = useState(initialBlock !== null)
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
   const [error, setError] = useState("")
+  const [skipped, setSkipped] = useState<number[]>([])
   const [playing, setPlaying] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [exporting, setExporting] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [origin, setOrigin] = useState("")
 
   const player = useRef<Player | null>(null)
   const raf = useRef<number | null>(null)
@@ -45,37 +52,53 @@ export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: num
   }, [])
 
   const load = useCallback(
-    async (id: number) => {
+    async (ids: number[], atBlock: number | null) => {
       stop()
+      if (!ids.length) return
       setStatus("loading")
       setError("")
-      try {
-        const r = await fetch(`/api/symphony/voice/${id}`)
-        const data = await r.json()
-        if (!r.ok) throw new Error(data?.error ?? `Couldn't load #${id}`)
-        const v = data as Voice
-        setVoice(v)
-        setScore(composeScore([v]))
-        setStatus("ready")
-      } catch (e) {
+      const q = atBlock ? `?block=${atBlock}` : ""
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          try {
+            const r = await fetch(`/api/symphony/voice/${id}${q}`)
+            return r.ok ? ((await r.json()) as Voice) : null
+          } catch {
+            return null
+          }
+        }),
+      )
+      const ok = results.filter((v): v is Voice => v !== null)
+      setSkipped(ids.filter((id) => !ok.some((v) => v.tokenId === id)))
+      if (!ok.length) {
         setStatus("error")
-        setError(e instanceof Error ? e.message : `Couldn't load #${id}`)
+        setError(ids.length === 1 ? `Couldn't read #${ids[0]}` : "Couldn't read these Normies")
+        return
       }
+      setVoices(ok)
+      setScore(composeScore(ok))
+      setBlock(atBlock ?? ok[0].block)
+      setPinned(atBlock !== null)
+      setStatus("ready")
     },
     [stop],
   )
 
   useEffect(() => {
-    void load(defaultTokenId)
+    setOrigin(window.location.origin)
+    void load(initialIds.length ? initialIds : [7141], initialBlock)
     return () => stop()
-  }, [defaultTokenId, load, stop])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Draw the Normie's pixels, with the playing column inverted.
+  const primary = voices[0] ?? null
+
+  // Draw the lead Normie's pixels, with the playing column inverted.
   const drawGrid = useCallback(
     (col: number | null) => {
       const c = gridRef.current
-      if (!c || !voice) return
-      const n = gridSide(voice.pixels)
+      if (!c || !primary) return
+      const n = gridSide(primary.pixels)
       const g = c.getContext("2d")
       if (!g) return
       c.width = n
@@ -86,28 +109,28 @@ export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: num
       g.fillStyle = paper
       g.fillRect(0, 0, n, n)
       g.fillStyle = ink
-      for (let i = 0; i < voice.pixels.length; i++) if (voice.pixels[i] === "1") g.fillRect(i % n, Math.floor(i / n), 1, 1)
+      for (let i = 0; i < primary.pixels.length; i++) if (primary.pixels[i] === "1") g.fillRect(i % n, Math.floor(i / n), 1, 1)
       if (col !== null) {
         for (let y = 0; y < n; y++) {
-          g.fillStyle = voice.pixels[y * n + col] === "1" ? paper : ink
+          g.fillStyle = primary.pixels[y * n + col] === "1" ? paper : ink
           g.fillRect(col, y, 1, 1)
         }
       }
     },
-    [voice],
+    [primary],
   )
 
   useEffect(() => drawGrid(null), [drawGrid])
 
   const play = useCallback(async () => {
-    if (!score || !voice) return
+    if (!score || !primary) return
     stop()
     const { createPlayer } = await import("@/lib/symphony/synth")
     const p = createPlayer(score)
     player.current = p
     setPlaying(true)
     const bins = new Uint8Array(p.bins)
-    const n = gridSide(voice.pixels)
+    const n = gridSide(primary.pixels)
     let lastSec = -1
     const tick = () => {
       const t = p.elapsed()
@@ -123,9 +146,8 @@ export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: num
         p.spectrum(bins)
         const bars = 24
         const cols = eq.width / bars
-        const css = getComputedStyle(eq)
         g.clearRect(0, 0, eq.width, eq.height)
-        g.fillStyle = css.getPropertyValue("--sym-lcd-ink").trim() || "#e3e5e4"
+        g.fillStyle = getComputedStyle(eq).getPropertyValue("--sym-lcd-ink").trim() || "#e3e5e4"
         for (let b = 0; b < bars; b++) {
           const v = bins[Math.floor((b / bars) * (bins.length * 0.6))] / 255
           const blocks = Math.round(v * 8)
@@ -135,32 +157,57 @@ export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: num
       raf.current = requestAnimationFrame(tick)
     }
     raf.current = requestAnimationFrame(tick)
-  }, [score, voice, stop, drawGrid])
+  }, [score, primary, stop, drawGrid])
+
+  const ids = voices.map((v) => v.tokenId)
+  const sharePath = symphonyPath(ids, block)
+  const shareUrl = `${origin}${sharePath}`
+  const shareText = symphonyShareText(voices.map((v) => v.name), block)
+  const cardPath = `/api/symphony/card?ids=${ids.join(",")}${block ? `&block=${block}` : ""}`
+  const fileBase = `pixel-symphony-${ids.slice(0, 4).join("-")}${ids.length > 4 ? "-etc" : ""}${block ? `-b${block}` : ""}`
 
   const download = useCallback(async () => {
-    if (!score || !voice) return
+    if (!score) return
     setExporting(true)
     try {
       const { renderWav } = await import("@/lib/symphony/synth")
       const blob = await renderWav(score)
       const a = document.createElement("a")
       a.href = URL.createObjectURL(blob)
-      a.download = `normie-${voice.tokenId}-pixel-symphony.wav`
+      a.download = `${fileBase}.wav`
       a.click()
       setTimeout(() => URL.revokeObjectURL(a.href), 5000)
     } finally {
       setExporting(false)
     }
-  }, [score, voice])
+  }, [score, fileBase])
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      window.prompt("Copy this link:", shareUrl)
+    }
+  }
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    const n = Number.parseInt(raw, 10)
-    if (Number.isInteger(n) && n >= 0 && n <= 9999) void load(n)
+    const next = parseIds(raw)
+    if (next.length) {
+      setRaw(next.join(", "))
+      // A new room plays the live pixels; the share link then pins the current block.
+      void load(next, null)
+      window.history.replaceState(null, "", symphonyPath(next, null))
+    }
   }
 
   const loop = score?.loopSeconds ?? 0
-  const marquee = score && voice ? `${voice.name.toUpperCase()} · ${score.root} ${score.scale.toUpperCase()} · ${score.bpm} BPM` : ""
+  const marquee =
+    score && primary
+      ? `${voices.length === 1 ? primary.name.toUpperCase() : `${voices.length} NORMIES`} · ${score.root} ${score.scale.toUpperCase()} · ${score.bpm} BPM`
+      : ""
 
   return (
     <section className="sym" aria-label="Pixel Symphony player">
@@ -177,7 +224,10 @@ export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: num
             <span className="sym-lcd-time">{mmss(playing ? elapsed % (loop || 1) : 0)}</span>
             <span className="sym-lcd-total">/ {mmss(loop)}</span>
           </div>
-          <div className="sym-lcd-id">{voice ? `#${voice.tokenId}` : "#----"}</div>
+          <div className="sym-lcd-id">
+            {ids.length ? ids.map((i) => `#${i}`).join(" ") : "#----"}
+            <span className="sym-lcd-block">{block ? `${pinned ? "PINNED" : "BLOCK"} ${block.toLocaleString("en-US")}` : "LIVE"}</span>
+          </div>
           <div className="sym-lcd-marquee">
             <span>{status === "error" ? error.toUpperCase() : status === "loading" ? "READING PIXELS…" : marquee}</span>
           </div>
@@ -185,19 +235,20 @@ export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: num
         </div>
 
         <div className="sym-face">
-          <canvas ref={gridRef} className="sym-grid" aria-label={voice ? `${voice.name}'s pixels; the playing column is inverted` : "Normie pixels"} />
+          <canvas ref={gridRef} className="sym-grid" aria-label={primary ? `${primary.name}'s pixels; the playing column is inverted` : "Normie pixels"} />
         </div>
       </div>
 
       <form className="sym-controls" onSubmit={submit}>
-        <label className="sr-only" htmlFor="sym-id">Normie number, 0 to 9999</label>
+        <label className="sr-only" htmlFor="sym-ids">Normie numbers, up to {MAX_ROOM}, separated by commas</label>
         <span className="sym-hash" aria-hidden>#</span>
         <input
-          id="sym-id"
-          className="sym-input"
+          id="sym-ids"
+          className="sym-input sym-input-wide"
           inputMode="numeric"
           value={raw}
-          onChange={(e) => setRaw(e.target.value.replace(/[^\d]/g, "").slice(0, 4))}
+          placeholder="7141, 1, 42"
+          onChange={(e) => setRaw(e.target.value.replace(/[^\d,\s]/g, ""))}
         />
         <button type="submit" className="sym-btn">Load</button>
         {playing ? (
@@ -205,21 +256,55 @@ export function SymphonyPlayer({ defaultTokenId = 7141 }: { defaultTokenId?: num
         ) : (
           <button type="button" className="sym-btn sym-btn-cta" onClick={play} disabled={status !== "ready"}>▶ Play</button>
         )}
+      </form>
+      <p className="sym-hint">One number for a solo, up to {MAX_ROOM} for a room. The first Normie leads.</p>
+      {skipped.length > 0 && <p className="sym-hint">Skipped (couldn&apos;t read): {skipped.map((s) => `#${s}`).join(", ")}</p>}
+
+      <ol className="sym-playlist" aria-label={voices.length > 1 ? "Normies in this room" : "Parts in this song"}>
+        {voices.length > 1
+          ? voices.map((v, i) => (
+              <li key={v.tokenId}>
+                <span className="sym-pl-n">{i + 1}.</span>
+                <span className="sym-pl-role">{i === 0 ? "LEAD" : "VOICE"}</span>
+                <span className="sym-pl-inst">{v.name}</span>
+                <span className="sym-pl-notes">#{v.tokenId}</span>
+              </li>
+            ))
+          : score?.parts.map((p, i) => (
+              <li key={i}>
+                <span className="sym-pl-n">{i + 1}.</span>
+                <span className="sym-pl-role">{PART_LABEL[p.role] ?? p.role.toUpperCase()}</span>
+                <span className="sym-pl-inst">{p.instrument}</span>
+                <span className="sym-pl-notes">{p.notes.filter((x) => x !== "rest").length} notes</span>
+              </li>
+            ))}
+      </ol>
+
+      <div className="sym-share" role="group" aria-label="Share this song">
+        <button type="button" className="sym-btn" onClick={copyLink} disabled={status !== "ready"}>
+          {copied ? "Link copied ✓" : "Copy link"}
+        </button>
+        <a
+          className="sym-btn"
+          href={`https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-disabled={status !== "ready"}
+        >
+          Post on X
+        </a>
+        <a className="sym-btn" href={cardPath} download={`${fileBase}.png`} aria-disabled={status !== "ready"}>
+          ⤓ PNG
+        </a>
         <button type="button" className="sym-btn" onClick={download} disabled={status !== "ready" || exporting}>
           {exporting ? "Rendering…" : "⤓ WAV"}
         </button>
-      </form>
-
-      <ol className="sym-playlist" aria-label="Parts in this song">
-        {score?.parts.map((p, i) => (
-          <li key={i}>
-            <span className="sym-pl-n">{i + 1}.</span>
-            <span className="sym-pl-role">{PART_LABEL[p.role] ?? p.role.toUpperCase()}</span>
-            <span className="sym-pl-inst">{p.instrument}</span>
-            <span className="sym-pl-notes">{p.notes.filter((x) => x !== "rest").length} notes</span>
-          </li>
-        ))}
-      </ol>
+      </div>
+      <p className="sym-hint">
+        {block
+          ? `The link pins block ${block.toLocaleString("en-US")}: anyone who opens it hears these Normies exactly as they were then.`
+          : "Links pin the current Ethereum block, so a song can be replayed exactly."}
+      </p>
     </section>
   )
 }

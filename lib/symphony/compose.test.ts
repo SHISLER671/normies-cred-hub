@@ -83,3 +83,22 @@ test("WAV header is valid 16-bit stereo PCM", () => {
   assert.equal(v.getUint32(40, true), 3 * 4)
   assert.equal(v.getInt16(44 + 4, true), 0x7fff)
 })
+
+test("pixel score: every cell inside its part's band, deterministic", async () => {
+  const { rollCells, ROLL_COLS, ROLL_ROWS_PER_PART } = await import("./roll")
+  const s = composeScore([ZULO])
+  const cells = rollCells(s)
+  assert.ok(cells.length > 50)
+  for (const [x, y] of cells) {
+    assert.ok(x >= 0 && x < ROLL_COLS)
+    assert.ok(y >= 0 && y < s.parts.length * ROLL_ROWS_PER_PART)
+  }
+  assert.deepEqual(rollCells(s), rollCells(composeScore([ZULO])))
+})
+
+test("a room layers several Normies: primary keeps its band, others answer", () => {
+  const room = composeScore([ZULO, { ...ZULO, tokenId: 1, name: "One", pixels: grid(40, 1) }, { ...ZULO, tokenId: 42, name: "FortyTwo", pixels: grid(40, 42) }])
+  assert.equal(room.parts[2].tokenId, 7141)
+  assert.ok(room.parts.some((p) => p.tokenId === 1) && room.parts.some((p) => p.tokenId === 42))
+  assert.match(room.synopsis, /3 Normies/)
+})
