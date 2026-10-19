@@ -6,6 +6,7 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
 import { parseBinding } from "./awakened"
+import { isPlayableGrid } from "./grid"
 import { pickVersionAtBlock, readVersions } from "./pin"
 import type { AwakenedBinding, NormieTrait } from "./types"
 
@@ -37,8 +38,7 @@ async function get(path: string, asJson: boolean): Promise<unknown> {
 
 function cleanPixels(raw: unknown): string | null {
   const bits = typeof raw === "string" ? raw.replace(/[^01]/g, "") : ""
-  const n = Math.round(Math.sqrt(bits.length))
-  return bits && n * n === bits.length ? bits : null
+  return bits && isPlayableGrid(bits) ? bits : null
 }
 
 async function pixelsAt(tokenId: number, block: number | null): Promise<{ pixels: string | null; from: LoadedVoice["pixels_from"] }> {

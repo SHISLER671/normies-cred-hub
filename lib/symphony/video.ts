@@ -3,7 +3,7 @@
 // monochrome (mirroring the share card), encoded with WebCodecs and muxed by mediabunny with the moov atom up front
 // ("fast start"), which X and phones need. mediabunny is loaded with import() only when someone taps ⤓ MP4.
 
-import { gridSide } from "./compose"
+import { viewGrid } from "./grid"
 import { rollCells, ROLL_COLS, ROLL_ROWS_PER_PART } from "./roll"
 import { playheadColumn } from "./timeline"
 import type { VoiceScore } from "./types"
@@ -115,11 +115,15 @@ function faceGeometry(r: Rect, n: number) {
   return { s, ox: r.x + Math.floor((r.w - s * n) / 2), oy: r.y + Math.floor((r.h - s * n) / 2) }
 }
 
-/** Ink pixels on paper, the same colours as faceSvg() on the share card, drawn as whole-pixel rects. */
-function drawFace(g: Ctx2D, r: Rect, pixels: string) {
+/** Ink pixels on paper, the same colours as faceSvg() on the share card, drawn as whole-pixel rects. Grids bigger
+ * than the box (e.g. a 256×256 canvas in an 80 px tile) are sampled down to fit, never drawn past the box. */
+function drawFace(g: Ctx2D, r: Rect, raw: string) {
   let n: number
+  let pixels: string
   try {
-    n = gridSide(pixels)
+    const v = viewGrid(raw, r.w)
+    n = v.side
+    pixels = v.pixels
   } catch {
     return
   }
@@ -218,7 +222,10 @@ export function createFramePainter(score: VoiceScore, voices: VideoVoice[], bloc
   const lit = new Set(rollCells(score).map(([x, y]) => y * ROLL_COLS + x))
   let lead: { pixels: string; n: number } | null = null
   try {
-    if (voices[0]) lead = { pixels: voices[0].pixels, n: gridSide(voices[0].pixels) }
+    if (voices[0] && L.faces[0]) {
+      const v = viewGrid(voices[0].pixels, L.faces[0].w)
+      lead = { pixels: v.pixels, n: v.side }
+    }
   } catch {
     lead = null
   }

@@ -38,7 +38,7 @@ function pixelDensity(pixels: string): number {
   return on / Math.max(pixels.length, 1)
 }
 
-/** Side length of a square pixel grid (40 at mint; 50–80 once enlarged). Throws on a non-square string. */
+/** Side length of a square pixel grid (40 at mint; 50–80 once enlarged; canvases up to 256). Throws on a non-square string. */
 export function gridSide(pixels: string): number {
   const n = Math.round(Math.sqrt(pixels.length))
   if (n < 1 || n * n !== pixels.length) throw new RangeError(`Pixel string is not a square grid (${pixels.length} chars)`)
@@ -489,6 +489,18 @@ function buildLayer(
   }
 }
 
+/** Largest grid (80×80, an enlarged Normie) whose seed uses the original first-200-pixels rule. */
+const LEGACY_SEED_MAX_PIXELS = 80 * 80
+
+/**
+ * The pixels that seed the key and phrasing. Normie-sized grids keep the original rule (the first 200 pixels), so every
+ * existing song and pinned share link sounds exactly the same. Bigger grids (canvases up to 256×256) hash the WHOLE grid,
+ * because 200 pixels is less than one row of a 256-wide canvas.
+ */
+function seedPixels(pixels: string): string {
+  return pixels.length > LEGACY_SEED_MAX_PIXELS ? `all:${hashString(pixels).toString(36)}` : pixels.slice(0, 200)
+}
+
 function pickHiveVoices(voices: NormieVoiceInput[]): NormieVoiceInput[] {
   if (voices.length <= MAX_AUDIO_PARTS) return voices
   // Prefer type diversity when truncating the hive
@@ -545,7 +557,7 @@ export function composeScore(voices: NormieVoiceInput[]): VoiceScore {
   const seedMaterial = hive
     .map(
       (v) =>
-        `${v.tokenId}:${v.pixels.slice(0, 200)}:${v.traits.map((t) => `${t.trait_type}=${t.value}`).join(",")}`,
+        `${v.tokenId}:${seedPixels(v.pixels)}:${v.traits.map((t) => `${t.trait_type}=${t.value}`).join(",")}`,
     )
     .join("|")
   const seed = hashString(seedMaterial)
