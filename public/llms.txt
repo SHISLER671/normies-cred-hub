@@ -54,7 +54,7 @@ Human page: /burn?wallet=<0x address or name.eth>&goal=share|arena|art   (plain 
 JSON: GET /api/burn-buy?wallet=<0x address or name.eth>
 Without wallet you get the market only (cheapest #PIXEL per ETH) and the census.
 Spec: /openapi/burn-buy.json
-To turn points into money: the Normies revenue share simulator, https://simulator.normies.art/?normies=<N>&pixels=<M> (on normies.art; opens with those holdings filled in).
+Official revenue share simulator (for how the holder pool splits; not an earnings estimate from this API): https://simulator.normies.art/?normies=<N>&pixels=<M> (on normies.art; opens with those holdings filled in).
 Per Normie held: keep, burn candidate or either, with the reason; ranked moves by exact score change.
 The Pixel Market is live (since 2026-10-05): pixelMarket is its order book (bestAskEth, lastPriceEth, depth, feeBps; ETH per #PIXEL, a snapshot of a thin new market), wallet.pixelMarketView prices the next boost off that book (cliffCost; its payback array is always empty, as payback estimates were retired) and what selling would net after the 10% seller fee (sell), and fodder carries vsAsk and breakEvenNormieEth (burning versus buying at the best ask). These are comparisons and arithmetic, never advice.
 Market listings carry ethPerPixel (price divided by what a burn pays; in normal mode ethPerPixelLow and ethPerPixelHigh bound the roll). wallet.advice.cliffs shows, for Normies and for #PIXEL, the next step up (needMore) and the cushion above the step you stand on (floor.spare, and floor.dropsTo if you fall below it): arithmetic on the published ladders with no prices. #PIXEL listed for sale still counts until it sells.

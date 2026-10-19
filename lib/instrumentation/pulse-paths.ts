@@ -280,11 +280,21 @@ export type TokenUsageSignal = {
 }
 
 /**
+ * Whether popularity counts mean anything right now. Without the caller-hash secret nothing is ever counted, and
+ * without Redis each server instance keeps its own short-lived memory, so a "0" would be a false zero. In either
+ * case the count is hidden (readable: false), never shown as 0. The memory store counts only in tests.
+ */
+export function usageCountsAvailable(o: { secret: string | null; hasRedis: boolean; memoryForTests: boolean }): boolean {
+  return !!o.secret && (o.hasRedis || o.memoryForTests)
+}
+
+/**
  * Popularity read for Pulse (distinct callers over the lookback window): raw counts plus whether Luminous is earned.
- * Never throws; a failed read returns `readable: false`.
+ * Never throws; a failed read, or counting that isn't set up (see usageCountsAvailable), returns `readable: false`.
  */
 export async function getTokenUsageSignal(
   tokenId: number,
+  opts: { secret?: string | null } = {},
 ): Promise<TokenUsageSignal> {
   const empty: TokenUsageSignal = {
     pulseCalls: 0,
@@ -296,6 +306,10 @@ export async function getTokenUsageSignal(
   try {
     if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId > 9999) {
       return empty
+    }
+    const secret = opts.secret === undefined ? usageHashSecret() : opts.secret
+    if (!usageCountsAvailable({ secret, hasRedis: getRedis() !== null, memoryForTests: forceMemory })) {
+      return { ...empty, readable: false }
     }
     const days = lookbackDays(USAGE_LOOKBACK_DAYS)
     const pulseKeys = days.map((d) => KEY.pulseCallers(tokenId, d))

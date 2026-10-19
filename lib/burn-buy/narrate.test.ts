@@ -74,7 +74,7 @@ describe("buildPageModel", () => {
     assert.equal(m.rows[0].label, "KEEP")
     assert.match(m.rows[0].reasons[0], /awakened agent/)
     assert.match(m.rows[0].pays, /30 #PIXEL \(18 from pixels, 12 AP carried over\)/)
-    assert.match(m.headline, /^Best move right now: Burn #8188 into a Normie you hold\./)
+    assert.match(m.headline, /^Best move right now: Listed Normie #8188, burned into one you hold\./)
     assert.doesNotMatch(m.headline, /\bBuy\b|ETH/)
     assert.match(m.moves[0].detail, /Not yours yet: listed at 0\.35 ETH/)
     assert.match(m.lines.join(" "), /1 more Normie lifts your whole stack/)
@@ -124,7 +124,7 @@ describe("describeMove", () => {
   })
   it("buy-and-hold", () => {
     const d = describeMove(move({ kind: "buy-and-hold" }))
-    assert.match(d.title, /^Hold one more Normie \(#/)
+    assert.match(d.title, /^Listed Normie #\d+, added to your stack$/)
     assert.doesNotMatch(d.title, /\bBuy\b|ETH/)
     assert.match(d.detail, /^Not yours yet: listed at /)
   })

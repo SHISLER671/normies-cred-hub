@@ -106,7 +106,13 @@ function isValidAddr(addr?: string | null): boolean {
   return !!addr && /^0x[a-fA-F0-9]{40}$/.test(addr) && !isZeroAddr(addr)
 }
 
+/** Registration rarely changes: keep a successful on-chain answer for 5 minutes per server instance. */
+const REGISTRATION_TTL_MS = 5 * 60_000
+const registrationCache = new Map<number, { at: number; registered: boolean }>()
+
 async function isErc8004Registered(agentId: number): Promise<boolean> {
+  const hit = registrationCache.get(agentId)
+  if (hit && Date.now() - hit.at < REGISTRATION_TTL_MS) return hit.registered
   const registry = ERC8004.IDENTITY_REGISTRY as `0x${string}`
   const args = [BigInt(agentId)] as const
 
@@ -130,7 +136,13 @@ async function isErc8004Registered(agentId: number): Promise<boolean> {
   const registeredOwner =
     ownerResult.status === "fulfilled" ? (ownerResult.value as string) : null
 
-  return !!(agentURI || registeredOwner)
+  const registered = !!(agentURI || registeredOwner)
+  // Cache only a real answer: when both reads failed, "not registered" may just mean "couldn't read".
+  if (agentURIResult.status === "fulfilled" || ownerResult.status === "fulfilled") {
+    if (registrationCache.size > 5_000) registrationCache.clear()
+    registrationCache.set(agentId, { at: Date.now(), registered })
+  }
+  return registered
 }
 
 /**

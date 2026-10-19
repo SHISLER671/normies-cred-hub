@@ -8,8 +8,9 @@ import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { type NextRequest, NextResponse } from "next/server"
 
+// Every check must reach this function to be counted toward popularity (see the GET route), so nothing is cached.
 const CACHE_HEADERS = {
-  "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+  "Cache-Control": "private, no-store",
 }
 
 /**

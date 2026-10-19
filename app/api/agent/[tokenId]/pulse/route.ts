@@ -8,8 +8,11 @@ import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { type NextRequest, NextResponse } from "next/server"
 
+// Not cached at the edge: every check must reach this function to be counted. A 5-minute shared cache used to
+// answer repeat checks before recordPulseCall ran, so popularity undercounted (live: Pulse 0, record card 1).
+// The upstream reads stay cached (Normies API 5 min via fetch, ERC-8004 registration in-process), so this is cheap.
 const CACHE_HEADERS = {
-  "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+  "Cache-Control": "private, no-store",
 }
 
 /**
