@@ -1,63 +1,48 @@
 import { ETHOS_API_BASE, ETHOS_CLIENT_HEADER } from "@/constants/contracts"
 import { type NextRequest, NextResponse } from "next/server"
+import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 
 /**
- * Read-only proxy for the public Ethos reputation API.
+ * Read-only proxy for the public Ethos reputation API: wallet address → Ethos profile.
  * Forwards to POST /users/by/address. No wallet auth required.
+ *
+ * Address lookups only. The old username → wallet search was removed on purpose: NCH never maps people to wallets.
  */
 export async function POST(req: NextRequest) {
-  let address: string | undefined
-  let username: string | undefined
+  const rl = await enforceDualRateLimit(req, "default", { bucketPrefix: "ethos" })
+  if (!rl.ok) return rl.response
+
+  let address: unknown
   try {
-    const body = await req.json()
+    const body = (await req.json()) as { address?: unknown }
     address = body?.address
-    username = body?.username
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  if (username) {
-    // resolve username
-    try {
-      const res = await fetch(`${ETHOS_API_BASE}/users/search?query=${encodeURIComponent(username)}`, {
-        headers: {
-          "X-Ethos-Client": ETHOS_CLIENT_HEADER,
-        },
-        next: { revalidate: 300 },
-      })
-
-      if (!res.ok) {
-        return NextResponse.json({ error: `Ethos upstream returned ${res.status}` }, { status: res.status })
-      }
-
-      const data = await res.json() as { values?: any[] }
-      const user = data.values?.[0] || null
-      return NextResponse.json({ user }, { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } })
-    } catch (err) {
-      return NextResponse.json({ error: "Failed to reach Ethos API", detail: String(err) }, { status: 502 })
-    }
-  }
-
-  if (!address || typeof address !== "string" || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+  if (typeof address !== "string" || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
     return NextResponse.json({ error: "A valid 0x address is required" }, { status: 400 })
   }
 
   try {
-    const res = await fetch(`${ETHOS_API_BASE}/users/by/address`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Ethos-Client": ETHOS_CLIENT_HEADER,
+    const res = await fetchWithTimeout(
+      `${ETHOS_API_BASE}/users/by/address`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Ethos-Client": ETHOS_CLIENT_HEADER,
+        },
+        body: JSON.stringify({ addresses: [address] }),
+        next: { revalidate: 300 },
       },
-      body: JSON.stringify({ addresses: [address] }),
-      next: { revalidate: 300 },
-    })
+      8_000,
+    )
 
     if (!res.ok) {
-      return NextResponse.json(
-        { error: `Ethos upstream returned ${res.status}`, user: null },
-        { status: res.status },
-      )
+      console.warn("[ethos] upstream", res.status)
+      return NextResponse.json({ error: "Ethos is unavailable right now", user: null }, { status: 502 })
     }
 
     const arr = (await res.json()) as unknown[]
@@ -67,14 +52,16 @@ export async function POST(req: NextRequest) {
       { user },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+          // Per-wallet answer: cache in the browser only, not on the shared CDN.
+          "Cache-Control": "private, max-age=300",
         },
       },
     )
   } catch (err) {
+    console.error("[ethos]", err)
     return NextResponse.json(
-      { error: "Failed to reach Ethos API", detail: String(err), user: null },
-      { status: 502 },
+      { error: isTimeoutError(err) ? "Ethos timed out" : "Failed to reach Ethos", user: null },
+      { status: isTimeoutError(err) ? 504 : 502 },
     )
   }
 }

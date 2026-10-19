@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { scanCanvasDelegatePage } from "@/lib/canvas-delegate-index"
+import { checkRateLimit } from "@/lib/ratelimit"
 
 /**
  * Scans one page of awakened agents per request (~5–9s) so each call stays
@@ -9,6 +10,11 @@ import { scanCanvasDelegatePage } from "@/lib/canvas-delegate-index"
 export const maxDuration = 10
 
 export async function GET(req: NextRequest) {
+  // A full scan is ~13 pages, so 30/min per IP leaves room for two scans and stops anything faster.
+  const rl = await checkRateLimit(req, "canvas-delegates", 30, 60)
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } })
+  }
   const address = req.nextUrl.searchParams.get("address")?.trim()
   const cursor = req.nextUrl.searchParams.get("cursor")?.trim() || null
 

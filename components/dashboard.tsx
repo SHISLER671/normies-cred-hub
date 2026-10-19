@@ -18,10 +18,9 @@ import { useAgentCheck, useEthosScore, useNormie } from "@/hooks/use-normie"
 import { AgentCheckCard } from "@/components/agentcheck-card"
 import { ChatRatingsCard } from "@/components/chat-ratings-card"
 import { useChatRatings } from "@/hooks/use-chat-ratings"
-import { fetchEthosByUsername } from "@/lib/api/ethos"
 import { AlertTriangle, Award, Boxes, CircleCheck, Clock, Layers, MessageSquareText, Palette, ShieldCheck, Wallet, Wrench } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useAccount, useSignMessage } from "wagmi"
+import { useAccount } from "wagmi"
 import { normieImageUrl } from "@/lib/api/normies"
 import { useMyNormies } from "@/hooks/use-my-normies"
 import { useWalletGate } from "@/components/wallet-gate"
@@ -46,7 +45,6 @@ import { getCurrentSignals, validateSignals } from "@/lib/signals"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
-  const { signMessageAsync } = useSignMessage()
   const { requireWallet, promptConnect } = useWalletGate()
   const {
     activeTokenId,
@@ -58,12 +56,6 @@ export function Dashboard() {
 
   const [myInput, setMyInput] = useState<string>("")
 
-  // Bridge search state
-  const [bridgeAddress, setBridgeAddress] = useState<string>("")
-  const [bridgeUsername, setBridgeUsername] = useState<string>("")
-  const [bridgeUser, setBridgeUser] = useState<any>(null)
-
-  const [endorseResult, setEndorseResult] = useState<{ message: string; signature?: string } | null>(null)
   const [showToolsModal, setShowToolsModal] = useState(false)
   const [toolsModalTab, setToolsModalTab] = useState<"normies" | "erc8257">("normies")
   const [showLinkageModal, setShowLinkageModal] = useState(false)
@@ -142,7 +134,6 @@ export function Dashboard() {
   )
 
   const { data: ownerAgents = [] } = useMyNormies(ownerAddress)
-  const { data: bridgeAgents = [] } = useMyNormies(bridgeAddress || undefined)
 
   function selectNormie(id: number) {
     setActiveTokenId(id)
@@ -153,47 +144,7 @@ export function Dashboard() {
     if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 9999) {
       selectNormie(parsed)
       setMyInput("")
-      setBridgeAddress("")
-      setBridgeUsername("")
-      setBridgeUser(null)
     }
-  }
-
-  async function handleEndorse(targetId: number) {
-    if (!address || myNormies.length === 0) return
-    const endorserId = myNormies[0].tokenId
-    const message = `I (owner of Normie #${endorserId}) endorse Normie #${targetId} as a high quality awakened agent with strong on-chain reputation and clean signal.\nWallet: ${address}\nIssued: ${new Date().toISOString()}\n\nThis signature is a public, verifiable endorsement from one awakened owner to another. Use it to build trust in the network.`
-    try {
-      const signature = await signMessageAsync({ message })
-      setEndorseResult({ message, signature })
-    } catch (e) {
-      // ignore cancel
-    }
-  }
-
-  async function loadBridgeByUsername(username: string) {
-    if (!username) return
-    try {
-      const user = await fetchEthosByUsername(username)
-      setBridgeUser(user)
-      if (user) {
-        const addr = user.userkeys?.find((k: string) => k.startsWith('address:'))?.split(':')[1]
-        if (addr) {
-          setBridgeAddress(addr)
-        }
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  function Metric({ label, value }: { label: string; value: string }) {
-    return (
-      <div className="flex flex-col items-center py-2.5">
-        <span className="font-heading text-lg font-bold tabular-nums tracking-[-1px]">{value}</span>
-        <span className="text-xs tracking-[1.5px] text-muted-foreground">{label}</span>
-      </div>
-    )
   }
 
   return (
@@ -229,7 +180,7 @@ export function Dashboard() {
         gatePassed={recordCard?.pulse.available ? recordCard.pulse.gate.passed : null}
       />
 
-      {/* Your agents — switcher, manual lookup, profile bridge */}
+      {/* Your agents — switcher and manual lookup */}
       <section className="pulse-agents" aria-label="Your agents">
         <MyAgentsPanel />
 
@@ -251,40 +202,6 @@ export function Dashboard() {
           </div>
         )}
 
-        {/* Profile Bridge */}
-        {(bridgeUsername || bridgeAddress) && (
-          <div className="border border-primary/30 bg-card p-5">
-            <SectionLabel className="text-primary mb-2">Profile Bridge</SectionLabel>
-            {bridgeUser && (
-              <div className="mb-2">
-                <a href={bridgeUser.links?.profile || `https://app.ethos.network/profile/x/${bridgeUser.username}`} target="_blank" className="text-primary">
-                  @{bridgeUser.username} (score {bridgeUser.score})
-                </a>
-                {bridgeUser.avatarUrl && <img src={bridgeUser.avatarUrl || "/placeholder.svg"} alt={`${bridgeUser.username} avatar`} className="inline size-6 ml-2" width={24} height={24} />}
-              </div>
-            )}
-            {bridgeAgents.length > 0 && (
-              <div>
-                <SectionLabel className="mb-1">Agents</SectionLabel>
-                <div className="flex flex-wrap gap-1.5">
-                  {bridgeAgents.map((normie) => {
-                    const isActive = tokenId === normie.tokenId
-                    return (
-                      <button
-                        key={normie.tokenId}
-                        onClick={() => { selectNormie(normie.tokenId) }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/50 hover:bg-secondary border-border"}`}
-                      >
-                        <img src={normieImageUrl(normie.tokenId)} alt={`Normie #${normie.tokenId}`} className="size-5 pixel-frame" width={20} height={20} />
-                        <span className="font-mono">#{normie.tokenId}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </section>
 
       {isError ? (

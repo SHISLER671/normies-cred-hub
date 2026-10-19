@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   extractCallerWallet,
   recordPathsCall,
+  usageCallerKey,
 } from "@/lib/instrumentation/pulse-paths"
 import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { rankPaths, type RankPathsResult } from "@/lib/path-ranker"
@@ -33,6 +34,7 @@ function schedulePathsUsage(
       pathCount: result.paths.length,
       pulseLevelAtTime: result.subject.pulse_level,
       callerWallet: callerWallet ?? parsed.wallet ?? null,
+      callerKey: usageCallerKey(req),
     }),
   )
 }

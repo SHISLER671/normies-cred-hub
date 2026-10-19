@@ -159,30 +159,52 @@ describe("metrics + fail-open", () => {
 describe("level-5 usage signal", () => {
   it("does not earn with sparse Pulse calls", async () => {
     __resetUsageMemoryForTests()
-    await recordPulseCall({ tokenId: 200, source: "get" })
+    await recordPulseCall({ tokenId: 200, source: "get", callerKey: "c1" })
     const s = await getTokenUsageSignal(200)
     assert.equal(s.earned, false)
     assert.equal(s.pulseCalls, 1)
   })
 
-  it("earns after enough Pulse calls in the lookback window", async () => {
+  it("earns after enough DISTINCT callers in the lookback window", async () => {
     __resetUsageMemoryForTests()
     for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD; i++) {
-      await recordPulseCall({ tokenId: 201, source: "get" })
+      await recordPulseCall({ tokenId: 201, source: "get", callerKey: `caller-${i}` })
     }
     const s = await getTokenUsageSignal(201)
     assert.equal(s.pulseCalls, USAGE_PULSE_CALLS_THRESHOLD)
     assert.equal(s.earned, true)
   })
 
+  it("one caller hammering Pulse cannot raise a token's level", async () => {
+    __resetUsageMemoryForTests()
+    for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD * 5; i++) {
+      await recordPulseCall({ tokenId: 203, source: "tool", callerKey: "same-script" })
+    }
+    const s = await getTokenUsageSignal(203)
+    assert.equal(s.pulseCalls, 1)
+    assert.equal(s.earned, false)
+  })
+
+  it("calls without a caller key are logged but never count toward level 5", async () => {
+    __resetUsageMemoryForTests()
+    for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD * 2; i++) {
+      await recordPulseCall({ tokenId: 204, source: "get" })
+    }
+    const s = await getTokenUsageSignal(204)
+    assert.equal(s.pulseCalls, 0)
+    assert.equal(s.earned, false)
+    assert.ok((await getUsageMetrics()).pulseCalls >= USAGE_PULSE_CALLS_THRESHOLD * 2)
+  })
+
   it("earns from Pulse-conditioned Paths activity", async () => {
     __resetUsageMemoryForTests()
-    await recordPulseCall({ tokenId: 202, source: "get" })
+    await recordPulseCall({ tokenId: 202, source: "get", callerKey: "p" })
     for (let i = 0; i < USAGE_CONDITIONED_PATHS_THRESHOLD; i++) {
       await recordPathsCall({
         tokenId: 202,
         intentTag: "burn",
         pathCount: 3,
+        callerKey: `paths-${i}`,
       })
     }
     const s = await getTokenUsageSignal(202)

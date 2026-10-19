@@ -3,24 +3,20 @@
 import type { ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
+import { linkHost, trustedHref } from "@/lib/zulo/link-policy"
 
 /**
  * Light, safe markdown for Zulo chat:
  * - **bold**, *italic*
  * - bullet lists (- / * / •)
  * - blank-line paragraphs
- * - [label](https://…) and bare https URLs
+ * - [label](https://…) and bare https URLs: clickable only on trusted hosts (lib/zulo/link-policy.ts); any other
+ *   link is shown as plain text with its real host, so a planted link can't pose as Zulo's advice.
  * No HTML, no raw markup injection.
  */
 
-function sanitizeHref(href: string): string | null {
-  try {
-    const u = new URL(href)
-    if (u.protocol !== "http:" && u.protocol !== "https:") return null
-    return u.toString()
-  } catch {
-    return null
-  }
+function currentHost(): string[] {
+  return typeof window !== "undefined" ? [window.location.host] : []
 }
 
 function prettyUrlLabel(href: string): string {
@@ -101,9 +97,12 @@ function linkifyText(text: string, keyPrefix: string): ReactNode[] {
       nodes.push(...renderInlineEmphasis(tok.value, k))
       return
     }
-    const href = sanitizeHref(tok.href)
+    const href = trustedHref(tok.href, currentHost())
     if (!href) {
-      nodes.push(...renderInlineEmphasis(tok.label, k))
+      // Not a trusted host: plain text, real host visible, never clickable.
+      const host = linkHost(tok.href)
+      const shown = tok.label.includes(host) ? tok.label : `${tok.label} (${host}, unverified link)`
+      nodes.push(...renderInlineEmphasis(shown, k))
       return
     }
     nodes.push(

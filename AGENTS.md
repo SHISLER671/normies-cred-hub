@@ -18,6 +18,11 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 - No payments or crypto-as-income features. Never ask for seed phrases or private keys; never print secrets or commit env values (`.env.example` holds names only).
 - Zulo payments (#WillWork4PIXEL) are **parked, not deleted**: the code stays, `lib/payments/rail-policy.ts` hard-blocks it, and no page, manifest or prompt may tell anyone how to pay Zulo. Only Ryan can unpark it, by changing the no-crypto-as-income rule first.
 - Never present Arena or agent trading as live. Status comes from `lib/official-status.ts`; copy its status lines, never paraphrase them.
+- Never map people to wallets: no username/handle → wallet lookups. Wallet in, public data out.
+- Public API routes: rate-limit every route that calls an outside service or the chain (`enforceDualRateLimit`), put a timeout on every outbound fetch (`fetchWithTimeout`), allowlist anything that builds an upstream URL from input, and never return upstream error text to callers. Report "couldn't read" separately from "not found" or "empty", and don't cache it.
+- Cron/operator routes check only `isAuthorizedCron` (bearer secret, constant time). The `x-vercel-cron` header is not proof.
+- Pulse signals must not be buyable: anything counted toward a level counts distinct callers, never raw calls.
+- Every `SECURITY DEFINER` function in Supabase's `public` schema needs `revoke execute ... from public, anon, authenticated` in its SQL file.
 
 ## Product rules
 - PIXEL comes only from burns (or buying on the Pixel Market). Painting never spends it. Never say customizing earns PIXEL.

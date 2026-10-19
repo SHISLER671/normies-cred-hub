@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 
 const AGENTCHECK_API_BASE = "https://agentcheck-bice.vercel.app"
 
@@ -9,6 +10,8 @@ const AGENTCHECK_API_BASE = "https://agentcheck-bice.vercel.app"
  * Keeps the third-party call server-side (avoids CORS) and applies a timeout.
  */
 export async function GET(req: NextRequest) {
+  const rl = await enforceDualRateLimit(req, "default", { bucketPrefix: "agentcheck" })
+  if (!rl.ok) return rl.response
   const wallet = req.nextUrl.searchParams.get("wallet")?.toLowerCase()
 
   if (!wallet || !/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
@@ -23,24 +26,21 @@ export async function GET(req: NextRequest) {
     )
 
     if (!res.ok) {
-      return NextResponse.json(
-        { error: `AgentCheck upstream returned ${res.status}` },
-        { status: res.status },
-      )
+      console.warn("[agentcheck] upstream", res.status)
+      return NextResponse.json({ error: "AgentCheck is unavailable right now" }, { status: 502 })
     }
 
     const data = await res.json()
 
     return NextResponse.json(data, {
-      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+      // Per-wallet answer: cache in the browser only, not on the shared CDN.
+      headers: { "Cache-Control": "private, max-age=300" },
     })
   } catch (err) {
     if (isTimeoutError(err)) {
       return NextResponse.json({ error: "AgentCheck timed out" }, { status: 504 })
     }
-    return NextResponse.json(
-      { error: "Failed to reach AgentCheck API", detail: String(err) },
-      { status: 502 },
-    )
+    console.error("[agentcheck]", err)
+    return NextResponse.json({ error: "Failed to reach AgentCheck" }, { status: 502 })
   }
 }

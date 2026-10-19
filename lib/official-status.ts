@@ -6,7 +6,7 @@
 // Live runtime state (e.g. the PIXEL_MARKET pin and the contract's /canvas/status block in lib/burn-buy/switches.ts) is
 // separate: it can still pin the market closed in an emergency. This module is the documented official status.
 
-export const OFFICIAL_STATUS_AS_OF = "2026-10-18"
+export const OFFICIAL_STATUS_AS_OF = "2026-10-19"
 
 export const OFFICIAL_STATUS = {
   pixelMarket: {
@@ -48,7 +48,8 @@ export const ZOMBIES_STATUS_LINE = `Zombies = ${OFFICIAL_STATUS.zombies.claimed}
 /** Homepage tag words for the official Lab surfaces that this module owns. */
 export const SURFACE_TAGS = {
   pixelMarket: (OFFICIAL_STATUS.pixelMarket.status === "LIVE" ? "LIVE" : "COMING SOON") as OfficialSurfaceStatus,
-  arena: (OFFICIAL_STATUS.arena.status === "COMING_SOON" ? "COMING SOON" : "LIVE") as OfficialSurfaceStatus,
+  // Fail closed: only an explicit LIVE shows LIVE. Any other status (a delay, a new word) shows COMING SOON.
+  arena: (String(OFFICIAL_STATUS.arena.status) === "LIVE" ? "LIVE" : "COMING SOON") as OfficialSurfaceStatus,
   zombies: "ALL CLAIMED" as OfficialSurfaceStatus,
 }
 

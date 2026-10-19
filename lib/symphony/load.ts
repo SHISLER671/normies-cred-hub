@@ -22,18 +22,29 @@ export type LoadedVoice = {
   awakened: AwakenedBinding | null
 }
 
-async function get(path: string, asJson: boolean): Promise<unknown> {
+/** Thrown when an upstream read fails (timeout, 5xx), as opposed to a real "not found". Pinned songs must not be
+ * built, or cached for a week, from a guess. */
+export class SymphonyUpstreamError extends Error {}
+
+type Read = { ok: true; data: unknown } | { ok: false; notFound: boolean }
+
+async function read(path: string, asJson: boolean): Promise<Read> {
   try {
     const r = await fetchWithTimeout(
       `${NORMIES_API_BASE}${path}`,
       { headers: asJson ? { Accept: "application/json" } : {}, next: { revalidate: 300 } },
       8_000,
     )
-    if (!r.ok) return null
-    return asJson ? await r.json() : (await r.text()).trim()
+    if (!r.ok) return { ok: false, notFound: r.status === 404 }
+    return { ok: true, data: asJson ? await r.json() : (await r.text()).trim() }
   } catch {
-    return null
+    return { ok: false, notFound: false }
   }
+}
+
+async function get(path: string, asJson: boolean): Promise<unknown> {
+  const r = await read(path, asJson)
+  return r.ok ? r.data : null
 }
 
 function cleanPixels(raw: unknown): string | null {
@@ -43,16 +54,23 @@ function cleanPixels(raw: unknown): string | null {
 
 async function pixelsAt(tokenId: number, block: number | null): Promise<{ pixels: string | null; from: LoadedVoice["pixels_from"] }> {
   if (block === null) return { pixels: cleanPixels(await get(`/normie/${tokenId}/pixels`, false)), from: "live" }
-  const versions = readVersions(await get(`/history/normie/${tokenId}/versions?limit=500`, true))
-  const v = pickVersionAtBlock(versions, block)
+  // A failed history read used to fall back to the mint pixels and get cached as the pinned song. Now it's an error;
+  // only a real "no versions" (404 or an empty list) means "not painted by that block".
+  const versionsRead = await read(`/history/normie/${tokenId}/versions?limit=500`, true)
+  if (!versionsRead.ok && !versionsRead.notFound) throw new SymphonyUpstreamError(`history unavailable for #${tokenId}`)
+  const v = pickVersionAtBlock(readVersions(versionsRead.ok ? versionsRead.data : null), block)
   if (v) {
     const p = cleanPixels(await get(`/history/normie/${tokenId}/version/${v.version}/pixels`, false))
-    if (p) return { pixels: p, from: v.version }
+    if (!p) throw new SymphonyUpstreamError(`version ${v.version} pixels unavailable for #${tokenId}`)
+    return { pixels: p, from: v.version }
   }
   return { pixels: cleanPixels(await get(`/normie/${tokenId}/original/pixels`, false)), from: "original" }
 }
 
-/** One Normie's pixels (live, or at a block), traits, agent name and awakened binding. null if its pixels can't be read (e.g. burned). */
+/**
+ * One Normie's pixels (live, or at a block), traits, agent name and awakened binding. null if its pixels can't be read
+ * (e.g. burned). Throws SymphonyUpstreamError when a pinned read failed, so callers don't cache a wrong song.
+ */
 export async function loadVoice(tokenId: number, block: number | null): Promise<LoadedVoice | null> {
   const [{ pixels, from }, traits, identity, binding] = await Promise.all([
     pixelsAt(tokenId, block),
