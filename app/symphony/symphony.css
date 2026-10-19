@@ -1,0 +1,130 @@
+/* Pixel Symphony — a 90s media-player skin (Winamp-style) in Normies monochrome.
+   Bevels, an LCD readout, pixel EQ bars and a playlist panel. Cyan only on the Play button (the one call to action). */
+
+.zulo-chrome.symphony-page {
+  --pulse-cyan: #0e7490;
+  --sym-face: #c9cbca;
+  --sym-face-hi: #eef0ef;
+  --sym-face-lo: #8d8f8e;
+  --sym-lcd: #141515;
+  --sym-lcd-ink: #e3e5e4;
+  --sym-lcd-dim: #6b6d6c;
+  --sym-ink: #1a1b1c;
+  --sym-paper: #e3e5e4;
+}
+.dark .zulo-chrome.symphony-page {
+  --pulse-cyan: var(--zulo-accent);
+  --sym-face: #2e2f30;
+  --sym-face-hi: #4a4b4c;
+  --sym-face-lo: #151616;
+}
+
+.zulo-chrome .symphony-main { max-width: 720px; margin: 0 auto; padding: 0 var(--space-md) 64px; }
+.zulo-chrome .symphony-intro { padding: 32px 0 28px; }
+.zulo-chrome .symphony-title { margin: 0; font-size: clamp(36px, 8vw, 64px); line-height: 1; letter-spacing: 0.01em; }
+.zulo-chrome .symphony-lede { margin: 14px 0 0; max-width: 56ch; font-size: 16px; color: var(--text-secondary); }
+.zulo-chrome .symphony-note { margin: 20px auto 0; max-width: 560px; font-size: 13px; line-height: 1.6; color: var(--text-muted); }
+
+/* ---- Player chrome ---- */
+.zulo-chrome .sym {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--sym-face);
+  border: 1px solid var(--sym-ink);
+  box-shadow: inset 2px 2px 0 var(--sym-face-hi), inset -2px -2px 0 var(--sym-face-lo), 6px 6px 0 rgb(0 0 0 / 0.25);
+  padding: 4px 6px 8px;
+  user-select: none;
+}
+.zulo-chrome .sym-titlebar { display: flex; align-items: center; gap: 8px; height: 18px; margin-bottom: 6px; }
+.zulo-chrome .sym-titlebar-grip {
+  flex: 1;
+  height: 8px;
+  background: repeating-linear-gradient(to bottom, var(--sym-face-lo) 0 1px, var(--sym-face-hi) 1px 2px, transparent 2px 3px);
+}
+.zulo-chrome .sym-titlebar-text { font-size: 10px; font-weight: 700; letter-spacing: 0.3em; color: var(--text-primary); }
+
+.zulo-chrome .sym-main { display: grid; grid-template-columns: 1fr auto; gap: 6px; }
+.zulo-chrome .sym-lcd,
+.zulo-chrome .sym-face,
+.zulo-chrome .sym-playlist {
+  background: var(--sym-lcd);
+  box-shadow: inset 2px 2px 0 var(--sym-face-lo), inset -1px -1px 0 var(--sym-face-hi);
+}
+.zulo-chrome .sym-lcd { min-width: 0; padding: 8px 10px 6px; color: var(--sym-lcd-ink); font-variant-numeric: tabular-nums; }
+.zulo-chrome .sym-lcd-row { display: flex; align-items: baseline; gap: 8px; }
+.zulo-chrome .sym-lcd-state { font-size: 14px; width: 1em; }
+.zulo-chrome .sym-lcd-time { font-size: 30px; line-height: 1; font-weight: 600; letter-spacing: 0.06em; }
+.zulo-chrome .sym-lcd-total { font-size: 12px; color: var(--sym-lcd-dim); }
+.zulo-chrome .sym-lcd-id { margin-top: 6px; font-size: 12px; letter-spacing: 0.24em; color: var(--sym-lcd-dim); }
+.zulo-chrome .sym-lcd-marquee { margin-top: 2px; overflow: hidden; white-space: nowrap; font-size: 12px; letter-spacing: 0.16em; }
+.zulo-chrome .sym-lcd-marquee span { display: inline-block; padding-left: 100%; animation: sym-marquee 14s steps(140, end) infinite; }
+@keyframes sym-marquee { to { transform: translateX(-100%); } }
+.zulo-chrome .sym-eq { display: block; width: 100%; height: 48px; margin-top: 8px; image-rendering: pixelated; }
+
+.zulo-chrome .sym-face { padding: 6px; display: flex; align-items: center; }
+.zulo-chrome .sym-grid { display: block; width: 132px; height: 132px; image-rendering: pixelated; background: var(--sym-paper); }
+
+/* ---- Controls: beveled buttons; Play is the one cyan call to action ---- */
+.zulo-chrome .sym-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.zulo-chrome .sym-hash { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.zulo-chrome .sym-input {
+  width: 5.5ch;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  background: var(--sym-lcd);
+  color: var(--sym-lcd-ink);
+  box-shadow: inset 2px 2px 0 var(--sym-face-lo), inset -1px -1px 0 var(--sym-face-hi);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.zulo-chrome .sym-input:focus-visible { outline: 2px solid var(--pulse-cyan); outline-offset: 2px; }
+.zulo-chrome .sym-btn {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--sym-ink);
+  background: var(--sym-face);
+  color: var(--text-primary);
+  box-shadow: inset 2px 2px 0 var(--sym-face-hi), inset -2px -2px 0 var(--sym-face-lo);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.zulo-chrome .sym-btn:active:not(:disabled) { box-shadow: inset 2px 2px 0 var(--sym-face-lo), inset -2px -2px 0 var(--sym-face-hi); }
+.zulo-chrome .sym-btn:focus-visible { outline: 2px solid var(--pulse-cyan); outline-offset: 2px; }
+.zulo-chrome .sym-btn:disabled { opacity: 0.5; cursor: default; }
+.zulo-chrome .sym-btn-cta { background: var(--pulse-cyan); color: var(--bg-primary); }
+@media (max-width: 480px) {
+  .zulo-chrome .sym-btn { flex: 1 1 auto; }
+}
+
+/* ---- Playlist panel ---- */
+.zulo-chrome .sym-playlist {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 6px 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--sym-lcd-ink);
+}
+.zulo-chrome .sym-playlist li { display: grid; grid-template-columns: 2.2em 6.5em 1fr auto; gap: 8px; padding: 2px 0; }
+.zulo-chrome .sym-pl-n,
+.zulo-chrome .sym-pl-notes { color: var(--sym-lcd-dim); font-variant-numeric: tabular-nums; }
+.zulo-chrome .sym-pl-inst { text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 520px) {
+  .zulo-chrome .sym-main { grid-template-columns: 1fr; }
+  .zulo-chrome .sym-face { justify-content: center; }
+  .zulo-chrome .sym-grid { width: 160px; height: 160px; }
+  .zulo-chrome .sym-playlist li { grid-template-columns: 2em 5.5em 1fr; }
+  .zulo-chrome .sym-pl-notes { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zulo-chrome .sym-lcd-marquee span { animation: none; padding-left: 0; }
+}

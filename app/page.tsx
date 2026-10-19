@@ -56,6 +56,11 @@ const CREDHUB_SURFACES = [
     line: "Does this Normie still have its pixels? Read live from the chain, before you buy.",
   },
   {
+    name: "PIXEL SYMPHONY",
+    href: "/symphony",
+    line: "Hear any Normie: its live pixels and traits as a song. Nothing to mint.",
+  },
+  {
     name: "BURN",
     href: "/burn",
     line: "Burn or keep? Your best moves for revenue share. Look twice, burn once.",
