@@ -9,6 +9,7 @@
   --sym-lcd: #141515;
   --sym-lcd-ink: #e3e5e4;
   --sym-lcd-dim: #6b6d6c;
+  --sym-lcd-faint: #2e2f30;
   --sym-ink: #1a1b1c;
   --sym-paper: #e3e5e4;
 }
@@ -140,3 +141,15 @@
 @media (max-width: 480px) {
   .zulo-chrome .sym-share .sym-btn { flex: 1 1 40%; justify-content: center; }
 }
+
+/* ---- P2: mycelium view, Play my Normies ---- */
+.zulo-chrome .sym-mycelium {
+  margin: 6px 0 0;
+  padding: 6px;
+  background: var(--sym-lcd);
+  box-shadow: inset 2px 2px 0 var(--sym-face-lo), inset -1px -1px 0 var(--sym-face-hi);
+}
+.zulo-chrome .sym-myc { display: block; width: 100%; height: auto; aspect-ratio: 160 / 64; image-rendering: pixelated; }
+.zulo-chrome .sym-myc-cap { margin-top: 4px; font-size: 9px; letter-spacing: 0.2em; color: var(--sym-lcd-dim); }
+.zulo-chrome .sym-mine { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.zulo-chrome .sym-mine .sym-hint { margin: 0; }

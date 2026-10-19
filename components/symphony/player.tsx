@@ -1,10 +1,13 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+
+import { PlayMine } from "@/components/symphony/play-mine"
 
 import { composeScore, gridSide } from "@/lib/symphony/compose"
 import { MAX_ROOM, parseIds, symphonyPath, symphonyShareText } from "@/lib/symphony/pin"
-import { playheadColumn } from "@/lib/symphony/timeline"
+import { myceliumLinks, myceliumSummary, nodeLayout, pixelLine, singingAt } from "@/lib/symphony/mycelium"
+import { playheadColumn, scoreEvents } from "@/lib/symphony/timeline"
 import type { AwakenedBinding, NormieTrait, VoiceScore } from "@/lib/symphony/types"
 
 type Voice = {
@@ -54,6 +57,8 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
   const raf = useRef<number | null>(null)
   const gridRef = useRef<HTMLCanvasElement | null>(null)
   const eqRef = useRef<HTMLCanvasElement | null>(null)
+  const mycRef = useRef<HTMLCanvasElement | null>(null)
+  const [mineNote, setMineNote] = useState("")
 
   const stop = useCallback(() => {
     player.current?.stop()
@@ -149,6 +154,51 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
 
   useEffect(() => drawGrid(null), [drawGrid])
 
+  // Mycelium: threads between Normies that share traits; a thread lights while both are singing. Rooms only.
+  const web = useMemo(() => {
+    if (!score || voices.length < 2) return null
+    return {
+      links: myceliumLinks(voices),
+      events: scoreEvents(score),
+      roomIds: voices.map((v) => v.tokenId),
+    }
+  }, [score, voices])
+
+  const drawMycelium = useCallback(
+    (t: number | null) => {
+      const c = mycRef.current
+      if (!c || !web || !score) return
+      const g = c.getContext("2d")
+      if (!g) return
+      const css = getComputedStyle(c)
+      const bg = css.getPropertyValue("--sym-lcd").trim() || "#141515"
+      const lit = css.getPropertyValue("--sym-lcd-ink").trim() || "#e3e5e4"
+      const dim = css.getPropertyValue("--sym-lcd-dim").trim() || "#6b6d6c"
+      const faint = css.getPropertyValue("--sym-lcd-faint").trim() || "#2e2f30"
+      const pts = nodeLayout(web.roomIds.length, c.width, c.height)
+      const singing = t === null ? new Set<number>() : singingAt(score, web.events, web.roomIds, t % score.loopSeconds)
+      g.fillStyle = bg
+      g.fillRect(0, 0, c.width, c.height)
+      // Idle threads first, then lit ones on top.
+      for (const pass of [false, true]) {
+        for (const l of web.links) {
+          const on = singing.has(l.a) && singing.has(l.b)
+          if (on !== pass) continue
+          g.fillStyle = on ? lit : l.shared.length >= 4 ? dim : faint
+          for (const p of pixelLine(pts[l.a], pts[l.b])) g.fillRect(p.x, p.y, 1, 1)
+        }
+      }
+      pts.forEach((p, i) => {
+        const r = i === 0 ? 2 : 1
+        g.fillStyle = singing.has(i) ? lit : dim
+        g.fillRect(p.x - r, p.y - r, r * 2 + 1, r * 2 + 1)
+      })
+    },
+    [web, score],
+  )
+
+  useEffect(() => drawMycelium(null), [drawMycelium])
+
   const play = useCallback(async () => {
     if (!score || !primary) return
     stop()
@@ -167,6 +217,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
         setElapsed(t)
       }
       drawGrid(playheadColumn(t, score.loopSeconds, n))
+      drawMycelium(t)
       const eq = eqRef.current
       const g = eq?.getContext("2d")
       if (eq && g) {
@@ -184,7 +235,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
       raf.current = requestAnimationFrame(tick)
     }
     raf.current = requestAnimationFrame(tick)
-  }, [score, primary, stop, drawGrid])
+  }, [score, primary, stop, drawGrid, drawMycelium])
 
   const ids = voices.map((v) => v.tokenId)
   const sharePath = symphonyPath(ids, block)
@@ -263,6 +314,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
     const next = parseIds(raw)
     if (next.length) {
       setRaw(next.join(", "))
+      setMineNote("")
       // A new room plays the live pixels; the share link then pins the current block.
       void load(next, null)
       window.history.replaceState(null, "", symphonyPath(next, null))
@@ -305,6 +357,13 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
         </div>
       </div>
 
+      {web && (
+        <figure className="sym-mycelium">
+          <canvas ref={mycRef} className="sym-myc" width={160} height={64} role="img" aria-label={myceliumSummary(web.roomIds.length, web.links)} />
+          <figcaption className="sym-myc-cap">MYCELIUM · THREADS JOIN NORMIES THAT SHARE 2+ TRAITS</figcaption>
+        </figure>
+      )}
+
       <form className="sym-controls" onSubmit={submit}>
         <label className="sr-only" htmlFor="sym-ids">Normie numbers, up to {MAX_ROOM}, separated by commas</label>
         <span className="sym-hash" aria-hidden>#</span>
@@ -324,6 +383,16 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
         )}
       </form>
       <p className="sym-hint">One number for a solo, up to {MAX_ROOM} for a room. The first Normie leads.</p>
+      <PlayMine
+        disabled={status === "loading"}
+        onIds={(next, total) => {
+          setRaw(next.join(", "))
+          setMineNote(total > next.length ? `Playing your first ${next.length} of ${total} Normies.` : "")
+          void load(next, null)
+          window.history.replaceState(null, "", symphonyPath(next, null))
+        }}
+      />
+      {mineNote && <p className="sym-hint">{mineNote}</p>}
       {voices.some((v) => v.awakened) && <p className="sym-hint">Awakened Normies add an extra layer on top.</p>}
       {skipped.length > 0 && <p className="sym-hint">Skipped (couldn&apos;t read): {skipped.map((s) => `#${s}`).join(", ")}</p>}
 
