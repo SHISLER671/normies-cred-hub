@@ -1,7 +1,7 @@
 // Fire-and-forget Pulse + Paths usage events.
 // Reuses Upstash Redis (same KV as rate limits / audit). Fail-open: never throw.
 
-import { createHash } from "node:crypto"
+import { createHmac } from "node:crypto"
 
 import { Redis } from "@upstash/redis"
 import type { NextRequest } from "next/server"
@@ -128,13 +128,20 @@ function memUnionSize(keys: string[]): number {
   return all.size
 }
 
+/** Server secret for caller keys. Without one, nothing counts toward level 5 (fail closed). */
+function usageHashSecret(): string | null {
+  return process.env.USAGE_HASH_SECRET?.trim() || process.env.AUDIT_LOG_HMAC_SECRET?.trim() || null
+}
+
 /**
- * Stable, non-reversible caller id for the usage signal: a hash of the client IP (Vercel overwrites x-forwarded-for,
- * so it can't be forged there). Raw IPs are never stored.
+ * Caller id for the usage signal: an HMAC of the client IP with a server secret (Vercel overwrites x-forwarded-for, so
+ * it can't be forged there). Keyed on purpose: a plain hash of an IPv4 address can be reversed by trying all 4 billion
+ * addresses in minutes; without the secret it can't. Raw IPs are never stored. Returns null when no secret is set.
  */
-export function usageCallerKey(req: Pick<NextRequest, "headers">): string {
+export function usageCallerKey(req: Pick<NextRequest, "headers">, secret: string | null = usageHashSecret()): string | null {
+  if (!secret) return null
   const id = getClientId(req as NextRequest)
-  return createHash("sha256").update(`nch-usage:${id}`).digest("hex").slice(0, 16)
+  return createHmac("sha256", secret).update(`nch-usage:${id}`).digest("hex").slice(0, 16)
 }
 
 async function saddDaily(client: Redis, key: string, member: string): Promise<void> {

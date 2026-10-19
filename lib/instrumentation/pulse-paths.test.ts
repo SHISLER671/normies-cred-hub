@@ -145,6 +145,18 @@ describe("metrics + fail-open", () => {
     )
   })
 
+  it("caller keys are keyed hashes: stable per secret, different across secrets, none without a secret", async () => {
+    const { usageCallerKey } = await import("./pulse-paths")
+    const req = { headers: new Headers({ "x-forwarded-for": "203.0.113.7" }) }
+    const a = usageCallerKey(req, "s1")
+    assert.match(a ?? "", /^[0-9a-f]{16}$/)
+    assert.equal(usageCallerKey(req, "s1"), a)
+    assert.notEqual(usageCallerKey(req, "s2"), a)
+    assert.equal(usageCallerKey(req, null), null)
+    const { createHash } = await import("node:crypto")
+    assert.notEqual(a, createHash("sha256").update("nch-usage:203.0.113.7").digest("hex").slice(0, 16))
+  })
+
   it("never stores the caller's wallet in the event log", async () => {
     const fs = await import("node:fs")
     const src = fs.readFileSync("lib/instrumentation/pulse-paths.ts", "utf8")
