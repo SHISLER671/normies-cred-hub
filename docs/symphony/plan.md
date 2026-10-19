@@ -98,6 +98,56 @@ Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noi
 4. **No saved user songs:** no Supabase snapshots, no TTL/retention, no hand-applied SQL. Share links are stateless block-pinned URLs that recompute from the official API. **No DB or migration anywhere in this plan.**
 5. **Name:** keep "Pixel Symphony".
 
+## Awakened voices (Ryan, 2026-10-19)
+
+Awakened Normies make **more** music, not **better** music. A regular Normie still plays a full, good part. Awakening adds extra layers on top. There's no music score, no ranking and no quality tier, and no copy says awakening is worth anything. Every Normie is unique and connected; awakened ones just reach a bit further underground.
+
+### What the official API actually says (checked 2026-10-19 against `https://api.normies.art/llms.txt`)
+
+Big finding: **awakened Normies don't have extra visual traits.** `/normie/{id}/traits` returns the same 8 attributes for everyone (#7141 awakened and #42 not awakened both get Type, Gender, Age, Hair Style, Facial Feature, Eyes, Expression, Accessory). Persona text (`personalityTraits`, `quirks`, `communicationStyle`) is available for **every** token through `/agents/persona-preview/{id}`, so it isn't something only awakened Normies have. What *is* awakened-only is the ERC-8004 registration data:
+
+| Field | Endpoint | Awakened only? | Example (#7141) | Regular (#42) |
+|---|---|---|---|---|
+| `binding.agentId` (string) | `GET /agents/binding/{id}` (batch: `POST /agents/binding/batch`) | yes, the awakened test NCH already uses (`agentId > 0`, `lib/record-card/build.ts`) | `"32626"` | `{"binding":null}` |
+| `binding.blockNumber` (string) | same | yes | `"25103790"` | none |
+| `binding.timestamp` (unix seconds, string) | same | yes | `"1778887079"` | none |
+| `registeredAt` (ISO), `agentId`, `canvas{level,actionPoints,customized,diff}` | `GET /agents/info/{id}` | the response is (404 `Agent not found` otherwise); `canvas` data is also public for all via `/normie/{id}/canvas/info` | `2026-05-15T23:17:59.000Z`, level 2 | 404 |
+| `agentOrder`, `agentTotal` | `GET /rarity/normie/{id}/persona` | yes (404 `Not an awake agent`) | 267 / 1955 | 404 |
+| `personalityTraits[]`, `quirks[]`, `communicationStyle` | `GET /agents/persona-preview/{id}` | **no**, every token has them | 9 traits, 7 quirks | 9 traits, 7 quirks |
+| `interactions.status`, `mcp.status` | `GET /agents/info/{id}` | yes | `coming_soon` | none |
+
+**Not documented:** what the persona fields mean or how stable they are (whether text can change after awakening); any "awakened trait" set; whether `agentOrder` is stable. llms.txt gives one-line descriptions only, with no field schemas.
+
+### Trait → layer mapping (awakened adds, never replaces)
+
+Awakened = `binding.agentId > 0` from `/agents/binding/{id}`, the same source as record cards. Each layer comes only from official awakened-only fields, deterministic, seeded from the existing score:
+
+| Layer | Source | How |
+|---|---|---|
+| Harmony line (3rd/6th above the lead's own notes, quiet) | awakened flag | on/off |
+| Echo (pixel delay, 1/8 or dotted 1/8) | `binding.blockNumber` | parity of the block → which delay; feedback fixed and low |
+| Counter-melody (sparse, opposite direction to its main part) | `binding.agentId` | hash → step pattern in the room's scale |
+| Solo bar (one bar per loop where this Normie plays alone over the drums) | `binding.timestamp` | hash → which bar; when several awakened Normies are in the room, they take turns, never stack |
+
+Don't use `agentOrder` (it reads like a rank) or the persona fields (everyone has them; if they're ever used, they're used for everyone). Canvas `level`/`actionPoints` aren't awakened-only and would sneak in a "level up = better sound" ladder, so leave them out.
+
+### Guardrails
+
+- Only official API fields. If `/agents/binding` fails or is missing, the Normie plays its regular part with no layers and no error. If the data ever disappears, the feature waits, like Arena.
+- Additive only: awakened layers sit on top. A regular Normie's part, volume and mix share don't change.
+- Mix headroom: awakened layers are capped (e.g. −9 dB under the main part) so a room full of awakened Normies doesn't drown out regular ones.
+- Copy: "awakened Normies add an extra layer". Never "better", "rarer", "premium", "unlocked", or any value/price wording. No badge counts or leaderboards.
+- Player/video: at most a tiny mono mark (e.g. a dot) on an awakened face; no cyan, no glow tier.
+- Keep the must-nots below. Nothing here touches PIXEL, Arena or Agents Canvas status.
+
+### Test idea
+
+- `compose.test.ts`: compose a room of regular Normies, then the same room plus one awakened Normie (fixture binding). Each regular Normie's `VoicePart` events must be identical (deep-equal) in both rooms.
+- The awakened Normie's main part equals its own part with the binding removed; the extra layers live in separate parts tagged `layer: "awakened"`.
+- No binding / fetch failure → zero awakened layers and nothing thrown.
+- Guard: no Pulse import, and no `agentOrder`/`rank`/`level` reads in the awakened code path.
+- WAV bytes for an all-regular room don't change.
+
 ## Must-nots (unchanged)
 - Arena is not live (Coming Soon). Agents Canvas is ANNOUNCED, not live. Copy status lines from `lib/official-status.ts`.
 - Painting never earns PIXEL; PIXEL comes from burns or buying on the Pixel Market.
