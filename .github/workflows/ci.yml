@@ -30,6 +30,13 @@ jobs:
         run: pnpm typecheck
       - name: Tests
         run: pnpm test:all
+      # Build with no secrets: every env var is optional at build time (GrokBot checked
+      # with an empty env). If a future change needs one, give it a safe fallback rather
+      # than adding a real secret here.
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
       - name: .env.example holds names only
         run: |
           if grep -vE '^\s*(#.*)?$' .env.example | grep -vE '^[A-Z0-9_]+=$'; then
