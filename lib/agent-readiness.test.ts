@@ -161,7 +161,7 @@ describe("the OpenAPI spec matches the real answers (both yield modes, with and 
     assert.ok(view.cliffCost, "10 #PIXEL held: the next boost (15) can be priced")
     same("cliffCost", view.cliffCost, ok200.properties.wallet.properties.pixelMarketView.properties.cliffCost)
     same("buy", view.cliffCost.buy, ok200.properties.wallet.properties.pixelMarketView.properties.cliffCost.properties.buy)
-    same("payback", view.cliffCost.payback[0], ok200.properties.wallet.properties.pixelMarketView.properties.cliffCost.properties.payback.items)
+    assert.deepEqual(view.cliffCost.payback, [], "payback estimates are retired (income framing)")
     assert.ok(view.sell.length > 0)
     same("sell row", view.sell[0], ok200.properties.wallet.properties.pixelMarketView.properties.sell.items)
     same("fodder", r.market.bestPixelFodder[0], ok200.properties.market.properties.bestPixelFodder.items)

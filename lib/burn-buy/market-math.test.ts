@@ -2,7 +2,7 @@ import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 
 import { parseMarketStats, loadPixelMarket } from "./market-feed"
-import { breakEvenNormieEth, buyCost, compareToAsk, monthlyPoolScenarios, paybackScenarios, queueAhead, sellProceeds, sellRows, weiToEth, type DepthLevel } from "./market-math"
+import { breakEvenNormieEth, buyCost, compareToAsk, queueAhead, sellProceeds, sellRows, weiToEth, type DepthLevel } from "./market-math"
 import { walletScore } from "./score"
 
 // Captured from https://api.normies.art/market/stats and /market/depth on 2026-10-05 ~20:40 UTC.
@@ -127,22 +127,3 @@ describe("burn versus market, per #PIXEL", () => {
   })
 })
 
-describe("payback scenarios", () => {
-  it("are three labelled pools built on the article's published pace, not invented numbers", () => {
-    const s = monthlyPoolScenarios()
-    assert.equal(s.length, 3)
-    assert.equal(s[1].poolEthPerMonth, 11.26) // 81.09 ETH over 216 days, per 30 days
-    assert.ok(s[0].poolEthPerMonth < s[1].poolEthPerMonth && s[1].poolEthPerMonth < s[2].poolEthPerMonth)
-  })
-  it("a bigger pool pays back faster; no score gain means no payback", () => {
-    const rows = paybackScenarios(1.5, 8, 192, 500, 28_000)
-    assert.ok(rows[0].months! > rows[1].months! && rows[1].months! > rows[2].months!)
-    assert.deepEqual(paybackScenarios(1.5, 8, 192, 192, 28_000).map((r) => r.months), [null, null, null])
-  })
-  it("matches the share formula by hand for one case", () => {
-    const [, mid] = paybackScenarios(1, 1, 0, 100, 1000)
-    const before = walletScore(1, 0), after = walletScore(1, 100)
-    const gain = after / (1000 + after) - before / (1000 + before)
-    assert.equal(mid.monthlyEth, Math.round(11.26 * gain * 1e5) / 1e5)
-  })
-})

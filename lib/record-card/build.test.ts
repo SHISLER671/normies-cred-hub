@@ -30,9 +30,9 @@ describe("pulseGate (trust checks, never a level)", () => {
     assert.equal(pulseGate([GATE_CLEAN_OWNERSHIP]).passed, false)
     assert.equal(pulseGate(null).passed, false)
   })
-  it("a level-3 agent with both trust checks passes; a level-4 agent missing one does not", () => {
+  it("a level-3 agent with both trust checks passes; a level-3 agent missing one does not", () => {
     const honestUnpainted = [GATE_REGISTERED, "Has active agent card", GATE_CLEAN_OWNERSHIP]
-    const busyButMessy = [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", "Recent agent usage / interaction signal"]
+    const busyButMessy = [GATE_REGISTERED, "Has active agent card", "Canvas activity detected"]
     assert.equal(pulseGate(honestUnpainted).passed, true)
     assert.equal(pulseGate(busyButMessy).passed, false)
     assert.match(pulseGate(busyButMessy).text, /clean ownership/)

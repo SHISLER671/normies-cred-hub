@@ -84,7 +84,7 @@ GET  /api/zulo/feedback
 
 - **👍/👎 only**; rate immediately (no forced try); wallet optional.
 - Stores **up and down**; public UI shows **helpful (up) counts** for Zulo #32626 only (no wallets).
-- Requires Supabase table `recommendation_feedback` — see `docs/sql/001_recommendation_feedback.sql`.
+- Requires Supabase table `recommendation_feedback` — see `supabase/sql/2026-10-10-recommendation-feedback.sql` (applied) and `supabase/sql/2026-10-18-recommendation-feedback-lockdown.sql`.
 - Does **not** influence path ranking in Phase 1.
 
 Meet **Zulo, Normie #7141 → Agent #32626** (`32626.eth`). He is bound to *serve members, never exploit them*: he never asks for keys, pressures a transaction, or manufactures urgency. He reads on-chain signals, Normies mechanics, and community tools — and recommends what actually helps.
@@ -154,8 +154,15 @@ Example pulse response:
     "Canvas activity detected",
     "Clean ownership & delegation"
   ],
-  "next_signal": "Reach Luminous with recent Pulse checks and Pulse-conditioned Paths activity.",
-  "note": "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is earned from Pulse/Paths interaction history.",
+  "next_signal": "All four trust checks pass. Luminous (level 5) comes from popularity: more different people checking its Pulse or using it in Paths within 14 days.",
+  "note": "Levels 1–4 are trust: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Level 5 (Luminous) is popularity on top of all four: enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.",
+  "popularity": {
+    "pulse_checkers": 5,
+    "paths_users": 1,
+    "lookback_days": 14,
+    "popular": false,
+    "note": "Distinct callers, not raw calls. Popularity alone never raises trust: it only lifts an agent that already passes all four trust checks to Luminous."
+  },
   "chat_ratings": {
     "agent_id": 32626,
     "label": "Chat rating",
@@ -548,4 +555,9 @@ Useful live endpoints:
 
 ## License
 
-MIT
+NCH's code is [MIT](LICENSE): use, fork and build on it, keeping the copyright notice.
+
+The licence covers this repository's code only:
+- Normies art and data belong to the Normies project, which released the art as CC0. NCH reads it from the official API.
+- The NCH and Zulo names, Zulo's persona and the NCH branding are not licensed for reuse; please don't present a fork as NCH or Zulo.
+- Third-party packages keep their own licences (see `pnpm licenses list`).

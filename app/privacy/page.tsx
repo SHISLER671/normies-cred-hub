@@ -57,7 +57,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Ratings</strong> (Supabase): a 👍 or 👎 on a Move is stored with the Move, your intent, and your
-            wallet if you connected one (unverified, never shown publicly). Only our server can read it.
+            wallet if you connected one (unverified, never shown publicly). Only our server can read it. Deleted after 180 days.
           </li>
           <li>
             <strong>Zulo&apos;s answers</strong> (Supabase): we may keep an answer (not your question, wallet or
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
           <li>
             <strong>Looking up a wallet</strong> sends that address to the services that answer it: the Normies
             API, Ethos, AgentCheck, OpenSea (offers, on Pixel Check) and a public Ethereum RPC. Market data (floor
-            prices, listings) comes from OpenSea, Moralis and the Normies rarity site without any wallet.
+            prices, listings) comes from OpenSea and the Normies rarity site without any wallet.
           </li>
           <li>
             <strong>Burn helper</strong> may send the Normies and goal you picked (no wallet) to TypeSafe for a

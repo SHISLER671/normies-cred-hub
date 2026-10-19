@@ -1,3 +1,5 @@
+-- APPLIED (by 2026-10-18; the table exists in production). Original Path Board setup, moved here from docs/sql/001_recommendation_feedback.sql on 2026-10-19. Do not re-run:
+-- the table exists and 2026-10-18-recommendation-feedback-lockdown.sql locked it down after.
 -- Phase-1 Path Board feedback (dual credit: recommended path + Zulo #32626)
 -- Run once on the existing CredHub Supabase project (public schema).
 

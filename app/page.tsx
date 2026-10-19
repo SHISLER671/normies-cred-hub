@@ -192,7 +192,7 @@ export default async function ZuloLandingPage() {
             note={<>Live balance on Zulo&apos;s Normie, from the Normies API</>}
           />
           <Stat
-            label={<>Helpful ratings · Zulo #{ZULO_IDENTITY.agentId}</>}
+            label={<>Helpful ratings, last 180 days · Zulo #{ZULO_IDENTITY.agentId}</>}
             value={helpfulCount != null ? helpfulCount : "—"}
             note={<>Moves 👍 · stored by NCH, a rating not reputation</>}
           />

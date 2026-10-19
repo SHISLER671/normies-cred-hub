@@ -39,8 +39,8 @@ export const PULSE_BEATS: readonly PulseBeat[] = [
   },
   {
     signal: "Recent agent usage / interaction signal",
-    label: "Recent use",
-    meaning: "Other agents and holders checked it recently (unlocks Luminous).",
+    label: "Popular",
+    meaning: "Popular: enough different people checked it recently. Counts only once all four trust checks pass (Luminous).",
     gate: false,
   },
 ] as const

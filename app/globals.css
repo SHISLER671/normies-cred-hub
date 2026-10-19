@@ -186,36 +186,6 @@ body {
   transform: translateY(0.5px) scale(0.985);
 }
 
-/* Agent Pulse — calm breathing glow scaled by pulse level (higher = stronger) */
-.pulse-bar {
-  --pulse-ratio: calc(var(--pulse-level) / var(--pulse-max));
-  --pulse-glow-min: calc(6px + var(--pulse-ratio) * 6px);
-  --pulse-glow-max: calc(16px + var(--pulse-ratio) * 18px);
-  --pulse-glow-strength-min: calc(18% + var(--pulse-ratio) * 14%);
-  --pulse-glow-strength-max: calc(32% + var(--pulse-ratio) * 28%);
-  animation: pulse-breathe 4.5s ease-in-out infinite;
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--primary) calc(22% + var(--pulse-ratio) * 30%), transparent),
-    0 0 var(--pulse-glow-min) -3px color-mix(in oklab, var(--primary) var(--pulse-glow-strength-min), transparent);
-}
-
-.pulse-bar:hover,
-.pulse-bar:focus-visible {
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--primary) calc(40% + var(--pulse-ratio) * 35%), transparent),
-    0 0 calc(12px + var(--pulse-ratio) * 14px) -2px color-mix(in oklab, var(--primary) calc(30% + var(--pulse-ratio) * 25%), transparent);
-}
-
-.pulse-bar:active {
-  transform: translateY(0.5px) scale(0.985);
-}
-
-.pulse-bar-glyphs {
-  animation: pulse-glyphs 4.5s ease-in-out infinite;
-  text-shadow: 0 0 calc(6px + var(--pulse-ratio) * 10px)
-    color-mix(in oklab, var(--primary) calc(28% + var(--pulse-ratio) * 36%), transparent);
-}
-
 @keyframes pulse-breathe {
   0%, 100% {
     box-shadow:
@@ -238,20 +208,6 @@ body {
     opacity: calc(0.94 + var(--pulse-ratio) * 0.05);
     filter: brightness(calc(1 + var(--pulse-ratio) * 0.1));
   }
-}
-
-/* Very faint monochrome pixel texture — Normies inspired, extremely subtle */
-.pixel-texture {
-  background-image: 
-    linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px);
-  background-size: 4px 4px;
-}
-
-.dark .pixel-texture {
-  background-image: 
-    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
 }
 
 /* Reserved for special "awakened" states only */
@@ -326,36 +282,6 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-/* Zulo’s Credibility Framework styles */
-
-.cred-stage {
-  display: flex;
-  gap: 1rem;
-  padding-block: 0.25rem;
-}
-
-/* .cred-number — removed; stages now use icon markers instead */
-
-.cred-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.cred-connector {
-  width: 2px;
-  background-color: var(--border);
-  margin-left: 0.875rem;
-  margin-top: 0.125rem;
-  margin-bottom: 0.125rem;
-  min-height: 0.75rem;
-}
-
-/* Inner content boxes - use background instead of heavy borders (on-brand with normies.art) */
-.inner-box {
-  border: none;
-  background-color: color-mix(in oklab, var(--background) 60%, transparent);
-}
-
 /* Keep subtle borders only where needed for separation */
 .cred-data {
   border: 1px solid var(--border);
@@ -364,15 +290,6 @@ body {
   font-size: 0.9375rem;
   line-height: 1.6;
   margin-top: 0.5rem;
-}
-
-/* Alternating rhythm in Credibility Framework (keep this) */
-.cred-stage:nth-child(odd) .cred-data {
-  border-color: var(--border);
-}
-
-.cred-stage:nth-child(even) .cred-data {
-  border-color: color-mix(in oklab, var(--border) 50%, transparent);
 }
 
 /* ---------- MODAL / DIALOG BASE PATTERNS (for future unification) ---------- */

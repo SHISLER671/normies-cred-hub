@@ -59,8 +59,9 @@ export function PulseExplainer({ className, label = "How Pulse works" }: { class
                 <li>Clean ownership &amp; delegation</li>
               </ul>
               <p className="mt-2">
-                Level 5 (Luminous) is reached through recent Pulse checks and
-                Pulse-conditioned Paths activity.
+                Level 5 (Luminous) is popularity on top of trust: it needs all four checks above,
+                plus enough different people checking this agent or using it in Paths within 14
+                days. The raw counts are shown next to the level, so anyone can see a botted spike.
               </p>
             </section>
 

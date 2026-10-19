@@ -50,8 +50,20 @@ export type RecordCard = {
     max_level: number
     status: string | null
     breakdown: string[]
-    /** What earns the next Pulse level, in plain words. Null at max level or when Pulse is unavailable. */
+    /** What the next level needs, in plain words. Null at max level or when Pulse is unavailable. */
     next_signal: string | null
+    /**
+     * Raw usage behind Luminous (level 5): distinct callers in the window, shown so a botted Luminous is visible.
+     * Popularity only counts once all four trust checks pass. Null when the counters couldn't be read.
+     * Optional so older cached cards still type-check.
+     */
+    popularity?: {
+      label: "Popularity"
+      pulse_checkers: number
+      paths_users: number
+      lookback_days: number
+      popular: boolean
+    } | null
     gate: {
       passed: boolean
       registered: boolean

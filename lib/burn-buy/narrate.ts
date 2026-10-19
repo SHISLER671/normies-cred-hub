@@ -169,16 +169,18 @@ export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine 
       stat,
     }
   }
+  // Headlines say what a burn does, never "buy X for Y ETH" (Ryan, 2026-10-19). The price stays as a plain fact.
+  const listed = `Not yours yet: listed at ${eth(m.costEth)} on the market.`
   if (m.kind === "buy-and-burn") {
     return {
-      title: `Buy ${ids(m.tokenIds)} for ${eth(m.costEth)}, then burn ${m.tokenIds.length > 1 ? "them" : "it"} into a Normie you hold`,
-      detail: `Its #PIXEL and any AP it carries move to you. ${score}${roll}`,
+      title: `Burn ${ids(m.tokenIds)} into a Normie you hold`,
+      detail: `${listed} Its #PIXEL and any AP it carries would move to the one you keep. ${score}${roll}`,
       stat,
     }
   }
   return {
-    title: `Buy ${ids(m.tokenIds)} for ${eth(m.costEth)} and keep ${m.tokenIds.length > 1 ? "them" : "it"}`,
-    detail: `One more Normie in your stack. ${score}`,
+    title: `Hold one more Normie (${ids(m.tokenIds)})`,
+    detail: `${listed} One more Normie in your stack. ${score}`,
     stat,
   }
 }
@@ -224,16 +226,17 @@ const SELL_NOTES = [
 ]
 
 function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number | null): MoveLine {
-  const base = `Buy #${f.tokenId} for ${eth(f.priceEth)} and burn it into a Normie you keep`
+  const base = `Burn #${f.tokenId} into a Normie you keep`
+  const listed = `Not yours yet: listed at ${eth(f.priceEth)}.`
   if (goal === "arena") {
     const lvl = keeperAp === null
       ? `That is about +${num(f.pays / 10)} Levels (10 AP per Level).`
       : `Level ${levelOf(keeperAp)} → ${levelOf(keeperAp + f.pays)}.`
     const about = f.range ? "about " : ""
     const span = f.range ? ` (${f.range.min} to ${f.range.max}, it is a roll)` : ""
-    return { title: base, detail: `Adds ${about}${f.pays} AP to it${span}. ${lvl}`, stat: keeperAp === null ? `${f.range ? "~" : ""}+${num(f.pays / 10)} Levels` : `Level ${levelOf(keeperAp)} → ${f.range ? "~" : ""}${levelOf(keeperAp + f.pays)}` }
+    return { title: base, detail: `${listed} Adds ${about}${f.pays} AP to it${span}. ${lvl}`, stat: keeperAp === null ? `${f.range ? "~" : ""}+${num(f.pays / 10)} Levels` : `Level ${levelOf(keeperAp)} → ${f.range ? "~" : ""}${levelOf(keeperAp + f.pays)}` }
   }
-  return { title: base, detail: `Adds ${f.range ? "about " : ""}${f.pays} pixels to it${f.range ? ` (${f.range.min} to ${f.range.max}, it is a roll)` : ""}, so you can repaint more of its face (${f.perEth} per ETH).`, stat: `${f.range ? "~" : ""}+${f.pays} px` }
+  return { title: base, detail: `${listed} Adds ${f.range ? "about " : ""}${f.pays} pixels to it${f.range ? ` (${f.range.min} to ${f.range.max}, it is a roll)` : ""}, so you can repaint more of its face (${f.perEth} per ETH).`, stat: `${f.range ? "~" : ""}+${f.pays} px` }
 }
 
 export function buildPageModel(result: BurnBuyResult | null, goal: Goal = "share"): PageModel {
@@ -486,7 +489,7 @@ export function marketLineText(m: PixelMarketSnapshot | null): string | null {
   return `Pixel Market now: ${parts.join(" · ")}. A snapshot of a new, thin market: it can move in minutes.${m.paused ? " The market is paused right now." : ""}`
 }
 
-/** What reaching the next boost would cost off the book today, and the labelled illustrative payback. */
+/** What reaching the next boost would cost off the book today. No payback or "earn it back" figures (retired 2026-10-19: income framing). */
 export function cliffCostSentences(c: CliffCost | null): string[] {
   if (!c) return []
   const out: string[] = []
@@ -496,10 +499,6 @@ export function cliffCostSentences(c: CliffCost | null): string[] {
     return out
   }
   out.push(`Reaching ${c.atPixel} #PIXEL (+${c.boostPct}% boost) means buying ${c.needMore} more: about ${ethText(b.costEth)} ETH off the book today (average ${ethText(b.avgEth ?? 0)}, dearest ${ethText(b.worstEth ?? 0)}; the price rises as you buy${b.approx ? ", and some listings must be bought whole, so it can run a little higher" : ""}). Your score would go ${num(c.scoreBefore)} to ${num(c.scoreAfter)} (+${num(c.scoreGain)}), about ${ethText(c.costPerScorePoint ?? 0)} ETH per point.`)
-  if (c.payback.length > 0) {
-    const bits = c.payback.map((p) => `${num(p.poolEthPerMonth)} ETH a month: ${ethText(p.monthlyEth)} ETH a month for you, ${p.months === null ? "no payback" : `${num(p.months)} months to earn it back`}`)
-    out.push(`If the monthly holder pool were (illustrative scenarios built on the Sep 23 article's pace, NOT forecasts; the real pool depends on volume nobody knows yet): ${bits.join("; ")}.`)
-  }
   return out
 }
 

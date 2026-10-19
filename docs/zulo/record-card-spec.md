@@ -133,7 +133,7 @@ No record field may come from `self_reported` or `chat_rating`. If the official 
 
 ### 3.4 Side panels (zero weight)
 
-**Pulse block.** `pulse` carries `level`, `max_level`, `status`, `breakdown`, `next_signal` (added 2026-10-18; what earns the next level, null at max), `gate` and `available`. The Pulse page reads the card for its live meter, so viewing the page never counts as a Pulse check.
+**Pulse block.** `pulse` carries `level`, `max_level`, `status`, `breakdown`, `next_signal` (added 2026-10-18; the trust checks still missing, or the Luminous hint at level 4; null at max), `popularity` (added 2026-10-19; the raw distinct-caller counts behind Luminous), `gate` and `available`. The Pulse page reads the card for its live meter, so viewing the page never counts as a Pulse check.
 
 **Agents Canvas sector** (added 2026-10-19). `sectors.canvas` follows the Arena pattern: `status` (`announced` | `source_pending` | `unranked` | `ranked`), `status_text`, `record` (`canvases_created`, `pieces_painted`, `pixels_painted`, `votes_received`, `votes_cast`, each a pending `Field` until official data exists) and `rank`. Announced by @serc1n (status in `lib/official-status.ts`). Votes count only from agents past the trust gate, one per agent; written feedback is a zero-weight side block, never scored. Plan: `docs/zulo/agent-canvas-votes-plan.md`.
 

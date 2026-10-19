@@ -5,16 +5,30 @@ import { getTokenUsageSignal } from "@/lib/instrumentation/pulse-paths"
 import type { AgentInfo, CanvasDiff, CanvasInfo, NormieOwner } from "@/lib/types"
 import { publicClient } from "@/lib/viem-client"
 
+/**
+ * Pulse levels 1–4 are trust: one per trust check. Level 5 ("Luminous") is popularity ON TOP of trust (Ryan,
+ * 2026-10-19: "you can be real and do good but popular is popular"). It needs all four trust checks first, so
+ * popularity can never stand in for a missing trust check (before 2026-10-19 a 3-check agent reached 4 with usage).
+ * The raw counts ship as `popularity` next to the level, so a botted Luminous is visible to anyone checking.
+ */
 export const MAX_LEVEL = 5
 
-export const USAGE_BREAKDOWN_SIGNAL =
-  "Recent agent usage / interaction signal"
+/** The four trust checks, in the order they are tested. lib/pulse/beats.ts must match these strings exactly. */
+export const TRUST_SIGNALS = [
+  "ERC-8004 registered",
+  "Has active agent card",
+  "Canvas activity detected",
+  "Clean ownership & delegation",
+] as const
+
+/** Level 5 marker in the breakdown. Only present when all four trust checks pass AND the agent is popular. */
+export const USAGE_BREAKDOWN_SIGNAL = "Recent agent usage / interaction signal"
 
 export const NOTE =
-  "This Pulse uses Normies API signals plus recent agent usage. Level 5 (Luminous) is reached through Pulse/Paths interaction history."
+  "Levels 1–4 are trust: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Level 5 (Luminous) is popularity on top of all four: enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them."
 
-export const NEXT_SIGNAL =
-  "Reach Luminous with recent Pulse checks and Pulse-conditioned Paths activity."
+export const NEXT_SIGNAL_LUMINOUS =
+  "All four trust checks pass. Luminous (level 5) comes from popularity: more different people checking its Pulse or using it in Paths within 14 days."
 
 const STATUS_BY_LEVEL: Record<number, string> = {
   0: "Dormant",
@@ -24,6 +38,21 @@ const STATUS_BY_LEVEL: Record<number, string> = {
   4: "Strong",
   5: "Luminous",
 }
+
+/** Raw usage counts shown next to Pulse. Distinct callers, never raw calls. */
+export type PulsePopularity = {
+  /** Distinct callers who ran a Pulse check on this Normie in the window. */
+  pulse_checkers: number
+  /** Distinct callers who ran Paths with this Normie's Pulse in the window. */
+  paths_users: number
+  lookback_days: number
+  /** Popularity threshold met. Raises the level to Luminous only when all four trust checks pass. */
+  popular: boolean
+  note: string
+}
+
+export const POPULARITY_NOTE =
+  "Distinct callers, not raw calls. Popularity alone never raises trust: it only lifts an agent that already passes all four trust checks to Luminous."
 
 export type AgentPulseResponse = {
   token_id: number
@@ -40,6 +69,8 @@ export type AgentPulseResponse = {
    * Present on the public Pulse endpoints; omitted when the caller didn't ask for it or the agent isn't awakened.
    */
   chat_ratings?: ChatRatingsSummary | null
+  /** Raw usage counts behind Luminous. Null when the counters couldn't be read (not the same as zero). */
+  popularity?: PulsePopularity | null
 }
 
 export type AgentPulseResult =
@@ -183,15 +214,24 @@ export async function getAgentPulse(
     breakdown.push("Clean ownership & delegation")
   }
 
-  let usageEarned = false
+  let popularity: PulsePopularity | null = null
   try {
     const usage = await getTokenUsageSignal(tokenId)
-    usageEarned = usage.earned
+    if (usage.readable) {
+      popularity = {
+        pulse_checkers: usage.pulseCalls,
+        paths_users: usage.conditionedPaths,
+        lookback_days: usage.lookbackDays,
+        popular: usage.earned,
+        note: POPULARITY_NOTE,
+      }
+    }
   } catch {
-    usageEarned = false
+    popularity = null
   }
 
-  const assembled = assemblePulseSignals(breakdown, usageEarned)
+  // Unreadable counters fail closed: no Luminous, but the trust level still stands.
+  const assembled = assemblePulseSignals(breakdown, popularity?.popular ?? false)
 
   const chatRatings =
     options.chatRatings && agentId && Number.isFinite(agentId) && agentId > 0
@@ -205,29 +245,34 @@ export async function getAgentPulse(
       agent_id: agentId,
       max_level: MAX_LEVEL,
       ...assembled,
+      popularity,
       ...(chatRatings !== undefined ? { chat_ratings: chatRatings } : {}),
     },
   }
 }
 
-/** Apply optional 5th usage signal. Fail-open callers pass earned=false. */
+/**
+ * Level = trust checks passed (0–4), plus 1 (Luminous) when all four pass AND the agent is popular.
+ * next_signal names the trust checks still missing, in test order; at 4 it points to Luminous; null at 5.
+ */
 export function assemblePulseSignals(
   staticBreakdown: string[],
-  usageEarned: boolean,
+  popular: boolean,
 ): Pick<
   AgentPulseResponse,
   "breakdown" | "pulse_level" | "status" | "next_signal" | "note"
 > {
-  const breakdown = [...staticBreakdown]
-  if (usageEarned && !breakdown.includes(USAGE_BREAKDOWN_SIGNAL)) {
-    breakdown.push(USAGE_BREAKDOWN_SIGNAL)
-  }
+  const have = new Set(staticBreakdown)
+  const breakdown: string[] = TRUST_SIGNALS.filter((sig) => have.has(sig))
+  const missing = TRUST_SIGNALS.filter((sig) => !have.has(sig))
+  const luminous = missing.length === 0 && popular
+  if (luminous) breakdown.push(USAGE_BREAKDOWN_SIGNAL)
   const pulse_level = Math.min(MAX_LEVEL, breakdown.length)
   return {
     breakdown,
     pulse_level,
     status: STATUS_BY_LEVEL[pulse_level] ?? "Dormant",
-    next_signal: pulse_level >= MAX_LEVEL ? null : NEXT_SIGNAL,
+    next_signal: luminous ? null : missing.length === 0 ? NEXT_SIGNAL_LUMINOUS : `Still missing: ${missing.join(", ")}.`,
     note: NOTE,
   }
 }

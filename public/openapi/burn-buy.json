@@ -680,7 +680,7 @@
                 },
                 "payback": {
                  "type": "array",
-                 "description": "Illustrative scenarios (a quarter of, equal to, and double the Sep 23 article's published pool pace), NOT forecasts. Empty when the book cannot fill the whole step.",
+                 "description": "Always empty. Payback estimates were retired on 2026-10-19 (income framing); the field stays so existing clients do not break.",
                  "items": {
                   "type": "object",
                   "properties": {
