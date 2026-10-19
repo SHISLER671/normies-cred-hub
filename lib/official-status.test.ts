@@ -46,6 +46,7 @@ const CONTRADICTIONS: Array<{ re: RegExp; why: string }> = [
   { re: /\bArena\s*(?:=|:|is)\s*\**\s*(?:LIVE|open now|playable)\b/i, why: "Arena is Coming Soon" },
   { re: /\bAgents Canvas\s*(?:=|:|is)\s*\**\s*(?:LIVE|open now)\b/i, why: "Agents Canvas is announced, not live" },
   { re: /Zombies[^\n]{0,20}\b(?!21\/21)\d{1,2}\/21\b/i, why: "Zombies are 21/21 sealed" },
+  { re: /\bspent\b[^\n]{0,30}\bper pixel\b|\bpainting (?:spends|costs|uses up)\b/i, why: "Painting never spends PIXEL / action points" },
 ]
 
 describe("official status: one source of truth", () => {
@@ -71,6 +72,7 @@ describe("official status: one source of truth", () => {
       assert.ok(block.includes(PIXEL_MARKET_STATUS_LINE), "pixel market line")
       assert.ok(block.includes(ARENA_STATUS_LINE), "arena line")
       assert.ok(block.includes(ZOMBIES_STATUS_LINE), "zombies line")
+      assert.ok(block.includes(AGENTS_CANVAS_STATUS_LINE), "agents canvas line")
     }
   })
 
@@ -78,6 +80,7 @@ describe("official status: one source of truth", () => {
     const w = buildNormiesWisdomPrompt()
     assert.ok(w.includes(PIXEL_MARKET_STATUS_LINE))
     assert.ok(w.includes(ARENA_STATUS_LINE))
+    assert.ok(w.includes(AGENTS_CANVAS_STATUS_LINE))
     assert.ok(NORMIES_KNOWLEDGE.future.arena.status.startsWith(ARENA_STATUS_LINE))
     assert.match(NORMIES_KNOWLEDGE.future.pixelMarket.status, new RegExp(`^Live since ${OFFICIAL_STATUS.pixelMarket.since}`))
   })

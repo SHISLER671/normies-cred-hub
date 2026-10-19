@@ -24,6 +24,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   return {
     title,
     description,
+    alternates: { canonical: symphonyPath(list, block) },
     openGraph: { title, description, url: symphonyPath(list, block), images: [{ url: image, width: 1200, height: 630 }] },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   }

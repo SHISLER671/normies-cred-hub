@@ -100,7 +100,7 @@
 .zulo-chrome .sym-btn:active:not(:disabled) { box-shadow: inset 2px 2px 0 var(--sym-face-lo), inset -2px -2px 0 var(--sym-face-hi); }
 .zulo-chrome .sym-btn:focus-visible { outline: 2px solid var(--pulse-cyan); outline-offset: 2px; }
 .zulo-chrome .sym-btn:disabled { opacity: 0.5; cursor: default; }
-.zulo-chrome .sym-btn-cta { background: var(--pulse-cyan); color: var(--bg-primary); }
+.zulo-chrome .sym-btn-cta { background: var(--pulse-cyan); color: var(--on-cta, var(--bg-primary)); }
 @media (max-width: 480px) {
   .zulo-chrome .sym-btn { flex: 1 1 auto; }
 }

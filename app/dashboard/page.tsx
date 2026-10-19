@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   title: "PULSE — Normies CredHub",
   description:
     "PULSE on Normies CredHub: live trust checks for awakened ERC-8004 Normie agents, the trust gate, and each agent's record card. Read-only, verified sources only.",
+  alternates: { canonical: "/dashboard" },
+  openGraph: { title: "PULSE — Normies CredHub", url: "/dashboard", siteName: "Normies CredHub", type: "website", images: [{ url: "/og.png", width: 1200, height: 630 }] },
 }
 
 export default function DashboardPage() {

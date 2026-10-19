@@ -34,7 +34,7 @@ const QUICK_PROMPTS = [
   { label: "Preview canvas", prompt: "preview canvas add 12 pixels" },
   { label: "Gacha odds", prompt: "gacha odds" },
   { label: "80×80 readiness", prompt: "80x80 expansion readiness" },
-  { label: "Earn AP", prompt: "How do I earn more AP strategically?" },
+  { label: "Raise my Level", prompt: "How do I raise my Normie's Level (action points) strategically?" },
 ] as const
 
 /**
@@ -319,8 +319,9 @@ export function ZuloExperience({
       </p>
 
       <main className="ask-main">
+        <h1 className="sr-only">Ask Zulo</h1>
         <div className="ask-chat">
-          <div className="chat-messages">
+          <div className="chat-messages" role="log" aria-live="polite" aria-label="Conversation with Zulo">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -362,8 +363,6 @@ export function ZuloExperience({
             {loading && askStatus ? (
               <div
                 className="chat-message chat-message-zulo"
-                aria-live="polite"
-                aria-atomic="true"
               >
                 {!isMobile ? <div className="chat-avatar">Z</div> : null}
                 <div className="chat-stack">
@@ -386,6 +385,7 @@ export function ZuloExperience({
               <input
                 type="text"
                 className="chat-input-field"
+                aria-label="Ask Zulo"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {

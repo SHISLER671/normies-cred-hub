@@ -25,10 +25,10 @@ const DESCRIPTION =
   "Live #PIXEL attached to any Normie (its AP), read from the chain. Or paste your wallet to see which of your item offers sit on Normies whose pixels are gone. Read-only."
 
 export const metadata: Metadata = {
-  alternates: { types: { "application/json": "/api/ap-check" } },
+  alternates: { canonical: "/pixels", types: { "application/json": "/api/ap-check" } },
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: { title: "Pixel Check: does this Normie still have its pixels?", description: DESCRIPTION, url: "/pixels", siteName: "Normies CredHub", type: "website" },
+  openGraph: { title: "Pixel Check: does this Normie still have its pixels?", description: DESCRIPTION, url: "/pixels", siteName: "Normies CredHub", type: "website", images: [{ url: "/og.png", width: 1200, height: 630 }] },
   twitter: { card: "summary", title: "Pixel Check: does this Normie still have its pixels?", description: DESCRIPTION },
 }
 

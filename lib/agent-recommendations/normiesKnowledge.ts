@@ -1,7 +1,7 @@
 // Comprehensive Normies knowledge for Zulo — structured bible + compact prompt text.
 
 import { NORMIES_NFT } from "@/constants/contracts"
-import { ARENA_STATUS_LINE, OFFICIAL_STATUS, PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
+import { AGENTS_CANVAS_STATUS_LINE, ARENA_STATUS_LINE, OFFICIAL_STATUS, PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
 
 export const NORMIES_KNOWLEDGE = {
   collection: {
@@ -260,6 +260,7 @@ STRATEGIC PRINCIPLES:
 - Prefer burning commons; protect rare/premium trait stacks
 - High pixel count (890+) → best burn efficiency band
 - Delegation for collab without giving up ownership
+- ${AGENTS_CANVAS_STATUS_LINE}.
 - ${ARENA_STATUS_LINE} (work in progress, mechanics may change). The 2026-09-18 design (autonomous 640×640 continent; no human players) is from @serc1n X posts, not the docs. ${PIXEL_MARKET_STATUS_LINE} — #PIXEL is AP, not a separate coin; sell-side listings in ETH per pixel; no wallet-to-wallet transfer
 
 RESOURCES:

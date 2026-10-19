@@ -75,7 +75,7 @@ export function AgentCard({
               {isMyAgent ? "Your Awakened Agent" : `Normie #${tokenId} • ERC-8004`}
             </SectionLabel>
             {ownerEthosUsername && (
-              <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-sm hover:underline">
+              <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" rel="noopener noreferrer" className="text-primary text-sm hover:underline">
                 @ {ownerEthosUsername} on Ethos
               </a>
             )}

@@ -7,7 +7,7 @@
    one-class `.burn-page` rule above, so the cyan never showed: every "accent" was plain grey. These selectors are
    stronger in both themes. Light mode uses a deeper cyan so borders and arrows stay visible on white. */
 .dark .zulo-chrome.burn-page { --accent: var(--text-primary); --cta: var(--zulo-accent); }
-html:not(.dark) .zulo-chrome.burn-page { --accent: var(--text-primary); --cta: #0891b2; }
+html:not(.dark) .zulo-chrome.burn-page { --accent: var(--text-primary); --cta: #0e7490; }
 /* PIXEL PASS (2026-10-18): --accent is ink for decoration; --cta is the only cyan (the Go button, focus, the answer box). */
 .burn-page .burn-main { max-width: 720px; margin: 0 auto; padding: 8px 16px 72px; overflow-wrap: anywhere; }
 .burn-page .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

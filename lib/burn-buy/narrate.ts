@@ -6,6 +6,7 @@ import type { CliffCost, PixelMarketSnapshot, SellRow } from "./market-math"
 import type { JevVerdict } from "./jev"
 import { BOOSTS, BRACKETS, boostFor, type CliffSide, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
 import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } from "./service"
+import { SURFACE_TAGS } from "../official-status"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
 
@@ -183,7 +184,7 @@ export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine 
 }
 
 const ARENA_NOTES = [
-  "Arena is not open from this page, and this page cannot enter you into anything. The official Lab overview lists Arena as COMING SOON.",
+  `Arena is not open from this page, and this page cannot enter you into anything. The official Lab overview lists Arena as ${SURFACE_TAGS.arena}.`,
   "Official design (@serc1n, Sep 18): autonomous agents on a 640×640 continent, no human players. Five camps: Human, Cat, Alien, Agent, Zombie. Type, Level and on-chain history matter.",
   "Level: every 10 pixels is one level, and the official Pixel Market video calls it a permanent trait. (The Sep 23 article said withdrawing #PIXEL strips a level, so check before you move pixels off a Normie.) In numbers, Level = floor(AP ÷ 10) + 1. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
   "The combat rules have NOT been published. Nobody can honestly tell you how many Normies to keep or what Level wins. Anyone who says they can is guessing, and so would we.",

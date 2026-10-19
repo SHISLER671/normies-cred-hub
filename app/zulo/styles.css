@@ -49,7 +49,11 @@
   --motion-reveal-y: 12px;
   --shadow-card: 4px 4px 0 0 rgb(0 0 0 / 0.1);
   --shadow-soft: 0 1px 0 0 rgb(0 0 0 / 0.08);
-  --focus-ring: 1px solid color-mix(in oklab, var(--zulo-accent) 30%, transparent);
+  /* Cyan for calls to action and focus only. Light mode uses the deeper cyan so focus rings and buttons pass contrast
+     (#0e7490 is 4.9:1 on paper; the old 30% ring was ~1.1:1). Text on a cyan button is --on-cta. */
+  --cta-cyan: #0e7490;
+  --on-cta: #ffffff;
+  --focus-ring: 2px solid var(--cta-cyan);
   --focus-offset: 2px;
 
   color-scheme: light;
@@ -63,6 +67,8 @@
 
 /* Dark = inverted grayscale of light (no new color system) */
 .dark .zulo-chrome {
+  --cta-cyan: #22d3ee;
+  --on-cta: #1a1b1c;
   --bg-primary: #1a1b1c;
   --bg-secondary: #242526;
   --bg-tertiary: #2e2f30;
@@ -1623,8 +1629,8 @@
 
 .zulo-chrome .chat-input-field:focus {
   outline: none;
-  border-color: var(--zulo-accent);
-  box-shadow: inset 0 0 0 1px var(--zulo-accent);
+  border-color: var(--cta-cyan);
+  box-shadow: inset 0 0 0 1px var(--cta-cyan);
 }
 
 .zulo-chrome .chat-input-field:focus-visible {
@@ -3854,7 +3860,7 @@
 }
 .zulo-chrome .record-card .rc-share-btn:hover,
 .zulo-chrome .record-card .rc-share-btn:focus-visible { background: var(--text-primary); color: var(--bg-primary); outline: none; }
-.zulo-chrome .record-card .rc-share-primary { border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--bg-primary); }
+.zulo-chrome .record-card .rc-share-primary { border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--on-cta); }
 @media (max-width: 480px) { .zulo-chrome .record-card .rc-share-btn { flex: 1 1 auto; } }
 
 /* ================================================================================================
@@ -3969,7 +3975,7 @@
   background: var(--bg-dark); color: var(--text-inverse); outline: none;
 }
 .zulo-chrome.dash-shell .ph-btn-primary {
-  flex-basis: 100% !important; border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--bg-primary); font-weight: 600;
+  flex-basis: 100% !important; border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--on-cta); font-weight: 600;
 }
 @media (min-width: 640px) { .zulo-chrome.dash-shell .ph-actions .ph-btn-primary { flex-basis: auto !important; } }
 .zulo-chrome.dash-shell .ph-btn-primary:hover,
@@ -4067,7 +4073,7 @@
   border-bottom: 2px solid var(--text-primary);
   transition: border-color var(--motion-base) var(--motion-ease);
 }
-.zulo-chrome.zulo-home .hh-form:focus-within { border-bottom-color: var(--text-primary); }
+.zulo-chrome.zulo-home .hh-form:focus-within { border-bottom-color: var(--text-primary); outline: 2px solid var(--cta-cyan); outline-offset: 4px; }
 .zulo-chrome.zulo-home .hh-hash { font-size: clamp(32px, 8vw, 52px); line-height: 1; font-weight: 600; color: var(--text-muted); }
 .zulo-chrome.zulo-home .hh-input {
   flex: 1; min-width: 0; width: 5ch; padding: 6px 0; border: 0; outline: none; background: transparent; color: var(--text-primary);
@@ -4077,7 +4083,7 @@
 .zulo-chrome.zulo-home .hh-input[aria-invalid="true"] { color: var(--text-muted); }
 .zulo-chrome.zulo-home .hh-go {
   flex: none; min-height: 44px; padding: 0 18px; border: 1px solid var(--pulse-cyan); background: var(--pulse-cyan);
-  color: var(--bg-primary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  color: var(--on-cta); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
 }
 .zulo-chrome.zulo-home .hh-go:disabled { opacity: 0.45; cursor: default; }
 .zulo-chrome.zulo-home .hh-go:focus-visible { outline: 2px solid var(--pulse-cyan); outline-offset: 3px; }
@@ -4127,7 +4133,7 @@
 }
 .zulo-chrome.zulo-home .hh-btn:hover,
 .zulo-chrome.zulo-home .hh-btn:focus-visible { background: var(--bg-dark); color: var(--text-inverse); outline: none; }
-.zulo-chrome.zulo-home .hh-btn-primary { border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--bg-primary); font-weight: 600; }
+.zulo-chrome.zulo-home .hh-btn-primary { border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--on-cta); font-weight: 600; }
 .zulo-chrome.zulo-home .hh-btn-primary:hover,
 .zulo-chrome.zulo-home .hh-btn-primary:focus-visible { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-primary); }
 

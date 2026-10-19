@@ -35,6 +35,7 @@ export const metadata: Metadata = {
     url: DEFAULT_SITE_ORIGIN,
     images: [{ url: '/og.png', width: 1200, height: 630 }],
   },
+  twitter: { card: 'summary_large_image', images: ['/og.png'] },
   icons: {
     icon: '/images/NLOGO.png',
   },

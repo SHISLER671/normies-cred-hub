@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
     "test:delegates": "tsx --test lib/delegate-refresh.test.ts",

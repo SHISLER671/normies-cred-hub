@@ -3,18 +3,14 @@
 import { NextResponse } from "next/server"
 
 import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
-import { getCircuitState } from "@/lib/security/circuitBreaker"
-import { getPaymentRailStatus } from "@/lib/agent-recommendations/verifyPayment"
-import { HIGH_VALUE_AP, MIN_CONFIRMATIONS } from "@/lib/payments/verify"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  const circuit = await getCircuitState()
 
   return NextResponse.json(
     {
-      posture: "I assume breach. Every transaction is adversarial.",
+      posture: "I assume breach. Every request is adversarial.",
       agent: {
         name: ZULO_IDENTITY.name,
         ens: ZULO_IDENTITY.ens,
@@ -22,31 +18,25 @@ export async function GET() {
         role: "strategic-architect",
       },
       layers: [
-        "crypto-format-validation",
-        "7-step-payment-verification",
+        "read-only (no transactions, approvals or typed-data signatures)",
+        "strict-input-validation",
         "dual-key-rate-limits",
-        "strict-input-schemas",
+        "allowlisted-upstream-paths",
         "security-headers",
         "append-only-audit-log",
-        "payment-circuit-breaker",
       ],
-      payment: {
-        railStatus: getPaymentRailStatus(),
-        minConfirmations: MIN_CONFIRMATIONS,
-        highValueApThreshold: HIGH_VALUE_AP,
-        paymentsPaused: circuit.paymentsPaused,
-        circuit: circuit.state,
-      },
+      // Parked: Zulo takes no payments, and this endpoint doesn't describe how payments would work.
+      payments: "parked",
       bugBounty: {
         status: "informal",
-        scope: "normiescredhub.vercel.app API + payment verification surface",
+        scope: "normiescredhub.vercel.app pages and APIs",
         outOfScope: ["social engineering of holders", "physical attacks", "third-party NFT markets"],
         report: "POST /api/zulo/security/report",
-        email: "security@normiescredhub.example",
-        note: "Replace email with project mailbox. No public SEV1 disclosure until mitigated.",
+        privateAdvisory: "https://github.com/SHISLER671/normies-cred-hub/security/advisories/new",
+        note: "No public SEV1 disclosure until mitigated.",
       },
       responsibleDisclosure: [
-        "1. Report via POST /api/zulo/security/report or security email.",
+        "1. Report via POST /api/zulo/security/report or a private GitHub security advisory.",
         "2. Allow reasonable time for mitigation before public write-up.",
         "3. Do not exploit beyond minimal PoC; no user fund theft.",
       ],

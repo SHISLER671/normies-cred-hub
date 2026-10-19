@@ -234,13 +234,13 @@ export function Dashboard() {
                     <Skeleton className="h-16 w-full" />
                   ) : resolvedAgentId ? (
                     <div>
-                      <div className="flex items-center gap-2 text-emerald-400">
+                      <div className="flex items-center gap-2 text-foreground">
                         <CircleCheck className="size-4" />
                         <span>Registered on-chain</span>
                       </div>
-                      <div className="text-xs text-emerald-400/70 ml-6 mt-0.5">Agent #{resolvedAgentId} recognized</div>
+                      <div className="text-xs text-muted-foreground ml-6 mt-0.5">Agent #{resolvedAgentId} recognized</div>
                       <div className="mt-2 text-xs text-muted-foreground">
-                        Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
+                        Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
                       </div>
                       {snapshot?.traits?.attributes?.length ? (
                         <div className="mt-3 flex flex-wrap gap-1">
@@ -253,7 +253,7 @@ export function Dashboard() {
                       ) : null}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-amber-400">
+                    <div className="flex items-center gap-2 text-foreground">
                       <Clock className="size-4" />
                       <span>On-chain status pending</span>
                     </div>
@@ -268,7 +268,7 @@ export function Dashboard() {
                     <div className="space-y-2">
                       <div>
                         <div className="text-xs text-muted-foreground">OWNER</div>
-                        <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" className="font-mono text-foreground hover:text-primary">
+                        <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" rel="noopener noreferrer" className="font-mono text-foreground hover:text-primary">
                           {shortenAddress(snapshot.owner.owner, 6)}
                         </a>
                         {ownerUsername && <span className="text-primary text-xs ml-2">@{ownerUsername}</span>}
@@ -276,7 +276,7 @@ export function Dashboard() {
                       {delegate && !isZeroAddress(delegate) && (
                         <div>
                           <div className="text-xs text-muted-foreground">DELEGATE</div>
-                          <a href={etherscanAddress(delegate)} target="_blank" className="font-mono text-foreground hover:text-primary">
+                          <a href={etherscanAddress(delegate)} target="_blank" rel="noopener noreferrer" className="font-mono text-foreground hover:text-primary">
                             {shortenAddress(delegate, 6)}
                           </a>
                           {delegateEnsName && <span className="text-primary text-xs ml-2">{delegateEnsName}</span>}
@@ -298,7 +298,7 @@ export function Dashboard() {
                   ) : (
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <div>LVL {snapshot.canvas.level} • {snapshot.canvas.actionPoints} AP</div>
+                        <div>Level {snapshot.canvas.level} · {snapshot.canvas.actionPoints} action points</div>
                         <div className="border px-1.5 py-px text-xs tracking-[1.5px]">
                           {snapshot.canvas.customized ? "CUSTOM" : "PRISTINE"}
                         </div>
@@ -385,10 +385,10 @@ export function Dashboard() {
                     <>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Clock className="size-4" />
-                        <span>Coming soon — Wire UTL integration</span>
+                        <span>Idea, not built</span>
                       </div>
                       <p className="text-sm leading-relaxed text-muted-foreground mt-2 text-pretty">
-                        Verifiable execution history, settlement certainty, and cross-chain reliability will appear here when Wire integration is live.
+                        Execution history from Wire could appear here one day, but only if an official, readable data source exists. Nothing is planned or scheduled.
                       </p>
                     </>
                   ),

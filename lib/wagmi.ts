@@ -40,13 +40,13 @@ const projectId =
 const appUrl =
   (typeof window !== 'undefined' ? window.location.origin : undefined) ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  'https://normies-cred-hub-dashboard.vercel.app';
+  'https://normiescredhub.vercel.app';
 
 export const wagmiConfig = getDefaultConfig({
   appName: 'Normies CredHub',
   appDescription: 'See the real reputation of your awakened ERC-8004 Normie agent.',
   appUrl,
-  appIcon: 'https://normies-cred-hub-dashboard.vercel.app/icon.png',
+  appIcon: 'https://normiescredhub.vercel.app/images/NLOGO.png',
   projectId,
   // The wallets this community actually uses, hardware-friendly ones included (Rabby and Ledger first-class, not buried
   // behind WalletConnect). injectedWallet catches any other browser wallet that is installed.

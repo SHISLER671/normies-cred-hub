@@ -52,7 +52,7 @@ export function OwnershipCard({
                   {shortenAddress(snapshot.owner.owner, 6)}
                 </a>
                 {ownerEthosUsername && (
-                  <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" className="text-primary text-sm hover:underline">
+                  <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" rel="noopener noreferrer" className="text-primary text-sm hover:underline">
                     @{ownerEthosUsername}
                   </a>
                 )}

@@ -75,6 +75,8 @@ export const metadata: Metadata = {
     title: "Normies CredHub",
     description:
       "Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn.",
+    url: "/",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
 }
 
@@ -187,12 +189,12 @@ export default async function ZuloLandingPage() {
           <Stat
             label={<>Action points on #{ZULO_IDENTITY.tokenId}</>}
             value={canvasAp}
-            note={<>Live on-chain balance on Zulo&apos;s Normie (not tips ledger)</>}
+            note={<>Live balance on Zulo&apos;s Normie, from the Normies API</>}
           />
           <Stat
             label={<>Helpful ratings · Zulo #{ZULO_IDENTITY.agentId}</>}
             value={helpfulCount != null ? helpfulCount : "—"}
-            note={<>Moves 👍 · CredHub reputation (off-chain today)</>}
+            note={<>Moves 👍 · stored by NCH, a rating not reputation</>}
           />
         </StatGrid>
 

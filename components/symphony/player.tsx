@@ -342,7 +342,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
       </div>
 
       <div className="sym-main">
-        <div className="sym-lcd" aria-live="polite">
+        <div className="sym-lcd">
           <div className="sym-lcd-row">
             <span className="sym-lcd-state">{playing ? "▶" : status === "loading" ? "…" : "■"}</span>
             <span className="sym-lcd-time">{mmss(playing ? elapsed % (loop || 1) : 0)}</span>
@@ -352,7 +352,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
             {ids.length ? ids.map((i) => `#${i}`).join(" ") : "#----"}
             <span className="sym-lcd-block">{block ? `${pinned ? "PINNED" : "BLOCK"} ${block.toLocaleString("en-US")}` : "LIVE"}</span>
           </div>
-          <div className="sym-lcd-marquee">
+          <div className="sym-lcd-marquee" aria-live="polite">
             <span>{status === "error" ? error.toUpperCase() : status === "loading" ? "READING PIXELS…" : marquee}</span>
           </div>
           <canvas ref={eqRef} className="sym-eq" width={240} height={48} aria-hidden />

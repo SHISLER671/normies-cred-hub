@@ -1,6 +1,6 @@
 # Normie record card — data shape (spec, docs only)
 
-Drafted 2026-10-18 (ChST) by GrokBot; score model folded in by Claude the same day (Ryan's note on PR #100). Status: **DRAFT spec, nothing built.** No code, no Pulse changes, no chat-ratings changes.
+Drafted 2026-10-18 (ChST) by GrokBot; score model folded in by Claude the same day (Ryan's note on PR #100). Status: **Built** (2026-10-18/19): `/record/{tokenId}`, `GET /api/zulo/record-card/{tokenId}`, `lib/record-card/*`. Arena and Agents Canvas fields stay pending until official data exists. No Pulse changes, no chat-ratings changes.
 
 Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` (the verified scoreboard; "Phase 1: Arena record card"), `docs/zulo/thesis-lock.md` §5–§7, `lib/official-status.ts`.
 

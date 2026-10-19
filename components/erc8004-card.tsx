@@ -38,7 +38,7 @@ export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; i
         )}
 
         <div className="mt-auto text-xs text-muted-foreground">
-          Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
+          Registry: <a href={etherscanAddress(ERC8004.IDENTITY_REGISTRY)} target="_blank" rel="noopener noreferrer" className="font-mono hover:text-primary underline">{shortenAddress(ERC8004.IDENTITY_REGISTRY)}</a>
         </div>
       </CardContent>
     </Card>

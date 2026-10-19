@@ -10,6 +10,8 @@ import "../zulo/styles.css"
 export const metadata: Metadata = {
   title: "Ask — Normies CredHub",
   description: `Ask on Normies CredHub: high-signal concierge with Zulo (Agent #${ZULO_IDENTITY.agentId}, Normie #${ZULO_IDENTITY.tokenId}, Tool #53) for burns, tools, and Canvas — free Moves at /paths.`,
+  alternates: { canonical: "/ask" },
+  openGraph: { title: "Ask — Normies CredHub", url: "/ask", siteName: "Normies CredHub", type: "website", images: [{ url: "/og.png", width: 1200, height: 630 }] },
 }
 
 export default function AskPage() {

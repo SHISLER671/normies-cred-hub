@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { tools, type Tool } from "@/lib/tools"
+import { classifyRegistryTool, trustLabel } from "@/lib/erc8257/trust"
 import type { RegistryTool } from "@/lib/erc8257/types"
 import { accessBadgeClass, getAccessBadge } from "@/lib/erc8257/ui"
 import { Loader2 } from "lucide-react"
@@ -203,6 +204,9 @@ function NormiesToolCard({ tool }: { tool: Tool }) {
           <span className="mt-1.5 inline-block rounded-none bg-muted px-2 py-0.5 text-[10px] tracking-[1.5px] text-muted-foreground">
             {tool.category}
           </span>
+          <span className="ml-1.5 mt-1.5 inline-block rounded-none border border-border px-2 py-0.5 text-[10px] tracking-[1.5px] text-muted-foreground">
+            Community tool · third-party
+          </span>
         </div>
         <a
           href={tool.url}
@@ -221,6 +225,7 @@ function NormiesToolCard({ tool }: { tool: Tool }) {
 function RegistryToolCard({ tool }: { tool: RegistryTool }) {
   const badge = getAccessBadge(tool.access)
   const href = tool.endpoint || tool.openseaUrl
+  const trust = classifyRegistryTool(tool)
 
   return (
     <div className="card group mb-3 rounded-none border border-border p-4 transition-all hover:border-primary/30 sm:p-5">
@@ -232,6 +237,9 @@ function RegistryToolCard({ tool }: { tool: RegistryTool }) {
               className={`inline-block rounded-none border px-2 py-0.5 text-[10px] tracking-[1.5px] ${accessBadgeClass(badge.variant)}`}
             >
               {badge.label}
+            </span>
+            <span className="inline-block rounded-none border border-border px-2 py-0.5 text-[10px] tracking-[1.5px]" title={trust.reason}>
+              {trustLabel(trust.trust)}
             </span>
             <span className="inline-block rounded-none bg-muted px-2 py-0.5 text-[10px] tracking-[1.5px] text-muted-foreground">
               Tool #{tool.toolId} · {tool.chain}
