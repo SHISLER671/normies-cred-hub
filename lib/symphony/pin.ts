@@ -17,6 +17,38 @@ export function parseIds(raw: string | null | undefined): number[] {
   return out
 }
 
+export type IdCheck = { ids: number[]; hint: string }
+
+/**
+ * Typed ids for the "Type Normie ids" box. Never throws. Returns the ids to load (same rules as parseIds) plus a gentle
+ * plain-words hint when something was dropped or nothing usable was typed. An empty hint means the input was clean.
+ */
+export function checkIds(raw: string | null | undefined): IdCheck {
+  const text = String(raw ?? "")
+  const tokens = text.split(/[\s,;]+/).filter(Boolean)
+  if (!tokens.length) return { ids: [], hint: "Type one or more Normie numbers, like 7141, 42, 1." }
+  const ids: number[] = []
+  let junk = 0
+  let range = 0
+  let dupes = 0
+  let over = 0
+  for (const t of tokens) {
+    if (!/^\d+$/.test(t)) { junk++; continue }
+    const n = t.length > 5 ? Infinity : Number(t)
+    if (!(n >= 0 && n <= 9999)) { range++; continue }
+    if (ids.includes(n)) { dupes++; continue }
+    if (ids.length >= MAX_ROOM) { over++; continue }
+    ids.push(n)
+  }
+  const notes: string[] = []
+  if (junk) notes.push("only numbers work")
+  if (range) notes.push("Normies run from 0 to 9999")
+  if (dupes) notes.push("repeats were skipped")
+  if (over) notes.push(`a room holds up to ${MAX_ROOM}, so the rest were left out`)
+  if (!ids.length) return { ids, hint: notes.length ? `Nothing to play yet: ${notes.join("; ")}.` : "Type one or more Normie numbers, like 7141, 42, 1." }
+  return { ids, hint: notes.length ? `Playing ${ids.length}: ${notes.join("; ")}.` : "" }
+}
+
 /** A positive integer block number, or null. */
 export function parseBlock(raw: string | null | undefined): number | null {
   if (!raw || !/^\d{1,10}$/.test(raw)) return null
