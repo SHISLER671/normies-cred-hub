@@ -1,27 +1,35 @@
 // Pure SVG art for the record card share image (app/record/[tokenId]/opengraph-image.tsx).
-// Drawn from data, never fetched as a picture: the Normie face comes from its on-chain 40×40 bitmap
-// (GET api.normies.art/normie/{id}/pixels, a string of "0"/"1"), and the heartbeat from the Pulse breakdown.
+// Drawn from data, never fetched as a picture: the Normie face comes from its on-chain bitmap, 40×40 at mint and
+// 50–80 once enlarged (GET api.normies.art/normie/{id}/pixels, a string of "0"/"1"), and the heartbeat from the Pulse
+// breakdown.
 
 import { beatPixels, PIXEL_COLS, type LitBeat } from "@/lib/pulse/beats"
 
-const GRID = 40
+/** Official Normie grid sides: 40 at mint, then the canvas enlargement sizes. */
+export const NORMIE_GRID_SIDES = [40, 50, 60, 70, 80] as const
 
-/** Keep only 0/1 characters; valid when exactly 1,600 remain (row-major, top-left first). */
+/** Keep only 0/1 characters; valid when a Normie-sized square remains (1,600 at mint; up to 6,400 when enlarged). */
 export function cleanBitmap(raw: string | null | undefined): string | null {
   if (!raw) return null
   const bits = raw.replace(/[^01]/g, "")
-  return bits.length === GRID * GRID ? bits : null
+  return NORMIE_GRID_SIDES.some((n) => n * n === bits.length) ? bits : null
+}
+
+function sideOf(bitmap: string): number {
+  const n = Math.round(Math.sqrt(bitmap.length))
+  return n > 0 && n * n === bitmap.length ? n : 40
 }
 
 /** The face as an SVG: paper square, ink pixels, crisp edges. */
 export function faceSvg(bitmap: string, ink = "#1a1b1c", paper = "#e3e5e4"): string {
+  const n = sideOf(bitmap)
   let d = ""
   for (let i = 0; i < bitmap.length; i++) {
-    if (bitmap[i] === "1") d += `M${i % GRID} ${Math.floor(i / GRID)}h1v1h-1z`
+    if (bitmap[i] === "1") d += `M${i % n} ${Math.floor(i / n)}h1v1h-1z`
   }
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${GRID} ${GRID}" shape-rendering="crispEdges">` +
-    `<rect width="${GRID}" height="${GRID}" fill="${paper}"/><path d="${d}" fill="${ink}"/></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges">` +
+    `<rect width="${n}" height="${n}" fill="${paper}"/><path d="${d}" fill="${ink}"/></svg>`
   )
 }
 

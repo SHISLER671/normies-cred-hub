@@ -7,6 +7,7 @@ import type { NextRequest } from "next/server"
 
 import { svgDataUri, faceSvg } from "@/lib/record-card/og-art"
 import { composeScore } from "@/lib/symphony/compose"
+import { viewGrid } from "@/lib/symphony/grid"
 import { loadVoice } from "@/lib/symphony/load"
 import { parseBlock, parseIds } from "@/lib/symphony/pin"
 import { rollSvg } from "@/lib/symphony/roll"
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
           <div style={{ display: "flex", gap: 8 }}>
             {voices.slice(0, 6).map((v) => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={v.tokenId} src={svgDataUri(faceSvg(v.pixels))} width={voices.length === 1 ? 150 : 84} height={voices.length === 1 ? 150 : 84} alt="" />
+              <img key={v.tokenId} src={svgDataUri(faceSvg(viewGrid(v.pixels).pixels))} width={voices.length === 1 ? 150 : 84} height={voices.length === 1 ? 150 : 84} alt="" />
             ))}
             {voices.length > 6 && (
               <div style={{ display: "flex", width: 84, height: 84, alignItems: "center", justifyContent: "center", border: `2px solid ${LINE}`, color: MUTED, fontSize: 28 }}>

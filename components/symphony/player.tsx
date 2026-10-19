@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { PlayMine } from "@/components/symphony/play-mine"
 
-import { composeScore, gridSide } from "@/lib/symphony/compose"
+import { composeScore } from "@/lib/symphony/compose"
+import { viewGrid } from "@/lib/symphony/grid"
 import { MAX_ROOM, parseIds, symphonyPath, symphonyShareText } from "@/lib/symphony/pin"
 import { myceliumLinks, myceliumSummary, nodeLayout, pixelLine, singingAt } from "@/lib/symphony/mycelium"
 import { playheadColumn, scoreEvents } from "@/lib/symphony/timeline"
@@ -124,13 +125,16 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
   }, [])
 
   const primary = voices[0] ?? null
+  // What the lead's grid DRAWS: as is up to 80×80, sampled down beyond that (the music still reads every pixel).
+  const leadView = useMemo(() => (primary ? viewGrid(primary.pixels) : null), [primary])
 
   // Draw the lead Normie's pixels, with the playing column inverted.
   const drawGrid = useCallback(
     (col: number | null) => {
       const c = gridRef.current
-      if (!c || !primary) return
-      const n = gridSide(primary.pixels)
+      if (!c || !leadView) return
+      const n = leadView.side
+      const px = leadView.pixels
       const g = c.getContext("2d")
       if (!g) return
       c.width = n
@@ -141,15 +145,15 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
       g.fillStyle = paper
       g.fillRect(0, 0, n, n)
       g.fillStyle = ink
-      for (let i = 0; i < primary.pixels.length; i++) if (primary.pixels[i] === "1") g.fillRect(i % n, Math.floor(i / n), 1, 1)
+      for (let i = 0; i < px.length; i++) if (px[i] === "1") g.fillRect(i % n, Math.floor(i / n), 1, 1)
       if (col !== null) {
         for (let y = 0; y < n; y++) {
-          g.fillStyle = primary.pixels[y * n + col] === "1" ? paper : ink
+          g.fillStyle = px[y * n + col] === "1" ? paper : ink
           g.fillRect(col, y, 1, 1)
         }
       }
     },
-    [primary],
+    [leadView],
   )
 
   useEffect(() => drawGrid(null), [drawGrid])
@@ -207,7 +211,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
     player.current = p
     setPlaying(true)
     const bins = new Uint8Array(p.bins)
-    const n = gridSide(primary.pixels)
+    const n = leadView?.side ?? 40
     let lastSec = -1
     const tick = () => {
       const t = p.elapsed()
@@ -235,7 +239,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
       raf.current = requestAnimationFrame(tick)
     }
     raf.current = requestAnimationFrame(tick)
-  }, [score, primary, stop, drawGrid, drawMycelium])
+  }, [score, primary, leadView, stop, drawGrid, drawMycelium])
 
   const ids = voices.map((v) => v.tokenId)
   const sharePath = symphonyPath(ids, block)
