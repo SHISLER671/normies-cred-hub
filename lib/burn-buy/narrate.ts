@@ -169,17 +169,18 @@ export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine 
       stat,
     }
   }
-  // Headlines say what a burn does, never "buy X for Y ETH" (Ryan, 2026-10-19). The price stays as a plain fact.
+  // Headlines say what a burn does, never "buy X for Y ETH" (Ryan, 2026-10-19), and say "Listed" so a Normie the
+  // wallet doesn't own yet never reads as one it does. The price stays as a plain fact in the detail.
   const listed = `Not yours yet: listed at ${eth(m.costEth)} on the market.`
   if (m.kind === "buy-and-burn") {
     return {
-      title: `Burn ${ids(m.tokenIds)} into a Normie you hold`,
+      title: `Listed Normie ${ids(m.tokenIds)}, burned into one you hold`,
       detail: `${listed} Its #PIXEL and any AP it carries would move to the one you keep. ${score}${roll}`,
       stat,
     }
   }
   return {
-    title: `Hold one more Normie (${ids(m.tokenIds)})`,
+    title: `Listed Normie ${ids(m.tokenIds)}, added to your stack`,
     detail: `${listed} One more Normie in your stack. ${score}`,
     stat,
   }
@@ -226,7 +227,7 @@ const SELL_NOTES = [
 ]
 
 function fodderLine(f: PageModel["fodder"][number], goal: Goal, keeperAp: number | null): MoveLine {
-  const base = `Burn #${f.tokenId} into a Normie you keep`
+  const base = `Listed Normie #${f.tokenId}, burned into one you keep`
   const listed = `Not yours yet: listed at ${eth(f.priceEth)}.`
   if (goal === "arena") {
     const lvl = keeperAp === null

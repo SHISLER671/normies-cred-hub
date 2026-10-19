@@ -208,8 +208,8 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
 
         {model.simulatorUrl && (
           <p className="burn-small burn-sim">
-            <a href={model.simulatorUrl} target="_blank" rel="noopener noreferrer">What could that pay? Try the revenue share simulator ↗</a>
-            <span> (normies.art, opens with your numbers filled in)</span>
+            <a href={model.simulatorUrl} target="_blank" rel="noopener noreferrer">Official revenue share simulator ↗</a>
+            <span> (normies.art, opens with your holdings filled in; its numbers are the official page&apos;s, not a promise from this one)</span>
           </p>
         )}
 

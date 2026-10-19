@@ -18,6 +18,8 @@ import {
 } from "./pulse-paths"
 
 before(() => {
+  // Counting needs the caller-hash secret (production reads it from Vercel); tests use a fixed one.
+  process.env.USAGE_HASH_SECRET = "test-secret"
   __forceMemoryStoreForTests()
 })
 
@@ -229,5 +231,25 @@ describe("popularity signal for Luminous (distinct callers only)", () => {
     const s = await getTokenUsageSignal(202)
     assert.ok(s.conditionedPaths >= USAGE_CONDITIONED_PATHS_THRESHOLD)
     assert.equal(s.earned, true)
+  })
+})
+
+describe("popularity is hidden, not zero, when counting isn't set up", () => {
+  it("needs the hash secret and a shared store (Redis); memory counts only in tests", async () => {
+    const { usageCountsAvailable } = await import("./pulse-paths")
+    assert.equal(usageCountsAvailable({ secret: "s", hasRedis: true, memoryForTests: false }), true)
+    assert.equal(usageCountsAvailable({ secret: null, hasRedis: true, memoryForTests: false }), false)
+    assert.equal(usageCountsAvailable({ secret: "s", hasRedis: false, memoryForTests: false }), false)
+    assert.equal(usageCountsAvailable({ secret: "", hasRedis: true, memoryForTests: true }), false)
+  })
+
+  it("without a secret the read is unreadable rather than 0", async () => {
+    __resetUsageMemoryForTests()
+    await recordPulseCall({ tokenId: 210, source: "get", callerKey: "c1" })
+    const s = await getTokenUsageSignal(210, { secret: null })
+    assert.equal(s.readable, false)
+    const ok = await getTokenUsageSignal(210)
+    assert.equal(ok.readable, true)
+    assert.equal(ok.pulseCalls, 1)
   })
 })

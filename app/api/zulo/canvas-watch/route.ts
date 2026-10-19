@@ -6,7 +6,6 @@ import {
   getDefaultWatchlist,
   runCanvasWatch,
 } from "@/lib/agent-recommendations/canvasEvolution"
-import { purgeExpiredRows } from "@/lib/db/retention"
 import { checkRateLimit } from "@/lib/ratelimit"
 import { isAuthorizedCron } from "@/lib/security/cron-auth"
 
@@ -42,13 +41,10 @@ export async function GET(req: NextRequest) {
     const tokenIds = custom.length ? custom : getDefaultWatchlist()
 
     const result = await runCanvasWatch({ tokenIds, force })
-    // The cron also enforces the /privacy retention (ratings and Zulo answers, 180 days) when nobody is writing.
-    const retention = isCron ? await purgeExpiredRows() : undefined
     return NextResponse.json({
       ok: true,
       cron: isCron,
       ...result,
-      ...(retention ? { retention } : {}),
     })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error"

@@ -7,6 +7,10 @@
     {
       "path": "/api/zulo/canvas-watch",
       "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/cron/retention",
+      "schedule": "17 19 * * *"
     }
   ],
   "headers": [

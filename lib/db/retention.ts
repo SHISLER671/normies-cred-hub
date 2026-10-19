@@ -4,7 +4,7 @@
 // - recommendation_feedback (Move 👍/👎, may hold an unverified wallet): 180 days (Ryan, 2026-10-19).
 // - zulo_answer_log (Zulo's own words only): 180 days (lib/zulo/answer-log-row.ts).
 //
-// Runs after each rating is saved and on every authorized cron call, so rows still expire when nobody rates.
+// Runs after each rating is saved and daily from its own cron (/api/cron/retention), so rows expire when nobody rates.
 
 import { getPrivateDb } from "@/lib/db/supabase"
 import { ANSWER_LOG_RETENTION_DAYS } from "@/lib/zulo/answer-log-row"
