@@ -77,3 +77,11 @@ test("one typed-id box: play-mine has no input; the main # box uses checkIds", (
   assert.doesNotMatch(player, /parseIds/)
   assert.doesNotMatch(read("app/symphony/symphony.css").split("Phase 1")[1] ?? "", /cyan/)
 })
+test("a leading # on ids is accepted (box label, NormiesBOT sweep format)", () => {
+  assert.deepEqual(checkIds("#7141, #42"), { ids: [7141, 42], hint: "" })
+  assert.deepEqual(checkIds("#7141 #42"), { ids: [7141, 42], hint: "" })
+  assert.deepEqual(checkIds("#7049, #3250, #1716"), { ids: [7049, 3250, 1716], hint: "" })
+  assert.deepEqual(parseIds("7141,42,1"), [7141, 42, 1])
+  assert.deepEqual(checkIds("1.5").ids, [])
+  assert.deepEqual(parseIds("-3, 42"), [42])
+})

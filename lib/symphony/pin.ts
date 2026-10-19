@@ -22,7 +22,7 @@ export type IdCheck = { ids: number[]; hint: string }
  */
 export function checkIds(raw: string | null | undefined): IdCheck {
   const text = String(raw ?? "")
-  const tokens = text.split(/[\s,;]+/).filter(Boolean)
+  const tokens = text.split(/[\s,;]+/).map((t) => t.replace(/^#/, "")).filter(Boolean)
   if (!tokens.length) return { ids: [], hint: "Type one or more Normie numbers, like 7141, 42, 1." }
   const ids: number[] = []
   let junk = 0
