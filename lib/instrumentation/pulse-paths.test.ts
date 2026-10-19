@@ -145,6 +145,13 @@ describe("metrics + fail-open", () => {
     )
   })
 
+  it("never stores the caller's wallet in the event log", async () => {
+    const fs = await import("node:fs")
+    const src = fs.readFileSync("lib/instrumentation/pulse-paths.ts", "utf8")
+    assert.doesNotMatch(src, /callerWallet: input\.callerWallet/)
+    assert.equal((src.match(/callerWallet: null,/g) ?? []).length, 2)
+  })
+
   it("swallows invalid pulse tokenIds without throwing", async () => {
     __resetUsageMemoryForTests()
 

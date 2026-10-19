@@ -11,6 +11,7 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { getCircuitState } from "@/lib/security/circuitBreaker"
 import { isSupabaseConfigured } from "@/lib/db/supabase"
 import { checkRateLimit } from "@/lib/ratelimit"
+import { isAuthorizedCron } from "@/lib/security/cron-auth"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 15
@@ -129,7 +130,10 @@ export async function GET(req: NextRequest) {
         auditLog: true,
         headers: ["HSTS", "X-Content-Type-Options", "X-Frame-Options", "CSP"],
       },
-      checks,
+      // Public callers get pass/fail only; which keys are set, schema names and latencies are operator-only.
+      checks: isAuthorizedCron(req.headers.get("authorization"), process.env.CRON_SECRET)
+        ? checks
+        : Object.fromEntries(Object.entries(checks).map(([k, v]) => [k, { ok: v.ok }])),
       skills,
       endpoints: {
         ask: "/api/zulo/ask",

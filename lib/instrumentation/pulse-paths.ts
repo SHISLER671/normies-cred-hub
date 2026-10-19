@@ -342,7 +342,8 @@ export async function recordPulseCall(input: PulseCallInput): Promise<void> {
       tokenId: input.tokenId,
       agentId: input.agentId ?? null,
       source: input.source,
-      callerWallet: input.callerWallet ?? null,
+      // Never stored: wallets aren't needed for counts, and keeping them would be a wallet log (privacy, 2026-10-19 audit).
+      callerWallet: null,
       timestamp,
     }
     const recent: RecentPayload = {
@@ -409,7 +410,8 @@ export async function recordPathsCall(input: PathsCallInput): Promise<boolean> {
       pathCount: Math.max(0, Math.floor(input.pathCount) || 0),
       pulseConditioned,
       pulseLevelAtTime: input.pulseLevelAtTime ?? null,
-      callerWallet: input.callerWallet ?? null,
+      // Never stored: wallets aren't needed for counts, and keeping them would be a wallet log (privacy, 2026-10-19 audit).
+      callerWallet: null,
       timestamp,
     }
     const json = JSON.stringify(event)

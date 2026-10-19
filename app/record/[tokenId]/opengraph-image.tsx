@@ -6,6 +6,7 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { pulseBeats } from "@/lib/pulse/beats"
 import { loadRecordCard } from "@/lib/record-card/load"
 import { cleanBitmap, faceSvg, svgDataUri, traceSvg } from "@/lib/record-card/og-art"
+import { ogSafeText } from "@/lib/og-safe-text"
 
 /**
  * The preview people see when a /record/{id} link is pasted into X, Discord or a chat. Built from the live card.
@@ -57,7 +58,8 @@ export default async function Image({ params }: { params: Promise<{ tokenId: str
   if (tokenId === null) return new Response("Not found", { status: 404 })
   const [card, bitmap] = await Promise.all([loadRecordCard(tokenId).catch(() => null), loadBitmap(tokenId)])
 
-  const name = (card?.identity.agent_name.value ?? `Normie #${tokenId}`).toUpperCase()
+  // Owner-set name: untrusted. Only safe characters reach the image (see lib/og-safe-text.ts).
+  const name = (ogSafeText(card?.identity.agent_name.value) || `Normie #${tokenId}`).toUpperCase()
   const agentId = card?.identity.agent_id.value ?? null
   const pulse = card?.pulse
   const ready = !!pulse?.available && card?.card_status !== "not_awakened"

@@ -7,6 +7,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { svgDataUri, faceSvg } from "@/lib/record-card/og-art"
 import { composeScore } from "@/lib/symphony/compose"
+import { ogSafeText } from "@/lib/og-safe-text"
 import { viewGrid } from "@/lib/symphony/grid"
 import { loadVoice } from "@/lib/symphony/load"
 import { parseBlock, parseIds } from "@/lib/symphony/pin"
@@ -32,7 +33,8 @@ export async function GET(req: NextRequest) {
   // Anything missing (outage or burned) gets a short cache, so a bad render isn't pinned on the CDN for a day.
   const complete = voices.length === list.length
   const score = voices.length ? composeScore(voices) : null
-  const title = voices.length === 1 ? voices[0].name.toUpperCase() : `${voices.length} NORMIES`
+  // Agent names are owner-set (untrusted): only safe characters reach the image.
+  const title = voices.length === 1 ? (ogSafeText(voices[0].name) || `NORMIE #${voices[0].tokenId}`).toUpperCase() : `${voices.length} NORMIES`
 
   const res = new ImageResponse(
     (
