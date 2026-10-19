@@ -47,7 +47,7 @@ export default function PrivacyPage() {
           <li>
             <strong>Usage counters</strong> (Upstash Redis): when Pulse or Moves is called we keep the token id, the
             time, a short intent text for Moves (up to 200 characters), the caller&apos;s wallet if one was sent,
-            and a one-way hash of the IP address (never the IP itself). Day counters expire after 16 days; the
+            and a keyed one-way hash of the IP address (never the IP itself; it can't be turned back into the IP without our server secret). Day counters expire after 16 days; the
             event list keeps the latest 10,000 entries. Wallets are never shown in reports.
           </li>
           <li>
