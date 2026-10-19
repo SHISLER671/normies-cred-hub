@@ -401,7 +401,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
         }}
       />
       {mineNote && <p className="sym-hint">{mineNote}</p>}
-      {voices.some((v) => v.awakened) && <p className="sym-hint">Awakened Normies add an extra layer on top.</p>}
+      {score?.parts.some((p) => p.layer === "awakened") && <p className="sym-hint">Awakened Normies add an extra layer on top.</p>}
       {skipped.length > 0 && <p className="sym-hint">Skipped (couldn&apos;t read): {skipped.map((s) => `#${s}`).join(", ")}</p>}
 
       <ol className="sym-playlist" aria-label={voices.length > 1 ? "Normies in this room" : "Parts in this song"}>
@@ -411,7 +411,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
                 <span className="sym-pl-n">{i + 1}.</span>
                 <span className="sym-pl-role">{i === 0 ? "LEAD" : "VOICE"}</span>
                 <span className="sym-pl-inst">{v.name}</span>
-                <span className="sym-pl-notes">#{v.tokenId}{v.awakened ? " +layer" : ""}</span>
+                <span className="sym-pl-notes">#{v.tokenId}{score?.parts.some((p) => p.layer === "awakened" && p.tokenId === v.tokenId) ? " +layer" : ""}</span>
               </li>
             ))
           : score?.parts.map((p, i) => (

@@ -38,3 +38,20 @@ describe("assemblePulseSignals", () => {
     assert.equal(p.status, "Strong")
   })
 })
+
+describe("parseTokenId (strict)", () => {
+  it("accepts whole numbers 0–9999, as numbers or digit strings", async () => {
+    const { parseTokenId } = await import("./agent-pulse")
+    assert.equal(parseTokenId(7141), 7141)
+    assert.equal(parseTokenId("7141"), 7141)
+    assert.equal(parseTokenId("0"), 0)
+    assert.equal(parseTokenId("07141"), 7141)
+    assert.equal(parseTokenId(" 42 "), 42)
+  })
+  it("refuses junk that parseInt used to let through", async () => {
+    const { parseTokenId } = await import("./agent-pulse")
+    for (const bad of ["7141abc", "1e3", "12.9", 1.5, "", "-1", -1, 10000, "10000", true, null, undefined, "0x1f", NaN]) {
+      assert.equal(parseTokenId(bad), null, String(bad))
+    }
+  })
+})

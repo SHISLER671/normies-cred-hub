@@ -106,3 +106,12 @@ describe("official status: one source of truth", () => {
     assert.deepEqual(hits, [])
   })
 })
+
+describe("surface tags fail closed", () => {
+  it("Arena shows LIVE only for an explicit LIVE status, never as the fallback", () => {
+    const src = fs.readFileSync("lib/official-status.ts", "utf8")
+    assert.match(src, /arena: \(String\(OFFICIAL_STATUS\.arena\.status\) === "LIVE" \? "LIVE" : "COMING SOON"\)/)
+    assert.doesNotMatch(src, /: "COMING SOON" : "LIVE"\)/)
+    assert.equal(SURFACE_TAGS.arena, "COMING SOON")
+  })
+})

@@ -25,8 +25,9 @@ const securityHeaders = [
     value: "camera=(), microphone=(), geolocation=()",
   },
   {
+    // Deprecated filter; "0" turns it off as current guidance recommends (the CSP covers it).
     key: "X-XSS-Protection",
-    value: "1; mode=block",
+    value: "0",
   },
   {
     key: "Content-Security-Policy",
@@ -46,6 +47,8 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Don't advertise the framework (x-powered-by: Next.js).
+  poweredByHeader: false,
   turbopack: {
     root: process.cwd(),
   },

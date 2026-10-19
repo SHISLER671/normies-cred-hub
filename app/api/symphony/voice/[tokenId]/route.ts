@@ -6,7 +6,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
-import { loadVoice } from "@/lib/symphony/load"
+import { loadVoice, SymphonyUpstreamError } from "@/lib/symphony/load"
 import { parseBlock } from "@/lib/symphony/pin"
 import { publicClient } from "@/lib/viem-client"
 
@@ -27,7 +27,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   if (tokenId === null) return NextResponse.json({ error: "Invalid token ID (must be 0–9999)" }, { status: 400 })
 
   const askedBlock = parseBlock(req.nextUrl.searchParams.get("block"))
-  const [voice, head] = await Promise.all([loadVoice(tokenId, askedBlock), askedBlock ? Promise.resolve(null) : headBlock()])
+  const head = await headBlock()
+  // A block that hasn't happened yet can't be pinned: it would be cached for a week as if it could never change.
+  if (askedBlock !== null && head !== null && askedBlock > head) {
+    return NextResponse.json({ error: "That block hasn't happened yet" }, { status: 400, headers: { "Cache-Control": "no-store" } })
+  }
+  let voice: Awaited<ReturnType<typeof loadVoice>>
+  try {
+    voice = await loadVoice(tokenId, askedBlock)
+  } catch (err) {
+    if (!(err instanceof SymphonyUpstreamError)) throw err
+    return NextResponse.json(
+      { error: "Couldn't read this Normie's history right now. Try again shortly." },
+      { status: 502, headers: { "Cache-Control": "no-store" } },
+    )
+  }
   if (!voice) {
     return NextResponse.json({ error: `Couldn't read #${tokenId}'s pixels (it may be burned)` }, { status: 404 })
   }

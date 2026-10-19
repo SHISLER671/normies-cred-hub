@@ -1,12 +1,20 @@
 // Fire-and-forget Pulse + Paths usage events.
 // Reuses Upstash Redis (same KV as rate limits / audit). Fail-open: never throw.
 
+import { createHmac } from "node:crypto"
+
 import { Redis } from "@upstash/redis"
 import type { NextRequest } from "next/server"
+
+import { getClientId } from "@/lib/ratelimit"
 
 export const PULSE_RECENT_WINDOW_SEC = 900
 /** Rolling window for Pulse level-5 usage signal. */
 export const USAGE_LOOKBACK_DAYS = 14
+/**
+ * Level 5 counts DISTINCT callers (hashed IP), not raw calls: one script calling Pulse 8 times must not raise a
+ * token's trust level. A caller counts once per token, however often it calls.
+ */
 export const USAGE_PULSE_CALLS_THRESHOLD = 8
 export const USAGE_CONDITIONED_PATHS_THRESHOLD = 3
 const DAY_TTL_SEC = 16 * 86_400
@@ -25,6 +33,11 @@ const KEY = {
     `usage:pulse:day:${tokenId}:${day}`,
   conditionedDay: (tokenId: number, day: string) =>
     `usage:paths:conditioned:day:${tokenId}:${day}`,
+  /** Set of hashed callers that called Pulse for this token on this day (the level-5 signal reads these). */
+  pulseCallers: (tokenId: number, day: string) =>
+    `usage:pulse:callers:${tokenId}:${day}`,
+  conditionedCallers: (tokenId: number, day: string) =>
+    `usage:paths:conditioned:callers:${tokenId}:${day}`,
 } as const
 
 export type PulseCallSource = "get" | "post" | "tool"
@@ -56,6 +69,8 @@ export type PulseCallInput = {
   source: PulseCallSource
   callerWallet?: string | null
   pulseLevel?: number | null
+  /** Hashed caller (usageCallerKey). Without it the call is logged but never counts toward the level-5 signal. */
+  callerKey?: string | null
 }
 
 export type PathsCallInput = {
@@ -65,6 +80,8 @@ export type PathsCallInput = {
   pathCount: number
   pulseLevelAtTime?: number | null
   callerWallet?: string | null
+  /** Hashed caller (usageCallerKey). Without it the call never counts toward the level-5 signal. */
+  callerKey?: string | null
 }
 
 export type UsageMetrics = {
@@ -97,6 +114,40 @@ const memRecent = new Map<string, MemRecent>()
 const memCounters = new Map<string, number>()
 const memTokens = new Set<number>()
 const memEvents: string[] = []
+const memSets = new Map<string, Set<string>>()
+
+function memSadd(key: string, member: string): void {
+  const set = memSets.get(key) ?? new Set<string>()
+  set.add(member)
+  memSets.set(key, set)
+}
+
+function memUnionSize(keys: string[]): number {
+  const all = new Set<string>()
+  for (const k of keys) for (const m of memSets.get(k) ?? []) all.add(m)
+  return all.size
+}
+
+/** Server secret for caller keys. Without one, nothing counts toward level 5 (fail closed). */
+function usageHashSecret(): string | null {
+  return process.env.USAGE_HASH_SECRET?.trim() || process.env.AUDIT_LOG_HMAC_SECRET?.trim() || null
+}
+
+/**
+ * Caller id for the usage signal: an HMAC of the client IP with a server secret (Vercel overwrites x-forwarded-for, so
+ * it can't be forged there). Keyed on purpose: a plain hash of an IPv4 address can be reversed by trying all 4 billion
+ * addresses in minutes; without the secret it can't. Raw IPs are never stored. Returns null when no secret is set.
+ */
+export function usageCallerKey(req: Pick<NextRequest, "headers">, secret: string | null = usageHashSecret()): string | null {
+  if (!secret) return null
+  const id = getClientId(req as NextRequest)
+  return createHmac("sha256", secret).update(`nch-usage:${id}`).digest("hex").slice(0, 16)
+}
+
+async function saddDaily(client: Redis, key: string, member: string): Promise<void> {
+  await client.sadd(key, member)
+  await client.expire(key, DAY_TTL_SEC)
+}
 
 function getRedis(): Redis | null {
   if (forceMemory) return null
@@ -242,26 +293,22 @@ export async function getTokenUsageSignal(
       return empty
     }
     const days = lookbackDays(USAGE_LOOKBACK_DAYS)
-    const pulseKeys = days.map((d) => KEY.pulseDay(tokenId, d))
-    const condKeys = days.map((d) => KEY.conditionedDay(tokenId, d))
+    const pulseKeys = days.map((d) => KEY.pulseCallers(tokenId, d))
+    const condKeys = days.map((d) => KEY.conditionedCallers(tokenId, d))
     const client = getRedis()
+    // Distinct callers across the whole window (a caller seen on 5 days counts once).
     let pulseCalls = 0
     let conditionedPaths = 0
     if (client) {
-      const vals = await client.mget<(number | string | null)[]>(
-        ...pulseKeys,
-        ...condKeys,
-      )
-      const rows = Array.isArray(vals) ? vals : []
-      for (let i = 0; i < days.length; i++) {
-        pulseCalls += toCount(rows[i])
-        conditionedPaths += toCount(rows[i + days.length])
-      }
+      const [p, c] = await Promise.all([
+        client.sunion(pulseKeys[0], ...pulseKeys.slice(1)),
+        client.sunion(condKeys[0], ...condKeys.slice(1)),
+      ])
+      pulseCalls = Array.isArray(p) ? p.length : 0
+      conditionedPaths = Array.isArray(c) ? c.length : 0
     } else {
-      for (const d of days) {
-        pulseCalls += memGetCount(KEY.pulseDay(tokenId, d))
-        conditionedPaths += memGetCount(KEY.conditionedDay(tokenId, d))
-      }
+      pulseCalls = memUnionSize(pulseKeys)
+      conditionedPaths = memUnionSize(condKeys)
     }
     const earned =
       pulseCalls >= USAGE_PULSE_CALLS_THRESHOLD ||
@@ -302,7 +349,8 @@ export async function recordPulseCall(input: PulseCallInput): Promise<void> {
       tokenId: input.tokenId,
       agentId: input.agentId ?? null,
       source: input.source,
-      callerWallet: input.callerWallet ?? null,
+      // Never stored: wallets aren't needed for counts, and keeping them would be a wallet log (privacy, 2026-10-19 audit).
+      callerWallet: null,
       timestamp,
     }
     const recent: RecentPayload = {
@@ -325,6 +373,7 @@ export async function recordPulseCall(input: PulseCallInput): Promise<void> {
         client.sadd(KEY.tokens, input.tokenId),
         client.lpush(KEY.events, json),
         incrDaily(client, KEY.pulseDay(input.tokenId, day)),
+        ...(input.callerKey ? [saddDaily(client, KEY.pulseCallers(input.tokenId, day), input.callerKey)] : []),
       ])
       await client.ltrim(KEY.events, 0, EVENTS_MAX - 1)
       return
@@ -334,6 +383,7 @@ export async function recordPulseCall(input: PulseCallInput): Promise<void> {
     memIncr(KEY.pulseCount)
     memIncr(KEY.source(input.source))
     memIncr(KEY.pulseDay(input.tokenId, day))
+    if (input.callerKey) memSadd(KEY.pulseCallers(input.tokenId, day), input.callerKey)
     memTokens.add(input.tokenId)
     memPushEvent(json)
   } catch (err) {
@@ -367,7 +417,8 @@ export async function recordPathsCall(input: PathsCallInput): Promise<boolean> {
       pathCount: Math.max(0, Math.floor(input.pathCount) || 0),
       pulseConditioned,
       pulseLevelAtTime: input.pulseLevelAtTime ?? null,
-      callerWallet: input.callerWallet ?? null,
+      // Never stored: wallets aren't needed for counts, and keeping them would be a wallet log (privacy, 2026-10-19 audit).
+      callerWallet: null,
       timestamp,
     }
     const json = JSON.stringify(event)
@@ -382,6 +433,7 @@ export async function recordPathsCall(input: PathsCallInput): Promise<boolean> {
       if (pulseConditioned && tokenId != null) {
         ops.push(client.incr(KEY.conditionedCount))
         ops.push(incrDaily(client, KEY.conditionedDay(tokenId, day)))
+        if (input.callerKey) ops.push(saddDaily(client, KEY.conditionedCallers(tokenId, day), input.callerKey))
       }
       await Promise.all(ops)
       await client.ltrim(KEY.events, 0, EVENTS_MAX - 1)
@@ -392,6 +444,7 @@ export async function recordPathsCall(input: PathsCallInput): Promise<boolean> {
     if (pulseConditioned && tokenId != null) {
       memIncr(KEY.conditionedCount)
       memIncr(KEY.conditionedDay(tokenId, day))
+      if (input.callerKey) memSadd(KEY.conditionedCallers(tokenId, day), input.callerKey)
     }
     memPushEvent(json)
     return pulseConditioned
@@ -520,6 +573,7 @@ export function __resetUsageMemoryForTests(): void {
   memCounters.clear()
   memTokens.clear()
   memEvents.length = 0
+  memSets.clear()
 }
 
 /** Test-only: expire the recent-Pulse key for a token. */

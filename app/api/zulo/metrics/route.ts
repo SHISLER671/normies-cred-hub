@@ -5,15 +5,13 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getUsageMetrics } from "@/lib/instrumentation/pulse-paths"
 import { checkRateLimit } from "@/lib/ratelimit"
+import { isAuthorizedCron } from "@/lib/security/cron-auth"
 
 export const dynamic = "force-dynamic"
 
+// Only the bearer secret counts, compared in constant time. The `x-vercel-cron` header is NOT proof: anyone can send it.
 function isAuthorized(req: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET?.trim()
-  const auth = req.headers.get("authorization") || ""
-  if (secret && auth === `Bearer ${secret}`) return true
-  if (secret && req.headers.get("x-vercel-cron") === "1") return true
-  return false
+  return isAuthorizedCron(req.headers.get("authorization"), process.env.CRON_SECRET)
 }
 
 export async function GET(req: NextRequest) {

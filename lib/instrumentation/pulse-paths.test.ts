@@ -145,6 +145,25 @@ describe("metrics + fail-open", () => {
     )
   })
 
+  it("caller keys are keyed hashes: stable per secret, different across secrets, none without a secret", async () => {
+    const { usageCallerKey } = await import("./pulse-paths")
+    const req = { headers: new Headers({ "x-forwarded-for": "203.0.113.7" }) }
+    const a = usageCallerKey(req, "s1")
+    assert.match(a ?? "", /^[0-9a-f]{16}$/)
+    assert.equal(usageCallerKey(req, "s1"), a)
+    assert.notEqual(usageCallerKey(req, "s2"), a)
+    assert.equal(usageCallerKey(req, null), null)
+    const { createHash } = await import("node:crypto")
+    assert.notEqual(a, createHash("sha256").update("nch-usage:203.0.113.7").digest("hex").slice(0, 16))
+  })
+
+  it("never stores the caller's wallet in the event log", async () => {
+    const fs = await import("node:fs")
+    const src = fs.readFileSync("lib/instrumentation/pulse-paths.ts", "utf8")
+    assert.doesNotMatch(src, /callerWallet: input\.callerWallet/)
+    assert.equal((src.match(/callerWallet: null,/g) ?? []).length, 2)
+  })
+
   it("swallows invalid pulse tokenIds without throwing", async () => {
     __resetUsageMemoryForTests()
 
@@ -159,30 +178,52 @@ describe("metrics + fail-open", () => {
 describe("level-5 usage signal", () => {
   it("does not earn with sparse Pulse calls", async () => {
     __resetUsageMemoryForTests()
-    await recordPulseCall({ tokenId: 200, source: "get" })
+    await recordPulseCall({ tokenId: 200, source: "get", callerKey: "c1" })
     const s = await getTokenUsageSignal(200)
     assert.equal(s.earned, false)
     assert.equal(s.pulseCalls, 1)
   })
 
-  it("earns after enough Pulse calls in the lookback window", async () => {
+  it("earns after enough DISTINCT callers in the lookback window", async () => {
     __resetUsageMemoryForTests()
     for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD; i++) {
-      await recordPulseCall({ tokenId: 201, source: "get" })
+      await recordPulseCall({ tokenId: 201, source: "get", callerKey: `caller-${i}` })
     }
     const s = await getTokenUsageSignal(201)
     assert.equal(s.pulseCalls, USAGE_PULSE_CALLS_THRESHOLD)
     assert.equal(s.earned, true)
   })
 
+  it("one caller hammering Pulse cannot raise a token's level", async () => {
+    __resetUsageMemoryForTests()
+    for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD * 5; i++) {
+      await recordPulseCall({ tokenId: 203, source: "tool", callerKey: "same-script" })
+    }
+    const s = await getTokenUsageSignal(203)
+    assert.equal(s.pulseCalls, 1)
+    assert.equal(s.earned, false)
+  })
+
+  it("calls without a caller key are logged but never count toward level 5", async () => {
+    __resetUsageMemoryForTests()
+    for (let i = 0; i < USAGE_PULSE_CALLS_THRESHOLD * 2; i++) {
+      await recordPulseCall({ tokenId: 204, source: "get" })
+    }
+    const s = await getTokenUsageSignal(204)
+    assert.equal(s.pulseCalls, 0)
+    assert.equal(s.earned, false)
+    assert.ok((await getUsageMetrics()).pulseCalls >= USAGE_PULSE_CALLS_THRESHOLD * 2)
+  })
+
   it("earns from Pulse-conditioned Paths activity", async () => {
     __resetUsageMemoryForTests()
-    await recordPulseCall({ tokenId: 202, source: "get" })
+    await recordPulseCall({ tokenId: 202, source: "get", callerKey: "p" })
     for (let i = 0; i < USAGE_CONDITIONED_PATHS_THRESHOLD; i++) {
       await recordPathsCall({
         tokenId: 202,
         intentTag: "burn",
         pathCount: 3,
+        callerKey: `paths-${i}`,
       })
     }
     const s = await getTokenUsageSignal(202)

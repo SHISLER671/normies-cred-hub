@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { buildZuloContext } from "@/lib/agent-recommendations/buildContext"
 import type { ZuloPulseApiResponse, ZuloPulseView } from "@/lib/agent-recommendations/types"
 import { parseTokenId } from "@/lib/api/agent-pulse"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 
 function rarityTier(rank: number | null | undefined): string {
   if (rank == null || !Number.isFinite(rank)) return "unknown"
@@ -17,9 +18,11 @@ function rarityTier(rank: number | null | undefined): string {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ tokenId: string }> },
 ) {
+  const rl = await enforceDualRateLimit(req, "default", { bucketPrefix: "zulo-pulse" })
+  if (!rl.ok) return rl.response
   const { tokenId: tokenIdStr } = await params
   const tokenId = parseTokenId(tokenIdStr)
 

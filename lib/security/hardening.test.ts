@@ -24,6 +24,16 @@ describe("canvas-watch cron auth", () => {
     assert.match(src, /isAuthorizedCron\(req\.headers\.get\("authorization"\), process\.env\.CRON_SECRET\)/)
     assert.match(src, /const force = isCron/)
   })
+  it("public callers can't choose which tokens canvas-watch scans", () => {
+    const src = fs.readFileSync("app/api/zulo/canvas-watch/route.ts", "utf8")
+    assert.match(src, /const rawIds = isCron \? url\.searchParams\.get\("tokens"\) : null/)
+    assert.match(src, /MAX_CUSTOM_TOKENS = 25/)
+  })
+  it("the metrics route only trusts the bearer secret, never x-vercel-cron", () => {
+    const src = fs.readFileSync("app/api/zulo/metrics/route.ts", "utf8")
+    assert.doesNotMatch(src, /get\("x-vercel-cron"\)/)
+    assert.match(src, /isAuthorizedCron\(req\.headers\.get\("authorization"\), process\.env\.CRON_SECRET\)/)
+  })
 })
 
 describe("SSRF guard", () => {

@@ -16,6 +16,7 @@ import {
 } from "@/lib/agent-recommendations/constants"
 import type { ZuloResponse } from "@/lib/agent-recommendations/types"
 import { cn } from "@/lib/utils"
+import { trustedHref } from "@/lib/zulo/link-policy"
 
 type ChatMessage = {
   id: string
@@ -542,8 +543,7 @@ function StructuredCard({
         {sources.length > 0 ? (
           <ul className="response-sources">
             {sources.slice(0, 4).map((src, i) => {
-              const href =
-                /^https?:\/\//i.test(src.trim()) ? src.trim() : null
+              const href = trustedHref(src.trim())
               return (
                 <li key={i}>
                   {href ? (

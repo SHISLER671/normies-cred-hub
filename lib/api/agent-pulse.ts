@@ -44,9 +44,12 @@ export type AgentPulseResponse = {
 
 export type AgentPulseResult =
   | { ok: true; data: AgentPulseResponse }
-  | { ok: false; error: string; status: 400 | 404 }
+  | { ok: false; error: string; status: 400 | 404 | 502 }
 
-async function fetchNormies<T>(path: string): Promise<T | null> {
+/** A Normies API read that tells "not found" (404) apart from "couldn't read" (timeout, 5xx, bad JSON). */
+type Read<T> = { data: T | null; status: "ok" | "not_found" | "failed" }
+
+async function readNormies<T>(path: string): Promise<Read<T>> {
   try {
     const res = await fetchWithTimeout(
       `${NORMIES_API_BASE}${path}`,
@@ -56,10 +59,11 @@ async function fetchNormies<T>(path: string): Promise<T | null> {
       },
       8_000,
     )
-    if (!res.ok) return null
-    return res.json() as Promise<T>
+    if (res.status === 404) return { data: null, status: "not_found" }
+    if (!res.ok) return { data: null, status: "failed" }
+    return { data: (await res.json()) as T, status: "ok" }
   } catch {
-    return null
+    return { data: null, status: "failed" }
   }
 }
 
@@ -98,15 +102,17 @@ async function isErc8004Registered(agentId: number): Promise<boolean> {
   return !!(agentURI || registeredOwner)
 }
 
+/**
+ * A Normie token id (0–9999), or null. Strict: whole numbers only. "7141abc", "1e3", "12.9", 1.5, "" and booleans are
+ * refused (parseInt used to turn "7141abc" into 7141 and "1e3" into 1). A leading zero is fine ("07141" → 7141).
+ */
 export function parseTokenId(value: unknown): number | null {
-  const tokenId =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number.parseInt(value, 10)
-        : Number.NaN
+  let tokenId: number
+  if (typeof value === "number") tokenId = value
+  else if (typeof value === "string" && /^\d{1,5}$/.test(value.trim())) tokenId = Number(value.trim())
+  else return null
 
-  if (!Number.isFinite(tokenId) || tokenId < 0 || tokenId > 9999) {
+  if (!Number.isInteger(tokenId) || tokenId < 0 || tokenId > 9999) {
     return null
   }
 
@@ -122,15 +128,22 @@ export async function getAgentPulse(
   tokenId: number,
   options: AgentPulseOptions = {},
 ): Promise<AgentPulseResult> {
-  const [agent, owner, canvas, canvasDiff] = await Promise.all([
-    fetchNormies<AgentInfo>(`/agents/info/${tokenId}`),
-    fetchNormies<NormieOwner>(`/normie/${tokenId}/owner`),
-    fetchNormies<CanvasInfo>(`/normie/${tokenId}/canvas/info`),
-    fetchNormies<CanvasDiff>(`/normie/${tokenId}/canvas/diff`),
+  const [agentRead, ownerRead, canvasRead, diffRead] = await Promise.all([
+    readNormies<AgentInfo>(`/agents/info/${tokenId}`),
+    readNormies<NormieOwner>(`/normie/${tokenId}/owner`),
+    readNormies<CanvasInfo>(`/normie/${tokenId}/canvas/info`),
+    readNormies<CanvasDiff>(`/normie/${tokenId}/canvas/diff`),
   ])
+  const agent = agentRead.data
+  const owner = ownerRead.data
+  const canvas = canvasRead.data
+  const canvasDiff = diffRead.data
 
   if (!owner) {
-    return { ok: false, error: "Token not found", status: 404 }
+    // An outage is not "this Normie doesn't exist": say which, so callers don't cache a false 404.
+    return ownerRead.status === "not_found"
+      ? { ok: false, error: "Token not found", status: 404 }
+      : { ok: false, error: "The Normies API is unavailable right now. Try again shortly.", status: 502 }
   }
 
   const agentId = agent?.agentId ? Number.parseInt(String(agent.agentId), 10) : null
@@ -161,7 +174,9 @@ export async function getAgentPulse(
     breakdown.push("Canvas activity detected")
   }
 
+  // Only granted when the canvas delegate was actually read: a failed read used to look like "no delegate" (clean).
   const hasCleanOwnership =
+    canvasRead.status === "ok" &&
     isValidAddr(owner.owner) &&
     (isZeroAddr(canvas?.delegate) || isValidAddr(canvas?.delegate))
   if (hasCleanOwnership) {

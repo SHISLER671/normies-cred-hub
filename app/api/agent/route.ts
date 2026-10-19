@@ -2,7 +2,9 @@ import { getAgentPulse, parseTokenId } from "@/lib/api/agent-pulse"
 import {
   extractCallerWallet,
   recordPulseCall,
+  usageCallerKey,
 } from "@/lib/instrumentation/pulse-paths"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { type NextRequest, NextResponse } from "next/server"
 
@@ -14,6 +16,9 @@ const CACHE_HEADERS = {
  * ERC-8257 tool endpoint — POST with { tokenId } for agent discovery probes.
  */
 export async function POST(req: NextRequest) {
+  const rl = await enforceDualRateLimit(req, "default", { bucketPrefix: "agent-pulse-post" })
+  if (!rl.ok) return rl.response
+
   let body: unknown
 
   try {
@@ -33,7 +38,7 @@ export async function POST(req: NextRequest) {
   const result = await getAgentPulse(tokenId, { chatRatings: true })
 
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status })
+    return NextResponse.json({ error: result.error }, { status: result.status, headers: { "Cache-Control": "no-store" } })
   }
 
   const callerWallet = extractCallerWallet(req, body)
@@ -44,6 +49,7 @@ export async function POST(req: NextRequest) {
       source: "tool",
       callerWallet,
       pulseLevel: result.data.pulse_level,
+      callerKey: usageCallerKey(req),
     }),
   )
 

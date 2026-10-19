@@ -1,0 +1,7 @@
+# Normies CredHub (NCH) security contact. RFC 9116.
+Contact: https://github.com/SHISLER671/normies-cred-hub/security/advisories/new
+Contact: https://normiescredhub.vercel.app/api/zulo/security
+Expires: 2027-10-19T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://normiescredhub.vercel.app/.well-known/security.txt
+Policy: https://normiescredhub.vercel.app/api/zulo/security

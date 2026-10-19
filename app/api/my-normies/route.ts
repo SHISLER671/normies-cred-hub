@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { fetchControlledNormiesWithMeta } from "@/lib/controlled-normies"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 
 /** Fast path only: Canvas delegates are read from the index; the live scan is paginated client-side via /api/canvas-delegates. */
 export const maxDuration = 10
@@ -10,6 +11,8 @@ export const maxDuration = 10
  * direct owner, Delegate.xyz vault delegate, or Normies Canvas hot-wallet delegate.
  */
 export async function GET(req: NextRequest) {
+  const rl = await enforceDualRateLimit(req, "default", { bucketPrefix: "my-normies" })
+  if (!rl.ok) return rl.response
   const address = req.nextUrl.searchParams.get("address")?.trim()
 
   if (!address || !/^0x[a-fA-F0-9]{40}$/i.test(address)) {

@@ -1,4 +1,4 @@
--- Pixel Check: #PIXEL approvals index (2026-10-06).
+-- APPLIED 2026-10-06. Pixel Check: #PIXEL approvals index. Do not re-run.
 -- Applied to the NCH Supabase project (rvbbpuulwsatykcredbh). Kept here so the schema is in git.
 
 -- 1. Latest #PIXEL allowance per (owner, spender), from NormiesCanvasStorageV2 Approval events.

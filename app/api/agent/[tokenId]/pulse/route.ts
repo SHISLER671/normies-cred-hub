@@ -2,7 +2,9 @@ import { getAgentPulse, parseTokenId } from "@/lib/api/agent-pulse"
 import {
   extractCallerWallet,
   recordPulseCall,
+  usageCallerKey,
 } from "@/lib/instrumentation/pulse-paths"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 import { scheduleUsageWork } from "@/lib/instrumentation/schedule-usage-work"
 import { type NextRequest, NextResponse } from "next/server"
 
@@ -18,6 +20,9 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ tokenId: string }> },
 ) {
+  const rl = await enforceDualRateLimit(req, "default", { bucketPrefix: "agent-pulse-get" })
+  if (!rl.ok) return rl.response
+
   const { tokenId: tokenIdStr } = await params
   const tokenId = parseTokenId(tokenIdStr)
 
@@ -28,7 +33,7 @@ export async function GET(
   const result = await getAgentPulse(tokenId, { chatRatings: true })
 
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status })
+    return NextResponse.json({ error: result.error }, { status: result.status, headers: { "Cache-Control": "no-store" } })
   }
 
   const callerWallet = extractCallerWallet(req)
@@ -39,6 +44,7 @@ export async function GET(
       source: "get",
       callerWallet,
       pulseLevel: result.data.pulse_level,
+      callerKey: usageCallerKey(req),
     }),
   )
 

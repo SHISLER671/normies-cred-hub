@@ -12,6 +12,9 @@ import { isAuthorizedCron } from "@/lib/security/cron-auth"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
+/** Most token ids the cron may ask to scan in one call (the default watchlist is capped at 25 too). */
+const MAX_CUSTOM_TOKENS = 25
+
 export async function GET(req: NextRequest) {
   // Vercel Cron sends Authorization: Bearer <CRON_SECRET> when configured. x-vercel-cron alone is spoofable and is ignored.
   const isCron = isAuthorizedCron(req.headers.get("authorization"), process.env.CRON_SECRET)
@@ -30,13 +33,12 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url)
     // Only the authorized cron may force a full rescan; public callers get the cached / throttled path.
     const force = isCron
-    const rawIds = url.searchParams.get("tokens")
-    const tokenIds = rawIds
-      ? rawIds
-          .split(/[,\s]+/)
-          .map((s) => Number(s))
-          .filter((n) => Number.isFinite(n) && n >= 0 && n <= 9999)
-      : getDefaultWatchlist()
+    // A custom list is cron-only and capped: a public `?tokens=0,1,…,9999` used to fan out 10,000 × 4 upstream reads.
+    const rawIds = isCron ? url.searchParams.get("tokens") : null
+    const custom = rawIds
+      ? [...new Set(rawIds.split(/[,\s]+/).filter((t) => /^\d{1,4}$/.test(t)).map(Number))].slice(0, MAX_CUSTOM_TOKENS)
+      : []
+    const tokenIds = custom.length ? custom : getDefaultWatchlist()
 
     const result = await runCanvasWatch({ tokenIds, force })
     return NextResponse.json({

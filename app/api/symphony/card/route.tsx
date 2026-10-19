@@ -3,14 +3,16 @@
 // download. Read-only; everything is recomputed from the official API (at the pinned block, if given). Nothing stored.
 
 import { ImageResponse } from "next/og"
-import type { NextRequest } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
 import { svgDataUri, faceSvg } from "@/lib/record-card/og-art"
 import { composeScore } from "@/lib/symphony/compose"
+import { ogSafeText } from "@/lib/og-safe-text"
 import { viewGrid } from "@/lib/symphony/grid"
 import { loadVoice } from "@/lib/symphony/load"
 import { parseBlock, parseIds } from "@/lib/symphony/pin"
 import { rollSvg } from "@/lib/symphony/roll"
+import { checkRateLimit } from "@/lib/ratelimit"
 
 const BG = "#1a1b1c"
 const INK = "#e3e5e4"
@@ -18,12 +20,21 @@ const MUTED = "#939494"
 const LINE = "#38393a"
 
 export async function GET(req: NextRequest) {
+  // Link previews are served from the CDN cache; this only limits uncached renders (up to 12 Normies × 5 reads each).
+  const rl = await checkRateLimit(req, "symphony-card", 30, 60)
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } })
+  }
   const ids = parseIds(req.nextUrl.searchParams.get("ids"))
   const block = parseBlock(req.nextUrl.searchParams.get("block"))
   const list = ids.length ? ids : [7141]
-  const voices = (await Promise.all(list.map((id) => loadVoice(id, block).catch(() => null)))).filter((v) => v !== null)
+  const loaded = await Promise.all(list.map((id) => loadVoice(id, block).catch(() => null)))
+  const voices = loaded.filter((v) => v !== null)
+  // Anything missing (outage or burned) gets a short cache, so a bad render isn't pinned on the CDN for a day.
+  const complete = voices.length === list.length
   const score = voices.length ? composeScore(voices) : null
-  const title = voices.length === 1 ? voices[0].name.toUpperCase() : `${voices.length} NORMIES`
+  // Agent names are owner-set (untrusted): only safe characters reach the image.
+  const title = voices.length === 1 ? (ogSafeText(voices[0].name) || `NORMIE #${voices[0].tokenId}`).toUpperCase() : `${voices.length} NORMIES`
 
   const res = new ImageResponse(
     (
@@ -67,6 +78,9 @@ export async function GET(req: NextRequest) {
     ),
     { width: 1200, height: 630 },
   )
-  res.headers.set("Cache-Control", block ? "public, s-maxage=86400, stale-while-revalidate=604800" : "public, s-maxage=300")
+  res.headers.set(
+    "Cache-Control",
+    !complete ? "public, s-maxage=60" : block ? "public, s-maxage=86400, stale-while-revalidate=604800" : "public, s-maxage=300",
+  )
   return res
 }

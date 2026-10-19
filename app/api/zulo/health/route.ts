@@ -1,6 +1,6 @@
 // GET /api/zulo/health — readiness + security status (no secrets).
 
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getLiveCollectionFloor } from "@/lib/agent-recommendations/marketData"
@@ -10,11 +10,17 @@ import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { getCircuitState } from "@/lib/security/circuitBreaker"
 import { isSupabaseConfigured } from "@/lib/db/supabase"
+import { checkRateLimit } from "@/lib/ratelimit"
+import { isAuthorizedCron } from "@/lib/security/cron-auth"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 15
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const rl = await checkRateLimit(req, "zulo-health", 12, 60)
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } })
+  }
   const checks: Record<
     string,
     { ok: boolean; detail?: string; latencyMs?: number }
@@ -35,7 +41,7 @@ export async function GET() {
   } catch (e) {
     checks.normiesApi = {
       ok: false,
-      detail: e instanceof Error ? e.message : "unreachable",
+      detail: "unreachable",
       latencyMs: Date.now() - t0,
     }
   }
@@ -54,7 +60,7 @@ export async function GET() {
   } catch (e) {
     checks.openseaFloor = {
       ok: false,
-      detail: e instanceof Error ? e.message : "error",
+      detail: "error",
       latencyMs: Date.now() - t1,
     }
   }
@@ -124,7 +130,10 @@ export async function GET() {
         auditLog: true,
         headers: ["HSTS", "X-Content-Type-Options", "X-Frame-Options", "CSP"],
       },
-      checks,
+      // Public callers get pass/fail only; which keys are set, schema names and latencies are operator-only.
+      checks: isAuthorizedCron(req.headers.get("authorization"), process.env.CRON_SECRET)
+        ? checks
+        : Object.fromEntries(Object.entries(checks).map(([k, v]) => [k, { ok: v.ok }])),
       skills,
       endpoints: {
         ask: "/api/zulo/ask",
