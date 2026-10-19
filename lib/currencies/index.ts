@@ -48,7 +48,7 @@ export const CURRENCIES: Record<CurrencyCode, CurrencyDef> = {
     primaryTerm: "Action Points",
     notes: [
       "Canvas-local transform budget bound to a specific Normie.",
-      "Earned by burning; spent 1:1 per pixel add/remove on 40×40.",
+      "Earned by burning (or bought on the Pixel Market); it is the Canvas edit allowance. Painting never spends it.",
       "Legacy name: #PIXEL is the official name for the same unit.",
     ],
   },

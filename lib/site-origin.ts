@@ -5,7 +5,7 @@
  *
  * Env: NEXT_PUBLIC_SITE_URL
  *   Example: https://normiescredhub.vercel.app
- *   No trailing slash. There is no .env.example in this repo; set it in
+ *   No trailing slash. Listed in `.env.example` (names only); set it in
  *   `.env.local` and in the Vercel project env.
  *
  * When a custom domain is attached in Vercel, set NEXT_PUBLIC_SITE_URL and
