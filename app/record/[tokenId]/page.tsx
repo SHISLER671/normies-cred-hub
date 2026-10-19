@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { PulseTrace } from "@/components/pulse-trace"
 import { RecordShare } from "@/components/record-share"
+import { symphonyPath } from "@/lib/symphony/pin"
 import { pulseBeats } from "@/lib/pulse/beats"
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
@@ -93,7 +94,7 @@ export default async function RecordCardPage({ params }: Params) {
           </div>
           <p className="moves-lede">{card.card_status_text}</p>
           <p className="caption">A track record, not a tip. Verified sources only; anything else is labelled. Read-only.</p>
-          <RecordShare url={recordCardUrl(tokenId, siteOrigin())} tokenId={tokenId} name={name} />
+          <RecordShare url={recordCardUrl(tokenId, siteOrigin())} tokenId={tokenId} name={name} listenHref={symphonyPath([tokenId], null)} />
         </section>
 
         <section className="rc-section" aria-labelledby="rc-trust">

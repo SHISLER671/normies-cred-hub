@@ -14,12 +14,15 @@ export function RecordShare({
   tokenId,
   name,
   compact = false,
+  listenHref,
 }: {
   url: string
   tokenId: number
   name: string
   /** One button: the phone share sheet where supported, otherwise Copy link. */
   compact?: boolean
+  /** Pixel Symphony link for this Normie ("▶ Listen"); full mode only. */
+  listenHref?: string
 }) {
   const [copied, setCopied] = useState(false)
   const [canNativeShare, setCanNativeShare] = useState(false)
@@ -84,6 +87,11 @@ export function RecordShare({
       >
         Download PNG
       </a>
+      {listenHref && (
+        <a className="rc-share-btn" href={listenHref} aria-label={`Listen to Normie #${tokenId} on Pixel Symphony`}>
+          ▶ Listen
+        </a>
+      )}
     </div>
   )
 }
