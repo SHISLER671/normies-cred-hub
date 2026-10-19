@@ -218,14 +218,19 @@ export function createPlayer(score: VoiceScore) {
   }
 }
 
-/** Render one loop (plus the reverb tail) offline and return it as a 16-bit stereo WAV. */
-export async function renderWav(score: VoiceScore, sampleRate = 44100): Promise<Blob> {
+/** Render one loop (plus the reverb tail) offline and return the stereo AudioBuffer. Used by the WAV and MP4 exports. */
+export async function renderBuffer(score: VoiceScore, sampleRate = 44100): Promise<AudioBuffer> {
   const seconds = score.loopSeconds + 2.5
   const ctx = new OfflineAudioContext(2, Math.ceil(sampleRate * seconds), sampleRate)
   const buses = buildBuses(ctx, ctx.destination, score.bpm)
   const channels = score.parts.map((p) => buildChannel(ctx, p, buses))
   scheduleLoop(ctx, score, 0.05, buses, channels)
-  const buf = await ctx.startRendering()
+  return ctx.startRendering()
+}
+
+/** Render one loop (plus the reverb tail) offline and return it as a 16-bit stereo WAV. */
+export async function renderWav(score: VoiceScore, sampleRate = 44100): Promise<Blob> {
+  const buf = await renderBuffer(score, sampleRate)
   const bytes = encodeWav([buf.getChannelData(0), buf.getChannelData(1)], sampleRate)
   return new Blob([bytes.buffer as ArrayBuffer], { type: "audio/wav" })
 }

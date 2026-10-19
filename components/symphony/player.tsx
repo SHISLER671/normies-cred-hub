@@ -34,6 +34,10 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
   const [playing, setPlaying] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [exporting, setExporting] = useState(false)
+  // MP4: null = still checking the browser, false = can't encode H.264 + AAC here.
+  const [videoOk, setVideoOk] = useState<boolean | null>(null)
+  const [videoProgress, setVideoProgress] = useState<number | null>(null)
+  const [videoFile, setVideoFile] = useState<File | null>(null)
   const [copied, setCopied] = useState(false)
   const [origin, setOrigin] = useState("")
 
@@ -83,6 +87,20 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
     },
     [stop],
   )
+
+  useEffect(() => {
+    let live = true
+    import("@/lib/symphony/video")
+      .then((m) => m.videoExportSupport())
+      .then((r) => live && setVideoOk(r.supported))
+      .catch(() => live && setVideoOk(false))
+    return () => {
+      live = false
+    }
+  }, [])
+
+  // A new song means the shared video is stale.
+  useEffect(() => setVideoFile(null), [score])
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -181,6 +199,43 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
       setExporting(false)
     }
   }, [score, fileBase])
+
+  const renderingVideo = videoProgress !== null
+
+  const downloadMp4 = useCallback(async () => {
+    if (!score || !videoOk) return
+    setVideoProgress(0)
+    setVideoFile(null)
+    try {
+      const { renderMp4 } = await import("@/lib/symphony/video")
+      const blob = await renderMp4(score, voices, block, (f) => setVideoProgress(Math.round(f * 100)))
+      const name = `${fileBase}.mp4`
+      const a = document.createElement("a")
+      a.href = URL.createObjectURL(blob)
+      a.download = name
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000)
+      try {
+        const file = new File([blob], name, { type: "video/mp4" })
+        if (typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) setVideoFile(file)
+      } catch {
+        // Sharing files isn't available here; the download is enough.
+      }
+    } catch (err) {
+      console.warn("MP4 export failed", err)
+    } finally {
+      setVideoProgress(null)
+    }
+  }, [score, videoOk, voices, block, fileBase])
+
+  const shareVideo = async () => {
+    if (!videoFile) return
+    try {
+      await navigator.share({ files: [videoFile], text: shareText })
+    } catch {
+      // Cancelled or refused by the share sheet: nothing to do.
+    }
+  }
 
   const copyLink = async () => {
     try {
@@ -296,10 +351,25 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
         <a className="sym-btn" href={cardPath} download={`${fileBase}.png`} aria-disabled={status !== "ready"}>
           ⤓ PNG
         </a>
-        <button type="button" className="sym-btn" onClick={download} disabled={status !== "ready" || exporting}>
+        <button type="button" className="sym-btn" onClick={download} disabled={status !== "ready" || exporting || renderingVideo}>
           {exporting ? "Rendering…" : "⤓ WAV"}
         </button>
+        <button
+          type="button"
+          className="sym-btn"
+          onClick={downloadMp4}
+          disabled={status !== "ready" || !videoOk || exporting || renderingVideo}
+          title={videoOk === false ? "Video export needs Chrome or Safari" : undefined}
+        >
+          {renderingVideo ? `Rendering… ${videoProgress}%` : "⤓ MP4"}
+        </button>
+        {videoFile && !renderingVideo && (
+          <button type="button" className="sym-btn" onClick={shareVideo}>
+            Share video
+          </button>
+        )}
       </div>
+      {videoOk === false && <p className="sym-hint">Video export needs Chrome or Safari</p>}
       <p className="sym-hint">
         {block
           ? `The link pins block ${block.toLocaleString("en-US")}: anyone who opens it hears these Normies exactly as they were then.`
