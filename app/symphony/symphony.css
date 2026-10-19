@@ -131,7 +131,11 @@
 }
 
 /* ---- Phase 1: rooms, pinned block, share row ---- */
-.zulo-chrome .sym-input-wide { flex: 1 1 10ch; width: auto; min-width: 8ch; font-size: 15px; }
+.zulo-chrome .sym-input-wide { flex: 1 1 12ch; width: auto; min-width: 12ch; font-size: 15px; }
+@media (max-width: 480px) {
+  /* ~360px phones: the id box gets its own full row so the placeholder never clips. */
+  .zulo-chrome .sym-input-wide { flex-basis: calc(100% - 2.5ch); min-width: 0; }
+}
 .zulo-chrome .sym-lcd-id { display: flex; justify-content: space-between; gap: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .zulo-chrome .sym-lcd-block { flex: none; color: var(--sym-lcd-ink); letter-spacing: 0.18em; }
 .zulo-chrome .sym-hint { margin: 6px 2px 0; font-size: 11px; line-height: 1.5; color: var(--text-muted); }

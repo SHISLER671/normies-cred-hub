@@ -6,7 +6,7 @@ import { PlayMine } from "@/components/symphony/play-mine"
 
 import { composeScore } from "@/lib/symphony/compose"
 import { viewGrid } from "@/lib/symphony/grid"
-import { MAX_ROOM, parseIds, symphonyPath, symphonyShareText } from "@/lib/symphony/pin"
+import { MAX_ROOM, checkIds, symphonyPath, symphonyShareText } from "@/lib/symphony/pin"
 import { myceliumLinks, myceliumSummary, nodeLayout, pixelLine, singingAt } from "@/lib/symphony/mycelium"
 import { playheadColumn, scoreEvents } from "@/lib/symphony/timeline"
 import type { AwakenedBinding, NormieTrait, VoiceScore } from "@/lib/symphony/types"
@@ -60,6 +60,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
   const eqRef = useRef<HTMLCanvasElement | null>(null)
   const mycRef = useRef<HTMLCanvasElement | null>(null)
   const [mineNote, setMineNote] = useState("")
+  const [idHint, setIdHint] = useState("")
 
   const stop = useCallback(() => {
     player.current?.stop()
@@ -315,7 +316,8 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    const next = parseIds(raw)
+    const { ids: next, hint } = checkIds(raw)
+    setIdHint(hint)
     if (next.length) {
       setRaw(next.join(", "))
       setMineNote("")
@@ -377,7 +379,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
           inputMode="numeric"
           value={raw}
           placeholder="7141, 1, 42"
-          onChange={(e) => setRaw(e.target.value.replace(/[^\d,\s]/g, ""))}
+          onChange={(e) => setRaw(e.target.value)}
         />
         <button type="submit" className="sym-btn">Load</button>
         {playing ? (
@@ -386,11 +388,13 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
           <button type="button" className="sym-btn sym-btn-cta" onClick={play} disabled={status !== "ready"}>▶ Play</button>
         )}
       </form>
+      {idHint && <p className="sym-hint" role="status">{idHint}</p>}
       <p className="sym-hint">One number for a solo, up to {MAX_ROOM} for a room. The first Normie leads.</p>
       <PlayMine
         disabled={status === "loading"}
         onIds={(next, total) => {
           setRaw(next.join(", "))
+          setIdHint("")
           setMineNote(total > next.length ? `Playing your first ${next.length} of ${total} Normies.` : "")
           void load(next, null)
           window.history.replaceState(null, "", symphonyPath(next, null))

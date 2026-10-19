@@ -4,7 +4,8 @@ import { test } from "node:test"
 import { MAX_ROOM, parseBlock, parseIds, pickVersionAtBlock, readVersions, symphonyPath, symphonyShareText } from "./pin"
 
 test("ids: order kept, duplicates and out-of-range dropped, capped", () => {
-  assert.deepEqual(parseIds("7141, 1 42;7141 10000 -3 0099"), [7141, 1, 42, 3, 99])
+  assert.deepEqual(parseIds("7141, 1 42;7141 10000 -3 0099"), [7141, 1, 42, 99])
+  assert.deepEqual(parseIds("7141,42,1"), [7141, 42, 1])
   assert.deepEqual(parseIds(null), [])
   assert.equal(parseIds(Array.from({ length: 30 }, (_, i) => i).join(",")).length, MAX_ROOM)
 })

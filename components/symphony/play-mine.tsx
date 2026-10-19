@@ -11,6 +11,11 @@ import { MAX_ROOM } from "@/lib/symphony/pin"
  * room. Read-only by construction: this file only calls `useAccount` (the public address) and opens the connect modal.
  * It never imports a sign or write hook, so it cannot ask for a signature or a transaction. The wallet address is
  * never put in the URL or the share link; only token ids are.
+ *
+ * Hybrid (Ryan, Oct 19 2026): connecting is optional. The wallet connection comes from the site-wide WagmiProvider in
+ * app/providers.tsx (root layout), so a wallet connected anywhere on NCH is already connected here, and wagmi reconnects
+ * it on reload from its own storage. People who'd rather not connect type Normie ids in the main # box in player.tsx
+ * (one box, one set of rules via checkIds).
  */
 export function PlayMine({ onIds, disabled }: { onIds: (ids: number[], total: number) => void; disabled?: boolean }) {
   const { address, isConnected } = useAccount()
