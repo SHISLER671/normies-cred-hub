@@ -21,13 +21,14 @@ The Normies hive mind is like mycelium under a forest. Every mushroom is unique,
 | --- | --- | --- |
 | Pixel grid: **rows → pitch, columns → time steps** | Step sequencer | 40 columns = 40 steps; quantize the rows to a scale. The old engine uses row bands and contour instead, so keep it as the "classic" voice. |
 | **Painted pixels** (`/normie/{id}/canvas/diff`, or the difference between versions) | Extra layer on top of the base | Painting changes the song. Painting never earns PIXEL. |
-| **Pulse level and trust gate** (NCH's existing Pulse) | Texture and volume (e.g. more voices or a cleaner tone at higher trust) | Trust shapes timbre, never "better music". There's no skill score. |
 | **Burns** (`/history/burns/receiver/{tokenId}`, `/canvas/token/{id}/activity`) | Percussion hit per burn event | |
 | **Awakened agents** (ERC-8004 binding, already on the record card) | Arpeggio voice | Agent or not is a fact. Agent activity (Arena, Agents Canvas) stays pending. |
 | **Traits** (Type, Expression, Age, Eyes…) | Instrument family, scale, phrasing | Reuse the old `fallback.ts` mapping. |
 | **Mycelium view**: links between Normies (same holder, same Canvas delegate, same NormiesBOT sweep) | Pixel threads that **brighten (white/inverted) when that pair plays**; no cyan | Use only the owner and delegate data NCH already reads. Never map wallets to people. |
 
-Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noise percussion, short envelopes).
+**Pulse never shapes the sound** (Ryan, 2026-10-19): music is not a judgement of the agent. `lib/symphony/compose.test.ts` fails if the composer, the awakened layers or the video read Pulse or trust.
+
+Sound: the browser's built-in Web Audio (no Tone.js, no new package), 8-bit or chiptune-ish (square and pulse waves, noise percussion, short envelopes).
 
 ## Fun
 - **Hear one:** type any Normie number to hear its blip. No wallet needed.
@@ -66,9 +67,9 @@ Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noi
 ## Porting notes (from the old repo)
 - **Build fresh** inside NCH at `/symphony`. Port only the reusable engine pieces below, as reference, adapting them to NCH's `lib/` and `components/`:
   - `lib/fallback.ts` + `lib/compose.ts`, the pixel and trait → score engine, about 700 lines
-  - `lib/audio.ts`, Tone.js playback and offline WAV
+  - `lib/audio.ts`, Tone.js playback and offline WAV (rebuilt on plain Web Audio in `lib/symphony/synth.ts`)
   - `lib/blip-export.ts`, WAV export and the X compose URL
-  - `lib/twitter-mp4.ts`, an H.264 clip via `mp4-muxer`
+  - `lib/twitter-mp4.ts`, an H.264 clip via `mp4-muxer` (rebuilt with `mediabunny` in `lib/symphony/video.ts`, #121)
   - `lib/mobile-share.ts`
   - `components/Visualizer.tsx` and `BlipShare.tsx`
   - `lib/types.ts`, the score types
@@ -80,9 +81,9 @@ Sound: Web Audio via Tone.js, 8-bit or chiptune-ish (square and pulse waves, noi
   - The old skins and `SkinSwitcher.tsx` (classic, CRT and pixel-forest CSS). The old 90s chrome is design reference only; the new Winamp-style skin is built fresh.
   - The unused `@ffmpeg/ffmpeg` and `@ffmpeg/util` deps (no imports found)
   - The duplicate shadcn `components/ui/*`, if NCH already has them
-- **New dependencies in NCH:** `tone` (and `mp4-muxer` in P1).
+- **New dependencies in NCH:** only `mediabunny` (MP4 export, #121; the maintained successor to `mp4-muxer`). No `tone`: audio uses the browser's built-in Web Audio.
   - Both versions are aligned already: Next 16.2.x and React 19.2.4.
-  - Load Tone.js on the client and lazily, only on `/symphony`, so other pages don't grow.
+  - `mediabunny` loads on the client and lazily, only when ⤓ MP4 is tapped, so other pages don't grow.
 - **Env vars:**
   - Old repo: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_RPC_URL`. NCH already has its own equivalents.
   - No new env vars in any phase. Symphony uses no Supabase or database.
@@ -127,7 +128,7 @@ Awakened = `binding.agentId > 0` from `/agents/binding/{id}`, the same source as
 | Harmony line (3rd/6th above the lead's own notes, quiet) | awakened flag | on/off |
 | Echo (pixel delay, 1/8 or dotted 1/8) | `binding.blockNumber` | parity of the block → which delay; feedback fixed and low |
 | Counter-melody (sparse, opposite direction to its main part) | `binding.agentId` | hash → step pattern in the room's scale |
-| Solo bar (one bar per loop where this Normie plays alone over the drums) | `binding.timestamp` | hash → which bar; when several awakened Normies are in the room, they take turns, never stack |
+| Fill bar (one bar per loop where the counter-melody plays a full run) | `binding.timestamp` | hash → which bar. Built as a fill, not a true solo: muting the others would change regular parts, which the additive rule forbids. Only one counter-melody per room, so fills never stack. |
 
 Don't use `agentOrder` (it reads like a rank) or the persona fields (everyone has them; if they're ever used, they're used for everyone). Canvas `level`/`actionPoints` aren't awakened-only and would sneak in a "level up = better sound" ladder, so leave them out.
 
@@ -140,13 +141,16 @@ Don't use `agentOrder` (it reads like a rank) or the persona fields (everyone ha
 - Player/video: at most a tiny mono mark (e.g. a dot) on an awakened face; no cyan, no glow tier.
 - Keep the must-nots below. Nothing here touches PIXEL, Arena or Agents Canvas status.
 
-### Test idea
+### Built (Claude, 2026-10-19)
 
-- `compose.test.ts`: compose a room of regular Normies, then the same room plus one awakened Normie (fixture binding). Each regular Normie's `VoicePart` events must be identical (deep-equal) in both rooms.
-- The awakened Normie's main part equals its own part with the binding removed; the extra layers live in separate parts tagged `layer: "awakened"`.
-- No binding / fetch failure → zero awakened layers and nothing thrown.
-- Guard: no Pulse import, and no `agentOrder`/`rank`/`level` reads in the awakened code path.
-- WAV bytes for an all-regular room don't change.
+Code: `lib/symphony/awakened.ts` (layers + `parseBinding`), wired into `compose.ts`; `load.ts` reads `/agents/binding/{id}`. Tests: `lib/symphony/awakened.test.ts`.
+
+- **Harmony + echo** are one layer: the Normie's own part two scale steps up, entering 1/8 (even binding block) or a dotted 1/8 (odd) behind. Every awakened Normie gets one.
+- **Counter-melody + fill bar** are one layer, given to the first awakened Normie in the room only.
+- Layers sit about −9 dB under the part they decorate and only use room left under the 18-part CPU cap, so they never push out a regular part.
+- **Pinned links:** a Normie awakened *after* the pinned block plays without layers, so the link keeps sounding as it did at its block.
+- **The test is "with vs without the binding", not "with vs without the Normie".** Adding any Normie to a room changes the key and mix for everyone (the seed covers the whole room), so the plan's first test idea can't hold. What does hold, and is tested: the same room with and without a binding gives the identical key, tempo and regular parts.
+- Copy in the player: "Awakened Normies add an extra layer on top." Playlist rows show `+layer`. No face mark on the card or video yet.
 
 ## Must-nots (unchanged)
 - Arena is not live (Coming Soon). Agents Canvas is ANNOUNCED, not live. Copy status lines from `lib/official-status.ts`.

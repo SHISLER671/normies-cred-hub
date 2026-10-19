@@ -21,12 +21,22 @@ export interface NormieTrait {
   value: string | number
 }
 
+/** An awakened Normie's ERC-8004 binding, from GET /agents/binding/{id} (official API). See awakened.ts. */
+export interface AwakenedBinding {
+  agentId: string
+  blockNumber: number
+  /** Unix seconds. */
+  timestamp: number
+}
+
 /** One Normie as the composer sees it: live pixels (n×n, row-major "0"/"1") and its fixed traits. */
 export interface NormieVoiceInput {
   tokenId: number
   name: string
   pixels: string
   traits: NormieTrait[]
+  /** Set only for awakened Normies. Adds quiet layers on top; never changes the Normie's own part or anyone else's. */
+  awakened?: AwakenedBinding | null
 }
 
 export interface VoicePart {
@@ -46,6 +56,8 @@ export interface VoicePart {
   tokenId: number
   /** Seconds into the loop before this part enters. */
   startOffset: number
+  /** "awakened" for the extra layers an awakened Normie adds (awakened.ts). Absent on every regular part. */
+  layer?: "awakened"
 }
 
 export interface VoiceScore {

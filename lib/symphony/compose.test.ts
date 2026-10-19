@@ -45,7 +45,7 @@ test("enlarged grids work (40, 50 … 80); non-square strings are refused", () =
 })
 
 test("the score and its video never read Pulse or trust: only pixels, traits and token id shape them", () => {
-  for (const file of ["compose.ts", "video.ts", "video-layout.ts"]) {
+  for (const file of ["compose.ts", "awakened.ts", "video.ts", "video-layout.ts"]) {
     const src = fs.readFileSync(path.join(__dirname, file), "utf8").replace(/\/\/.*$/gm, "")
     // ("arp-pulse" is a synth sound, not the Pulse score.)
     assert.doesNotMatch(src, /pulse_level|pulseGate|\btrust\b|record-card|agent-pulse|getAgentPulse/i, file)

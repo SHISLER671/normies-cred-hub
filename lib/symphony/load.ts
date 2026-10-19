@@ -5,8 +5,9 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
+import { parseBinding } from "./awakened"
 import { pickVersionAtBlock, readVersions } from "./pin"
-import type { NormieTrait } from "./types"
+import type { AwakenedBinding, NormieTrait } from "./types"
 
 export type LoadedVoice = {
   tokenId: number
@@ -16,6 +17,8 @@ export type LoadedVoice = {
   traits: NormieTrait[]
   /** What the pixels came from: "live", "original" (before any paint at that block) or a version number. */
   pixels_from: "live" | "original" | number
+  /** ERC-8004 binding if awakened (by `block`, when pinned); null for a regular Normie or if the lookup fails. */
+  awakened: AwakenedBinding | null
 }
 
 async function get(path: string, asJson: boolean): Promise<unknown> {
@@ -49,12 +52,13 @@ async function pixelsAt(tokenId: number, block: number | null): Promise<{ pixels
   return { pixels: cleanPixels(await get(`/normie/${tokenId}/original/pixels`, false)), from: "original" }
 }
 
-/** One Normie's pixels (live, or at a block), traits and agent name. null if its pixels can't be read (e.g. burned). */
+/** One Normie's pixels (live, or at a block), traits, agent name and awakened binding. null if its pixels can't be read (e.g. burned). */
 export async function loadVoice(tokenId: number, block: number | null): Promise<LoadedVoice | null> {
-  const [{ pixels, from }, traits, identity] = await Promise.all([
+  const [{ pixels, from }, traits, identity, binding] = await Promise.all([
     pixelsAt(tokenId, block),
     get(`/normie/${tokenId}/traits`, true) as Promise<{ attributes?: Array<{ trait_type: string; value: string | number }> } | null>,
     get(`/agents/identity/${tokenId}`, true) as Promise<{ name?: string | null } | null>,
+    get(`/agents/binding/${tokenId}`, true),
   ])
   if (!pixels) return null
   return {
@@ -64,5 +68,7 @@ export async function loadVoice(tokenId: number, block: number | null): Promise<
     gridSize: Math.round(Math.sqrt(pixels.length)),
     traits: (traits?.attributes ?? []).map((t) => ({ trait_type: t.trait_type, value: t.value })),
     pixels_from: from,
+    // A failed or missing lookup just means no extra layers: the Normie still plays its full part.
+    awakened: parseBinding(binding, block),
   }
 }

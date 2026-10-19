@@ -3,6 +3,7 @@
 // enlarged) instead of a hard-coded 40; everything else is the original mapping, so old songs sound the same.
 // Pulse/trust never shapes the sound (Ryan, 2026-10-19): music is not a judgement of the agent.
 
+import { awakenedCounter, awakenedHarmony } from "./awakened"
 import type { InstrumentId, NormieTrait, NormieVoiceInput, ScaleName, VoicePart, VoiceRole, VoiceScore } from "./types"
 import { MAX_AUDIO_PARTS } from "./types"
 
@@ -675,6 +676,23 @@ export function composeScore(voices: NormieVoiceInput[]): VoiceScore {
   }
 
   const capped = parts.slice(0, MAX_AUDIO_PARTS)
+
+  // Awakened voices: extra layers on top, only in the room left under the CPU cap, so they never push out a regular
+  // part. The binding is not part of the seed, so the key, tempo and every regular part are identical with or without it.
+  const ctx = { rootIndex, degrees: SCALES[scale], bpm, loopSeconds }
+  // Part order: pad, bass, lead (the first Normie), then one part per other Normie in room order.
+  const mainPartOf = (i: number) => capped[2 + i]
+  let counterDone = false
+  for (let i = 0; i < hive.length && capped.length < MAX_AUDIO_PARTS; i++) {
+    const b = hive[i].awakened
+    const main = mainPartOf(i)
+    if (!b || !main || main.tokenId !== hive[i].tokenId) continue
+    capped.push(awakenedHarmony(main, b, ctx))
+    if (!counterDone && capped.length < MAX_AUDIO_PARTS) {
+      capped.push(awakenedCounter(main, b, ctx))
+      counterDone = true
+    }
+  }
 
   const synopsis =
     voices.length <= 1
