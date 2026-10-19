@@ -4,7 +4,7 @@
 // ("fast start"), which X and phones need. mediabunny is loaded with import() only when someone taps ⤓ MP4.
 
 import { gridSide } from "./compose"
-import { rollCells, ROLL_COLS } from "./roll"
+import { rollCells, ROLL_COLS, ROLL_ROWS_PER_PART } from "./roll"
 import { playheadColumn } from "./timeline"
 import type { VoiceScore } from "./types"
 import {
@@ -173,7 +173,7 @@ function drawStatic(g: Ctx2D, L: VideoLayout, score: VoiceScore, voices: VideoVo
   // Divider, lane lines, score cells.
   g.fillStyle = line
   g.fillRect(L.divider.x, L.divider.y, L.divider.w, L.divider.h)
-  for (let p = 1; p < score.parts.length; p++) g.fillRect(L.roll.x, L.roll.y + p * 8 * L.cellH - Math.max(1, Math.floor(L.cellH / 6)), L.roll.w, 1)
+  for (let p = 1; p < score.parts.length; p++) g.fillRect(L.roll.x, L.roll.y + p * ROLL_ROWS_PER_PART * L.cellH - Math.max(1, Math.floor(L.cellH / 6)), L.roll.w, 1)
   g.fillStyle = paper
   for (const k of lit) {
     const x = k % ROLL_COLS

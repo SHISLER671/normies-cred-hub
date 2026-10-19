@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
       ...voice,
       block: askedBlock ?? head,
       pinned: askedBlock !== null,
-      source: { pixels: "api.normies.art (/normie/{id}/pixels, or /history/normie/{id}/version/{v}/pixels at a block)", traits: `GET /normie/${tokenId}/traits` },
+      source: { pixels: "api.normies.art (/normie/{id}/pixels, or /history/normie/{id}/version/{v}/pixels at a block)", traits: `GET /normie/${tokenId}/traits`, awakened: `GET /agents/binding/${tokenId}` },
       as_of: new Date().toISOString(),
     },
     {

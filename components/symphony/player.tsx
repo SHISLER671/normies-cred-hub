@@ -5,9 +5,17 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { composeScore, gridSide } from "@/lib/symphony/compose"
 import { MAX_ROOM, parseIds, symphonyPath, symphonyShareText } from "@/lib/symphony/pin"
 import { playheadColumn } from "@/lib/symphony/timeline"
-import type { NormieTrait, VoiceScore } from "@/lib/symphony/types"
+import type { AwakenedBinding, NormieTrait, VoiceScore } from "@/lib/symphony/types"
 
-type Voice = { tokenId: number; name: string; pixels: string; gridSize: number; traits: NormieTrait[]; block: number | null }
+type Voice = {
+  tokenId: number
+  name: string
+  pixels: string
+  gridSize: number
+  traits: NormieTrait[]
+  block: number | null
+  awakened?: AwakenedBinding | null
+}
 type Player = { stop: () => void; elapsed: () => number; spectrum: (out: Uint8Array<ArrayBuffer>) => void; bins: number }
 
 const PART_LABEL: Record<string, string> = { pad: "PAD", bass: "BASS", primary: "LEAD", harmony: "HARMONY", arp: "ARP", counter: "COUNTER" }
@@ -38,6 +46,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
   const [videoOk, setVideoOk] = useState<boolean | null>(null)
   const [videoProgress, setVideoProgress] = useState<number | null>(null)
   const [videoFile, setVideoFile] = useState<File | null>(null)
+  const [videoFailed, setVideoFailed] = useState(false)
   const [copied, setCopied] = useState(false)
   const [origin, setOrigin] = useState("")
 
@@ -206,6 +215,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
     if (!score || !videoOk) return
     setVideoProgress(0)
     setVideoFile(null)
+    setVideoFailed(false)
     try {
       const { renderMp4 } = await import("@/lib/symphony/video")
       const blob = await renderMp4(score, voices, block, (f) => setVideoProgress(Math.round(f * 100)))
@@ -223,6 +233,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
       }
     } catch (err) {
       console.warn("MP4 export failed", err)
+      setVideoFailed(true)
     } finally {
       setVideoProgress(null)
     }
@@ -313,6 +324,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
         )}
       </form>
       <p className="sym-hint">One number for a solo, up to {MAX_ROOM} for a room. The first Normie leads.</p>
+      {voices.some((v) => v.awakened) && <p className="sym-hint">Awakened Normies add an extra layer on top.</p>}
       {skipped.length > 0 && <p className="sym-hint">Skipped (couldn&apos;t read): {skipped.map((s) => `#${s}`).join(", ")}</p>}
 
       <ol className="sym-playlist" aria-label={voices.length > 1 ? "Normies in this room" : "Parts in this song"}>
@@ -322,14 +334,14 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
                 <span className="sym-pl-n">{i + 1}.</span>
                 <span className="sym-pl-role">{i === 0 ? "LEAD" : "VOICE"}</span>
                 <span className="sym-pl-inst">{v.name}</span>
-                <span className="sym-pl-notes">#{v.tokenId}</span>
+                <span className="sym-pl-notes">#{v.tokenId}{v.awakened ? " +layer" : ""}</span>
               </li>
             ))
           : score?.parts.map((p, i) => (
               <li key={i}>
                 <span className="sym-pl-n">{i + 1}.</span>
                 <span className="sym-pl-role">{PART_LABEL[p.role] ?? p.role.toUpperCase()}</span>
-                <span className="sym-pl-inst">{p.instrument}</span>
+                <span className="sym-pl-inst">{p.layer === "awakened" ? `${p.instrument} · awakened` : p.instrument}</span>
                 <span className="sym-pl-notes">{p.notes.filter((x) => x !== "rest").length} notes</span>
               </li>
             ))}
@@ -370,6 +382,7 @@ export function SymphonyPlayer({ initialIds, initialBlock }: { initialIds: numbe
         )}
       </div>
       {videoOk === false && <p className="sym-hint">Video export needs Chrome or Safari</p>}
+      {videoFailed && <p className="sym-hint" role="status">Video export failed. Try again.</p>}
       <p className="sym-hint">
         {block
           ? `The link pins block ${block.toLocaleString("en-US")}: anyone who opens it hears these Normies exactly as they were then.`
