@@ -146,7 +146,7 @@ export const NORMIES_KNOWLEDGE = {
     lab: "https://www.normies.art/lab",
     endpoints: {
       pixels: "/normie/:id/pixels — 1600-char bitmap string",
-      traits: "/normie/:id/traits — decoded attributes",
+      traits: "/normie/:id/metadata — CURRENT attributes (the 8 base traits: what a Normie is now). /normie/:id/traits and /agents/identity are the MINT traits. They differ for Zombies: mint types are only Human, Cat, Alien and Agent; a Zombie became one later (e.g. #2 was minted Human and is a Zombie now). Never say a Zombie was minted as a Zombie",
       image: "/normie/:id/image.svg — on-chain SVG",
       canvas: "/normie/:id/canvas/info — AP, level, delegate",
     },

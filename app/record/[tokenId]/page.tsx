@@ -11,6 +11,7 @@ import { pulseBeats } from "@/lib/pulse/beats"
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { loadRecordCard } from "@/lib/record-card/load"
+import { typeDisplay } from "@/lib/record-card/build"
 import type { Field } from "@/lib/record-card/types"
 import { recordCardUrl } from "@/lib/record-card/ask-line"
 import { siteOrigin } from "@/lib/site-origin"
@@ -121,7 +122,11 @@ export default async function RecordCardPage({ params }: Params) {
           <StatGrid>
             <Stat label="Level" value={show(identity.level)} note={note(identity.level)} />
             <Stat label="Pixels on this Normie" value={show(identity.pixels_attached)} note={note(identity.pixels_attached)} />
-            <Stat label="Mint type" value={show(identity.mint_type)} note={note(identity.mint_type)} />
+            <Stat
+              label="Type"
+              value={typeDisplay(identity) ?? show(identity.mint_type)}
+              note={note(identity.type?.value ? identity.type : identity.mint_type)}
+            />
             <Stat
               label="Awakened"
               value={show(identity.awakened_at, (v) => v.slice(0, 10))}

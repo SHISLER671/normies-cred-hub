@@ -30,6 +30,7 @@ import { estimateBurnApFromPixels, levelFromActionPoints } from "./normiesKnowle
 import { parseNormieTokenIdsFromText } from "./parseTokenIds"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
+import { loadNormieTraits, serverNormiesJsonWith, traitsFromMetadata } from "@/lib/normie-traits"
 import type {
   CredHubPulseData,
   MentionedNormieSnapshot,
@@ -170,7 +171,8 @@ async function fetchMentionedNormieSnapshot(
   try {
     const [metadata, traits, rarityData] = await Promise.all([
       normiesPath<MetadataPayload>(`/normie/${tokenId}/metadata`, 8_000),
-      normiesPath<TraitsPayload>(`/normie/${tokenId}/traits`, 8_000),
+      // Base traits come from /metadata (above); /traits is read only as a marked fallback. See lib/normie-traits.ts.
+      Promise.resolve(null as TraitsPayload | null),
       fetchJsonSafe<RarityPayload>(
         `${ECOSYSTEM_LINKS.rarityApi}/normie/${tokenId}`,
         8_000,
@@ -188,8 +190,13 @@ async function fetchMentionedNormieSnapshot(
       }
     }
 
+    // /metadata was just read above; if it failed, go straight to the /traits fallback instead of reading /metadata again.
+    const read8 = serverNormiesJsonWith(8_000)
+    const baseTraits =
+      traitsFromMetadata(metadata) ??
+      (await loadNormieTraits(tokenId, (path) => (path.endsWith("/metadata") ? Promise.resolve(null) : read8(path))))
     const traitRecord = {
-      ...traitsToRecord(traits),
+      ...traitsToRecord(baseTraits ?? traits),
     }
     // Fill from metadata attributes when traits empty
     if (Object.keys(traitRecord).length === 0 && metadata?.attributes) {
@@ -528,7 +535,7 @@ export async function buildZuloContext(
       : normiesPath<AgentInfoPayload>(`/agents/info/${tokenId}`),
     isGeneralMode
       ? Promise.resolve(null)
-      : normiesPath<TraitsPayload>(`/normie/${tokenId}/traits`),
+      : loadNormieTraits(tokenId, serverNormiesJsonWith(8_000)),
     isGeneralMode
       ? Promise.resolve(null)
       : normiesPath<CanvasInfoPayload>(`/normie/${tokenId}/canvas/info`),
@@ -578,9 +585,15 @@ export async function buildZuloContext(
     pulseSummary = buildPulseSummary(pulseResult.data)
   }
 
-  const traitRecord = {
-    ...traitsToRecord(traits),
+  // The current /metadata traits win. /agents/info holds the mint traits (Zombie #2 was minted Human), so its attributes
+  // only fill gaps, and a different mint type is kept as "Mint type" so Zulo never says a Zombie was minted as one.
+  const traitRecord: Record<string, string | number> = {
     ...(agentInfo?.traits?.attributes ?? {}),
+    ...traitsToRecord(traits),
+  }
+  const mintType = agentInfo?.type ?? agentInfo?.traits?.attributes?.Type
+  if (mintType && traitRecord.Type && String(mintType) !== String(traitRecord.Type)) {
+    traitRecord["Mint type"] = String(mintType)
   }
 
   // Prefer rarity attributes if traits endpoint was empty
@@ -682,7 +695,7 @@ export async function buildZuloContext(
       idsToEnrich.map(async (id) => {
         try {
           const [t, r] = await Promise.all([
-            normiesPath<TraitsPayload>(`/normie/${id}/traits`, 5_000),
+            loadNormieTraits(id, serverNormiesJsonWith(5_000)),
             fetchJsonSafe<RarityPayload>(`${ECOSYSTEM_LINKS.rarityApi}/normie/${id}`, 5_000),
           ])
           const tr = traitsToRecord(t)

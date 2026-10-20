@@ -29,7 +29,10 @@ export type RecordCard = {
     agent_id: Field<number>
     awakened_at: Field<string>
     agent_name: Field<string>
+    /** What it was minted as: Human, Cat, Alien or Agent (/agents/identity, or /traits). A Zombie keeps its mint type here. */
     mint_type: Field<string>
+    /** What it is now, from the official /metadata (e.g. "Zombie" for #2, minted Human). Optional so older cached cards type-check. */
+    type?: Field<string>
     is_zombie: Field<boolean>
     level: Field<number>
     pixels_attached: Field<number>

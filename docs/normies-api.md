@@ -29,6 +29,7 @@ Returns the raw bytes8 trait data as a hex string.
 
 ### GET /normie/{id}/traits
 Returns decoded traits as JSON with human-readable labels.
+- **These are the mint traits.** `/traits`, `/agents/identity` and `/agents/info` describe what a Normie was minted as. `/normie/{id}/metadata` is the current traits. They differ for Zombies (21 Normies on 2026-10-20, e.g. #1, #2, #3, #100: minted Human, Zombie now; `/normie/{id}/zombie` says `isZombie: true`). NCH uses `/metadata` for what a Normie is now (via `lib/normie-traits.ts`, `/traits` only as a marked fallback) and `/agents/identity` for the mint type.
 - Content-Type: application/json
 - Parameters: id (integer, 0-9999)
 - Trait categories: Type, Gender, Age, Hair Style, Facial Feature, Eyes, Expression, Accessory

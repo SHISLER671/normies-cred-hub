@@ -9,6 +9,7 @@ import type {
   OwnedNormie,
 } from "@/lib/types"
 import { ZERO_ADDRESS } from "@/lib/normie-control"
+import { loadNormieTraits, traitType } from "@/lib/normie-traits"
 
 /**
  * Client-side Normies API helpers.
@@ -52,7 +53,14 @@ export interface BindingBatchResponse {
 }
 
 export const normiesApi = {
-  traits: (id: number) => getJson<NormieTraits>(`/${id}/traits`),
+  /** Base traits from the official /metadata (via our proxy); /traits only as a marked fallback. See lib/normie-traits.ts. */
+  traits: async (id: number): Promise<NormieTraits> => {
+    const t = await loadNormieTraits(id, (path) =>
+      getJson<unknown>(path.replace(/^\/normie/, "")).catch(() => null),
+    )
+    if (!t) throw new Error(`Normies API error: no traits for #${id}`)
+    return t
+  },
   metadata: (id: number) => getJson<NormieMetadata>(`/${id}/metadata`),
   owner: (id: number) => getJson<NormieOwner>(`/${id}/owner`),
   canvasInfo: (id: number) => getJson<CanvasInfo>(`/${id}/canvas/info`),
@@ -90,18 +98,18 @@ export async function enrichOwnedNormies(tokenIds: number[]): Promise<OwnedNormi
     fetchBindingsBatch(tokenIds).catch(() => ({} as BindingBatchResponse["bindings"])),
     Promise.all(
       tokenIds.map(async (id) => {
+        // Current type from the official /metadata. /agents/identity is the mint type (Zombie #2 was minted Human), so it is
+        // only the fallback.
+        try {
+          const type = traitType(await normiesApi.traits(id))
+          if (type) return { tokenId: id, name: `Normie #${id}`, type, traits: {} }
+        } catch {
+          /* fall through */
+        }
         try {
           return await normiesApi.agentIdentity(id)
         } catch {
-          try {
-            const traits = await normiesApi.traits(id)
-            const type =
-              traits.attributes.find((t) => t.trait_type === "Type")?.value?.toString() ??
-              "Unknown"
-            return { tokenId: id, name: `Normie #${id}`, type, traits: {} }
-          } catch {
-            return { tokenId: id, name: `Normie #${id}`, type: "Unknown", traits: {} }
-          }
+          return { tokenId: id, name: `Normie #${id}`, type: "Unknown", traits: {} }
         }
       }),
     ),

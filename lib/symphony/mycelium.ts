@@ -6,7 +6,7 @@
 import type { NoteEvent } from "./timeline"
 import type { NormieTrait, VoiceScore } from "./types"
 
-/** Traits that make a thread. Fixed at mint, the same 8 for every Normie (GET /normie/{id}/traits). */
+/** Traits that make a thread. The same 8 for every Normie (official GET /normie/{id}/metadata attributes; a Zombie's differ from its mint traits, see lib/normie-traits.ts). */
 export const THREAD_TRAITS = ["Type", "Gender", "Age", "Hair Style", "Facial Feature", "Eyes", "Expression", "Accessory"] as const
 
 /** A pair must share at least this many traits to be joined; one shared trait (e.g. both Human) joins almost everyone. */
