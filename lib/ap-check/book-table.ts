@@ -53,3 +53,20 @@ export function bookRows(depth: readonly DepthLevel[] | null | undefined, want?:
     }
   })
 }
+
+/**
+ * True when the amount wanted lands partway into a price level that holds whole-only listings. /market/depth gives one
+ * total per price, not each listing's size, so neither this table nor the compare (buyCost) can tell whether a whole
+ * listing has to be bought past the amount: the highlight and cost may then be a little low. Shown as "approximate".
+ */
+export function bookApprox(rows: readonly BookRow[], want?: number | null): boolean {
+  if (want == null || !Number.isFinite(want) || want <= 0) return false
+  const landing = rows.find((r) => r.runningPixels >= want)
+  return !!landing && landing.runningPixels > want && landing.wholeOnly > 0
+}
+
+/** The listed price per pixel, unrounded but readable: up to 9 decimals, trailing zeros dropped (0.01098, not 0.011). */
+export function exactEth(n: number): string {
+  if (!Number.isFinite(n)) return "–"
+  return n.toFixed(9).replace(/0+$/, "").replace(/\.$/, "")
+}

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { bookRows, PIXEL_MARKET_URL } from "./book-table"
+import { bookApprox, bookRows, exactEth, PIXEL_MARKET_URL } from "./book-table"
 
 const BOOK = [
   { priceEth: 0.0175, remaining: 143, partialRemaining: 143 },
@@ -42,5 +42,26 @@ describe("Pixel Market book table", () => {
 
   it("links to the official Pixel Market, never to a buy flow on NCH", () => {
     assert.equal(PIXEL_MARKET_URL, "https://www.normies.art/lab/pixel-market")
+  })
+
+  it("flags approximate when the amount lands partway into a price with whole-only listings", () => {
+    // 0.017 has 2 pixels, both whole-only. 6 lands partway into it (5 + 1 of 2): approximate.
+    assert.equal(bookApprox(bookRows(BOOK, 6), 6), true)
+    // 7 lands exactly at the end of that level: exact.
+    assert.equal(bookApprox(bookRows(BOOK, 7), 7), false)
+    // 3 lands partway into 0.0169, which is all partial-fill: exact.
+    assert.equal(bookApprox(bookRows(BOOK, 3), 3), false)
+    // No amount, or more than the book holds: nothing to flag.
+    assert.equal(bookApprox(bookRows(BOOK), null), false)
+    assert.equal(bookApprox(bookRows(BOOK, 9999), 9999), false)
+  })
+
+  it("shows the exact listed price, not a rounded one", () => {
+    assert.equal(exactEth(0.01098), "0.01098")
+    assert.equal(exactEth(0.01229), "0.01229")
+    assert.equal(exactEth(0.13884), "0.13884")
+    assert.equal(exactEth(0.0169), "0.0169")
+    assert.equal(exactEth(0.017), "0.017")
+    assert.equal(exactEth(1), "1")
   })
 })

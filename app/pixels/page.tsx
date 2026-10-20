@@ -7,7 +7,7 @@ import { MOVE_CHECKLIST } from "@/lib/ap-check/move-checklist"
 import { ago, apiDisagrees, artVersionText, isActiveApproval, openSeaItemUrl, parseTokenInput, reasonText } from "@/lib/ap-check/core"
 import { planForBudget, planForPixels, MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart, type BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
-import { bookRows, PIXEL_MARKET_URL } from "@/lib/ap-check/book-table"
+import { bookApprox, bookRows, exactEth, PIXEL_MARKET_URL } from "@/lib/ap-check/book-table"
 import { checkContract, OFFICIAL_CONTRACTS, parseAddressInput, type ContractCheck } from "@/lib/official-contracts"
 import { checkApprovals, checkListings, checkToken, checkWallet, LISTINGS_CHECKED, LISTINGS_SHOWN, MAX_WALLET_OFFERS, type ApprovalsCheck, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
 import { keyedTtl } from "@/lib/burn-buy/data"
@@ -302,6 +302,7 @@ function PixelBook({ inputs, want }: { inputs: BuySmartInputs | null; want: numb
   const book = inputs?.book ?? null
   const rows = bookRows(book?.depth, want)
   const shown = rows.length ? rows[rows.length - 1].runningPixels : 0
+  const approx = bookApprox(rows, want)
   const marketLink = (
     <a className="pixels-book-go" href={PIXEL_MARKET_URL} target="_blank" rel="noopener noreferrer">
       Open the Pixel Market <span aria-hidden="true">↗</span>
@@ -316,8 +317,8 @@ function PixelBook({ inputs, want }: { inputs: BuySmartInputs | null; want: numb
         <>
           <p className="burn-small">
             {book.pixelsListed.toLocaleString("en-US")} pixels for sale in {book.activeListings} {book.activeListings === 1 ? "listing" : "listings"}
-            {book.bestAskEth !== null ? ` · cheapest ${eth(book.bestAskEth)} per pixel` : ""}
-            {book.lastPriceEth !== null ? ` · last sale ${eth(book.lastPriceEth)}` : ""}
+            {book.bestAskEth !== null ? ` · cheapest ${exactEth(book.bestAskEth)} ETH per pixel` : ""}
+            {book.lastPriceEth !== null ? ` · last sale ${exactEth(book.lastPriceEth)} ETH` : ""}
             {` · ${book.pixels24h} sold in 24h`}.
           </p>
           {book.paused && <p className="burn-small ap-warn">The market is paused right now: nothing can be bought until it reopens.</p>}
@@ -335,7 +336,7 @@ function PixelBook({ inputs, want }: { inputs: BuySmartInputs | null; want: numb
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.priceEth} data-need={r.needed || undefined}>
-                    <th scope="row">{ethNum(r.priceEth)}</th>
+                    <th scope="row">{exactEth(r.priceEth)}</th>
                     <td>
                       {r.pixels.toLocaleString("en-US")}
                       {r.wholeOnly > 0 ? <span className="pixels-book-whole" title="Some of these must be bought as a whole listing">{r.wholeOnly === r.pixels ? "whole" : `${r.wholeOnly} whole`}</span> : null}
@@ -351,6 +352,8 @@ function PixelBook({ inputs, want }: { inputs: BuySmartInputs | null; want: numb
           )}
           <ul className="burn-small pixels-calc-notes">
             {want ? <li>Highlighted rows are the prices you would buy through to get {want.toLocaleString("en-US")} pixels.</li> : null}
+            {approx ? <li><strong>Approximate:</strong> {want?.toLocaleString("en-US")} pixels lands partway into a price where some listings must be bought whole. The market shows one total per price, not each listing&apos;s size, so you may have to buy a few more pixels than asked, at a little more cost.</li> : null}
+            <li>Total cost is what buying every pixel down to that row costs, not the exact amount you asked for. The compare above prices the exact amount.</li>
             <li>Each row is one price, which can hold several listings. &ldquo;Whole&rdquo; pixels sit in listings that must be bought in full.</li>
             {book.pixelsListed > shown ? <li>Showing the cheapest {rows.length} prices ({shown.toLocaleString("en-US")} pixels). The rest are on the market page.</li> : null}
             <li>Buyers pay the listed price and nothing extra; gas is not included. Look-only: buy on the official market, never here. Refreshed every minute.</li>
