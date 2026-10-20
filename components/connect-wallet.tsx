@@ -24,7 +24,7 @@ export function ConnectWallet() {
 
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openChainModal, openConnectModal, mounted }) => {
+      {({ account, chain, openConnectModal, mounted }) => {
         const ready = mounted
         const connected = ready && account && chain
 
@@ -52,13 +52,10 @@ export function ConnectWallet() {
                 )
               }
 
-              if (chain.unsupported) {
-                return (
-                  <Button onClick={openChainModal} size="sm" variant="destructive">
-                    Wrong network
-                  </Button>
-                )
-              }
+              // NCH only reads Ethereum through its own connection and the only signature is a plain signMessage, which
+              // works on any network. So a wallet on another network is not an error: no red "Wrong network", no
+              // switch prompt. It shows as connected, with a note in the tooltip.
+              const otherNetwork = !!chain.unsupported
 
               return (
                 <Button
@@ -66,7 +63,11 @@ export function ConnectWallet() {
                   size="sm"
                   variant="secondary"
                   className="gap-2 font-mono tracking-widest"
-                  title="Log out"
+                  title={
+                    otherNetwork
+                      ? "Connected. Your wallet is on another network; NCH only reads Ethereum, so there is nothing to switch. Tap to log out."
+                      : "Log out"
+                  }
                 >
                   <span className="size-1.5 bg-emerald-400" aria-hidden />
                   {account.ensName || account.displayName}

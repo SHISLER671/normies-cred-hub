@@ -3284,7 +3284,7 @@
    The header used to be position: fixed over a 72px spacer. On phones it wrapped into two or three rows, grew taller
    than the spacer, covered the top of the page and stayed on screen. Now:
    - desktop: sticky, but in the page flow, so it can never cover content (the spacer is no longer needed);
-   - below 1180px (where the full nav no longer fits on one line): one compact row (wordmark + Menu) that scrolls away with the page; the nav, wallet and theme open
+   - below 1280px (where the full nav no longer fits on one line; was 1180px before Symphony joined the nav, 2026-10-20): one compact row (wordmark + Menu) that scrolls away with the page; the nav, wallet and theme open
      in a panel. Without JavaScript the nav stays visible (the menu only collapses once .js-menu is set). */
 .zulo-chrome .header.header-fixed {
   position: sticky;
@@ -3299,7 +3299,7 @@
 .zulo-chrome .header-menu-btn {
   display: none;
 }
-@media (min-width: 1180px) {
+@media (min-width: 1280px) {
   .zulo-chrome .header,
   .zulo-chrome .header.header-fixed {
     padding-top: 14px;
@@ -3307,7 +3307,10 @@
   }
 }
 
-@media (max-width: 1179px) {
+@media (min-width: 1280px) {
+  .zulo-chrome .header-nav .nav-ext-who { display: none; }
+}
+@media (max-width: 1279px) {
   .zulo-chrome .header,
   .zulo-chrome .header.header-fixed,
   .zulo-chrome.zulo-home .header {

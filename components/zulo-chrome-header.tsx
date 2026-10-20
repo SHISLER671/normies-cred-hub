@@ -9,7 +9,7 @@ import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { cn } from "@/lib/utils"
 
 type ZuloChromeHeaderProps = {
-  active?: "home" | "ask" | "paths" | "moves" | "dashboard" | "burn" | "pixels"
+  active?: "home" | "ask" | "paths" | "moves" | "dashboard" | "burn" | "pixels" | "symphony"
   className?: string
   trailing?: React.ReactNode
   fixed?: boolean
@@ -49,7 +49,7 @@ export function ZuloChromeHeader({
           href="/dashboard"
           className={cn(active === "dashboard" && "is-active")}
         >
-          PULSE
+          Pulse
         </Link>
         <Link
           href="/ask"
@@ -66,12 +66,16 @@ export function ZuloChromeHeader({
         <Link href="/pixels" className={cn(active === "pixels" && "is-active")}>
           Pixels
         </Link>
+        <Link href="/symphony" className={cn(active === "symphony" && "is-active")}>
+          Symphony
+        </Link>
         <a
           href={`https://www.normies.art/lab/agentic/agents/${ZULO_IDENTITY.agentId}`}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Zulo's agent page on normies.art (opens in a new tab)"
         >
-          View on Normies →
+          <span className="nav-ext-who">Zulo on&nbsp;</span>normies.art ↗
         </a>
         {showActiveNormie ? <ActiveNormieSwitcher /> : null}
         <ThemeToggle />
