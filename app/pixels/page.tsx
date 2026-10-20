@@ -7,6 +7,7 @@ import { MOVE_CHECKLIST } from "@/lib/ap-check/move-checklist"
 import { ago, apiDisagrees, artVersionText, isActiveApproval, openSeaItemUrl, parseTokenInput, reasonText } from "@/lib/ap-check/core"
 import { planForBudget, planForPixels, MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart, type BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
+import { bookRows, PIXEL_MARKET_URL } from "@/lib/ap-check/book-table"
 import { checkContract, OFFICIAL_CONTRACTS, parseAddressInput, type ContractCheck } from "@/lib/official-contracts"
 import { checkApprovals, checkListings, checkToken, checkWallet, LISTINGS_CHECKED, LISTINGS_SHOWN, MAX_WALLET_OFFERS, type ApprovalsCheck, type ListingsCheck, type TokenCheck, type WalletCheck } from "@/lib/ap-check/load"
 import { keyedTtl } from "@/lib/burn-buy/data"
@@ -53,7 +54,9 @@ type View =
 
 const utc = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC"
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
-const eth = (n: number) => `${n.toFixed(n < 0.1 ? 4 : 3).replace(/0+$/, "").replace(/\.$/, "")} ETH`
+/** Same rounding as eth(), without the unit (the column header says ETH). */
+const ethNum = (n: number) => n.toFixed(n < 0.1 ? 4 : 3).replace(/0+$/, "").replace(/\.$/, "")
+const eth = (n: number) => `${ethNum(n)} ETH`
 const days = (iso: string | null) => {
   if (!iso) return "no end"
   const d = Math.round((Date.parse(iso) - Date.now()) / 86_400_000)
@@ -155,6 +158,9 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
   const tab = pickTab({ tab: first(sp.tab), token, wallet, approvals, calc: calcRaw, listings, contract })
   const view = await answer(token, wallet, listings, approvals, calcRaw ? { mode: calcMode, amount: amountRaw } : undefined, tab === "check", contract)
   const intro = TABS.find((t) => t.id === tab)?.intro
+  // The Buy tab always shows the Pixel Market's order book (shared, refreshed once a minute; no per-visitor cost).
+  const bookInputs = tab === "buy" ? (view.kind === "calc" ? view.inputs : await loadBuySmart()) : null
+  const bookWant = view.kind === "calc" ? (view.answer.mode === "pixels" ? view.answer.need : view.answer.market?.pixels ?? null) : null
 
   return (
     <div className="zulo-chrome min-h-screen burn-page pixels-page">
@@ -279,10 +285,80 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
         {view.kind === "contract" && <ContractResult check={view.check} />}
         </div>
 
+        {tab === "buy" && <PixelBook inputs={bookInputs} want={bookWant} />}
+
         <FinePrint />
       </main>
       <SiteFooter />
     </div>
+  )
+}
+
+/**
+ * The Pixel Market's order book, read-only (Ryan, 2026-10-21): find the pixels here, then buy them on the official market.
+ * Price levels only, from api.normies.art /market/depth: no listing ids, no sellers, nothing to click but the market link.
+ */
+function PixelBook({ inputs, want }: { inputs: BuySmartInputs | null; want: number | null }) {
+  const book = inputs?.book ?? null
+  const rows = bookRows(book?.depth, want)
+  const shown = rows.length ? rows[rows.length - 1].runningPixels : 0
+  const marketLink = (
+    <a className="pixels-book-go" href={PIXEL_MARKET_URL} target="_blank" rel="noopener noreferrer">
+      Open the Pixel Market <span aria-hidden="true">↗</span>
+    </a>
+  )
+  return (
+    <section className="burn-box pixels-book" data-tag="Pixels for sale" aria-labelledby="book-h">
+      <h2 id="book-h" className="burn-cap">The Pixel Market right now</h2>
+      {!book ? (
+        <p className="burn-small">The order book could not be read just now. It is on the official Pixel Market.</p>
+      ) : (
+        <>
+          <p className="burn-small">
+            {book.pixelsListed.toLocaleString("en-US")} pixels for sale in {book.activeListings} {book.activeListings === 1 ? "listing" : "listings"}
+            {book.bestAskEth !== null ? ` · cheapest ${eth(book.bestAskEth)} per pixel` : ""}
+            {book.lastPriceEth !== null ? ` · last sale ${eth(book.lastPriceEth)}` : ""}
+            {` · ${book.pixels24h} sold in 24h`}.
+          </p>
+          {book.paused && <p className="burn-small ap-warn">The market is paused right now: nothing can be bought until it reopens.</p>}
+          {rows.length > 0 ? (
+            <table className="burn-table ap-table pixels-book-table">
+              <caption className="sr-only">Pixels for sale on the Pixel Market, cheapest price first</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Price / pixel (ETH)</th>
+                  <th scope="col">Pixels</th>
+                  <th scope="col">Total pixels</th>
+                  <th scope="col">Total cost (ETH)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.priceEth} data-need={r.needed || undefined}>
+                    <th scope="row">{ethNum(r.priceEth)}</th>
+                    <td>
+                      {r.pixels.toLocaleString("en-US")}
+                      {r.wholeOnly > 0 ? <span className="pixels-book-whole" title="Some of these must be bought as a whole listing">{r.wholeOnly === r.pixels ? "whole" : `${r.wholeOnly} whole`}</span> : null}
+                    </td>
+                    <td>{r.runningPixels.toLocaleString("en-US")}</td>
+                    <td>{ethNum(r.runningCostEth)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="burn-small">Nothing is listed right now.</p>
+          )}
+          <ul className="burn-small pixels-calc-notes">
+            {want ? <li>Highlighted rows are the prices you would buy through to get {want.toLocaleString("en-US")} pixels.</li> : null}
+            <li>Each row is one price, which can hold several listings. &ldquo;Whole&rdquo; pixels sit in listings that must be bought in full.</li>
+            {book.pixelsListed > shown ? <li>Showing the cheapest {rows.length} prices ({shown.toLocaleString("en-US")} pixels). The rest are on the market page.</li> : null}
+            <li>Buyers pay the listed price and nothing extra; gas is not included. Look-only: buy on the official market, never here. Refreshed every minute.</li>
+          </ul>
+        </>
+      )}
+      {marketLink}
+    </section>
   )
 }
 
