@@ -5,6 +5,8 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
+import { loadNormieTraits } from "@/lib/normie-traits"
+
 import { parseBinding } from "./awakened"
 import { isPlayableGrid } from "./grid"
 import { pickVersionAtBlock, readVersions } from "./pin"
@@ -74,7 +76,8 @@ async function pixelsAt(tokenId: number, block: number | null): Promise<{ pixels
 export async function loadVoice(tokenId: number, block: number | null): Promise<LoadedVoice | null> {
   const [{ pixels, from }, traits, identity, binding] = await Promise.all([
     pixelsAt(tokenId, block),
-    get(`/normie/${tokenId}/traits`, true) as Promise<{ attributes?: Array<{ trait_type: string; value: string | number }> } | null>,
+    // Base traits from the official /metadata, /traits only if that fails (lib/normie-traits.ts).
+    loadNormieTraits(tokenId, (path) => get(path, true)),
     get(`/agents/identity/${tokenId}`, true) as Promise<{ name?: string | null } | null>,
     get(`/agents/binding/${tokenId}`, true),
   ])

@@ -4,6 +4,7 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getAgentPulse } from "@/lib/api/agent-pulse"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { loadNormieTraits } from "@/lib/normie-traits"
 
 import { loadArenaSector } from "./arena"
 import { buildRecordCard, type RecordCardInputs } from "./build"
@@ -25,7 +26,7 @@ async function normies<T>(path: string): Promise<T | null> {
 
 export async function loadRecordCard(tokenId: number): Promise<RecordCard> {
   const now = new Date().toISOString()
-  const [binding, identity, canvas, owner, zombie, pulse, arena] = await Promise.all([
+  const [binding, identity, canvas, owner, zombie, pulse, arena, baseTraits] = await Promise.all([
     normies<{ binding?: RecordCardInputs["binding"] }>(`/agents/binding/${tokenId}`),
     normies<NonNullable<RecordCardInputs["identity"]>>(`/agents/identity/${tokenId}`),
     normies<NonNullable<RecordCardInputs["canvas"]>>(`/normie/${tokenId}/canvas/info`),
@@ -33,6 +34,7 @@ export async function loadRecordCard(tokenId: number): Promise<RecordCard> {
     normies<NonNullable<RecordCardInputs["zombie"]>>(`/normie/${tokenId}/zombie`),
     getAgentPulse(tokenId, { chatRatings: true }).catch(() => null),
     loadArenaSector(tokenId, now),
+    loadNormieTraits(tokenId, normies),
   ])
 
   const pulseData = pulse && pulse.ok ? pulse.data : null
@@ -42,6 +44,7 @@ export async function loadRecordCard(tokenId: number): Promise<RecordCard> {
     now,
     binding: binding?.binding ?? null,
     identity,
+    baseTraits,
     canvas,
     owner,
     zombie,

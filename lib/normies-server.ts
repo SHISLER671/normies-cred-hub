@@ -2,6 +2,7 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithRetry } from "@/lib/fetch-with-retry"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { mapLimit } from "@/lib/map-limit"
+import { loadNormieTraits, serverNormiesJsonWith, traitType } from "@/lib/normie-traits"
 import type { OwnedNormie } from "@/lib/types"
 
 type AgentIdentityResponse = {
@@ -12,10 +13,6 @@ type AgentIdentityResponse = {
 
 type BindingBatchResponse = {
   bindings: Record<string, { agentId?: string }>
-}
-
-type NormieTraits = {
-  attributes: Array<{ trait_type: string; value: string | number }>
 }
 
 async function fetchBindingsBatchServer(
@@ -65,19 +62,15 @@ export async function enrichOwnedNormiesServer(tokenIds: number[]): Promise<Owne
     fetchBindingsBatchServer(tokenIds).catch(() => ({} as BindingBatchResponse["bindings"])),
     mapLimit(tokenIds, ENRICH_CONCURRENCY, async (id) => {
       if (Date.now() > deadline) return unknown(id)
+      // Type from the official /metadata (lib/normie-traits.ts). /agents/identity repeats /traits, which is wrong for
+      // some Normies (Zombie #2 read as Human), so it is only the fallback.
+      const type = traitType(await loadNormieTraits(id, serverNormiesJsonWith(ENRICH_CALL_TIMEOUT_MS)))
+      if (type) return { tokenId: id, name: `Normie #${id}`, type }
+      if (Date.now() > deadline) return unknown(id)
       try {
         return await quickJson<AgentIdentityResponse>(`/agents/identity/${id}`)
       } catch {
-        if (Date.now() > deadline) return unknown(id)
-        try {
-          const traits = await quickJson<NormieTraits>(`/normie/${id}/traits`)
-          const type =
-            traits.attributes.find((t) => t.trait_type === "Type")?.value?.toString() ??
-            "Unknown"
-          return { tokenId: id, name: `Normie #${id}`, type }
-        } catch {
-          return unknown(id)
-        }
+        return unknown(id)
       }
     }),
   ])

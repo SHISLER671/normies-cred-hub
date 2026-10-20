@@ -90,7 +90,7 @@ type Field<T> = {
 | `agent_id` | `number` | official_api: `GET /agents/binding/{tokenId}` → `binding.agentId`; cross-check onchain: ERC-8004 Identity `ownerOf(agentId)` / `agentURI(agentId)` (as `isErc8004Registered` does) | verified | The binding follows the NFT, and there is no unbind |
 | `awakened_at` | `string` (ISO) | official_api: `/agents/binding/{tokenId}` → `binding.timestamp`, `blockNumber`, `txHash` | verified | |
 | `agent_name` | `string` | official_api: `GET /agents/identity/{tokenId}` → `name` | verified | |
-| `mint_type` | `"Human" \| "Cat" \| "Alien" \| "Agent"` | official_api: `/agents/identity/{tokenId}` → `type` (fallback `/normie/{id}/traits` Type) | verified | UI label "Mint type". Mint type "Agent" is **not** the same as awakened (failure mode 6) |
+| `mint_type` | `"Human" \| "Cat" \| "Alien" \| "Agent" \| "Zombie"` | official_api: `/normie/{id}/metadata` → `Type` attribute (fallback `/agents/identity/{tokenId}` → `type`). Never `/normie/{id}/traits`: for Zombies it still returns the pre-zombie traits (Zombie #2 reads Human), see `lib/normie-traits.ts` | verified | UI label "Mint type". Mint type "Agent" is **not** the same as awakened (failure mode 6) |
 | `is_zombie` | `boolean` | official_api: `GET /normie/{id}/zombie` → `info.isZombie` | verified | Zombies: 21/21 sealed, not Arena, nothing to claim |
 | `level` | `number` | official_api: `GET /normie/{id}/canvas/info` → `level` | verified | UI label "Level" |
 | `pixels_attached` | `number` | official_api: `/normie/{id}/canvas/info` → `actionPoints` (same as `/canvas/token/{id}/pixels` `attached`) | verified | UI label "Pixels on this Normie (action points)". Never a bare "AP" |

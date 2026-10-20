@@ -136,3 +136,18 @@ describe("Arena plug-in", () => {
     assert.equal(s.record.matches.value, null)
   })
 })
+
+describe("mint type comes from the official /metadata, not /agents/identity", () => {
+  it("Zombie #2: metadata Zombie wins over identity Human, with the metadata source", () => {
+    const base = {
+      tokenId: 2, now: "2026-10-20T00:00:00.000Z", binding: null, identity: { name: "Jalar", type: "Human" },
+      canvas: null, owner: null, zombie: { info: { isZombie: true } }, pulse: null, chatRatings: null,
+    } as unknown as Parameters<typeof buildRecordCard>[0]
+    const withMeta = buildRecordCard({ ...base, baseTraits: { raw: "", source: "metadata", attributes: [{ trait_type: "Type", value: "Zombie" }] } })
+    assert.equal(withMeta.identity.mint_type.value, "Zombie")
+    assert.equal(withMeta.identity.mint_type.source.ref, "GET /normie/2/metadata (attributes)")
+    const noMeta = buildRecordCard({ ...base, baseTraits: null })
+    assert.equal(noMeta.identity.mint_type.value, "Human")
+    assert.equal(noMeta.identity.mint_type.source.ref, "GET /agents/identity/2")
+  })
+})

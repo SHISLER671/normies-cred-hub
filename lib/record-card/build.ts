@@ -1,6 +1,7 @@
 // Normie record card — pure assembler (no network). Takes what the loader read and returns the card.
 // Every rule that decides a label lives here so it can be tested without the API.
 
+import { traitType, traitsSourceLabel, type SourcedNormieTraits } from "@/lib/normie-traits"
 import type { ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { pendingCanvasSector } from "./canvas"
 import type { ArenaSector, CanvasSector, CardStatus, Field, RecordCard, SourceKind } from "./types"
@@ -16,6 +17,8 @@ export type RecordCardInputs = {
   now: string
   binding: { agentId?: string | number | null; timestamp?: string | number | null; blockNumber?: string | number | null } | null
   identity: { name?: string | null; type?: string | null } | null
+  /** Base traits from the official /metadata (lib/normie-traits.ts). Mint type comes from here; identity.type only as fallback. */
+  baseTraits?: SourcedNormieTraits | null
   canvas: {
     level?: number | null
     actionPoints?: number | null
@@ -110,7 +113,10 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
       agent_id: field(awakened ? agentId : null, "official_api", `GET /agents/binding/${t}`, at, block),
       awakened_at: field(tsSec !== null && awakened ? new Date(tsSec * 1000).toISOString() : null, "official_api", `GET /agents/binding/${t}`, at, block),
       agent_name: field(i.identity?.name || null, "official_api", `GET /agents/identity/${t}`, at),
-      mint_type: field(i.identity?.type || null, "official_api", `GET /agents/identity/${t}`, at),
+      // /agents/identity repeats /normie/{id}/traits, which is wrong for some Normies (Zombie #2 as Human): use /metadata.
+      mint_type: traitType(i.baseTraits)
+        ? field(traitType(i.baseTraits), "official_api", traitsSourceLabel(t, i.baseTraits!.source), at)
+        : field(i.identity?.type || null, "official_api", `GET /agents/identity/${t}`, at),
       is_zombie: field(typeof i.zombie?.info?.isZombie === "boolean" ? i.zombie.info.isZombie : null, "official_api", `GET /normie/${t}/zombie`, at),
       level: field(num(i.canvas?.level), "official_api", `GET /normie/${t}/canvas/info`, at),
       pixels_attached: field(num(i.canvas?.actionPoints), "official_api", `GET /normie/${t}/canvas/info`, at),

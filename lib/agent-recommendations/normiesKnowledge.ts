@@ -146,7 +146,7 @@ export const NORMIES_KNOWLEDGE = {
     lab: "https://www.normies.art/lab",
     endpoints: {
       pixels: "/normie/:id/pixels — 1600-char bitmap string",
-      traits: "/normie/:id/traits — decoded attributes",
+      traits: "/normie/:id/metadata — official attributes (the 8 base traits). Do NOT use /normie/:id/traits or /agents/identity for traits: they disagree with /metadata for some Normies (e.g. #1, #2, #3, #100 are Zombies but /traits says Human)",
       image: "/normie/:id/image.svg — on-chain SVG",
       canvas: "/normie/:id/canvas/info — AP, level, delegate",
     },
