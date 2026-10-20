@@ -98,8 +98,8 @@ export async function enrichOwnedNormies(tokenIds: number[]): Promise<OwnedNormi
     fetchBindingsBatch(tokenIds).catch(() => ({} as BindingBatchResponse["bindings"])),
     Promise.all(
       tokenIds.map(async (id) => {
-        // Type comes from the official /metadata: /agents/identity repeats /traits, which is wrong for some Normies
-        // (Zombie #2 read as Human). Identity is only the fallback.
+        // Current type from the official /metadata. /agents/identity is the mint type (Zombie #2 was minted Human), so it is
+        // only the fallback.
         try {
           const type = traitType(await normiesApi.traits(id))
           if (type) return { tokenId: id, name: `Normie #${id}`, type, traits: {} }

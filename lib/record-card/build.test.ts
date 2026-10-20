@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
 import { loadArenaSector, type ArenaSource } from "./arena"
-import { buildRecordCard, GATE_CLEAN_OWNERSHIP, GATE_REGISTERED, pulseGate, type RecordCardInputs } from "./build"
+import { buildRecordCard, GATE_CLEAN_OWNERSHIP, GATE_REGISTERED, pulseGate, typeDisplay, type RecordCardInputs } from "./build"
 
 const NOW = "2026-10-18T10:00:00.000Z"
 
@@ -137,17 +137,33 @@ describe("Arena plug-in", () => {
   })
 })
 
-describe("mint type comes from the official /metadata, not /agents/identity", () => {
-  it("Zombie #2: metadata Zombie wins over identity Human, with the metadata source", () => {
-    const base = {
-      tokenId: 2, now: "2026-10-20T00:00:00.000Z", binding: null, identity: { name: "Jalar", type: "Human" },
-      canvas: null, owner: null, zombie: { info: { isZombie: true } }, pulse: null, chatRatings: null,
-    } as unknown as Parameters<typeof buildRecordCard>[0]
-    const withMeta = buildRecordCard({ ...base, baseTraits: { raw: "", source: "metadata", attributes: [{ trait_type: "Type", value: "Zombie" }] } })
-    assert.equal(withMeta.identity.mint_type.value, "Zombie")
-    assert.equal(withMeta.identity.mint_type.source.ref, "GET /normie/2/metadata (attributes)")
-    const noMeta = buildRecordCard({ ...base, baseTraits: null })
-    assert.equal(noMeta.identity.mint_type.value, "Human")
-    assert.equal(noMeta.identity.mint_type.source.ref, "GET /agents/identity/2")
+describe("mint type stays the mint type; the current type comes from /metadata", () => {
+  const base = {
+    tokenId: 2, now: "2026-10-20T00:00:00.000Z", binding: null, identity: { name: "Jalar", type: "Human" },
+    canvas: null, owner: null, zombie: { info: { isZombie: true } }, pulse: null, chatRatings: null,
+  } as unknown as RecordCardInputs
+  const meta = (type: string) => ({ raw: "", source: "metadata" as const, attributes: [{ trait_type: "Type", value: type }] })
+
+  it("Zombie #2: minted Human, type Zombie, shown as 'Zombie (minted Human)'", () => {
+    const c = buildRecordCard({ ...base, baseTraits: meta("Zombie") })
+    assert.equal(c.identity.mint_type.value, "Human")
+    assert.equal(c.identity.mint_type.source.ref, "GET /agents/identity/2")
+    assert.equal(c.identity.type?.value, "Zombie")
+    assert.equal(c.identity.type?.source.ref, "GET /normie/2/metadata (attributes)")
+    assert.equal(typeDisplay(c.identity), "Zombie (minted Human)")
+  })
+
+  it("#7141: same type, shown plain", () => {
+    const c = buildRecordCard({ ...base, tokenId: 7141, identity: { name: "Zulo", type: "Human" }, zombie: null, baseTraits: meta("Human") })
+    assert.equal(c.identity.mint_type.value, "Human")
+    assert.equal(c.identity.type?.value, "Human")
+    assert.equal(typeDisplay(c.identity), "Human")
+  })
+
+  it("a /traits fallback is a mint type, never a current type", () => {
+    const c = buildRecordCard({ ...base, identity: null, baseTraits: { raw: "", source: "traits_fallback", attributes: [{ trait_type: "Type", value: "Human" }] } })
+    assert.equal(c.identity.mint_type.value, "Human")
+    assert.equal(c.identity.type?.value, null)
+    assert.equal(typeDisplay(c.identity), "Human")
   })
 })

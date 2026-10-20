@@ -1,9 +1,10 @@
 // The one place NCH reads a Normie's 8 base traits (GrokBot, 2026-10-20).
 //
-// Read from GET /normie/{id}/metadata (the official tokenURI-style metadata). GET /normie/{id}/traits disagrees with it for
-// Zombies: #1, #2, #3 and #100 come back Type=Human there (with the pre-zombie Gender, Hair Style, etc.) while /metadata says
-// Type=Zombie and /normie/{id}/zombie says isZombie: true, so NCH showed Zombie #2 as a Human. /agents/identity/{id} repeats the /traits values, so it is not a source
-// for Type either. /traits is used only when /metadata can't be read, and the result says so (`source: "traits_fallback"`).
+// Read the CURRENT traits from GET /normie/{id}/metadata (the official tokenURI-style metadata). GET /normie/{id}/traits,
+// /agents/identity and /agents/info hold the MINT traits. They differ for Zombies: 21 Normies on 2026-10-20 (#1, #2, #3,
+// #100, ...) were minted Human and are Zombies now (/normie/{id}/zombie says isZombie: true). NCH used the mint traits
+// everywhere, so it showed Zombie #2 as a Human. The mint type still matters (the record card shows "Zombie (minted Human)")
+// and comes from /agents/identity. /traits is used here only when /metadata can't be read, marked `source: "traits_fallback"`.
 //
 // /metadata also carries a base64 SVG image and animation: those are never kept, only the 8 base attributes.
 

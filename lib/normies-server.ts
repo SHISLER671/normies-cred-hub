@@ -62,8 +62,8 @@ export async function enrichOwnedNormiesServer(tokenIds: number[]): Promise<Owne
     fetchBindingsBatchServer(tokenIds).catch(() => ({} as BindingBatchResponse["bindings"])),
     mapLimit(tokenIds, ENRICH_CONCURRENCY, async (id) => {
       if (Date.now() > deadline) return unknown(id)
-      // Type from the official /metadata (lib/normie-traits.ts). /agents/identity repeats /traits, which is wrong for
-      // some Normies (Zombie #2 read as Human), so it is only the fallback.
+      // Current type from the official /metadata (lib/normie-traits.ts). /agents/identity is the mint type (Zombie #2 was
+      // minted Human), so it is only the fallback.
       const type = traitType(await loadNormieTraits(id, serverNormiesJsonWith(ENRICH_CALL_TIMEOUT_MS)))
       if (type) return { tokenId: id, name: `Normie #${id}`, type }
       if (Date.now() > deadline) return unknown(id)

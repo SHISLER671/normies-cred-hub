@@ -76,7 +76,9 @@ async function pixelsAt(tokenId: number, block: number | null): Promise<{ pixels
 export async function loadVoice(tokenId: number, block: number | null): Promise<LoadedVoice | null> {
   const [{ pixels, from }, traits, identity, binding] = await Promise.all([
     pixelsAt(tokenId, block),
-    // Base traits from the official /metadata, /traits only if that fails (lib/normie-traits.ts).
+    // Current traits from the official /metadata, /traits only if that fails (lib/normie-traits.ts). Traits are always the
+    // current ones, even for a block-pinned song: a link pinned before a Normie became a Zombie plays its old pixels with
+    // its Zombie traits. Accepted (Claude review of #140); only the pixels are pinned.
     loadNormieTraits(tokenId, (path) => get(path, true)),
     get(`/agents/identity/${tokenId}`, true) as Promise<{ name?: string | null } | null>,
     get(`/agents/binding/${tokenId}`, true),

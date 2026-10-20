@@ -190,8 +190,11 @@ async function fetchMentionedNormieSnapshot(
       }
     }
 
+    // /metadata was just read above; if it failed, go straight to the /traits fallback instead of reading /metadata again.
+    const read8 = serverNormiesJsonWith(8_000)
     const baseTraits =
-      traitsFromMetadata(metadata) ?? (await loadNormieTraits(tokenId, serverNormiesJsonWith(8_000)))
+      traitsFromMetadata(metadata) ??
+      (await loadNormieTraits(tokenId, (path) => (path.endsWith("/metadata") ? Promise.resolve(null) : read8(path))))
     const traitRecord = {
       ...traitsToRecord(baseTraits ?? traits),
     }
@@ -582,11 +585,15 @@ export async function buildZuloContext(
     pulseSummary = buildPulseSummary(pulseResult.data)
   }
 
-  // The official /metadata traits win. /agents/info repeats /traits, which is wrong for some Normies (Zombie #2 as Human),
-  // so its attributes only fill gaps.
-  const traitRecord = {
+  // The current /metadata traits win. /agents/info holds the mint traits (Zombie #2 was minted Human), so its attributes
+  // only fill gaps, and a different mint type is kept as "Mint type" so Zulo never says a Zombie was minted as one.
+  const traitRecord: Record<string, string | number> = {
     ...(agentInfo?.traits?.attributes ?? {}),
     ...traitsToRecord(traits),
+  }
+  const mintType = agentInfo?.type ?? agentInfo?.traits?.attributes?.Type
+  if (mintType && traitRecord.Type && String(mintType) !== String(traitRecord.Type)) {
+    traitRecord["Mint type"] = String(mintType)
   }
 
   // Prefer rarity attributes if traits endpoint was empty

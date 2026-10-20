@@ -113,10 +113,12 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
       agent_id: field(awakened ? agentId : null, "official_api", `GET /agents/binding/${t}`, at, block),
       awakened_at: field(tsSec !== null && awakened ? new Date(tsSec * 1000).toISOString() : null, "official_api", `GET /agents/binding/${t}`, at, block),
       agent_name: field(i.identity?.name || null, "official_api", `GET /agents/identity/${t}`, at),
-      // /agents/identity repeats /normie/{id}/traits, which is wrong for some Normies (Zombie #2 as Human): use /metadata.
-      mint_type: traitType(i.baseTraits)
-        ? field(traitType(i.baseTraits), "official_api", traitsSourceLabel(t, i.baseTraits!.source), at)
-        : field(i.identity?.type || null, "official_api", `GET /agents/identity/${t}`, at),
+      // Mint type is what it was minted as (/agents/identity, or the /traits fallback: both hold the mint traits). The current
+      // type comes from /metadata only. They differ for Zombies: #2 was minted Human and is a Zombie now.
+      mint_type: i.identity?.type
+        ? field(i.identity.type, "official_api", `GET /agents/identity/${t}`, at)
+        : field(i.baseTraits?.source === "traits_fallback" ? traitType(i.baseTraits) : null, "official_api", `GET /normie/${t}/traits`, at),
+      type: field(i.baseTraits?.source === "metadata" ? traitType(i.baseTraits) : null, "official_api", traitsSourceLabel(t, "metadata"), at),
       is_zombie: field(typeof i.zombie?.info?.isZombie === "boolean" ? i.zombie.info.isZombie : null, "official_api", `GET /normie/${t}/zombie`, at),
       level: field(num(i.canvas?.level), "official_api", `GET /normie/${t}/canvas/info`, at),
       pixels_attached: field(num(i.canvas?.actionPoints), "official_api", `GET /normie/${t}/canvas/info`, at),
@@ -168,4 +170,12 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
     self_reported: [],
     disclaimer: "Track record, not a tip. Read-only. DYOR.",
   }
+}
+
+/** Card text for the type: "Zombie (minted Human)" when the current type differs from the mint type, else just the type. */
+export function typeDisplay(identity: { mint_type: Field<string>; type?: Field<string> }): string | null {
+  const now = identity.type?.value ?? null
+  const minted = identity.mint_type.value ?? null
+  if (now && minted && now !== minted) return `${now} (minted ${minted})`
+  return now ?? minted
 }
