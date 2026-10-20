@@ -26,12 +26,12 @@ const chakraPetch = localFont({
 export const metadata: Metadata = {
   title: 'Normies CredHub — Verifiable Reputation for Awakened Agents',
   description:
-    'Normies CredHub: verifiable reputation and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn, with Zulo as high-signal concierge.',
+    'Normies CredHub: verifiable reputation and tools for awakened Normies agents. Ask · Burn · Moves · Pixels · Pulse · Symphony, with Zulo as high-signal concierge.',
   metadataBase: new URL(DEFAULT_SITE_ORIGIN),
   openGraph: {
     title: 'Normies CredHub',
     description:
-      'Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn.',
+      'Verifiable reputation layer and tools for awakened Normies agents. Ask · Burn · Moves · Pixels · Pulse · Symphony.',
     url: DEFAULT_SITE_ORIGIN,
     images: [{ url: '/og.png', width: 1200, height: 630 }],
   },
