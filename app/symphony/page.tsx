@@ -37,6 +37,7 @@ export default async function SymphonyPage({ searchParams }: Props) {
   return (
     <div className="zulo-chrome symphony-page">
       <ZuloChromeHeader
+        active="symphony"
         trailing={
           <span style={{ display: "inline-flex", alignItems: "center" }}>
             <ConnectWallet />

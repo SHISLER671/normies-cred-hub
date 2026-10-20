@@ -9,7 +9,7 @@ import { ZULO_IDENTITY } from "@/lib/agent-recommendations/constants"
 import { cn } from "@/lib/utils"
 
 type ZuloChromeHeaderProps = {
-  active?: "home" | "ask" | "paths" | "moves" | "dashboard" | "burn" | "pixels"
+  active?: "home" | "ask" | "paths" | "moves" | "dashboard" | "burn" | "pixels" | "symphony"
   className?: string
   trailing?: React.ReactNode
   fixed?: boolean
@@ -45,33 +45,38 @@ export function ZuloChromeHeader({
       </Link>
       <HeaderMenuToggle navId="site-nav" />
       <nav id="site-nav" className="header-nav" aria-label="Primary">
-        <Link
-          href="/dashboard"
-          className={cn(active === "dashboard" && "is-active")}
-        >
-          PULSE
-        </Link>
+        {/* A to Z (Ryan, 2026-10-20); the landing page's tool cells use the same names and order. */}
         <Link
           href="/ask"
           className={cn("nav-ask", active === "ask" && "is-active")}
         >
           Ask
         </Link>
-        <Link href="/paths" className={cn(movesActive && "is-active")}>
-          Moves
-        </Link>
         <Link href="/burn" className={cn(active === "burn" && "is-active")}>
           Burn
         </Link>
+        <Link href="/paths" className={cn(movesActive && "is-active")}>
+          Moves
+        </Link>
         <Link href="/pixels" className={cn(active === "pixels" && "is-active")}>
           Pixels
+        </Link>
+        <Link
+          href="/dashboard"
+          className={cn(active === "dashboard" && "is-active")}
+        >
+          Pulse
+        </Link>
+        <Link href="/symphony" className={cn(active === "symphony" && "is-active")}>
+          Symphony
         </Link>
         <a
           href={`https://www.normies.art/lab/agentic/agents/${ZULO_IDENTITY.agentId}`}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Zulo's agent page on normies.art (opens in a new tab)"
         >
-          View on Normies →
+          <span className="nav-ext-who">Zulo on&nbsp;</span>normies.art ↗
         </a>
         {showActiveNormie ? <ActiveNormieSwitcher /> : null}
         <ThemeToggle />

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 
 /**
- * The phone/tablet Menu button for ZuloChromeHeader. Below 1180px the header is one compact row (wordmark + this button)
+ * The phone/tablet Menu button for ZuloChromeHeader. Below 1280px the header is one compact row (wordmark + this button)
  * and the nav, wallet and theme live in a panel this opens. Progressive: without JavaScript the header never gets
  * `js-menu`, so the nav simply stays visible.
  */

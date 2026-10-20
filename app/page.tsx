@@ -29,7 +29,28 @@ const OFFICIAL_SURFACES = [
   { name: "Pixel Market", status: SURFACE_TAGS.pixelMarket },
 ] as const
 
+/** CredHub's own pages, A to Z, named as in the site menu (Ryan, 2026-10-20). Record Card is per agent, so it is not in the menu. */
 const CREDHUB_SURFACES = [
+  {
+    name: "ASK",
+    href: "/ask",
+    line: "High-signal concierge for the active Normie.",
+  },
+  {
+    name: "BURN",
+    href: "/burn",
+    line: "Burn or keep? Your best moves for revenue share. Look twice, burn once.",
+  },
+  {
+    name: "MOVES",
+    href: "/paths",
+    line: "Ranked next steps you can try.",
+  },
+  {
+    name: "PIXELS",
+    href: "/pixels",
+    line: "Does this Normie still have its pixels? Read live from the chain, before you buy.",
+  },
   {
     name: "PULSE",
     href: "/dashboard",
@@ -41,40 +62,20 @@ const CREDHUB_SURFACES = [
     line: "One shareable page per agent. Every value labelled with its source.",
   },
   {
-    name: "ASK",
-    href: "/ask",
-    line: "High-signal concierge for the active Normie.",
-  },
-  {
-    name: "MOVES",
-    href: "/paths",
-    line: "Ranked next steps you can try.",
-  },
-  {
-    name: "PIXEL CHECK",
-    href: "/pixels",
-    line: "Does this Normie still have its pixels? Read live from the chain, before you buy.",
-  },
-  {
-    name: "PIXEL SYMPHONY",
+    name: "SYMPHONY",
     href: "/symphony",
     line: "Hear any Normie: its live pixels and traits as a song. Nothing to mint.",
-  },
-  {
-    name: "BURN",
-    href: "/burn",
-    line: "Burn or keep? Your best moves for revenue share. Look twice, burn once.",
   },
 ] as const
 
 export const metadata: Metadata = {
   title: "Normies CredHub — Verifiable Reputation for Awakened Agents",
   description:
-    "Normies CredHub: check any awakened Normie agent's live trust, read from Ethereum. Pulse, record cards, Ask, Moves, Pixel Check and Burn, run by Zulo (Agent #32626).",
+    "Normies CredHub: check any awakened Normie agent's live trust, read from Ethereum. Ask, Burn, Moves, Pixels, Pulse, record cards and Symphony, run by Zulo (Agent #32626).",
   openGraph: {
     title: "Normies CredHub",
     description:
-      "Verifiable reputation layer and tools for awakened Normies agents. PULSE · Ask · Moves · Pixel Check · Burn.",
+      "Verifiable reputation layer and tools for awakened Normies agents. Ask · Burn · Moves · Pixels · Pulse · Symphony.",
     url: "/",
     images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
