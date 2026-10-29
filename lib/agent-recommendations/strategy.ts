@@ -194,16 +194,6 @@ export async function buildStrategySnapshot(input: {
   }
   if (burnEfficiency?.scanned) {
     summaryLines.push(burnEfficiency.summary)
-    if (burnEfficiency.topCandidates.length) {
-      summaryLines.push(
-        `Efficiency top 5 (token | price ETH | est AP | AP/ETH): ${burnEfficiency.topCandidates
-          .map(
-            (c) =>
-              `#${c.tokenId} | ${c.floorPriceETH} | ~${c.estimatedAP} | ${c.efficiencyScore}`,
-          )
-          .join(" · ")}`,
-      )
-    }
   }
   if (marketSentinel?.scanned) {
     summaryLines.push(marketSentinel.summary)
@@ -213,21 +203,6 @@ export async function buildStrategySnapshot(input: {
   }
   if (gachaRaffle?.scanned) {
     summaryLines.push(gachaRaffle.summary)
-    if (gachaRaffle.positiveEv.length) {
-      summaryLines.push(
-        `+EV opportunities: ${gachaRaffle.positiveEv
-          .slice(0, 5)
-          .map((p) => `${p.kind}:${p.name} ${p.evRatio.toFixed(2)}×`)
-          .join(" · ")}`,
-      )
-    }
-    if (gachaRaffle.apAllocation.lines.length) {
-      summaryLines.push(
-        `AP allocation plan: ${gachaRaffle.apAllocation.lines
-          .map((l) => `${l.opportunityName}=${l.suggestedAp}AP`)
-          .join("; ")}`,
-      )
-    }
   }
   if (canvasEvolution?.scanned) {
     summaryLines.push(canvasEvolution.summary)

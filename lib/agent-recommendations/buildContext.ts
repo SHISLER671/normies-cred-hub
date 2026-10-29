@@ -783,7 +783,7 @@ export async function buildZuloContext(
 
   const nextSteps = isGeneralMode
     ? [
-        "General mode: no Active Normie scoped — answer collection-level questions; ask for token IDs when burn/hold needs specifics.",
+        "General mode: no Active Normie scoped — answer collection-level questions with plain facts. For burn or buy questions: See /burn for a vibe check (not financial advice).",
         `Zulo identity: I hold #${ZULO_IDENTITY.tokenId} untouched (speaker posture — not the visitor's token unless they name it or connect).`,
         `Community tools: Multisend (${ECOSYSTEM_LINKS.multisend}), Normifier (${ECOSYSTEM_LINKS.normifier}), API (${ECOSYSTEM_LINKS.api}).`,
         `PULSE tool: ${ECOSYSTEM_LINKS.credHubPulseTool}`,
@@ -837,37 +837,21 @@ export async function buildZuloContext(
   if (strategy.burnReasoning || strategy.floorSnapshot) {
     nextSteps.push(BURN_POINTER)
   }
-  if (strategy.burnEfficiency?.scanned && strategy.burnEfficiency.topCandidates.length) {
-    const top = strategy.burnEfficiency.topCandidates
-      .slice(0, 5)
-      .map(
-        (c) =>
-          `#${c.tokenId} (~${c.estimatedAP} AP @ ${c.floorPriceETH} ETH → ${c.efficiencyScore} AP/ETH)`,
-      )
-      .join("; ")
-    nextSteps.unshift(
-      `Burn Efficiency Optimizer top candidates: ${top}. ${strategy.burnEfficiency.disclaimer}`,
-    )
+  // AGENTS.md: no burn rankings (AP per ETH) on Pulse / Ask Zulo — point to /burn.
+  if (strategy.burnEfficiency?.scanned && !nextSteps.includes(BURN_POINTER)) {
+    nextSteps.push(BURN_POINTER)
   }
   if (strategy.marketSentinel?.scanned) {
     const ms = strategy.marketSentinel
     nextSteps.unshift(
       `PIXEL MARKET Sentinel: ${ms.brief.headline}. Trend ${ms.brief.trend}. ${ms.whaleActivity.summary}`,
     )
-    for (const rec of ms.positionRecommendations.slice(0, 2)) {
-      nextSteps.push(`Market position: ${rec}`)
-    }
   }
   if (strategy.gachaRaffle?.scanned) {
     const gr = strategy.gachaRaffle
     nextSteps.unshift(
-      `Gacha & Raffle Intelligence (${gr.dataStatus}): ${gr.positiveEv.length} +EV / ${gr.highValueRaffles.length} high-value raffles. ${gr.apAllocation.note}`,
+      `Gacha & Raffle (${gr.dataStatus}): ${gr.gachaPools.length} pools / ${gr.raffles.length} raffles in feed (counts only, no value calls). ${gr.disclaimer}`,
     )
-    for (const line of gr.apAllocation.lines.slice(0, 2)) {
-      nextSteps.push(
-        `AP plan: ${line.suggestedAp} AP → ${line.opportunityName} (${line.kind}, EV ${line.evRatio.toFixed(2)}×)`,
-      )
-    }
   }
   if (strategy.canvasEvolution?.scanned) {
     const ce = strategy.canvasEvolution
