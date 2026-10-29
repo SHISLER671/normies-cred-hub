@@ -374,7 +374,7 @@ function FinePrint({ result }: { result: BurnBuyResult }) {
           )}
           <li><strong>This page is look-only.</strong> It reads public blockchain data. It cannot sign, spend, approve or move anything. We will never ask for your seed phrase. If any site or person asks you to sign something to &quot;verify&quot; or &quot;claim&quot;, walk away.</li>
           <li><strong>Values can go up or down, and no one knows the future.</strong> This page is a vibe check. Don&apos;t take our word for it: check the numbers yourself.</li>
-          <li><strong>This is not financial advice.</strong> Nothing here is a promise of profit. The revenue-share pool changes, and past payouts do not predict future ones.</li>
+          <li><strong>This is not financial advice.</strong> Nothing here is a promise of profit. Past results don't predict future ones.</li>
           {result.marketState === "live" ? (
             <li><strong>This page does not read live #PIXEL prices yet.</strong> Pixel Market is open, but moves here are ranked by score, not by value. The prices in the official demo (for example 0.016 ETH per #PIXEL) were labelled &quot;sample numbers from the demo, not real prices&quot;. Please do not quote them.</li>
           ) : (
