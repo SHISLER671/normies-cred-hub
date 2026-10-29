@@ -23,7 +23,7 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 - Cron/operator routes check only `isAuthorizedCron` (bearer secret, constant time). The `x-vercel-cron` header is not proof.
 - Pulse signals must not be buyable: anything counted toward a level counts distinct callers, never raw calls.
 - Every `SECURITY DEFINER` function in Supabase's `public` schema needs `revoke execute ... from public, anon, authenticated` in its SQL file.
-- **Public on-chain data only.** Show what is public on-chain; an ENS name counts as public and is preferred over an address. Shorten addresses by default (`0x1234…abcd`), never type them out in full in UI copy, and never link a wallet to a social profile (X, Farcaster, Discord) or a real person's name. Share cards must let the viewer hide wallet and ENS details before the image is generated.
+- **Public on-chain data only.** Show what is public on-chain; an ENS name counts as public and is preferred over an address. Shorten addresses by default (`0x1234…abcd`), never type them out in full in UI copy, and never link a wallet to a social profile (X, Farcaster, Discord) or a real person's name. If a share card ever shows wallet or ENS details, it must let the viewer hide them before the image is generated.
 - **No comms.** NCH never messages, emails, DMs or notifies any wallet or person, and never contacts buyers, sellers or holders. No contact forms, outreach, comments or user-to-user messaging; nothing that would need moderating.
 
 ## Product rules
