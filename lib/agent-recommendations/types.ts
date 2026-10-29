@@ -125,8 +125,8 @@ export interface ZuloRecommendationContext {
   platformContext?: {
     currentTime: string
     recentMarketTrends?: string
-    /** Contextual earning / utility hints derived from live data */
-    earningOpportunities?: string[]
+    /** Contextual next-step / utility hints derived from live data (never burn/buy calls — those live on /burn) */
+    nextSteps?: string[]
     rarityRank?: number | null
     rarityScore?: number | null
     fairValue?: number | string | null

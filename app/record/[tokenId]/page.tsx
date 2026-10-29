@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { PulseTrace } from "@/components/pulse-trace"
 import { RecordShare } from "@/components/record-share"
+import { publicClient } from "@/lib/viem-client"
 import { symphonyPath } from "@/lib/symphony/pin"
 import { pulseBeats } from "@/lib/pulse/beats"
 import { parseTokenId } from "@/lib/api/agent-pulse"
@@ -43,12 +44,29 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  * tooltip and the Etherscan link. The JSON API keeps full addresses (record-card-spec: `owner` is an `address`, public
  * on-chain data).
  */
-function AddressLink({ address }: { address: string }) {
+function AddressLink({ address, ens }: { address: string; ens?: string | null }) {
   return (
-    <a href={etherscanAddress(address)} target="_blank" rel="noopener noreferrer" className="mono" title={address}>
-      {shortenAddress(address, 4)}
+    <a href={etherscanAddress(address)} target="_blank" rel="noopener noreferrer" className="mono" title={ens ?? address}>
+      {ens ?? shortenAddress(address, 4)}
     </a>
   )
+}
+
+/**
+ * Primary ENS name for an address (public, published on-chain by the owner), or null. Best effort: 2.5s timeout,
+ * any error → null, so the page falls back to the short address.
+ */
+async function ensNameFor(address: string | null | undefined): Promise<string | null> {
+  if (!address) return null
+  try {
+    const name = await Promise.race([
+      publicClient.getEnsName({ address: address as `0x${string}` }),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500)),
+    ])
+    return name ?? null
+  } catch {
+    return null
+  }
 }
 
 /** A field's value, or its label in plain words when there is no value. */
@@ -71,6 +89,10 @@ export default async function RecordCardPage({ params }: Params) {
 
   const card = await loadRecordCard(tokenId)
   const { identity, context, pulse, sectors, chat_rating: chat } = card
+  const [ownerEns, delegateEns] = await Promise.all([
+    ensNameFor(context.owner.value),
+    ensNameFor(context.canvas_delegate.value),
+  ])
   const name = identity.agent_name.value ?? `Normie #${tokenId}`
   const arena = sectors.arena
   const canvas = sectors.canvas
@@ -190,11 +212,11 @@ export default async function RecordCardPage({ params }: Params) {
           <dl className="rc-dl">
             <div>
               <dt>Owner</dt>
-              <dd>{context.owner.value ? <AddressLink address={context.owner.value} /> : show(context.owner)}</dd>
+              <dd>{context.owner.value ? <AddressLink address={context.owner.value} ens={ownerEns} /> : show(context.owner)}</dd>
             </div>
             <div>
               <dt>Canvas delegate</dt>
-              <dd>{context.canvas_delegate.value ? <AddressLink address={context.canvas_delegate.value} /> : context.canvas_delegate.label === "verified" ? "None" : show(context.canvas_delegate)}</dd>
+              <dd>{context.canvas_delegate.value ? <AddressLink address={context.canvas_delegate.value} ens={delegateEns} /> : context.canvas_delegate.label === "verified" ? "None" : show(context.canvas_delegate)}</dd>
             </div>
             <div>
               <dt>Canvas</dt>

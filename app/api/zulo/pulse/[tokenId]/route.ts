@@ -67,7 +67,8 @@ export async function GET(
       },
       credHub: ctx.platformContext?.pulse,
       pulseSummary: ctx.platformContext?.pulseSummary,
-      recommendations: ctx.platformContext?.earningOpportunities ?? [],
+      // Public response field name kept as `recommendations` for API compatibility.
+      recommendations: ctx.platformContext?.nextSteps ?? [],
       lastUpdated: ctx.platformContext?.currentTime ?? new Date().toISOString(),
     }
 

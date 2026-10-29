@@ -38,6 +38,9 @@ import type {
   ZuloRecommendationContext,
 } from "./types"
 
+/** AGENTS.md: other surfaces never give a burn/buy call; they may only point to /burn. */
+export const BURN_POINTER = "See /burn for a vibe check (not financial advice)."
+
 type BuildContextParams = {
   normieId?: number
   sessionHistory?: Array<{ userMessage: string; zuloResponse: string }>
@@ -778,7 +781,7 @@ export async function buildZuloContext(
     isPremiumFocus: isGeneralMode ? false : focusComboForStrategy.isPremium,
   })
 
-  const earningOpportunities = isGeneralMode
+  const nextSteps = isGeneralMode
     ? [
         "General mode: no Active Normie scoped — answer collection-level questions; ask for token IDs when burn/hold needs specifics.",
         `Zulo identity: I hold #${ZULO_IDENTITY.tokenId} untouched (speaker posture — not the visitor's token unless they name it or connect).`,
@@ -801,7 +804,7 @@ export async function buildZuloContext(
   // Surface multi-token snapshots in opportunities when user named IDs
   for (const m of mentionedNormies) {
     if (!m.fetchOk) {
-      earningOpportunities.unshift(
+      nextSteps.unshift(
         `Token #${m.tokenId}: live fetch failed (${m.fetchError ?? "unknown"}) — check ${m.rarityUrl ?? ECOSYSTEM_LINKS.rarity} or OpenSea; do not invent pixels/traits.`,
       )
       continue
@@ -810,30 +813,29 @@ export async function buildZuloContext(
       .slice(0, 6)
       .map(([k, v]) => `${k}=${v}`)
       .join(", ")
-    earningOpportunities.unshift(
+    nextSteps.unshift(
       `Token #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.burnApEstimate ? ` · burn band ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traitBits ? ` · traits: ${traitBits}` : ""}`,
     )
   }
 
   if (strategy.traitAdvice?.isPremium) {
-    earningOpportunities.unshift(`Strategy: ${strategy.traitAdvice.advice}`)
+    nextSteps.unshift(`Strategy: ${strategy.traitAdvice.advice}`)
   }
   if (burnApFromPixels && resolvedPixelCount != null && !isGeneralMode) {
-    earningOpportunities.unshift(
+    nextSteps.unshift(
       `Pixel-tier burn estimate (focus #${tokenId}): ${resolvedPixelCount} on-pixels (tier ${burnApFromPixels.tier.label}, ${burnApFromPixels.tier.minPct}–${burnApFromPixels.tier.maxPct}%) → theoretical ${burnApFromPixels.minAp}–${burnApFromPixels.maxAp} AP before reveal RNG`,
     )
   }
   if (strategy.apEstimateForFocus) {
     const e = strategy.apEstimateForFocus
-    earningOpportunities.unshift(
+    nextSteps.unshift(
       `Burn AP estimate (history band): ~${e.median} AP (range ${e.min}–${e.max}, confidence ${e.confidence}, n=${e.sampleSize})`,
     )
   }
-  if (strategy.burnReasoning) {
-    earningOpportunities.push(`Wallet burns: ${strategy.burnReasoning}`)
-  }
-  if (strategy.floorSnapshot) {
-    earningOpportunities.unshift(strategy.floorSnapshot.snapshotLine)
+  // AGENTS.md: burn/buy views are fenced to /burn. No wallet-burn reasoning or
+  // floor-price line here — one plain pointer instead.
+  if (strategy.burnReasoning || strategy.floorSnapshot) {
+    nextSteps.push(BURN_POINTER)
   }
   if (strategy.burnEfficiency?.scanned && strategy.burnEfficiency.topCandidates.length) {
     const top = strategy.burnEfficiency.topCandidates
@@ -843,26 +845,26 @@ export async function buildZuloContext(
           `#${c.tokenId} (~${c.estimatedAP} AP @ ${c.floorPriceETH} ETH → ${c.efficiencyScore} AP/ETH)`,
       )
       .join("; ")
-    earningOpportunities.unshift(
+    nextSteps.unshift(
       `Burn Efficiency Optimizer top candidates: ${top}. ${strategy.burnEfficiency.disclaimer}`,
     )
   }
   if (strategy.marketSentinel?.scanned) {
     const ms = strategy.marketSentinel
-    earningOpportunities.unshift(
+    nextSteps.unshift(
       `PIXEL MARKET Sentinel: ${ms.brief.headline}. Trend ${ms.brief.trend}. ${ms.whaleActivity.summary}`,
     )
     for (const rec of ms.positionRecommendations.slice(0, 2)) {
-      earningOpportunities.push(`Market position: ${rec}`)
+      nextSteps.push(`Market position: ${rec}`)
     }
   }
   if (strategy.gachaRaffle?.scanned) {
     const gr = strategy.gachaRaffle
-    earningOpportunities.unshift(
+    nextSteps.unshift(
       `Gacha & Raffle Intelligence (${gr.dataStatus}): ${gr.positiveEv.length} +EV / ${gr.highValueRaffles.length} high-value raffles. ${gr.apAllocation.note}`,
     )
     for (const line of gr.apAllocation.lines.slice(0, 2)) {
-      earningOpportunities.push(
+      nextSteps.push(
         `AP plan: ${line.suggestedAp} AP → ${line.opportunityName} (${line.kind}, EV ${line.evRatio.toFixed(2)}×)`,
       )
     }
@@ -870,17 +872,17 @@ export async function buildZuloContext(
   if (strategy.canvasEvolution?.scanned) {
     const ce = strategy.canvasEvolution
     if (ce.preview) {
-      earningOpportunities.unshift(
+      nextSteps.unshift(
         `Canvas Preview #${ce.preview.tokenId}: ${ce.preview.recommendation} (${ce.preview.confidence}% confidence) · ${ce.preview.before.pixelCountOn}→${ce.preview.after.pixelCountOn} on-px · ${ce.preview.costBreakdown.totalFlips} px official #PIXEL budget (not an AP debit)`,
       )
     }
     if (ce.expansion) {
-      earningOpportunities.push(
+      nextSteps.push(
         `80×80 expansion readiness #${ce.expansion.tokenId}: ${ce.expansion.readinessScore}/100 — ${ce.expansion.recommendation}`,
       )
     }
     if (ce.watch?.alerts.length) {
-      earningOpportunities.push(
+      nextSteps.push(
         `Canvas Watch alerts: ${ce.watch.alerts
           .slice(0, 3)
           .map((a) => a.message)
@@ -1021,7 +1023,7 @@ export async function buildZuloContext(
       subjectScope,
       mentionedNormies,
       recentMarketTrends: buildMarketTrends(historyStats),
-      earningOpportunities,
+      nextSteps,
       rarityRank,
       rarityScore,
       fairValue: rarityData?.fairValue ?? null,
