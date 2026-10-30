@@ -29,10 +29,9 @@ type ChatMessage = {
 /** Optional skill prompts — collapsed by default, nearly hidden. */
 const QUICK_PROMPTS = [
   { label: "Analyze PULSE", prompt: "Analyze my PULSE" },
-  { label: "Scan burns", prompt: "scan burns" },
   { label: "Market status", prompt: "market status" },
   { label: "Preview canvas", prompt: "preview canvas add 12 pixels" },
-  { label: "Gacha odds", prompt: "gacha odds" },
+  { label: "Gacha status", prompt: "gacha status" },
   { label: "80×80 readiness", prompt: "80x80 expansion readiness" },
   { label: "Raise my Level", prompt: "How do I raise my Normie's Level (action points) strategically?" },
 ] as const

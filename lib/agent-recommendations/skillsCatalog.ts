@@ -25,16 +25,6 @@ export interface ZuloSkillDef {
 /** On-demand strategy skills users can trigger from /ask. */
 export const ZULO_STRATEGY_SKILLS: ZuloSkillDef[] = [
   {
-    id: "burn-efficiency",
-    name: "Burn Efficiency Optimizer",
-    chip: "Scan burns",
-    prompt: "scan burns",
-    description: "Top burn fodder by expected AP per ETH (OpenSea floor + Normies history).",
-    triggers: ["scan burns", "burn efficiency", "burn opportunit"],
-    status: "live",
-    endpoint: "/api/zulo/ask",
-  },
-  {
     id: "market-sentinel",
     name: "PIXEL MARKET Sentinel",
     chip: "Market status",
@@ -46,11 +36,11 @@ export const ZULO_STRATEGY_SKILLS: ZuloSkillDef[] = [
   },
   {
     id: "gacha-raffle",
-    name: "Gacha & Raffle Intelligence",
-    chip: "Gacha odds",
-    prompt: "gacha odds",
-    description: "EV for gacha/raffles, pity, qualification, AP allocation (feeds when live).",
-    triggers: ["gacha odds", "raffle value", "should i pull", "best raffle"],
+    name: "Gacha & Raffle Status",
+    chip: "Gacha status",
+    prompt: "gacha status",
+    description: "Gacha/raffle feed status, pool and raffle counts, pity and qualification (facts only, feeds when live).",
+    triggers: ["gacha status", "raffle status", "gacha odds", "raffle"],
     status: "partial",
     endpoint: "/api/zulo/ask",
   },

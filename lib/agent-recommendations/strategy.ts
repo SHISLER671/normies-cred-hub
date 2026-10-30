@@ -3,18 +3,13 @@
 
 import {
   estimateAPYield,
-  findBurnCandidates,
   getBurnMarketNotes,
   normalizeType,
   tierFromRank,
   type APYieldEstimate,
   type OwnedNormieSnapshot,
 } from "./burnData"
-import {
-  isBurnEfficiencyQuery,
-  scanBurnEfficiency,
-  type BurnEfficiencyResult,
-} from "./burnEfficiency"
+import { isBurnEfficiencyQuery } from "./burnEfficiency"
 import {
   fetchFloorSnapshot,
   isFloorMarketBurnQuery,
@@ -45,15 +40,11 @@ import { analyzeTraitCombo, type TraitComboAdvice } from "./traitAnalysis"
 export interface StrategySnapshot {
   apEstimateForFocus?: APYieldEstimate
   traitAdvice?: TraitComboAdvice
-  burnCandidates?: OwnedNormieSnapshot[]
-  keepCandidates?: OwnedNormieSnapshot[]
-  burnReasoning?: string
   acquisition?: AcquisitionAnalysis
   burnMarketNotes?: string
   floorsNote?: string
   /** Live Moralis/OpenSea + Supabase history floor context (burn/market/floor intents) */
   floorSnapshot?: FloorSnapshot
-  burnEfficiency?: BurnEfficiencyResult
   marketSentinel?: MarketSentinelResult
   gachaRaffle?: GachaRaffleResult
   canvasEvolution?: CanvasEvolutionResult
@@ -115,7 +106,6 @@ export async function buildStrategySnapshot(input: {
     acquisition,
     burnMarketNotes,
     floorSnapshot,
-    burnEfficiency,
     marketSentinel,
     gachaRaffle,
     canvasEvolution,
@@ -125,11 +115,6 @@ export async function buildStrategySnapshot(input: {
     getBurnMarketNotes(),
     needsFloorSnapshot
       ? fetchFloorSnapshot({ historyDays: 7 })
-      : Promise.resolve(undefined),
-    runEfficiency
-      ? scanBurnEfficiency({
-          ownedTokenIds: input.owned?.map((o) => o.tokenId),
-        })
       : Promise.resolve(undefined),
     runSentinel ? runMarketSentinel() : Promise.resolve(undefined),
     runGacha
@@ -152,20 +137,8 @@ export async function buildStrategySnapshot(input: {
       : Promise.resolve(undefined),
   ])
 
-  let burnCandidates: OwnedNormieSnapshot[] | undefined
-  let keepCandidates: OwnedNormieSnapshot[] | undefined
-  let burnReasoning: string | undefined
-
-  if (input.owned && input.owned.length > 0) {
-    const ownedTagged = input.owned.map((o) => ({
-      ...o,
-      isPremiumCombo: o.isPremiumCombo ?? false,
-    }))
-    const result = findBurnCandidates(ownedTagged)
-    burnCandidates = result.burnCandidates
-    keepCandidates = result.keepCandidates
-    burnReasoning = result.reasoning
-  }
+  // AGENTS.md: burn/buy views are fenced to /burn. No wallet burn/keep
+  // ranking or AP-per-ETH optimizer is computed for Pulse / Ask Zulo.
 
   const summaryLines: string[] = []
 
@@ -186,48 +159,27 @@ export async function buildStrategySnapshot(input: {
     FLOORS_NOTE,
   )
 
-  if (burnReasoning) summaryLines.push(burnReasoning)
-  if (burnCandidates?.length) {
-    summaryLines.push(
-      `Burn candidates (token IDs): ${burnCandidates.map((b) => `#${b.tokenId}`).join(", ")}`,
-    )
-  }
-  if (burnEfficiency?.scanned) {
-    summaryLines.push(burnEfficiency.summary)
-    if (burnEfficiency.topCandidates.length) {
-      summaryLines.push(
-        `Efficiency top 5 (token | price ETH | est AP | AP/ETH): ${burnEfficiency.topCandidates
-          .map(
-            (c) =>
-              `#${c.tokenId} | ${c.floorPriceETH} | ~${c.estimatedAP} | ${c.efficiencyScore}`,
-          )
-          .join(" · ")}`,
-      )
-    }
-  }
   if (marketSentinel?.scanned) {
-    summaryLines.push(marketSentinel.summary)
+    // Drop position calls and arbitrage "opportunity" lines — facts only.
+    summaryLines.push(
+      marketSentinel.summary
+        .split("\n")
+        .filter(
+          (l) =>
+            !l.startsWith("Positions:") &&
+            l !== marketSentinel.arbitrage.opportunity,
+        )
+        .join("\n"),
+    )
     summaryLines.push(
       `Market state: floor=${marketSentinel.marketState.floorETH ?? "n/a"} ETH, Δfloor=${marketSentinel.marketState.floorChangePct ?? "n/a"}%, burnRatio=${marketSentinel.marketState.burnVolumeRatio ?? "n/a"}x, whales=${marketSentinel.signals.whaleCount}, AP market=${marketSentinel.marketState.apMarketStatus}`,
     )
   }
   if (gachaRaffle?.scanned) {
-    summaryLines.push(gachaRaffle.summary)
-    if (gachaRaffle.positiveEv.length) {
-      summaryLines.push(
-        `+EV opportunities: ${gachaRaffle.positiveEv
-          .slice(0, 5)
-          .map((p) => `${p.kind}:${p.name} ${p.evRatio.toFixed(2)}×`)
-          .join(" · ")}`,
-      )
-    }
-    if (gachaRaffle.apAllocation.lines.length) {
-      summaryLines.push(
-        `AP allocation plan: ${gachaRaffle.apAllocation.lines
-          .map((l) => `${l.opportunityName}=${l.suggestedAp}AP`)
-          .join("; ")}`,
-      )
-    }
+    // Facts only: feed status and pool/raffle counts. No +EV picks or AP plan.
+    summaryLines.push(
+      `Gacha & Raffle status (${gachaRaffle.dataStatus}): ${gachaRaffle.gachaPools.length} gacha pool(s), ${gachaRaffle.raffles.length} raffle(s) in feed. ${gachaRaffle.disclaimer}`,
+    )
   }
   if (canvasEvolution?.scanned) {
     summaryLines.push(canvasEvolution.summary)
@@ -247,14 +199,10 @@ export async function buildStrategySnapshot(input: {
   return {
     apEstimateForFocus,
     traitAdvice,
-    burnCandidates,
-    keepCandidates,
-    burnReasoning,
     acquisition,
     burnMarketNotes,
     floorsNote: FLOORS_NOTE,
     floorSnapshot,
-    burnEfficiency,
     marketSentinel,
     gachaRaffle,
     canvasEvolution,
