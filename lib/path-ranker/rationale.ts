@@ -39,14 +39,12 @@ function skillRationale(
       return subject.gaps?.length
         ? `CredHub Pulse is the spine here — gaps still open: ${subject.gaps.slice(0, 2).join("; ")}. Run PULSE analysis before chasing side quests.`
         : `Your ${pulseNote} is the cleanest read on trust state. Start with PULSE analysis, then pick a specialist path.`
-    case "burn-efficiency":
-      return `Burn efficiency ranks fodder by expected AP per ETH — not vibes. Intent “${intent.primary}” → scan before you light anything up (${pulseNote}).`
     case "market-sentinel":
       return `Market Sentinel frames floor Δ, burn spikes, and whale clusters. Use it when “${intent.primary}” means don't fly blind on listings.`
     case "canvas-evolution":
       return `Canvas Evolution previews transforms and flags PROCEED/MODIFY/ABANDON — not an AP spend. Right move when the job is pixels, not chatter (${pulseNote}).`
     case "gacha-raffle":
-      return `Gacha/raffle EV is partial until live feeds are dense — treat it as a framing pass, not a guarantee.`
+      return `Gacha/raffle status is partial until live feeds are dense — counts and rules only, not a value call.`
     default:
       return `Zulo path: ${candidate.title} for intent “${intent.primary}” (${pulseNote}). Matcher only — not a chat thread.`
   }

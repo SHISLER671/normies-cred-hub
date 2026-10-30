@@ -194,7 +194,8 @@ describe("candidates (no network)", () => {
   it("includes Zulo skills and excludes holder-chat", () => {
     const intent = parseIntent({ intentTag: "burn" })
     const skills = candidatesFromSkills(intent, 7141)
-    assert.ok(skills.some((c) => c.skillId === "burn-efficiency"))
+    // AGENTS.md: burn rankings are fenced to /burn — no burn-efficiency skill.
+    assert.ok(!skills.some((c) => c.skillId === "burn-efficiency"))
     assert.ok(skills.some((c) => c.skillId === "pulse-analysis"))
     assert.ok(!skills.some((c) => c.skillId === "holder-chat"))
     assert.ok(skills.every((c) => c.publisher.name === "Zulo"))
@@ -208,11 +209,11 @@ describe("candidates (no network)", () => {
     assert.equal(pulse!.nextStep.method, "GET")
     assert.equal(pulse!.nextStep.executable, true)
     assert.match(pulse!.nextStep.endpoint ?? "", /\/api\/agent\/7141\/pulse/)
-    const burn = skills.find((c) => c.skillId === "burn-efficiency")
-    assert.ok(burn)
-    assert.equal(burn!.nextStep.method, "POST")
-    assert.equal(burn!.nextStep.executable, true)
-    assert.match(burn!.nextStep.endpoint ?? "", /\/api\/zulo\/paths/)
+    const sentinel = skills.find((c) => c.skillId === "market-sentinel")
+    assert.ok(sentinel)
+    assert.equal(sentinel!.nextStep.method, "POST")
+    assert.equal(sentinel!.nextStep.executable, true)
+    assert.match(sentinel!.nextStep.endpoint ?? "", /\/api\/zulo\/paths/)
   })
 
   it("returns capped Normies tool candidates", () => {

@@ -1,13 +1,13 @@
-// GET /api/zulo/history — floor price trends + burn opportunity history (Supabase).
+// GET /api/zulo/history — floor price trends (Supabase).
+// AGENTS.md: burn rankings are fenced to /burn, so no burn opportunity list here.
 
 import { NextRequest, NextResponse } from "next/server"
 
+import { getFloorTrend, isSupabaseConfigured } from "@/lib/db/supabase"
 import {
-  getBurnOpportunities,
-  getFloorTrend,
-  isSupabaseConfigured,
-} from "@/lib/db/supabase"
-import { checkRateLimit } from "@/lib/ratelimit"
+  enforceDualRateLimit,
+  RATE_LIMIT_MESSAGE,
+} from "@/lib/middleware/rateLimit"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 20
@@ -19,27 +19,17 @@ function parseDays(raw: string | null, fallback: number): number {
   return Math.max(1, Math.min(90, Math.floor(n)))
 }
 
-function parseLimit(raw: string | null, fallback: number): number {
-  if (raw == null || raw === "") return fallback
-  const n = Number(raw)
-  if (!Number.isFinite(n)) return fallback
-  return Math.max(1, Math.min(200, Math.floor(n)))
-}
-
 /**
  * Query params:
  * - days: floor lookback window (default 7, max 90)
- * - oppDays: burn opportunity lookback (default 30)
- * - limit: max burn opportunity rows (default 50)
- * - minEfficiency: optional filter on efficiency_score
  */
 export async function GET(req: NextRequest) {
-  const rl = await checkRateLimit(req, "zulo-history", 30, 60)
+  const rl = await enforceDualRateLimit(req, "default", {
+    bucketPrefix: "zulo-history",
+  })
   if (!rl.ok) {
-    return NextResponse.json(
-      { error: "Too many requests" },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-    )
+    if (rl.response) return rl.response
+    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 })
   }
 
   if (!isSupabaseConfigured()) {
@@ -50,7 +40,6 @@ export async function GET(req: NextRequest) {
         detail:
           "Set SUPABASE_URL and SUPABASE_KEY (shared ThinkOS project) on this deployment.",
         floorTrend: null,
-        burnOpportunities: [],
         asOf: new Date().toISOString(),
       },
       { status: 503, headers: { "Cache-Control": "no-store" } },
@@ -59,19 +48,8 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url)
   const days = parseDays(url.searchParams.get("days"), 7)
-  const oppDays = parseDays(url.searchParams.get("oppDays"), 30)
-  const limit = parseLimit(url.searchParams.get("limit"), 50)
-  const minEffRaw = url.searchParams.get("minEfficiency")
-  const minEfficiency =
-    minEffRaw != null && minEffRaw !== "" && Number.isFinite(Number(minEffRaw))
-      ? Number(minEffRaw)
-      : undefined
-
   try {
-    const [floorTrend, burnOpportunities] = await Promise.all([
-      getFloorTrend(days),
-      getBurnOpportunities({ days: oppDays, limit, minEfficiency }),
-    ])
+    const floorTrend = await getFloorTrend(days)
 
     // Light response: cap floor points for payload size (keep full stats)
     const MAX_POINTS = 500
@@ -93,7 +71,7 @@ export async function GET(req: NextRequest) {
         ok: true,
         asOf: new Date().toISOString(),
         schema: {
-          tables: ["floor_prices", "burn_opportunities"],
+          tables: ["floor_prices"],
           note: "Shared with ThinkOS Zulo — same Supabase project",
         },
         floorTrend: {
@@ -106,19 +84,8 @@ export async function GET(req: NextRequest) {
           pctVsAvg,
           points,
         },
-        burnOpportunities: burnOpportunities.map((o) => ({
-          id: o.id,
-          tokenId: o.token_id,
-          efficiencyScore: o.efficiency_score,
-          floorPriceETH: o.floor_price_eth,
-          detectedAt: o.detected_at,
-          alerted: o.alerted ?? false,
-        })),
         meta: {
           floorLookbackDays: days,
-          burnOppLookbackDays: oppDays,
-          burnOppLimit: limit,
-          minEfficiency: minEfficiency ?? null,
         },
       },
       {
