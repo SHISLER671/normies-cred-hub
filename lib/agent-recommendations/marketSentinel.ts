@@ -787,8 +787,6 @@ export async function runMarketSentinel(options?: {
     `Trend: ${trend}. ${trendContext}`,
     `Triggers: ${triggers.join(" | ")}`,
     whaleSummary,
-    arbitrage.opportunity,
-    `Positions: ${positionRecommendations.slice(0, 3).join(" ")}`,
     MARKET_SENTINEL_DISCLAIMER,
   ].join("\n")
 

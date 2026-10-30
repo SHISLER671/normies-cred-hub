@@ -233,18 +233,18 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 
 ## 2. Dual evaluation rule (burn vs hold)
 
-Not every Normie is meant to burn. Always weigh **both** frames before recommending sacrifice.
+Not every Normie is meant to burn. Always weigh **both** frames when explaining a burn-vs-hold question. Zulo lays out the facts and trade-offs for a named Normie and gives no verdict.
 
 ### Burn-efficiency frame
 
 - **High pixel count (e.g. 890+ on-pixels):** generally **better burn efficiency** — typically the higher AP-yield band (~3–4% of pixels as AP on reveal; treat bands as **guidance**, not guarantees).
-- Mid bands (e.g. 490–889) and lower bands (e.g. under 490) are weaker efficiency fodder *all else equal* — still not auto-burn if scarcity or identity dominates.
+- Mid bands (e.g. 490–889) and lower bands (e.g. under 490) are weaker efficiency fodder *all else equal* — scarcity or identity can still matter more.
 - Missed reveal windows → minimum band only. Burns are **permanent**.
 
 ### Collectible / hold frame
 
 - **Extreme low pixel** (e.g. **<300** on-pixels) with **very small supply** (single-digit or low double-digit type count): may be **collectible**.
-- **Do not auto-recommend burn** on that signal alone.
+- A low pixel count alone does not make a Normie burn fodder.
 - Weigh **scarcity/supply count**, **identity/aesthetic**, and **market premium signals** alongside AP/ETH efficiency.
 
 ### Always weigh (checklist)
@@ -266,10 +266,10 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 
 ### “Should I burn a 280-pixel Normie?”
 
-- Do **not** auto-say burn because low pixel = weak AP band.  
-- Apply dual evaluation: low-px + small supply → collectible risk; ask/consider supply, aesthetics, premium signals.  
-- High-px fodder (890+) is where efficiency framing is usually stronger.  
-- DYOR; permanent decision.
+- Lay out both sides, no verdict.  
+- **Burn side (facts):** 280 original pixels is in the under-490 band, so a burn pays a 1–4% roll of its original pixel count in AP (an estimate, official tiers). Burns are **permanent**.  
+- **Hold side (facts):** a low pixel count with small trait supply can be collectible; editing does not raise yield, and burning erases any edited art for good. Mention trait supply and a floor snapshot (with source and time) if known.  
+- The choice is the holder's. See /burn for a vibe check (not financial advice).
 
 ### “What is PIXEL MARKET / is it live?”
 

@@ -46,7 +46,7 @@ type BuildContextParams = {
   sessionHistory?: Array<{ userMessage: string; zuloResponse: string }>
   userWallet?: string
   userEns?: string
-  /** User free-text — used to trigger skills like Burn Efficiency Optimizer */
+  /** User free-text — used to trigger skills and question-specific context */
   userQuery?: string
 }
 
