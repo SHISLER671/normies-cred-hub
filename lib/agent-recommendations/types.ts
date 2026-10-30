@@ -194,44 +194,19 @@ export interface ZuloRecommendationContext {
       burnVolumeRatio: number | null
       historicalApMedian: number | null
       impliedApCostETH: number | null
-      floorBuyEfficiency: number | null
       apMarketStatus: "planned" | "live"
       apMarketPriceETH: number | null
       owners: number | null
     }
-    /** Gacha & Raffle Intelligence compact context (when skill runs) */
+    /** Gacha & Raffle status — facts only (feed status, counts). No EV / AP plan. */
     gachaRaffle?: {
       dataStatus: "live" | "partial" | "unavailable"
       poolCount: number
       raffleCount: number
-      positiveEvCount: number
-      highValueRaffleCount: number
-      positiveEv: Array<{
-        kind: "gacha" | "raffle"
-        id: string
-        name: string
-        evRatio: number
-        edgePct: number
-      }>
-      apAllocation: {
-        budgetAp: number
-        lines: Array<{
-          opportunityId: string
-          opportunityName: string
-          kind: "gacha" | "raffle"
-          suggestedAp: number
-          sharePct: number
-          evRatio: number
-          reason: string
-        }>
-        unallocatedAp: number
-        note: string
-      }
       pitySummary: string[]
       qualificationSummary: string[]
       floorETH: number | null
       disclaimer: string
-      summary: string
     }
     /**
      * Pixel economy doctrine — injected on all strategy-bearing contexts
@@ -425,19 +400,6 @@ export interface StrategyContext {
     matchedTraits: string[]
     advice: string
   }
-  burnCandidates?: Array<{
-    tokenId: number
-    type: string
-    rarityTier: string
-    rarityRank: number
-  }>
-  keepCandidates?: Array<{
-    tokenId: number
-    type: string
-    rarityTier: string
-    rarityRank: number
-  }>
-  burnReasoning?: string
   acquisition?: {
     recommendation: string
     options: Array<{
@@ -476,39 +438,6 @@ export interface StrategyContext {
     floorPriceUsd?: number | null
     ethUsd?: number | null
   }
-  /** Burn Efficiency Optimizer — top AP/ETH market fodder candidates */
-  burnEfficiency?: {
-    scanned: boolean
-    topCandidates: Array<{
-      tokenId: number
-      floorPriceETH: number
-      estimatedAP: number
-      efficiencyScore: number
-      rarityTier?: string
-      rarityRank?: number | null
-      type?: string
-      pixelCount?: number
-      priceSource?: string
-      confidence?: string
-    }>
-    collectionFloorETH: number | null
-    collectionFloorSource?: string
-    burnSampleSize: number
-    historicalApMedian: number | null
-    /** Current floor vs Supabase 7-day average (when history available) */
-    floorHistory?: {
-      currentFloorETH: number | null
-      avg7dFloorETH: number | null
-      min7dFloorETH: number | null
-      max7dFloorETH: number | null
-      sampleSize: number
-      pctVs7dAvg: number | null
-      vsAvgLabel: "below_avg" | "near_avg" | "above_avg" | "insufficient_data"
-    }
-    disclaimer: string
-    summary: string
-    sources?: string[]
-  }
   /** PIXEL MARKET Sentinel — floor / burn / whale intelligence brief */
   marketSentinel?: {
     scanned: boolean
@@ -542,21 +471,10 @@ export interface StrategyContext {
       burnVolumeRatio: number | null
       historicalApMedian: number | null
       impliedApCostETH: number | null
-      floorBuyEfficiency: number | null
       apMarketStatus: "planned" | "live"
       apMarketPriceETH: number | null
       owners: number | null
     }
-    arbitrage: {
-      available: boolean
-      floorBuyEfficiency: number | null
-      impliedApCostETH: number | null
-      apMarketPriceETH: number | null
-      apMarketStatus: "planned" | "live"
-      spreadNote: string
-      opportunity: string
-    }
-    positionRecommendations: string[]
     whaleActivity: {
       summary: string
       whales: Array<{
@@ -571,22 +489,18 @@ export interface StrategyContext {
     summary: string
     sources?: string[]
   }
-  /** Gacha & Raffle Intelligence — EV pools, raffles, AP allocation */
+  /** Gacha & Raffle status — facts only (AGENTS.md: no EV picks or AP plan) */
   gachaRaffle?: {
     scanned: boolean
     dataStatus: "live" | "partial" | "unavailable"
+    poolCount: number
+    raffleCount: number
     gachaPools: Array<{
       id: string
       name: string
       status: string
       costAp: number | null
       costEth: number | null
-      expectedValueAp: number | null
-      expectedValueEth: number | null
-      evRatio: number | null
-      edgePct: number | null
-      isPositiveEv: boolean
-      isHighValue: boolean
       pity: {
         counter: number | null
         softPityAt: number | null
@@ -603,7 +517,6 @@ export interface StrategyContext {
         note: string
         qualified: boolean | null
       } | null
-      notes: string
     }>
     raffles: Array<{
       id: string
@@ -611,16 +524,7 @@ export interface StrategyContext {
       status: string
       entryCostAp: number | null
       entryCostEth: number | null
-      prizeValueAp: number | null
-      prizeValueEth: number | null
       totalEntries: number | null
-      winProbability: number | null
-      expectedValueAp: number | null
-      expectedValueEth: number | null
-      evRatio: number | null
-      edgePct: number | null
-      isPositiveEv: boolean
-      isHighValue: boolean
       qualification: {
         minAp: number | null
         minNormieCount: number | null
@@ -630,43 +534,10 @@ export interface StrategyContext {
         qualified: boolean | null
       } | null
       endsAt: string | null
-      notes: string
     }>
-    positiveEv: Array<{
-      kind: "gacha" | "raffle"
-      id: string
-      name: string
-      evRatio: number
-      edgePct: number
-    }>
-    highValueRaffles: Array<{
-      id: string
-      name: string
-      evRatio: number | null
-      edgePct: number | null
-      entryCostAp: number | null
-      prizeValueEth: number | null
-      totalEntries: number | null
-    }>
-    apAllocation: {
-      budgetAp: number
-      lines: Array<{
-        opportunityId: string
-        opportunityName: string
-        kind: "gacha" | "raffle"
-        suggestedAp: number
-        sharePct: number
-        evRatio: number
-        reason: string
-      }>
-      unallocatedAp: number
-      note: string
-    }
     pitySummary: string[]
     qualificationSummary: string[]
-    floorETH: number | null
     disclaimer: string
-    summary: string
     sources?: string[]
   }
   /** Canvas Evolution Advisor full strategy payload */

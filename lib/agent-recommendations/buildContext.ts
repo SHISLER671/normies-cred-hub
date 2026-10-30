@@ -834,11 +834,7 @@ export async function buildZuloContext(
   }
   // AGENTS.md: burn/buy views are fenced to /burn. No wallet-burn reasoning or
   // floor-price line here — one plain pointer instead.
-  if (strategy.burnReasoning || strategy.floorSnapshot) {
-    nextSteps.push(BURN_POINTER)
-  }
-  // AGENTS.md: no burn rankings (AP per ETH) on Pulse / Ask Zulo — point to /burn.
-  if (strategy.burnEfficiency?.scanned && !nextSteps.includes(BURN_POINTER)) {
+  if (strategy.floorSnapshot) {
     nextSteps.push(BURN_POINTER)
   }
   if (strategy.marketSentinel?.scanned) {
@@ -1064,7 +1060,6 @@ export async function buildZuloContext(
             burnTokensPrev24h: marketState.burnTokensPrev24h,
             burnVolumeRatio: marketState.burnVolumeRatio,
             historicalApMedian: marketState.historicalApMedian,
-            floorBuyEfficiency: marketState.floorBuyEfficiency,
             impliedApCostETH: marketState.impliedApCostETH,
             apMarketStatus: marketState.apMarketStatus,
             apMarketPriceETH: marketState.apMarketPriceETH,
@@ -1076,15 +1071,10 @@ export async function buildZuloContext(
             dataStatus: gachaRaffleContext.dataStatus,
             poolCount: gachaRaffleContext.gachaPools.length,
             raffleCount: gachaRaffleContext.raffles.length,
-            positiveEvCount: gachaRaffleContext.positiveEv.length,
-            highValueRaffleCount: gachaRaffleContext.highValueRaffles.length,
-            positiveEv: gachaRaffleContext.positiveEv.slice(0, 8),
-            apAllocation: gachaRaffleContext.apAllocation,
             pitySummary: gachaRaffleContext.pitySummary,
             qualificationSummary: gachaRaffleContext.qualificationSummary,
             floorETH: gachaRaffleContext.floorETH,
             disclaimer: gachaRaffleContext.disclaimer,
-            summary: gachaRaffleContext.summary,
           }
         : undefined,
       canvasEvolution: canvasEvolution
@@ -1148,19 +1138,6 @@ export async function buildZuloContext(
       strategy: {
         apEstimateForFocus: strategy.apEstimateForFocus,
         traitAdvice: strategy.traitAdvice,
-        burnCandidates: strategy.burnCandidates?.map((b) => ({
-          tokenId: b.tokenId,
-          type: b.type,
-          rarityTier: b.rarityTier,
-          rarityRank: b.rarityRank,
-        })),
-        keepCandidates: strategy.keepCandidates?.map((b) => ({
-          tokenId: b.tokenId,
-          type: b.type,
-          rarityTier: b.rarityTier,
-          rarityRank: b.rarityRank,
-        })),
-        burnReasoning: strategy.burnReasoning,
         acquisition: strategy.acquisition
           ? {
               recommendation: strategy.acquisition.recommendation,
@@ -1195,38 +1172,14 @@ export async function buildZuloContext(
               note: strategy.floorSnapshot.note,
             }
           : undefined,
-        burnEfficiency: strategy.burnEfficiency
-          ? {
-              scanned: strategy.burnEfficiency.scanned,
-              topCandidates: strategy.burnEfficiency.topCandidates.map((c) => ({
-                tokenId: c.tokenId,
-                floorPriceETH: c.floorPriceETH,
-                estimatedAP: c.estimatedAP,
-                efficiencyScore: c.efficiencyScore,
-                rarityTier: c.rarityTier,
-                rarityRank: c.rarityRank,
-                type: c.type,
-                pixelCount: c.pixelCount,
-                priceSource: c.priceSource,
-                confidence: c.confidence,
-              })),
-              collectionFloorETH: strategy.burnEfficiency.collectionFloorETH,
-              collectionFloorSource: strategy.burnEfficiency.collectionFloorSource,
-              burnSampleSize: strategy.burnEfficiency.burnSampleSize,
-              historicalApMedian: strategy.burnEfficiency.historicalApMedian,
-              disclaimer: strategy.burnEfficiency.disclaimer,
-              summary: strategy.burnEfficiency.summary,
-              sources: strategy.burnEfficiency.sources,
-            }
-          : undefined,
         marketSentinel: strategy.marketSentinel
           ? {
               scanned: strategy.marketSentinel.scanned,
               brief: strategy.marketSentinel.brief,
               signals: strategy.marketSentinel.signals,
-              marketState: strategy.marketSentinel.marketState,
-              arbitrage: strategy.marketSentinel.arbitrage,
-              positionRecommendations: strategy.marketSentinel.positionRecommendations,
+              marketState: (({ floorBuyEfficiency: _fbe, ...rest }) => rest)(
+                strategy.marketSentinel.marketState,
+              ),
               whaleActivity: strategy.marketSentinel.whaleActivity,
               disclaimer: strategy.marketSentinel.disclaimer,
               summary: strategy.marketSentinel.summary,
@@ -1237,21 +1190,17 @@ export async function buildZuloContext(
           ? {
               scanned: strategy.gachaRaffle.scanned,
               dataStatus: strategy.gachaRaffle.dataStatus,
+              // Facts only (AGENTS.md): no EV ratios, +EV picks or AP plan.
+              poolCount: strategy.gachaRaffle.gachaPools.length,
+              raffleCount: strategy.gachaRaffle.raffles.length,
               gachaPools: strategy.gachaRaffle.gachaPools.map((g) => ({
                 id: g.id,
                 name: g.name,
                 status: g.status,
                 costAp: g.costAp,
                 costEth: g.costEth,
-                expectedValueAp: g.expectedValueAp,
-                expectedValueEth: g.expectedValueEth,
-                evRatio: g.evRatio,
-                edgePct: g.edgePct,
-                isPositiveEv: g.isPositiveEv,
-                isHighValue: g.isHighValue,
                 pity: g.pity,
                 qualification: g.qualification,
-                notes: g.notes,
               })),
               raffles: strategy.gachaRaffle.raffles.map((r) => ({
                 id: r.id,
@@ -1259,36 +1208,13 @@ export async function buildZuloContext(
                 status: r.status,
                 entryCostAp: r.entryCostAp,
                 entryCostEth: r.entryCostEth,
-                prizeValueAp: r.prizeValueAp,
-                prizeValueEth: r.prizeValueEth,
                 totalEntries: r.totalEntries,
-                winProbability: r.winProbability,
-                expectedValueAp: r.expectedValueAp,
-                expectedValueEth: r.expectedValueEth,
-                evRatio: r.evRatio,
-                edgePct: r.edgePct,
-                isPositiveEv: r.isPositiveEv,
-                isHighValue: r.isHighValue,
                 qualification: r.qualification,
                 endsAt: r.endsAt,
-                notes: r.notes,
               })),
-              positiveEv: strategy.gachaRaffle.positiveEv,
-              highValueRaffles: strategy.gachaRaffle.highValueRaffles.map((r) => ({
-                id: r.id,
-                name: r.name,
-                evRatio: r.evRatio,
-                edgePct: r.edgePct,
-                entryCostAp: r.entryCostAp,
-                prizeValueEth: r.prizeValueEth,
-                totalEntries: r.totalEntries,
-              })),
-              apAllocation: strategy.gachaRaffle.apAllocation,
               pitySummary: strategy.gachaRaffle.pitySummary,
               qualificationSummary: strategy.gachaRaffle.qualificationSummary,
-              floorETH: strategy.gachaRaffle.floorETH,
               disclaimer: strategy.gachaRaffle.disclaimer,
-              summary: strategy.gachaRaffle.summary,
               sources: strategy.gachaRaffle.sources,
             }
           : undefined,

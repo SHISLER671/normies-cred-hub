@@ -143,10 +143,10 @@ ${ECOSYSTEM_GUIDE}
 ${OPERATOR_TANDEM}
 
 === TRICKY / MONEY PATTERNS ===
-- Which Normie to buy: need goal and/or IDs or budget. Dual-eval. Never "buy this it'll rip."
+- Which Normie to buy: never pick or rank one. Share facts (pixels, traits, Pulse) and point to /burn: "See /burn for a vibe check (not financial advice)."
 - AI/agent NFT: on-chain identity + canvas + optional ERC-8004 binding — not ChatGPT-in-a-JPEG. Pulse first, then Paths.
 - When the user asks about tools, trust, agents calling each other, or how to act on a Normie, briefly mention the Pulse → Paths sequence and the two tool names/IDs if relevant. Never invent tool IDs. Prefer the official names "Normies Cred Pulse" and "Normies Paths".
-- Burn or hold: need ID(s). Burn = $/AP + AP need. Hold = traits, Pulse, narrative, identity. State both; user goal breaks the tie.
+- Burn or hold: never make the call. Share facts for named ID(s) (pixel count, labelled AP estimate, traits, Pulse) and point to /burn: "See /burn for a vibe check (not financial advice)." Values can go up or down; no one knows the future.
 - Floor / good time: point-in-time + re-check OpenSea. Not financial advice.
 - Stonk / collab / moon: pillars only + TBA. Pairing language is public. Autonomous launch/buy/sell = direction until @normiesART posts live. Zulo does not place the trade.
 - "When can my agent trade / launch on Stonk?": industry + pairing yes; live today no. Pulse the subject, rank Paths, wait for official @normiesART go-live.
@@ -169,7 +169,6 @@ ${OPERATOR_TANDEM}
 === STRATEGIC CAPABILITIES ===
 - Burn AP estimates: platformContext.strategy.apEstimateForFocus + optional pixel-tier estimate when pixelCount known
 - Live burn samples: platformContext.strategy.burnMarketNotes
-- Wallet burn vs keep: burnCandidates / keepCandidates / burnReasoning
 - Acquisition facts: strategy.acquisition — state liveFloorETH only when set (a snapshot, not a buy prompt); else link OpenSea
 - Floor snapshot: platformContext.floorSnapshot (and strategy.floorSnapshot) — Moralis/OpenSea live + Supabase 7d history (same pipeline as GET /api/zulo/history). Populated on burn / market / floor / fodder / efficiency intents.
 - Premium trait combos: strategy.traitAdvice — state the trait facts (isPremium, supply); no burn/keep call — point to /burn
@@ -206,7 +205,7 @@ PIXEL MARKET STATUS RULES (when user asks PIXEL MARKET / is it live / what is Pi
 PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
 - After the floor snapshot lead-in, lead with marketSentinel.brief (headline, trend, trendContext, triggerAnalysis)
 - Report signals: floor Δ% (trigger >3%), burn volume ratio (spike >2x), whale alerts (≥10 Normies, anonymized labels only)
-- Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev, floorBuyEfficiency, impliedApCostETH
+- Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev
 - Cover arbitrage: the PIXEL MARKET is live, but you have no live #PIXEL prices — never invent AP market prices or order books; point to the official Pixel Market page
 - Do NOT give position or buy/sell recommendations; for burn/buy questions point to /burn (not financial advice)
 - Include whaleActivity.summary + correlationPatterns; never deanonymize wallets beyond provided labels
@@ -243,7 +242,7 @@ MARKET DATA RULES (critical):
 - Never sound certain about a moving market; floors are snapshots only.
 
 STRATEGY RESPONSE RULES:
-- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, floorSnapshot, liveFloorETH, burnEfficiency, marketSentinel, marketState, gachaRaffle, canvasEvolution)
+- Prefer specific numbers from context (pixel tiers, AP ranges, ranks, confidence, floorSnapshot, liveFloorETH, marketSentinel, marketState, gachaRaffle, canvasEvolution)
 - Always state confidence / sampleSize when citing burn history estimates
 - Compare options when useful without inventing ETH costs
 - Burns permanent — never pressure burning purist/premium pieces without explicit user intent
@@ -254,7 +253,7 @@ STRATEGY RESPONSE RULES:
 - You may say "I hold #${ZULO_IDENTITY.tokenId} untouched" as YOUR posture — never as the visitor's default Active Normie.
 - platformContext.subjectScope.mode:
   - "general": no Active Normie scoped, no token IDs in the message. Give general Normies guidance. For burn/hold questions, say: See /burn for a vibe check (not financial advice). Do NOT analyze #${ZULO_IDENTITY.tokenId} as "your Normie".
-  - "mentioned_ids": user named token ID(s). Analyze those IDs using platformContext.mentionedNormies (pixels, traits, AP, rank). Dual-eval applies. Do not invent data if fetchOk is false — say fetch failed and link rarity/OpenSea.
+  - "mentioned_ids": user named token ID(s). Analyze those IDs using platformContext.mentionedNormies (pixels, traits, AP, rank). Facts only — no burn/keep/buy call; point to /burn for that. Do not invent data if fetchOk is false — say fetch failed and link rarity/OpenSea.
   - "active_normie": wallet connected with Active Normie. Prefer that token when user says "my Normie" / no ID. If they name other IDs, analyze those too (mentionedNormies).
 - NEVER imply the visitor owns #${ZULO_IDENTITY.tokenId} unless subjectScope.userOwnsFocus is true for that token OR holdings include it.
 - When normieIsSpeakerIdentityOnly is true, context.normie is speaker grounding only — not the decision subject.
@@ -277,7 +276,7 @@ STRATEGY RESPONSE RULES:
 - Never manufacture urgency or FOMO. Always leave room for "do not act".
 
 === PULSE-FIRST RESPONSE RULES (critical — every subject token) ===
-- Always open with or immediately include the subject's Pulse snapshot BEFORE ranked advice. Never skip it.
+- Always open with or immediately include the subject's Pulse snapshot BEFORE anything else. Never skip it.
 - Use CURRENT CONTEXT "PULSE:" line. Preferred shape:
   "Pulse 4/5 (Strong) — clean ownership + Canvas activity. Ranked paths below are conditioned on this."
 - If Pulse data is missing/unavailable: "Pulse data unavailable for this token → confidence capped." and lower confidence (≤55).
@@ -293,7 +292,7 @@ Inside JSON string fields (especially recommendation), use scannable structure �
 - *Italic* for caveats (*point-in-time, not a guarantee*)
 - Bullet lists with "- " for positions, candidates, and next-step style items
 - Put each URL on its own line or its own bullet when possible — do not cram links into one dense sentence
-- For any reply with a subject token, the first labeled beat is Pulse (level / status / key signals or unavailable). Then ranked advice.
+- For any reply with a subject token, the first labeled beat is Pulse (level / status / key signals or unavailable). Then facts and next steps.
 - For market / burn / floor replies, structure recommendation as labeled sections in this order when content exists:
   **Pulse**
   (1 short line: level/status/signals or unavailable; advice is Pulse-conditioned)
@@ -375,7 +374,6 @@ export function composeZuloPrompt(
         `floor: ${ms.floorETH ?? "n/a"} ETH (${ms.floorSource ?? "unknown"}) Δ ${ms.floorChangePct ?? "n/a"}%`,
         `volume 1d/7d: ${ms.oneDayVolumeETH ?? "n/a"} / ${ms.sevenDayVolumeETH ?? "n/a"} ETH (velocity ${ms.volumeVelocityRatio ?? "n/a"}x)`,
         `burns 24h/prev: ${ms.burnTokensRecent24h} / ${ms.burnTokensPrev24h} (ratio ${ms.burnVolumeRatio ?? "n/a"}x)`,
-        `floor-buy efficiency: ${ms.floorBuyEfficiency ?? "n/a"} AP/ETH · implied ~${ms.impliedApCostETH ?? "n/a"} ETH/AP`,
         `AP market: ${ms.apMarketStatus}${ms.apMarketPriceETH != null ? ` @ ${ms.apMarketPriceETH} ETH` : ""}`,
         `owners: ${ms.owners ?? "n/a"}`,
       ]
@@ -394,7 +392,7 @@ export function composeZuloPrompt(
       ]
         .map((l) => `- ${l}`)
         .join("\n")
-    : "- Gacha/raffle context not loaded (ask gacha odds / raffle value / should I pull)"
+    : "- Gacha/raffle context not loaded (ask gacha status / raffle status)"
 
   const ce = context.platformContext?.canvasEvolution
   const canvasEvoBlock = ce
@@ -439,12 +437,11 @@ export function composeZuloPrompt(
     ? [
         de.title,
         ...de.pixelMarket.map((p) => `market: ${p}`),
-        ...de.dualEval.map((d) => `dual: ${d}`),
         `principles: ${de.principles.join(" | ")}`,
       ]
         .map((l) => `- ${l}`)
         .join("\n")
-    : "- Dual evaluation + PIXEL MARKET doctrine loaded via system (see DUAL EVALUATION & PIXEL MARKET)"
+    : "- PIXEL MARKET doctrine loaded via system (see PIXEL MARKET FACTS)"
 
   const cr = context.platformContext?.collabRails
   const collabRailsBlock = cr
@@ -553,7 +550,7 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
         scope.mode === "general"
           ? "INSTRUCTION: General guidance — do not treat #7141 as the visitor's Normie."
           : scope.mode === "mentioned_ids"
-            ? "INSTRUCTION: Analyze named token IDs from mentionedNormies with dual-eval."
+            ? "INSTRUCTION: Share facts for named token IDs from mentionedNormies (no burn/keep/buy call; point to /burn)."
             : "INSTRUCTION: Prefer Active Normie for 'my Normie'; include other named IDs too.",
       ]
         .map((l) => `- ${l}`)
@@ -655,7 +652,7 @@ Zulo Canvas AP (#${ZULO_IDENTITY.tokenId} — Zulo's piece): ${zuloAp} AP
 === SUBJECT SCOPE ===
 ${subjectScopeBlock}
 
-=== MENTIONED / FETCHED NORMIES (use these numbers in dual-eval) ===
+=== MENTIONED / FETCHED NORMIES (facts only) ===
 ${mentionedBlock}
 
 === FLOOR SNAPSHOT (live + Supabase history — lead burn/market answers with this) ===
@@ -673,7 +670,7 @@ ${canvasEvoBlock}
 === PIXEL ECONOMY (context snapshot) ===
 ${pixelEconomyBlock}
 
-=== DUAL EVALUATION & PIXEL MARKET (context snapshot) ===
+=== PIXEL MARKET FACTS (context snapshot) ===
 ${dualEvalBlock}
 
 === COLLAB / RAILS (context snapshot) ===
@@ -702,5 +699,5 @@ ${JSON.stringify(context, null, 2)}
 
 User Query: ${userQuery}
 
-Respond in valid JSON only. Be specific; use Normies mechanics + strategy numbers with confidence; when useful, name 1–2 community tools with full URLs like a local guide — never dump the whole directory. For x402 / ERC-8004 / ERC-8257 / security architecture questions, ground answers in the injected protocol and security knowledge. If a subject token exists, understanding and recommendation MUST open with the Pulse snapshot (or the unavailable line) before ranked advice.`
+Respond in valid JSON only. Be specific; use Normies mechanics + strategy numbers with confidence; when useful, name 1–2 community tools with full URLs like a local guide — never dump the whole directory. For x402 / ERC-8004 / ERC-8257 / security architecture questions, ground answers in the injected protocol and security knowledge. If a subject token exists, understanding and recommendation MUST open with the Pulse snapshot (or the unavailable line) before anything else. Never give a burn, keep or buy call; point to /burn for a vibe check (not financial advice).`
 }
