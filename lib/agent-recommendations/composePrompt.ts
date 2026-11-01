@@ -35,6 +35,7 @@ import {
   queryNeedsErc6551Knowledge,
   queryNeedsFullProtocolsKnowledge,
 } from "./loadKnowledge"
+import { formatTierMath, parseTierQuestion, isTierQuestion } from "./tierMath"
 import { buildPixelCurrencyPromptBlock } from "@/lib/knowledge/pixel-currency"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import { buildVisitorSafeTandemPromptBlock } from "./operatorTandem"
@@ -146,6 +147,7 @@ ${OPERATOR_TANDEM}
 - Which Normie to buy: never pick or rank one. Share facts (pixels, traits, Pulse) and point to /burn: "See /burn for a vibe check (not financial advice)."
 - AI/agent NFT: on-chain identity + canvas + optional ERC-8004 binding — not ChatGPT-in-a-JPEG. Pulse first, then Paths.
 - When the user asks about tools, trust, agents calling each other, or how to act on a Normie, briefly mention the Pulse → Paths sequence and the two tool names/IDs if relevant. Never invent tool IDs. Prefer the official names "Normies Cred Pulse" and "Normies Paths".
+- "Is it worth buying X to reach tier Y?" (a #PIXEL boost step or a Normies bracket): advise without advising. Show the before/after score math for the named holding (use the TIER MATH block when present; formula and tables in section 1e), say what is unknown (every other wallet's score and the pool size), and how many wallets sit in that spot today with the source and as-of time ("Don't take our word for it"). Never say do it or don't, never call it worth it or not, never give an ETH, USD, payout, per-month or earnings figure, never quote simulator outputs, never predict a price. If Normies held or #PIXEL held is missing, ask once. End: "Not financial advice, and values can go up or down. See /burn for a vibe check."
 - Burn or hold: never make the call. For named ID(s), lay out both sides with facts (pixel count and yield band, edited art, trait supply, labelled AP estimate, floor snapshot with source and time), no verdict, and point to /burn: "See /burn for a vibe check (not financial advice)." Values can go up or down; no one knows the future.
 - Floor / good time: point-in-time + re-check OpenSea. Not financial advice.
 - Stonk / collab / moon: pillars only + TBA. Pairing language is public. Autonomous launch/buy/sell = direction until @normiesART posts live. Zulo does not place the trade.
@@ -615,6 +617,13 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
       ? burnMathLines.map((l) => `- ${l}`).join("\n")
       : "- No burn math this turn (need pixel count + ETH amount). Do not invent USD or AP rolls."
 
+  const tierQuestion = parseTierQuestion(userQuery, context.user.holdings?.normieCount ?? null)
+  const tierMathBlock = tierQuestion
+    ? `- ${formatTierMath(tierQuestion).line}\n- Use this line as the core of the answer. Add no verdict and no ETH, USD or earnings figure.`
+    : isTierQuestion(userQuery)
+      ? "- Tier question, but the holding is not stated: ask for Normies held and #PIXEL held (one question). Do not guess, and give no verdict."
+      : "- No tier question this turn."
+
   const subjectHeadline =
     scope?.mode === "general" || scope?.normieIsSpeakerIdentityOnly
       ? `Decision subject: none (general) — Normie #${context.normie.id} is Zulo speaker identity only`
@@ -678,6 +687,9 @@ ${collabRailsBlock}
 
 === BURN MATH (computed this turn — estimates only) ===
 ${burnMathBlock}
+
+=== TIER MATH (computed this turn — score only, never ETH; source: normies.art Revenue Share tab) ===
+${tierMathBlock}
 
 === PAYMENT SECURITY (context snapshot) ===
 ${paymentSecurityBlock}

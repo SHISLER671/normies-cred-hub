@@ -68,6 +68,20 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 - **Agentic:** "Name and type are sealed at awakening." Everything else regenerates from the current canvas state. Not built yet (official /docs/agentic): the A2A transport route does not exist yet, no LLM is wired into conversations, and MCP endpoints are flagged coming soon.
 - **API:** "Rate limit: 60 requests per minute per IP (sliding window)." (official /docs/technical)
 
+## 1e. Revenue Share tab: tiers and wallet spread (OFFICIAL, read 2026-11-02 07:26 Guam = 2026-11-01 21:26 UTC)
+
+**Source:** the Revenue Share tab on https://www.normies.art (read 2026-11-02 07:26 Guam time) and the @normiesART post https://x.com/normiesART/status/2116953901417046511 (first revenue share epoch). Don't take our word for it: check the tab, the numbers move.
+
+- **Score:** (Normies x bracket + #PIXEL / 5) x (1 + boost). Each Normie is 1 point times its bracket. Every 5 #PIXEL adds 1 point. The boost multiplies the whole score.
+- **Normies brackets (steps):** 1 = x1, 2+ = x1.15, 5+ = x1.3, 10+ = x1.45, 25+ = x1.6, 50+ = x1.75.
+- **#PIXEL boost (steps):** under 15 = none, 15+ = +15%, 100+ = +35%, 500+ = +60%, 1,500+ = +100%.
+- **Who is paid:** only wallets with at least 1 Normie. #PIXEL with no Normie scores zero. Every #PIXEL counts the same wherever it sits (on a Normie, in the wallet or in a listing).
+- **Your share:** your score / the score of every holding wallet, averaged across sampled blocks, so holding through the epoch matters. Epochs are posted on chain and open for claims 24 h later.
+- **Pool:** half of the 5% OpenSea royalty plus 50% of the 10% Pixel Market fee. Epoch #1 (a past fact, not a forecast) paid out 3.8487 ETH across 1,798 wallets.
+- **Wallet spread (1,665 holding wallets, as of 2026-11-02 07:26 Guam), Normies held: under 15 #PIXEL / 15+ #PIXEL:** 1: 1,041 / 18 · 2-4: 338 / 37 · 5-9: 84 / 13 · 10-24: 50 / 8 · 25-49: 13 / 2 · 50+: 1 / 4. The tab only splits at 15 #PIXEL, so the 15+ column holds every boost tier.
+- **Combined multiplier per cell (bracket x boost at 15+):** 1: x1.00 / x1.15 · 2-4: x1.15 / x1.32 · 5-9: x1.30 / x1.49 · 10-24: x1.45 / x1.67 · 25-49: x1.60 / x1.84 · 50+: x1.75 / x2.01.
+- **What is unknown in advance:** every other wallet's score and the pool size (it depends on real OpenSea and Pixel Market volume). So a score change can be stated; what it is worth in ETH cannot. Never turn these facts into an ETH, USD or per-month figure, and never quote simulator outputs.
+
 ---
 
 ## 2. Dual evaluation rule (burn vs hold)
@@ -124,6 +138,12 @@ A **~280-pixel** Normie with **~11 in supply** trading at a **large premium to f
 
 - Give the official score formula and brackets (section 1b), the 50% holder split of fees and royalties, payouts in epochs (length not stated in the docs; never say monthly) and the four unpredictable daily checks.
 - Say it is an estimate that depends on real volume. Point to https://simulator.normies.art and to https://normiescredhub.vercel.app/burn for a wallet-specific read.
+
+### "Is it worth buying 1 more #PIXEL (or Normie) to reach a tier?"
+
+- Advise without advising: show the before/after score math for the named holding (section 1e), say what is unknown, give no verdict.
+- Shape: "Crossing 15 #PIXEL takes a one-Normie wallet from x1.00 to x1.15, about 21% more score (3.8 to 4.6). Your payout depends on every other wallet's score and the pool size, which can't be known in advance, so we can't say what that's worth in ETH. Only 18 of 1,665 wallets are in that spot today (normies.art Revenue Share tab, 2026-11-02 07:26 Guam). Not financial advice, and values can go up or down. See /burn for a vibe check."
+- Never say do it or don't, never call it worth it or not, never give an ETH, USD or earnings figure, never predict a price. If the holding is not stated, ask for Normies held and #PIXEL held (one question).
 
 ### "Should I burn before the 4% promo ends?"
 
