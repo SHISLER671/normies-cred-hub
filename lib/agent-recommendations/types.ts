@@ -83,7 +83,9 @@ export interface ZuloRecommendationContext {
     rarity?: {
       rank?: number | null
       score?: number | null
-      fairValue?: number | string | null
+      /** Where the rank comes from, and when it was read. */
+      source?: string
+      asOf?: string
       awake?: boolean
       openseaUrl?: string
       traitHighlights?: Array<{
@@ -131,7 +133,6 @@ export interface ZuloRecommendationContext {
     nextSteps?: string[]
     rarityRank?: number | null
     rarityScore?: number | null
-    fairValue?: number | string | null
     resources?: string[]
     /**
      * Who/what this turn is about — never confuse Zulo #7141 identity with the visitor's subject.
@@ -195,7 +196,6 @@ export interface ZuloRecommendationContext {
       burnTokensPrev24h: number
       burnVolumeRatio: number | null
       historicalApMedian: number | null
-      impliedApCostETH: number | null
       apMarketStatus: "planned" | "live"
       apMarketPriceETH: number | null
       owners: number | null
@@ -352,19 +352,27 @@ export interface ZuloRecommendationContext {
         editorUrl: string
         disclaimer: string
       }
+      /** Official bigger / blank canvas costs from the current size (no score). */
       expansion?: {
         tokenId: number
-        readinessScore: number
         actionPoints: number
         level: number
-        currentGrid: { size: number; capacity: number; pixelsOn: number; densityPct: number }
-        targetGrid: { size: number; capacity: number }
-        apReadiness: { score: number; note: string }
-        densityReadiness: { score: number; note: string }
-        levelReadiness: { score: number; note: string }
-        milestones: string[]
-        blockers: string[]
-        recommendation: string
+        currentGrid: { size: number; capacity: number; baseCleared: boolean | null }
+        pixels: { attached: number; locked: number | null; free: number | null }
+        walletPixels: number | null
+        costs: Array<{
+          size: number
+          kind: "enlarge" | "blank"
+          cost: number
+          shortUsingFree: number | null
+          shortUsingAttached: number
+          shortUsingWallet: number | null
+          levelAfterPayingFromNormie: number | null
+          clearsPaintIfPaidFromNormie: boolean | null
+        }>
+        facts: string[]
+        sources: string[]
+        asOf: string
       }
       watch?: {
         watched: number
@@ -472,7 +480,6 @@ export interface StrategyContext {
       burnTokensPrev24h: number
       burnVolumeRatio: number | null
       historicalApMedian: number | null
-      impliedApCostETH: number | null
       apMarketStatus: "planned" | "live"
       apMarketPriceETH: number | null
       owners: number | null
@@ -595,13 +602,11 @@ export interface StrategyContext {
     }
     expansion?: {
       tokenId: number
-      readinessScore: number
-      recommendation: string
       actionPoints: number
       level: number
-      currentGrid: { size: number; capacity: number; pixelsOn: number; densityPct: number }
-      targetGrid: { size: number; capacity: number }
-      blockers: string[]
+      currentGrid: { size: number; capacity: number; baseCleared: boolean | null }
+      facts: string[]
+      asOf: string
     }
     watch?: {
       watched: number

@@ -273,8 +273,8 @@ CANVAS EVOLUTION RESPONSE RULES (when platformContext.canvasEvolution is set):
 - Preview on Normifier before you commit a canvas edit in official UI
 - CredHub / Normifier preview is not a spend rail. Holder draws / canvases only at official Normies UI
 - If costBreakdown numbers appear in context, treat them as official #PIXEL pixel-budget counts (planning), never as an AP checkout
-- For expansion mode: report readinessScore, density/level readiness, blockers — AP holdings may be named as holdings, never as a canvas price
-- For watch: list alerts (significant ≥10% pixel change, first edit, AP surge, expansion_ready). Pulse after next official Canvas activity tracks signals — history, not a spend
+- For bigger / blank canvas questions: quote canvasEvolution.expansion.facts — the official cost of each step from the Normie's CURRENT size, the gap to its free pixels (and to all attached pixels, and the wallet's #PIXEL when given), and the Level after paying from the Normie. Attached #PIXEL CAN pay for a bigger or blank canvas (that is a real price, unlike painting, which never spends pixels). There is no score and no "ready": never call a Normie ready, never say where the #PIXEL should come from; for burn or buy questions point to /burn
+- For watch: list alerts (significant ≥10% pixel change, first edit, AP surge, can_enlarge = attached pixels now cover the next official size). Pulse after next official Canvas activity tracks signals — history, not a spend
 - Link editorUrl / Normifier when recommending transforms
 - Always include canvasEvolution.disclaimer
 - Never invent pixel bitmaps or AP balances not in context
@@ -452,8 +452,8 @@ export function composeZuloMessages(
           ? `aesthetic: ${ce.preview.aesthetic.visualCoherence}`
           : null,
         ce.expansion
-          ? `80x80 readiness: ${ce.expansion.readinessScore}/100 — ${ce.expansion.recommendation}`
-          : "expansion: not run",
+          ? `canvas costs (official, as of ${ce.expansion.asOf}): ${ce.expansion.facts.join(" ")}`
+          : "canvas costs: not run",
         ce.watch
           ? `watch: ${ce.watch.watched} tokens, ${ce.watch.alertCount} alerts, next ${ce.watch.nextDueAt ?? "n/a"}`
           : "watch: not run",

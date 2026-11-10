@@ -1,11 +1,11 @@
 import type { Metadata } from "next"
 import { headers } from "next/headers"
+import { redirect } from "next/navigation"
 
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
 import { MOVE_CHECKLIST } from "@/lib/ap-check/move-checklist"
 import { ago, apiDisagrees, artVersionText, isActiveApproval, openSeaItemUrl, parseTokenInput, reasonText } from "@/lib/ap-check/core"
-import { planForBudget, planForPixels, MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart, type BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
 import { bookApprox, bookRows, exactEth, PIXEL_MARKET_URL } from "@/lib/ap-check/book-table"
 import { checkContract, OFFICIAL_CONTRACTS, parseAddressInput, type ContractCheck } from "@/lib/official-contracts"
@@ -47,7 +47,6 @@ type View =
   | { kind: "wallet"; check: WalletCheck }
   | { kind: "listings"; check: ListingsCheck }
   | { kind: "approvals"; check: ApprovalsCheck }
-  | { kind: "calc"; answer: PixelsAnswer | BudgetAnswer; inputs: BuySmartInputs }
   | { kind: "contract"; check: ContractCheck }
   | { kind: "error"; message: string }
   | { kind: "none" }
@@ -57,6 +56,8 @@ const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
 /** Same rounding as eth(), without the unit (the column header says ETH). */
 const ethNum = (n: number) => n.toFixed(n < 0.1 ? 4 : 3).replace(/0+$/, "").replace(/\.$/, "")
 const eth = (n: number) => `${ethNum(n)} ETH`
+/** The market-or-burn compare lives on /burn now (AGENTS.md: buy-vs-burn views are fenced to /burn, Ryan 2026-11-10). */
+const COMPARE_PATH = "/burn#compare"
 const days = (iso: string | null) => {
   if (!iso) return "no end"
   const d = Math.round((Date.parse(iso) - Date.now()) / 86_400_000)
@@ -68,33 +69,12 @@ async function limited(): Promise<string | null> {
   return rl.ok ? null : `Too many lookups from your network. Try again in ${rl.retryAfter} seconds.`
 }
 
-/** "500", "500 pixels", "0.5", "0.5 eth", "1,000" -> a positive number, or null. */
-function parseAmount(raw: string | undefined, mode: "pixels" | "eth"): number | null {
-  if (!raw) return null
-  const s = raw.trim().toLowerCase().replace(/,/g, "").replace(/\s*(pixels?|px|eth|ξ)$/, "")
-  if (!/^\d*\.?\d+$/.test(s)) return null
-  const n = Number(s)
-  if (!(n > 0)) return null
-  if (mode === "pixels") return Number.isInteger(n) && n <= 1_000_000 ? n : null
-  return n <= 1_000 ? n : null
-}
-
-async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined, calc: { mode: "pixels" | "eth"; amount: string | undefined } | undefined, showExample: boolean, contract?: string): Promise<View> {
+async function answer(token: string | undefined, wallet: string | undefined, listings: boolean, approvals: string | undefined, showExample: boolean, contract?: string): Promise<View> {
   try {
     if (contract) {
       const a = parseAddressInput(contract)
       if (!a) return { kind: "error", message: "Paste one contract address (0x followed by 40 characters), or an Etherscan link to it." }
       return { kind: "contract", check: checkContract(a) }
-    }
-    if (calc) {
-      const amount = parseAmount(calc.amount, calc.mode)
-      if (amount === null) {
-        return { kind: "error", message: calc.mode === "pixels" ? "Type how many pixels you want, as a whole number, like 500." : "Type how much ETH you want to spend, like 0.5." }
-      }
-      const inputs = await loadBuySmart()
-      if (!inputs) return { kind: "error", message: "Could not load listings and the Pixel Market just now. Try again in a minute." }
-      const depth = inputs.book && !inputs.book.paused ? inputs.book.depth : null
-      return { kind: "calc", inputs, answer: calc.mode === "pixels" ? planForPixels(inputs.picks, depth, amount) : planForBudget(inputs.picks, depth, amount) }
     }
     if (approvals) {
       const w = normalizeWalletInput(approvals)
@@ -127,21 +107,23 @@ async function answer(token: string | undefined, wallet: string | undefined, lis
   }
 }
 
-type Tab = "check" | "buy" | "offers" | "safety"
+type Tab = "check" | "market" | "offers" | "safety"
 const TABS: ReadonlyArray<{ id: Tab; label: string; intro: string }> = [
   { id: "check", label: "Check", intro: "Is this Normie what OpenSea says? Live pixels, what a burn pays, and the offers on it." },
-  { id: "buy", label: "Buy", intro: "The cheapest way to get pixels: the Pixel Market, or burning floor Normies." },
+  { id: "market", label: "Market", intro: "The Pixel Market's order book right now, and listings that show more pixels than they really have." },
   { id: "offers", label: "Offers", intro: "Your open offers on Normies whose pixels are gone." },
   { id: "safety", label: "Safety", intro: "Who can spend your pixels, and is that contract really from Normies?" },
 ]
 
 /** The tab follows what was asked; a bare ?tab= just opens that tab. */
-function pickTab(q: { tab?: string; token?: string; wallet?: string; approvals?: string; calc?: string; listings: boolean; contract?: string }): Tab {
+function pickTab(q: { tab?: string; token?: string; wallet?: string; approvals?: string; listings: boolean; contract?: string }): Tab {
   if (q.approvals || q.contract) return "safety"
   if (q.wallet) return "offers"
-  if (q.calc || q.listings) return "buy"
+  if (q.listings) return "market"
   if (q.token) return "check"
-  return q.tab === "buy" || q.tab === "offers" || q.tab === "safety" ? q.tab : "check"
+  // Old ?tab=buy links land on the Market tab (the compare itself moved to /burn).
+  if (q.tab === "buy") return "market"
+  return q.tab === "market" || q.tab === "offers" || q.tab === "safety" ? q.tab : "check"
 }
 
 export default async function ApPage({ searchParams }: { searchParams: Promise<{ token?: string | string[]; wallet?: string | string[]; view?: string | string[]; approvals?: string | string[]; calc?: string | string[]; amount?: string | string[]; tab?: string | string[]; contract?: string | string[] }> }) {
@@ -151,16 +133,20 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
   const wallet = first(sp.wallet)
   const approvals = first(sp.approvals)
   const calcRaw = first(sp.calc)
-  const calcMode: "pixels" | "eth" = calcRaw === "eth" ? "eth" : "pixels"
   const amountRaw = first(sp.amount)
+  // Old /pixels?calc=… links (and bookmarks) go to the compare on /burn, which carries the "Not financial advice" label.
+  if (calcRaw) {
+    const q = new URLSearchParams({ calc: calcRaw === "eth" ? "eth" : "pixels", ...(amountRaw ? { amount: amountRaw } : {}) })
+    redirect(`/burn?${q.toString()}#compare`)
+  }
   const listings = first(sp.view) === "listings"
   const contract = first(sp.contract)
-  const tab = pickTab({ tab: first(sp.tab), token, wallet, approvals, calc: calcRaw, listings, contract })
-  const view = await answer(token, wallet, listings, approvals, calcRaw ? { mode: calcMode, amount: amountRaw } : undefined, tab === "check", contract)
+  const tab = pickTab({ tab: first(sp.tab), token, wallet, approvals, listings, contract })
+  const view = await answer(token, wallet, listings, approvals, tab === "check", contract)
   const intro = TABS.find((t) => t.id === tab)?.intro
-  // The Buy tab always shows the Pixel Market's order book (shared, refreshed once a minute; no per-visitor cost).
-  const bookInputs = tab === "buy" ? (view.kind === "calc" ? view.inputs : await loadBuySmart()) : null
-  const bookWant = view.kind === "calc" ? (view.answer.mode === "pixels" ? view.answer.need : view.answer.market?.pixels ?? null) : null
+  // The Market tab always shows the Pixel Market's order book (shared, refreshed once a minute; no per-visitor cost).
+  const bookInputs = tab === "market" ? await loadBuySmart() : null
+  const bookWant: number | null = null
 
   return (
     <div className="zulo-chrome min-h-screen burn-page pixels-page">
@@ -193,21 +179,11 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
             </form>
           </>
         )}
-        {tab === "buy" && (
+        {tab === "market" && (
           <>
-            <form method="get" action="/pixels#result" className="burn-box burn-form" data-tag="Market or burn?">
-              <fieldset className="burn-tabs pixels-toggle">
-                <legend className="sr-only">Compare by</legend>
-                <label className="burn-tab"><input type="radio" name="calc" value="pixels" defaultChecked={calcMode === "pixels"} /><span>Pixels I want</span></label>
-                <label className="burn-tab"><input type="radio" name="calc" value="eth" defaultChecked={calcMode === "eth"} /><span>ETH to spend</span></label>
-              </fieldset>
-              <label htmlFor="amount" className="sr-only">Amount</label>
-              <div className="burn-inputrow">
-                <input id="amount" name="amount" type="text" defaultValue={view.kind === "calc" ? amountRaw ?? "" : ""} placeholder="500 pixels, or 0.5 ETH" inputMode="decimal" enterKeyHint="go" spellCheck={false} autoComplete="off" className="burn-input" />
-                <button type="submit" className="burn-go" aria-label="Compare the Pixel Market with burning floor Normies"><span>Compare</span><span aria-hidden="true">→</span></button>
-              </div>
-              <p className="burn-safeline">Pixel Market vs burning floor Normies · live chain pixels</p>
-            </form>
+            <p className="burn-box burn-small pixels-compare-moved" data-tag="Market or burn?">
+              Comparing the Pixel Market with burning floor Normies now lives on <a href={COMPARE_PATH}>Burn or keep?</a>, next to its &ldquo;Not financial advice&rdquo; label.
+            </p>
             <form method="get" action="/pixels#result" className="pixels-listings-form">
               <input type="hidden" name="view" value="listings" />
               <div className="pixels-listings-row">
@@ -281,11 +257,10 @@ export default async function ApPage({ searchParams }: { searchParams: Promise<{
           </section>
         )}
         {view.kind === "approvals" && view.check.kind === "ok" && <ApprovalsResult check={view.check} />}
-        {view.kind === "calc" && <CalcResult answer={view.answer} inputs={view.inputs} />}
         {view.kind === "contract" && <ContractResult check={view.check} />}
         </div>
 
-        {tab === "buy" && <PixelBook inputs={bookInputs} want={bookWant} />}
+        {tab === "market" && <PixelBook inputs={bookInputs} want={bookWant} />}
 
         <FinePrint />
       </main>
@@ -353,7 +328,7 @@ function PixelBook({ inputs, want }: { inputs: BuySmartInputs | null; want: numb
           <ul className="burn-small pixels-calc-notes">
             {want ? <li>Highlighted rows are the prices you would buy through to get {want.toLocaleString("en-US")} pixels.</li> : null}
             {approx ? <li><strong>Approximate:</strong> {want?.toLocaleString("en-US")} pixels lands partway into a price where some listings must be bought whole. The market shows one total per price, not each listing&apos;s size, so you may have to buy a few more pixels than asked, at a little more cost.</li> : null}
-            <li>Total cost is what buying every pixel down to that row costs, not the exact amount you asked for. The compare above prices the exact amount.</li>
+            <li>Total cost is what buying every pixel down to that row costs.</li>
             <li>Each row is one price, which can hold several listings. &ldquo;Whole&rdquo; pixels sit in listings that must be bought in full.</li>
             {book.pixelsListed > shown ? <li>Showing the cheapest {rows.length} prices ({shown.toLocaleString("en-US")} pixels). The rest are on the market page.</li> : null}
             <li>Buyers pay the listed price and nothing extra; gas is not included. Look-only: buy on the official market, never here. Refreshed every minute.</li>
@@ -613,91 +588,6 @@ function BeforeYouBuy({ check }: { check: TokenCheck }) {
             : ""}
         </p>
       )}
-    </section>
-  )
-}
-
-function CalcResult({ answer: a, inputs }: { answer: PixelsAnswer | BudgetAnswer; inputs: BuySmartInputs }) {
-  const burn = a.burn
-  const m = a.market
-  const rolls = (p: { low: number; mid: number; high: number }) => (p.low === p.high ? `${p.mid}` : `${p.low}–${p.high}`)
-  let headline: string
-  if (a.mode === "pixels") {
-    headline =
-      m && m.shortfall > 0 && burn?.reached
-        ? `The Pixel Market only has ${m.pixels} pixels listed. Burning gets you to ${a.need}: typically ${eth(burn.costEth)}${a.burnSure?.reached ? `, or ${eth(a.burnSure.costEth)} to be sure even with bad rolls` : ""}.`
-      : a.verdict === "burn" && a.burnSure?.reached ? `Burning is cheaper: ${eth(a.burnSure.costEth)} gets you ${a.need}+ pixels even with the worst rolls${burn && burn.costEth < a.burnSure.costEth ? ` (typically ${eth(burn.costEth)})` : ""}.`
-      : a.verdict === "burn" && burn ? `Burning is cheaper: typically ${eth(burn.costEth)} for ${a.need} pixels.`
-      : a.verdict === "gamble" && burn && m ? `Burning is cheaper with typical rolls (${eth(burn.costEth)} vs ${eth(m.costEth)}), but bad rolls could leave you short.`
-      : a.verdict === "market" && m ? `The Pixel Market is cheaper: ${eth(m.costEth)} for ${a.need} pixels.`
-      : "Could not price both sides right now."
-  } else {
-    headline =
-      a.verdict === "burn" && burn ? `Burning gets more: ${rolls(burn)} pixels for ${eth(burn.costEth)}, vs ${m?.pixels ?? 0} on the Pixel Market.`
-      : a.verdict === "gamble" && burn && m ? `Burning gets more with typical rolls (${burn.mid} vs ${m.pixels} pixels), but bad rolls could give you fewer.`
-      : a.verdict === "market" && m ? `The Pixel Market gets more: ${m.pixels} pixels for ${eth(m.costEth)}.`
-      : "Could not price both sides right now."
-  }
-  const verdictTag = a.verdict === "unknown" ? "has-ap" : a.verdict === "market" ? "has-ap" : "dropped"
-  return (
-    <section className="burn-box ap-result pixels-calc" data-tag={a.mode === "pixels" ? `${a.need} pixels: market or burn?` : `${a.budgetEth} ETH: market or burn?`} data-verdict={verdictTag} aria-labelledby="calc-h">
-      <h2 id="calc-h" className="burn-headline">{headline}</h2>
-
-      <div className="pixels-calc-sides">
-        <div className="pixels-calc-side">
-          <h3 className="burn-cap">Pixel Market</h3>
-          {m ? (
-            <p className="burn-small">
-              {a.mode === "pixels"
-                ? m.shortfall > 0 ? `Only ${m.pixels} pixels are listed right now (${eth(m.costEth)}).` : `${a.need} pixels for ${eth(m.costEth)}.`
-                : `${m.pixels} pixels for ${eth(m.costEth)}.`}
-              {" "}Exact, from the live order book{m.approx ? " (approximate: some listings must be bought whole)" : ""}.
-            </p>
-          ) : (
-            <p className="burn-small">The order book could not be read just now.</p>
-          )}
-        </div>
-        <div className="pixels-calc-side">
-          <h3 className="burn-cap">Burn floor Normies</h3>
-          {burn && burn.picks.length ? (
-            <>
-              <p className="burn-small">
-                Buy {burn.picks.length} {burn.picks.length === 1 ? "Normie" : "Normies"} for {eth(burn.costEth)} and burn {burn.picks.length === 1 ? "it" : "them"}: {rolls(burn)} pixels, typically {burn.mid}.
-                {a.mode === "pixels" && !burn.reached ? ` The cheapest ${MAX_BURNS} burns cannot reach ${a.need}.` : ""}
-              </p>
-              {a.mode === "pixels" && a.burnSure?.reached && a.burnSure.picks.length !== burn.picks.length && (
-                <p className="burn-small">To be sure even with the worst rolls: {a.burnSure.picks.length} Normies for {eth(a.burnSure.costEth)}.</p>
-              )}
-            </>
-          ) : (
-            <p className="burn-small">{a.mode === "eth" ? "No listed Normie fits inside that budget." : "No usable listings right now."}</p>
-          )}
-        </div>
-      </div>
-
-      {burn && burn.picks.length > 0 && (
-        <table className="burn-table ap-table">
-          <thead><tr><th scope="col">Normie</th><th scope="col">Price</th><th scope="col">Burn pays</th><th scope="col">Attached now</th></tr></thead>
-          <tbody>
-            {burn.picks.map((p) => (
-              <tr key={p.tokenId}>
-                <th scope="row"><a href={`/pixels?token=${p.tokenId}#result`}>#{p.tokenId}</a>{p.customized ? <span className="ap-flag" title="Burning erases its edited art"> art</span> : null}</th>
-                <td>{eth(p.priceEth)}</td>
-                <td>{rolls(p)}</td>
-                <td>{p.livePixels}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      <ul className="burn-small pixels-calc-notes">
-        <li>The roll is the gamble: {ROLL_TEXT[inputs.yieldMode]}, plus every pixel attached to the burned Normie. {inputs.modeSource === "contract" ? "The burn mode was read from the Normies contract." : "The burn mode could not be read from the contract; this follows the announced schedule."}</li>
-        <li><strong>Reveal within about 50 minutes.</strong> A burn is two steps on the Canvas: commit, then reveal about a minute later. Miss the reveal window and every burned Normie pays only its minimum roll, so the gamble always lands on the worst case.</li>
-        <li>Burned pixels can land in your wallet or on a Normie you own. Each burn costs gas, which is not included here.</li>
-        <li>{inputs.liveConfirmed >= inputs.listingsChecked ? `Every listing's attached pixels were read from the chain, so a stripped Normie is priced as stripped.` : `${inputs.liveConfirmed} of ${inputs.listingsChecked} listings had their pixels confirmed on the chain; the rest use the listing data, which can lag.`} Open any Normie above to check it before you buy.</li>
-        <li>Listings and prices move fast. This is a comparison of two costs, not advice. Shared and refreshed every minute.</li>
-      </ul>
     </section>
   )
 }

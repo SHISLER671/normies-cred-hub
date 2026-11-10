@@ -110,6 +110,13 @@ type HistoryStatsPayload = {
   [key: string]: unknown
 }
 
+/** normies.art rarity: ranks from the ORIGINAL Pixel Count and traits (normies.art/docs), so Canvas edits never move them. */
+const RARITY_SOURCE = "normies.art rarity (api.normies.art/rarity), from original Pixel Count and traits"
+
+export function rarityRankFact(rank: number, score: number | null): string {
+  return `Rarity rank #${rank} of the live Normies${score != null ? ` (score ${score})` : ""}, ${RARITY_SOURCE}; editing never changes it. ${ECOSYSTEM_LINKS.rarity}`
+}
+
 type RarityPayload = {
   id?: number
   name?: string
@@ -411,24 +418,14 @@ function generateOpportunities(input: OpportunityInput): string[] {
   }
 
   if (input.rarityRank != null && Number.isFinite(input.rarityRank)) {
-    if (input.rarityRank <= 1000) {
-      opportunities.push(
-        `High rarity rank #${input.rarityRank}${input.rarityScore != null ? ` (score ${input.rarityScore})` : ""} — hold/premium narrative; confirm on ${ECOSYSTEM_LINKS.rarity}`,
-      )
-    } else if (input.rarityRank > 5000) {
-      opportunities.push(
-        `More common rank #${input.rarityRank} — strategic Canvas burns for AP, trait targeting, or collection utility over pure rank chase. ${ECOSYSTEM_LINKS.rarity}`,
-      )
-    } else {
-      opportunities.push(
-        `Mid rarity rank #${input.rarityRank}${input.rarityScore != null ? ` (score ${input.rarityScore})` : ""} — balance holding vs targeted Canvas work. ${ECOSYSTEM_LINKS.rarity}`,
-      )
-    }
+    // A fact with its source, no hold/burn lean (AGENTS.md). Rank reads the original Pixel Count and traits, so edits
+    // never change it (normies.art/docs).
+    opportunities.push(rarityRankFact(input.rarityRank, input.rarityScore ?? null))
   }
 
   if (input.holdingsCount != null && input.holdingsCount > 1) {
     opportunities.push(
-      `Holdings: ${input.holdingsCount} Normies — Multisend for batch ops (${ECOSYSTEM_LINKS.multisend}); burn commons, protect favorites.`,
+      `Holdings: ${input.holdingsCount} Normies — Multisend for batch ops (${ECOSYSTEM_LINKS.multisend}). Burn or keep calls live on /burn (vibe check, not financial advice).`,
     )
   }
 
@@ -779,6 +776,8 @@ export async function buildZuloContext(
       ? true
       : isAwakened || isZuloUserSubject,
     isPremiumFocus: isGeneralMode ? false : focusComboForStrategy.isPremium,
+    focusTraitSupply: isGeneralMode ? undefined : rarityData?.traitBreakdown,
+    walletAddress: !isGeneralMode && ownerMatchesUser ? wallet : undefined,
   })
 
   const nextSteps = isGeneralMode
@@ -814,7 +813,7 @@ export async function buildZuloContext(
       .map(([k, v]) => `${k}=${v}`)
       .join(", ")
     nextSteps.unshift(
-      `Token #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.burnApEstimate ? ` · burn band ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traitBits ? ` · traits: ${traitBits}` : ""}`,
+      `Token #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rarity rank #${m.rarityRank} (normies.art rarity, as of ${now})` : ""}${m.burnApEstimate ? ` · burn band ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traitBits ? ` · traits: ${traitBits}` : ""}`,
     )
   }
 
@@ -823,7 +822,7 @@ export async function buildZuloContext(
   }
   if (burnApFromPixels && resolvedPixelCount != null && !isGeneralMode) {
     nextSteps.unshift(
-      `Pixel-tier burn estimate (focus #${tokenId}): ${resolvedPixelCount} on-pixels (tier ${burnApFromPixels.tier.label}, ${burnApFromPixels.tier.minPct}–${burnApFromPixels.tier.maxPct}%) → theoretical ${burnApFromPixels.minAp}–${burnApFromPixels.maxAp} AP before reveal RNG`,
+      `Pixel-tier burn estimate (focus #${tokenId}): ${resolvedPixelCount} original pixels (tier ${burnApFromPixels.tier.label}, ${burnApFromPixels.tier.minPct}–${burnApFromPixels.tier.maxPct}%) → theoretical ${burnApFromPixels.minAp}–${burnApFromPixels.maxAp} AP before reveal RNG`,
     )
   }
   if (strategy.apEstimateForFocus) {
@@ -858,7 +857,7 @@ export async function buildZuloContext(
     }
     if (ce.expansion) {
       nextSteps.push(
-        `80×80 expansion readiness #${ce.expansion.tokenId}: ${ce.expansion.readinessScore}/100 — ${ce.expansion.recommendation}`,
+        `Canvas costs #${ce.expansion.tokenId} (official prices): ${ce.expansion.facts.slice(1, 4).join(" ")}`,
       )
     }
     if (ce.watch?.alerts.length) {
@@ -954,7 +953,9 @@ export async function buildZuloContext(
         : {
             rank: rarityRank,
             score: rarityScore,
-            fairValue: rarityData?.fairValue ?? null,
+            // fairValue and typeFloor are left out on purpose. ETH value estimates stay out of Ask (AGENTS.md: no price talk outside /burn).
+            source: RARITY_SOURCE,
+            asOf: now,
             awake: rarityData?.awake,
             openseaUrl:
               rarityData?.openseaUrl || focusMention?.openseaUrl,
@@ -1006,7 +1007,6 @@ export async function buildZuloContext(
       nextSteps,
       rarityRank,
       rarityScore,
-      fairValue: rarityData?.fairValue ?? null,
       resources: [
         ...DEFAULT_RESOURCE_LINKS,
         ECOSYSTEM_LINKS.canvasEdit(tokenId),
@@ -1060,7 +1060,6 @@ export async function buildZuloContext(
             burnTokensPrev24h: marketState.burnTokensPrev24h,
             burnVolumeRatio: marketState.burnVolumeRatio,
             historicalApMedian: marketState.historicalApMedian,
-            impliedApCostETH: marketState.impliedApCostETH,
             apMarketStatus: marketState.apMarketStatus,
             apMarketPriceETH: marketState.apMarketPriceETH,
             owners: marketState.owners,
@@ -1109,17 +1108,17 @@ export async function buildZuloContext(
             expansion: canvasEvolution.expansion
               ? {
                   tokenId: canvasEvolution.expansion.tokenId,
-                  readinessScore: canvasEvolution.expansion.readinessScore,
                   actionPoints: canvasEvolution.expansion.actionPoints,
                   level: canvasEvolution.expansion.level,
                   currentGrid: canvasEvolution.expansion.currentGrid,
-                  targetGrid: canvasEvolution.expansion.targetGrid,
-                  apReadiness: canvasEvolution.expansion.apReadiness,
-                  densityReadiness: canvasEvolution.expansion.densityReadiness,
-                  levelReadiness: canvasEvolution.expansion.levelReadiness,
-                  milestones: canvasEvolution.expansion.milestones,
-                  blockers: canvasEvolution.expansion.blockers,
-                  recommendation: canvasEvolution.expansion.recommendation,
+                  pixels: canvasEvolution.expansion.pixels,
+                  walletPixels: canvasEvolution.expansion.walletPixels,
+                  costs: canvasEvolution.expansion.costTable
+                    ? [...canvasEvolution.expansion.costTable.enlarge, ...(canvasEvolution.expansion.costTable.blank ? [canvasEvolution.expansion.costTable.blank] : [])]
+                    : [],
+                  facts: canvasEvolution.expansion.facts,
+                  sources: canvasEvolution.expansion.sources,
+                  asOf: canvasEvolution.expansion.asOf,
                 }
               : undefined,
             watch: canvasEvolution.watch
@@ -1177,7 +1176,8 @@ export async function buildZuloContext(
               scanned: strategy.marketSentinel.scanned,
               brief: strategy.marketSentinel.brief,
               signals: strategy.marketSentinel.signals,
-              marketState: (({ floorBuyEfficiency: _fbe, ...rest }) => rest)(
+              // Buy-to-burn figures (floorBuyEfficiency, impliedApCostETH) never reach Ask: that math lives on /burn.
+              marketState: (({ floorBuyEfficiency: _fbe, impliedApCostETH: _iac, ...rest }) => rest)(
                 strategy.marketSentinel.marketState,
               ),
               whaleActivity: strategy.marketSentinel.whaleActivity,
@@ -1240,13 +1240,11 @@ export async function buildZuloContext(
               expansion: strategy.canvasEvolution.expansion
                 ? {
                     tokenId: strategy.canvasEvolution.expansion.tokenId,
-                    readinessScore: strategy.canvasEvolution.expansion.readinessScore,
-                    recommendation: strategy.canvasEvolution.expansion.recommendation,
                     actionPoints: strategy.canvasEvolution.expansion.actionPoints,
                     level: strategy.canvasEvolution.expansion.level,
                     currentGrid: strategy.canvasEvolution.expansion.currentGrid,
-                    targetGrid: strategy.canvasEvolution.expansion.targetGrid,
-                    blockers: strategy.canvasEvolution.expansion.blockers,
+                    facts: strategy.canvasEvolution.expansion.facts,
+                    asOf: strategy.canvasEvolution.expansion.asOf,
                   }
                 : undefined,
               watch: strategy.canvasEvolution.watch

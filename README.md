@@ -219,7 +219,7 @@ curl "https://normiescredhub.vercel.app/api/chat-ratings/32626"
 - **Name**: Normies Pixel Check
 - **Tool ID**: 245 (Ethereum, open) · 786 (Base, open) · 16 (Robinhood Chain, open)
 - **Manifest**: https://normiescredhub.vercel.app/.well-known/ai-tool/normies-pixel-check.json
-- **Endpoint**: `GET` or `POST https://normiescredhub.vercel.app/api/ap-check` (one question per call: `token`, `wallet`, `listings`, `approvals`, `contract`, or `calc` + `amount`)
+- **Endpoint**: `GET` or `POST https://normiescredhub.vercel.app/api/ap-check` (one question per call: `token`, `wallet`, `listings`, `approvals`, or `contract`; the `calc` + `amount` compare lives at `/api/burn/ap-check` and `/burn#compare`; `calc` here still answers with the same labelled result, plus `movedTo`/`page`, for the registered manifest)
 - **Access**: open to everyone on every chain (`accessPredicate` = `0x0000000000000000000000000000000000000000`). Read-only; never asks for keys, seeds or signatures. Standalone: no Pulse needed.
 - **OpenSea**: https://opensea.io/tools/erc8257/ethereum/245 · https://opensea.io/tools/erc8257/base/786
 - **Robinhood Chain** (chainId 4663): Tool #16. Explorer: https://robinhoodchain.blockscout.com/tx/0xee03515911484679b01df832f21d11687901f543130bc480ba3284451cd61d20

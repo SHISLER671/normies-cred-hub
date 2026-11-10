@@ -32,7 +32,7 @@ Zulo must **never invent** live order books, transfer mechanics, hold-threshold 
 Unchanged sacrificial economy (see pixel-economy doctrine):
 
 - **Get it only by burning** Normies into a receiver’s Canvas (commit → wait → reveal), **or by buying it on the Pixel Market**.
-- Yield bands by on-pixel count (under 490, 490–889, 890+).
+- Yield bands by original Pixel Count (under 490, 490–889, 890+).
 - Budget is **bound to a Normie Canvas**, not `eth_getBalance` and not TBA inventory.
 - Official customize uses **#PIXEL as pixel budget** (**1 PIXEL = 1 pixel**) in official Normies UI — not an AP debit. AP is not spent when you draw / preview.
 

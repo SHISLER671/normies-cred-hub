@@ -1,14 +1,23 @@
 // lib/agent-recommendations/canvasEvolution.ts
-// Canvas Evolution Advisor — preview transforms + 80×80 expansion readiness.
+// Canvas Evolution Advisor — preview transforms + official bigger / blank canvas costs (facts, no score).
 
-import { CANVAS_SIZE_COSTS, canvasUpgradeCost } from "@/lib/normies-canon"
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
+import {
+  buildCanvasCostTable,
+  CANON_CANVAS_PRICES,
+  CANVAS_COST_SOURCES,
+  describeCanvasCosts,
+  enlargeCoveredNow,
+  nextEnlargeCost,
+  pricesFromStatus,
+  type CanvasCostTable,
+  type CanvasPrices,
+} from "./canvasCosts"
 import { ECOSYSTEM_LINKS, ZULO_IDENTITY } from "./constants"
 import {
   apTierForPixelCount,
-  estimateBurnApFromPixels,
   levelFromActionPoints,
 } from "./normiesKnowledge"
 
@@ -16,7 +25,7 @@ import {
 export const CANVAS_GRID_SIZE = 40
 export const CANVAS_PIXEL_CAPACITY = CANVAS_GRID_SIZE * CANVAS_GRID_SIZE // 1600
 
-/** Planned expansion target (80×80). */
+/** Largest official canvas size (80×80, live since the Pixel Market launch). */
 export const EXPANSION_GRID_SIZE = 80
 export const EXPANSION_PIXEL_CAPACITY = EXPANSION_GRID_SIZE * EXPANSION_GRID_SIZE // 6400
 
@@ -30,7 +39,7 @@ export const SIGNIFICANT_TRANSFORM_PCT = 10
 export const AP_PER_PIXEL_EDIT = 1
 
 export const CANVAS_EVOLUTION_DISCLAIMER =
-  "Canvas previews are estimates from live Normies API state + your stated changes — not an on-chain simulation. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit. AP stays on the keeper; not spent when you draw or preview. CredHub / Normifier preview is not a spend rail. Aesthetic/rarity notes are heuristics. Bigger-canvas planning scores are Zulo's own heuristics; the official prices are 900 / 2,000 / 3,300 / 4,800 #PIXEL in total for 50 / 60 / 70 / 80 per side. DYOR before transforming. Not financial advice."
+  "Canvas previews are estimates from live Normies API state + your stated changes — not an on-chain simulation. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit. AP stays on the keeper; not spent when you draw or preview. CredHub / Normifier preview is not a spend rail. Aesthetic notes are heuristics. Bigger-canvas costs are the official prices (api.normies.art/canvas/status, NormiesCanvasV2): 900 / 2,000 / 3,300 / 4,800 #PIXEL in total for 50 / 60 / 70 / 80 per side; nothing here is scored. DYOR before transforming. Not financial advice."
 
 export type CanvasVerdict = "PROCEED" | "MODIFY" | "ABANDON"
 
@@ -55,6 +64,13 @@ export interface CanvasInfoState {
   pixelCountOff: number
   capacity: number
   originalPixelCountOn?: number
+  /** Canvas side length from canvas/info (40 until enlarged). */
+  gridSize: number
+  /** Base art cleared (blank canvas bought). Null when the API did not say. */
+  baseCleared: boolean | null
+  /** Attached pixels backing the paint / not backing it (canvas/info). Null when the API did not say. */
+  lockedPixels: number | null
+  freePixels: number | null
   diff: {
     addedCount: number
     removedCount: number
@@ -123,29 +139,34 @@ export interface CanvasPreviewResult {
   sources: string[]
 }
 
-export interface ExpansionReadinessResult {
+/**
+ * Official bigger / blank canvas costs for one Normie (replaces the old 0–100 planning score, 2026-11-10).
+ * Every number is a price or a balance from api.normies.art; nothing is scored or judged.
+ */
+export interface CanvasCostsResult {
   scanned: boolean
   tokenId: number
-  currentGrid: { size: number; capacity: number; pixelsOn: number; densityPct: number }
-  targetGrid: { size: number; capacity: number }
+  currentGrid: { size: number; capacity: number; baseCleared: boolean | null }
   actionPoints: number
   level: number
   customized: boolean
-  /** 0–100 planning score toward an 80×80 canvas (Zulo's heuristic; the official price is in milestones) */
-  readinessScore: number
-  apReadiness: { score: number; note: string }
-  densityReadiness: { score: number; note: string }
-  levelReadiness: { score: number; note: string }
-  milestones: string[]
-  blockers: string[]
-  recommendation: string
+  pixels: { attached: number; locked: number | null; free: number | null }
+  /** Wallet #PIXEL, only when the visitor's own wallet was given. */
+  walletPixels: number | null
+  costTable: CanvasCostTable | null
+  facts: string[]
+  sources: string[]
+  asOf: string
   disclaimer: string
   summary: string
 }
 
+/** @deprecated Old name; the result is a cost table now, not a score. */
+export type ExpansionReadinessResult = CanvasCostsResult
+
 export interface CanvasWatchAlert {
   tokenId: number
-  type: "significant_transform" | "first_edit" | "ap_surge" | "expansion_ready"
+  type: "significant_transform" | "first_edit" | "ap_surge" | "can_enlarge"
   message: string
   pixelChangePct: number | null
   beforePixelsOn: number | null
@@ -174,7 +195,7 @@ export interface CanvasEvolutionResult {
   scanned: boolean
   mode: "preview" | "expansion" | "watch" | "overview"
   preview?: CanvasPreviewResult
-  expansion?: ExpansionReadinessResult
+  expansion?: CanvasCostsResult
   watch?: CanvasWatchResult
   canvasState?: CanvasInfoState
   disclaimer: string
@@ -236,6 +257,9 @@ export function isCanvasExpansionQuery(userQuery: string): boolean {
     q.includes("80x80") ||
     q.includes("80×80") ||
     q.includes("expand canvas") ||
+    q.includes("bigger canvas") ||
+    q.includes("enlarge") ||
+    q.includes("blank canvas") ||
     q.includes("readiness")
   )
 }
@@ -364,6 +388,10 @@ type CanvasInfoPayload = {
   level?: number
   customized?: boolean
   delegate?: string
+  gridSize?: number
+  baseCleared?: boolean
+  lockedPixels?: number
+  freePixels?: number
 }
 
 type CanvasDiffPayload = {
@@ -437,6 +465,10 @@ export async function fetchCanvasState(tokenId: number): Promise<CanvasInfoState
     pixelCountOff: CANVAS_PIXEL_CAPACITY - pixelCountOn,
     capacity: CANVAS_PIXEL_CAPACITY,
     originalPixelCountOn: originalOn,
+    gridSize: typeof info?.gridSize === "number" && info.gridSize > 0 ? info.gridSize : CANVAS_GRID_SIZE,
+    baseCleared: typeof info?.baseCleared === "boolean" ? info.baseCleared : null,
+    lockedPixels: typeof info?.lockedPixels === "number" ? info.lockedPixels : null,
+    freePixels: typeof info?.freePixels === "number" ? info.freePixels : null,
     diff: { addedCount, removedCount, netChange },
     densityPct: densityPct(pixelCountOn),
   }
@@ -489,11 +521,10 @@ function assessAesthetic(input: {
   let rarityImplications =
     "Trait rarity (Type/Hair/etc.) is on-chain deterministic and not changed by Canvas pixels — impact is narrative/aesthetic, not trait rank."
   if (input.rarityRank != null && input.rarityRank <= 500) {
-    rarityImplications +=
-      " High rarity rank piece — market often prices purist/untouched canvases at a premium; edit carefully."
+    rarityImplications += ` Rarity rank #${input.rarityRank} (normies.art rarity, from the original Pixel Count and traits; editing never changes it).`
   }
   if (input.isPremium) {
-    rarityImplications += " Premium trait combo detected — avoid casual edits that dilute identity."
+    rarityImplications += " Trait combo on Zulo's curated list (see trait supply facts); edits change the art, not the traits."
   }
 
   const puristStatusImpact = !input.customized
@@ -545,24 +576,24 @@ function decideVerdict(input: {
     reasoning.push(
       `ABANDON path: this preview is ${input.totalApCost} px of official #PIXEL budget; AP holdings on this token are ${input.availableAp} (holdings, not a canvas price). AP is not spent when you draw.`,
     )
-    reasoning.push("Burn fodder into this Normie or reduce edit scope before transforming.")
+    reasoning.push("Pixels on the Normie set how many pixels may differ from the original; this edit needs more than it has. A smaller edit fits; #PIXEL comes from burns or the Pixel Market (vibe check on /burn, not financial advice).")
     return { verdict: "ABANDON", reasoning, confidence: 88 }
   }
 
   if (input.isPremium && input.totalFlips > 40) {
-    reasoning.push("Premium trait stack + large remodel — high identity risk.")
+    reasoning.push("Trait combo on Zulo's curated list + a large remodel: the face will look very different (traits stay the same).")
     return {
       verdict: "ABANDON",
       reasoning: [
         ...reasoning,
-        "Recommend ABANDON or shrink to a micro-edit (≤15 flips) with Normifier preview.",
+        "A micro-edit (≤15 flips) keeps the face recognisable; preview it on Normifier first.",
       ],
       confidence: 80,
     }
   }
 
   if (!input.customized && (input.rarityRank ?? 9999) <= 1000 && input.totalFlips > 25) {
-    reasoning.push("Untouched mid/high rarity — purist premium at stake for a non-trivial first edit.")
+    reasoning.push("Untouched so far, rarity rank in the top 1,000: a non-trivial first edit ends its untouched status for good.")
     return {
       verdict: "MODIFY",
       reasoning: [
@@ -722,19 +753,16 @@ export async function previewCanvas(
   })
 
   const afterAp = Math.max(0, remainingApAfter)
-  const beforeBurn = estimateBurnApFromPixels(state.pixelCountOn)
-  const afterBurn = estimateBurnApFromPixels(afterOn)
-
-  const expansionHint =
-    state.actionPoints >= 50
-      ? `AP cushion present (${state.actionPoints}) — also review 80×80 expansion readiness.`
-      : `Low AP (${state.actionPoints}) — expansion readiness likely blocked until more burns fund this Canvas.`
+  const next = nextEnlargeCost(state.gridSize)
+  const expansionHint = next
+    ? `${state.actionPoints} #PIXEL attached${state.freePixels != null ? ` (${state.freePixels} free)` : ""}; the next canvas size, ${next.size}×${next.size}, costs ${next.cost.toLocaleString("en-US")} #PIXEL (official). Wallet #PIXEL can also pay.`
+    : `Already at ${state.gridSize}×${state.gridSize}, the largest official size.`
 
   const summary = [
     `Canvas Preview #${tokenId}: ${verdict} (confidence ${confidence}%)`,
     `Before ${state.pixelCountOn}/1600 on-px → after ${afterOn}/1600 (add ${actualAdd}, remove ${actualRemove}).`,
     `Official #PIXEL budget ${totalFlips} px (1 PIXEL = 1 pixel) · AP holdings ${state.actionPoints} stay on the keeper · not an AP debit.`,
-    `Burn-tier band before ~${beforeBurn.minAp}–${beforeBurn.maxAp} AP vs after ~${afterBurn.minAp}–${afterBurn.maxAp} AP (if burned as fodder later).`,
+    "Burn yield is set by the original Pixel Count (contract), so editing the art does not change what a burn would pay.",
     aesthetic.puristStatusImpact,
     ...reasoning.slice(0, 3),
     CANVAS_EVOLUTION_DISCLAIMER,
@@ -772,134 +800,96 @@ export async function previewCanvas(
   }
 }
 
-// ─── Expansion readiness (80×80) ─────────────────────────────────────────────
+// ─── Bigger / blank canvas costs (official) ──────────────────────────────────
+
+const PRICE_TTL_MS = 5 * 60_000
+let priceCache: { at: number; prices: CanvasPrices } | null = null
+
+/** Official prices read from the chain via api.normies.art/canvas/status (5-minute cache); canon if the read fails. */
+export async function fetchCanvasPrices(): Promise<CanvasPrices> {
+  if (priceCache && Date.now() - priceCache.at < PRICE_TTL_MS) return priceCache.prices
+  const raw = await fetchJson<unknown>(CANVAS_COST_SOURCES.prices)
+  const prices = pricesFromStatus(raw) ?? CANON_CANVAS_PRICES
+  if (prices.from === "chain") priceCache = { at: Date.now(), prices }
+  return prices
+}
+
+/** The wallet's loose #PIXEL (api.normies.art/pixels/balance). Null when no wallet or the read fails. */
+async function fetchWalletPixels(address?: string | null): Promise<number | null> {
+  if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) return null
+  const raw = await fetchJson<{ balance?: unknown }>(`${NORMIES_API_BASE}/pixels/balance/${address}`)
+  const b = raw?.balance
+  const v = typeof b === "number" ? b : typeof b === "string" && /^\d+$/.test(b) ? Number(b) : null
+  return v != null && Number.isFinite(v) ? v : null
+}
 
 /**
- * Planning read for a bigger canvas (live, official prices in lib/normies-canon.ts): attached #PIXEL vs the price, plus
- * Zulo's own density and Level heuristics.
+ * Official cost of every bigger size (and the blank canvas) from where this Normie is now, with the gap to its free
+ * pixels, its attached pixels and (only for the visitor's own wallet) the wallet's #PIXEL, and the Level after paying
+ * from the Normie. Facts only: no score, no "ready", no advice on where #PIXEL should come from.
  */
-export async function analyzeExpansionReadiness(
+export async function analyzeCanvasCosts(
   tokenId: number,
-): Promise<ExpansionReadinessResult> {
-  const state = await fetchCanvasState(tokenId)
+  opts?: { walletAddress?: string | null; isZombie?: boolean },
+): Promise<CanvasCostsResult> {
+  const [state, prices, walletPixels] = await Promise.all([
+    fetchCanvasState(tokenId),
+    fetchCanvasPrices(),
+    fetchWalletPixels(opts?.walletAddress),
+  ])
+  const asOf = new Date().toISOString()
+  const sources = [CANVAS_COST_SOURCES.info(tokenId), CANVAS_COST_SOURCES.prices, CANVAS_COST_SOURCES.docs, CANVAS_COST_SOURCES.contract]
 
   if (!state) {
     return {
       scanned: true,
       tokenId,
-      currentGrid: {
-        size: CANVAS_GRID_SIZE,
-        capacity: CANVAS_PIXEL_CAPACITY,
-        pixelsOn: 0,
-        densityPct: 0,
-      },
-      targetGrid: { size: EXPANSION_GRID_SIZE, capacity: EXPANSION_PIXEL_CAPACITY },
+      currentGrid: { size: CANVAS_GRID_SIZE, capacity: CANVAS_PIXEL_CAPACITY, baseCleared: null },
       actionPoints: 0,
       level: 1,
       customized: false,
-      readinessScore: 0,
-      apReadiness: { score: 0, note: "Canvas state unavailable" },
-      densityReadiness: { score: 0, note: "n/a" },
-      levelReadiness: { score: 0, note: "n/a" },
-      milestones: [],
-      blockers: ["Could not load Canvas from Normies API"],
-      recommendation: "Retry expansion check when API is reachable.",
+      pixels: { attached: 0, locked: null, free: null },
+      walletPixels,
+      costTable: null,
+      facts: ["Could not load this Normie's canvas from the Normies API, so no costs are shown. Try again in a minute."],
+      sources,
+      asOf,
       disclaimer: CANVAS_EVOLUTION_DISCLAIMER,
-      summary: `Expansion readiness #${tokenId}: unavailable.`,
+      summary: `Canvas costs #${tokenId}: unavailable (Normies API unreachable).`,
     }
   }
 
-  // Official prices (lib/normies-canon.ts): reaching 80×80 from 40×40 costs 4,800 #PIXEL in total, paid from the wallet
-  // or the Normie. The #PIXEL score compares what is attached to THIS Normie with that price; wallet #PIXEL is not read
-  // here, so the real budget can be higher. Density and Level scores are Zulo's own planning heuristics, not requirements.
-  const FULL_COST = canvasUpgradeCost(CANVAS_GRID_SIZE, EXPANSION_GRID_SIZE) ?? 4_800
-  const DENSITY_SWEET_MIN = 25
-  const DENSITY_SWEET_MAX = 75
-  const LEVEL_TARGET = 10
-
-  const apScore = Math.min(100, Math.round((state.actionPoints / FULL_COST) * 100))
-  const dens = state.densityPct
-  let densityScore = 100
-  if (dens < DENSITY_SWEET_MIN) densityScore = Math.round((dens / DENSITY_SWEET_MIN) * 80)
-  else if (dens > DENSITY_SWEET_MAX) {
-    densityScore = Math.round(80 - ((dens - DENSITY_SWEET_MAX) / (100 - DENSITY_SWEET_MAX)) * 40)
-  }
-  densityScore = Math.max(0, Math.min(100, densityScore))
-
-  const levelScore = Math.min(100, Math.round((state.level / LEVEL_TARGET) * 100))
-
-  const readinessScore = Math.round(apScore * 0.5 + densityScore * 0.25 + levelScore * 0.25)
-
-  const affordable = CANVAS_SIZE_COSTS.filter((c) => c.total <= state.actionPoints).map((c) => `${c.size}×${c.size}`)
-  const milestones: string[] = [
-    `Bigger canvas is live (official). Total #PIXEL from 40×40: ${CANVAS_SIZE_COSTS.map((c) => `${c.size}×${c.size} = ${c.total.toLocaleString("en-US")}`).join(", ")}; an upgrade costs the difference. Paid from the wallet or the Normie; the pixels are burned.`,
-    `#PIXEL attached to this Normie: ${state.actionPoints} of ${FULL_COST.toLocaleString("en-US")} for 80×80${affordable.length ? ` (covers ${affordable.join(", ")})` : ""}. Wallet #PIXEL is not counted here. Paying from the Normie lowers its Level.`,
-    `Density ${dens}% (Zulo's own heuristic band ~${DENSITY_SWEET_MIN}–${DENSITY_SWEET_MAX}% for art that scales well).`,
-  ]
-
-  const blockers: string[] = []
-  if (state.actionPoints < CANVAS_SIZE_COSTS[0].total) {
-    blockers.push(`Attached #PIXEL (${state.actionPoints}) is below the smallest upgrade (50×50 = ${CANVAS_SIZE_COSTS[0].total}); wallet #PIXEL can also pay.`)
-  }
-  if (dens > 90) {
-    blockers.push("Very high density: little empty space to work with.")
-  }
-  if (dens < 10) {
-    blockers.push("Very sparse canvas: little base art to scale up.")
-  }
-  if (!state.customized && state.actionPoints > 0) {
-    milestones.push("Original art so far: edits would end its untouched status.")
-  }
-
-  // Facts only. Where #PIXEL comes from (burns, the Pixel Market) is the holder's call: see /burn for a vibe check.
-  const recommendation =
-    readinessScore >= 75
-      ? "Most of the planning signals are in place; the official price list above is what an upgrade costs."
-      : readinessScore >= 45
-        ? "Some planning signals are in place; compare the attached #PIXEL with the official price list above."
-        : "Early: the attached #PIXEL is well short of the official upgrade prices above."
-
-  const summary = [
-    `Bigger-canvas planning #${tokenId}: score ${readinessScore}/100 (Zulo's heuristic, not an official requirement)`,
-    `#PIXEL attached ${state.actionPoints} (score ${apScore} vs ${FULL_COST} for 80×80), density ${dens}% (score ${densityScore}), level ${state.level} (score ${levelScore}).`,
-    recommendation,
-    blockers[0] ?? "No blockers found.",
-    CANVAS_EVOLUTION_DISCLAIMER,
-  ].join("\n")
+  const pixels = { attached: state.actionPoints, locked: state.lockedPixels, free: state.freePixels }
+  const costTable = buildCanvasCostTable({
+    gridSize: state.gridSize,
+    baseCleared: state.baseCleared,
+    isZombie: opts?.isZombie,
+    pixels,
+    walletPixels,
+    prices,
+  })
+  const facts = describeCanvasCosts(costTable, tokenId, asOf)
 
   return {
     scanned: true,
     tokenId,
-    currentGrid: {
-      size: CANVAS_GRID_SIZE,
-      capacity: CANVAS_PIXEL_CAPACITY,
-      pixelsOn: state.pixelCountOn,
-      densityPct: dens,
-    },
-    targetGrid: { size: EXPANSION_GRID_SIZE, capacity: EXPANSION_PIXEL_CAPACITY },
+    currentGrid: { size: state.gridSize, capacity: state.gridSize * state.gridSize, baseCleared: state.baseCleared },
     actionPoints: state.actionPoints,
     level: state.level,
     customized: state.customized,
-    readinessScore,
-    apReadiness: {
-      score: apScore,
-      note: `${state.actionPoints} #PIXEL attached vs ${FULL_COST} official total for 80×80`,
-    },
-    densityReadiness: {
-      score: densityScore,
-      note: `${dens}% on-pixel density`,
-    },
-    levelReadiness: {
-      score: levelScore,
-      note: `Level ${state.level} vs target ${LEVEL_TARGET}`,
-    },
-    milestones,
-    blockers,
-    recommendation,
+    pixels,
+    walletPixels,
+    costTable,
+    facts,
+    sources,
+    asOf,
     disclaimer: CANVAS_EVOLUTION_DISCLAIMER,
-    summary,
+    summary: [`Canvas costs #${tokenId} (official prices):`, ...facts, CANVAS_EVOLUTION_DISCLAIMER].join("\n"),
   }
 }
+
+/** @deprecated Old name: it returns official costs now, not a score. */
+export const analyzeExpansionReadiness = analyzeCanvasCosts
 
 // ─── Canvas Watch (12h monitoring) ───────────────────────────────────────────
 
@@ -1035,12 +1025,13 @@ export async function runCanvasWatch(options?: {
         })
       }
 
-      // Expansion readiness light check
-      if (state.actionPoints >= 200 && state.densityPct >= 25 && state.densityPct <= 75) {
+      // Official cost of the next size up (900 from 40×40). Alerts when the attached pixels first cover it.
+      const next = enlargeCoveredNow(state.actionPoints, state.gridSize, prev?.actionPoints)
+      if (next) {
         alerts.push({
           tokenId,
-          type: "expansion_ready",
-          message: `#${tokenId} looks expansion-ready (AP ${state.actionPoints}, density ${state.densityPct}%).`,
+          type: "can_enlarge",
+          message: `#${tokenId} has ${state.actionPoints} #PIXEL attached; the next canvas size, ${next.size}×${next.size}, costs ${next.cost.toLocaleString("en-US")} (official).`,
           pixelChangePct: null,
           beforePixelsOn: prevPixels,
           afterPixelsOn: state.pixelCountOn,
@@ -1100,6 +1091,9 @@ export async function runCanvasEvolution(input: {
   rarityRank?: number | null
   isPremium?: boolean
   watchlist?: number[]
+  /** The visitor's own wallet, only when it owns the focus Normie: adds a wallet #PIXEL line to the cost table. */
+  walletAddress?: string | null
+  isZombie?: boolean
 }): Promise<CanvasEvolutionResult> {
   const q = input.userQuery
   const proposed = parseProposedChanges(q, input.focusTokenId)
@@ -1131,7 +1125,7 @@ export async function runCanvasEvolution(input: {
     })
   }
   if (mode === "expansion" || mode === "overview" || mode === "watch") {
-    expansion = await analyzeExpansionReadiness(tokenId)
+    expansion = await analyzeCanvasCosts(tokenId, { walletAddress: input.walletAddress, isZombie: input.isZombie })
   }
   if (mode === "watch" || mode === "overview") {
     const list = [

@@ -5,8 +5,6 @@ import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { NORMIES_NFT } from "@/constants/contracts"
 import { getFloorMoralis } from "@/lib/pricing/moralis"
 
-import { estimateAPYield } from "./burnData"
-
 export const OPENSEA_COLLECTION_URL = "https://opensea.io/collection/normies"
 
 export interface FloorPrice {
@@ -18,7 +16,7 @@ export interface FloorPrice {
 }
 
 export const FLOORS_NOTE =
-  "Always verify live floor on OpenSea before buying: https://opensea.io/collection/normies — prices move fast. Not financial advice. Factor gas for burn commit+reveal."
+  "Floor figures are snapshots with their source and time; the live floor is on OpenSea (https://opensea.io/collection/normies). Values can go up or down and no one knows the future. Not financial advice."
 
 /** @deprecated Removed stale static table — kept empty so old imports do not quote lies. */
 export const CURRENT_FLOORS: FloorPrice[] = []
@@ -183,11 +181,10 @@ export async function analyzeAcquisitionStrategy(
 ): Promise<AcquisitionAnalysis> {
   // Shared resolver: Moralis first (persists history), then OpenSea/Reservoir
   const live = await resolveLiveCollectionFloor()
-  const commonAp = await estimateAPYield("human", "common", 3)
 
   if (!live?.floorPriceETH) {
     return {
-      recommendation: `I cannot determine current floor prices right now. Before any acquisition, check live floor on OpenSea: ${OPENSEA_COLLECTION_URL}. Do not rely on remembered or static ETH quotes. For ~${targetAP} AP, burn strategy depends on pixel tier and reveal RNG — see burn estimates in strategy snapshot. ${FLOORS_NOTE}`,
+      recommendation: `Live collection floor unavailable right now (no source answered). The live floor is on OpenSea: ${OPENSEA_COLLECTION_URL}. Do not quote remembered or static ETH figures. ${FLOORS_NOTE}`,
       options: [],
       floorsNote: FLOORS_NOTE,
       liveFloorETH: null,
@@ -195,22 +192,14 @@ export async function analyzeAcquisitionStrategy(
   }
 
   const floor = live.floorPriceETH
-  // Rough framing only: one floor unit may yield ~common median AP if burned as fodder (highly variable)
-  const unitsGuess =
-    commonAp.median > 0 ? Math.max(1, Math.ceil(targetAP / commonAp.median)) : 2
-  const roughCost = floor * unitsGuess
+  // Facts only (AGENTS.md): no "buy N floor Normies and burn them to reach X AP" math outside /burn. The target-AP
+  // argument is kept for old callers and ignored.
+  void targetAP
 
   return {
-    recommendation: `Live collection floor ~${floor.toFixed(3)} ETH (${live.source}, as of ${live.lastUpdated}) — snapshot only, not a guarantee. For ~${targetAP} AP, a rough framing is on the order of ~${unitsGuess} floor unit(s) if burned as fodder (~${roughCost.toFixed(3)} ETH before gas) — pixel tier, RNG, and listing depth matter. Always re-check ${OPENSEA_COLLECTION_URL} before buying. Common/Human listings are often near floor but verify. Include gas for commit+reveal. ${FLOORS_NOTE}`,
-    options: [
-      {
-        type: "collection-floor",
-        cost: floor,
-        expectedAP: commonAp.median,
-        efficiency: commonAp.median / floor,
-        confidence: commonAp.confidence === "high" ? "medium" : "low",
-      },
-    ],
+    recommendation: `Live collection floor ~${floor.toFixed(3)} ETH (source: ${live.source}, as of ${live.lastUpdated}); a snapshot, not a guarantee. Buy-vs-burn comparisons live on /burn (vibe check, not financial advice). ${FLOORS_NOTE}`,
+    // No buy-to-burn option rows (expected AP, AP per ETH): that comparison is fenced to /burn.
+    options: [],
     floorsNote: FLOORS_NOTE,
     liveFloorETH: floor,
     liveFloorSource: live.source,

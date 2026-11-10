@@ -200,9 +200,8 @@ export function buildEthosSignal(
       "The Ethos score reflects how the community perceives the owner's on-chain behavior. Higher scores indicate stronger, community-backed credibility.",
     score: ethos?.user?.score,
     verifiable: !!ethos?.found,
-    metadata: ethos?.user
-      ? { level: ethos.level, username: ethos.user.username }
-      : undefined,
+    // No username: never link a wallet to a social profile (AGENTS.md).
+    metadata: ethos?.user ? { level: ethos.level } : undefined,
   })
 }
 

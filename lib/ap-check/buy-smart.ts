@@ -210,12 +210,13 @@ export function pixelsAtMarket(depth: DepthLevel[], need: number): MarketBuy {
 }
 
 /**
- * burn: burning wins even with the worst rolls.
- * gamble: burning wins with typical rolls, loses with bad ones.
- * market: the Pixel Market wins (or burning cannot even reach the target).
+ * Which route costs less, as a plain label (no "wins", no advice; the page states both costs):
+ * burn_even_worst_rolls: burning costs less even if every roll is the worst.
+ * burn_typical_rolls: burning costs less with typical rolls, more with bad ones.
+ * pixel_market: the Pixel Market costs less (or burning cannot reach the target).
  * unknown: one side could not be priced (no order book, or no usable listings).
  */
-export type Verdict = "burn" | "gamble" | "market" | "unknown"
+export type LowerCost = "burn_even_worst_rolls" | "burn_typical_rolls" | "pixel_market" | "unknown"
 
 export interface PixelsAnswer {
   mode: "pixels"
@@ -225,9 +226,9 @@ export interface PixelsAnswer {
   burn: BurnPlan | null
   /** Burns that reach the target even if every roll is the worst. */
   burnSure: BurnPlan | null
-  verdict: Verdict
-  /** ETH saved by the winner, at typical rolls. */
-  savingEth: number | null
+  lowerCost: LowerCost
+  /** ETH difference between the two routes, at typical rolls. */
+  costGapEth: number | null
 }
 
 export function planForPixels(picks: BurnPick[], depth: DepthLevel[] | null, need: number): PixelsAnswer {
@@ -236,17 +237,17 @@ export function planForPixels(picks: BurnPick[], depth: DepthLevel[] | null, nee
   const burn = picks.length ? burnForPixels(picks, n, "mid") : null
   const burnSure = picks.length ? burnForPixels(picks, n, "low") : null
   const marketOk = market && market.shortfall === 0
-  let verdict: Verdict = "unknown"
+  let lowerCost: LowerCost = "unknown"
   let saving: number | null = null
   if (marketOk && burn) {
-    if (!burn.reached) verdict = "market"
-    else if (burnSure?.reached && burnSure.costEth < market.costEth) verdict = "burn"
-    else if (burn.costEth < market.costEth) verdict = "gamble"
-    else verdict = "market"
+    if (!burn.reached) lowerCost = "pixel_market"
+    else if (burnSure?.reached && burnSure.costEth < market.costEth) lowerCost = "burn_even_worst_rolls"
+    else if (burn.costEth < market.costEth) lowerCost = "burn_typical_rolls"
+    else lowerCost = "pixel_market"
     if (burn.reached) saving = r4(Math.abs(market.costEth - burn.costEth))
-  } else if (marketOk) verdict = "market"
-  else if (burn?.reached) verdict = "burn"
-  return { mode: "pixels", need: n, market, burn, burnSure, verdict, savingEth: saving }
+  } else if (marketOk) lowerCost = "pixel_market"
+  else if (burn?.reached) lowerCost = "burn_even_worst_rolls"
+  return { mode: "pixels", need: n, market, burn, burnSure, lowerCost, costGapEth: saving }
 }
 
 export interface BudgetAnswer {
@@ -254,25 +255,25 @@ export interface BudgetAnswer {
   budgetEth: number
   market: MarketBuy | null
   burn: BurnPlan | null
-  verdict: Verdict
-  /** Extra pixels the winner gets for the same money, at typical rolls. */
-  extraPixels: number | null
+  lowerCost: LowerCost
+  /** Pixel difference between the two routes for the same money, at typical rolls. */
+  pixelGap: number | null
 }
 
 export function planForBudget(picks: BurnPick[], depth: DepthLevel[] | null, budgetEth: number): BudgetAnswer {
   const b = Math.max(0, budgetEth)
   const market = depth && depth.length ? pixelsForBudget(depth, b) : null
   const burn = picks.length ? burnForBudget(picks, b) : null
-  let verdict: Verdict = "unknown"
+  let lowerCost: LowerCost = "unknown"
   let extra: number | null = null
   if (market && burn && burn.picks.length) {
-    if (burn.low > market.pixels) verdict = "burn"
-    else if (burn.mid > market.pixels) verdict = "gamble"
-    else verdict = "market"
+    if (burn.low > market.pixels) lowerCost = "burn_even_worst_rolls"
+    else if (burn.mid > market.pixels) lowerCost = "burn_typical_rolls"
+    else lowerCost = "pixel_market"
     extra = Math.abs(burn.mid - market.pixels)
-  } else if (market && market.pixels > 0) verdict = "market"
-  else if (burn && burn.picks.length) verdict = "burn"
-  return { mode: "eth", budgetEth: b, market, burn, verdict, extraPixels: extra }
+  } else if (market && market.pixels > 0) lowerCost = "pixel_market"
+  else if (burn && burn.picks.length) lowerCost = "burn_even_worst_rolls"
+  return { mode: "eth", budgetEth: b, market, burn, lowerCost, pixelGap: extra }
 }
 
 /** One Normie through the lens: what its live pixels would pay if burned, and what those pixels cost on the Pixel Market. */
