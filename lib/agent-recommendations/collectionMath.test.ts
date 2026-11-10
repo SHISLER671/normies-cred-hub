@@ -93,7 +93,15 @@ describe("isCollectionMathQuery", () => {
     }
   })
   it("leaves single-Normie and market questions alone", () => {
-    for (const q of ["Tell me about #7141", "market status", "is the pixel market live?", "How do I raise my Level?"]) {
+    for (const q of [
+      "Tell me about #7141",
+      "market status",
+      "is the pixel market live?",
+      "How do I raise my Level?",
+      // A named Normie is a single-Normie question (GrokBot review of #156).
+      "max #PIXEL if I burn #1234",
+      "total pixels on normie 55",
+    ]) {
       assert.equal(isCollectionMathQuery(q), false, q)
     }
   })

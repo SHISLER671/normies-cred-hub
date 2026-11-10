@@ -154,3 +154,30 @@ describe("postProcess reads the new answer format", () => {
     assert.equal(isPlaceholderText("About 300k"), false)
   })
 })
+
+describe("GrokBot review of #156", () => {
+  it("'should I' questions: key number or trade-off, the choice is the holder's, no yes/no, then /burn", () => {
+    const { system, user } = composeZuloMessages(ctx(), "should I buy 1 PIXEL to reach 15?", "live")
+    assert.match(system, /Exception, "should I" questions/)
+    assert.match(system, /says the choice is the holder's\. Never yes or no\. End with: See \/burn for a vibe check \(not financial advice\)/)
+    assert.match(user, /Never give a burn, keep or buy call/)
+  })
+
+  it("weak data is said plainly, never a soft hold verdict", () => {
+    const { system } = composeZuloMessages(ctx(), "market status", "live")
+    assert.doesNotMatch(system, /observe\/hold/)
+    assert.match(system, /say plainly that the data is weak/)
+  })
+
+  it("MARKET STATE uses the official Pixel Market status and plain words, never 'AP market: planned'", async () => {
+    const { PIXEL_MARKET_STATUS_LINE } = await import("../official-status")
+    const marketState = {
+      asOf: "2026-11-10T00:00:00.000Z", floorETH: 0.01, floorSource: "test", floorChangePct: 1,
+      oneDayVolumeETH: 1, sevenDayVolumeETH: 7, volumeVelocityRatio: 1, burnTokensRecent24h: 3, burnTokensPrev24h: 2,
+      burnVolumeRatio: 1.5, apMarketStatus: "planned", apMarketPriceETH: null, owners: 100,
+    } as unknown as NonNullable<NonNullable<ZuloRecommendationContext["platformContext"]>["marketState"]>
+    const { user } = composeZuloMessages(ctx({ marketState }), "market status", "live")
+    assert.doesNotMatch(user, /AP market/)
+    assert.ok(user.includes(`${PIXEL_MARKET_STATUS_LINE}; #PIXEL quotes: none in this scan`))
+  })
+})

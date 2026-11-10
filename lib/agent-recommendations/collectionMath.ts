@@ -4,6 +4,7 @@
 // Relative imports only, so the tests run without the "@/" path alias.
 
 import { LAUNCH_TIERS, PROMO_RATE_PERCENT, type YieldMode } from "../burn-buy/score"
+import { parseNormieTokenIdsFromText } from "./parseTokenIds"
 
 /** Token ids run 0..9999. */
 export const ORIGINAL_SUPPLY = 10_000
@@ -130,9 +131,11 @@ export function formatCollectionMath(m: CollectionMath): string {
 
 /**
  * Collection-wide questions: totals, max possible, "if every / all Normies burned", how many burned or left.
- * Deliberately narrow: a question about ONE Normie, a price or the market does not match.
+ * Deliberately narrow: a question about ONE Normie, a price or the market does not match. A named Normie ("max #PIXEL
+ * if I burn #1234") is a single-Normie question: the per-Normie burn math handles it (GrokBot review of #156).
  */
 export function isCollectionMathQuery(q: string): boolean {
+  if (parseNormieTokenIdsFromText(q, 1).length > 0) return false
   const s = q.toLowerCase()
   const allish = /\b(every|all|whole|entire|total|max(imum)?|most possible|in existence|supply)\b/.test(s)
   const subject = /\b(normies?|collection|pixels?|#pixel|burn(s|t|ed|ing)?)\b/.test(s)

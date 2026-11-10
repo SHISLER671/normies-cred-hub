@@ -34,7 +34,8 @@ const QUICK_PROMPTS = [
   { label: "Check a Normie", prompt: "Tell me about Normie #7141: pixels, level, and can I trust its agent?" },
   { label: "Market status", prompt: "market status" },
   { label: "Raise my Level", prompt: "How do I raise my Normie's Level?" },
-  { label: "Revenue share math", prompt: "How is my share of the Pixel Market revenue calculated?" },
+  // Score formula only: no ETH, payout or simulator figures (GrokBot review of #156).
+  { label: "How revenue share is scored", prompt: "How is the Pixel Market revenue-share score calculated? Just the formula, no earnings estimates." },
 ] as const
 
 /**

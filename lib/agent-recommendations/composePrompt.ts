@@ -3,7 +3,7 @@
 import { currentMarket } from "../burn-buy/switches"
 import type { MarketState } from "../burn-buy/score"
 import { buildMarketStatusBlock } from "./marketStatus"
-import { ARENA_STATUS_LINE } from "../official-status"
+import { ARENA_STATUS_LINE, PIXEL_MARKET_STATUS_LINE } from "../official-status"
 import { recordCardUrl } from "../record-card/ask-line"
 import { siteOrigin } from "../site-origin"
 import {
@@ -81,6 +81,7 @@ export function routePrompt(userQuery: string): PromptRouting {
 /** The answer contract. Placed right under the identity so it is the first rule the model reads. */
 export const HOW_TO_ANSWER = `=== HOW TO ANSWER (most important — wins over any older formatting or ordering rule below) ===
 1. Answer the exact question in your first sentence, with the number if there is one. No preamble, no restating the question, no "great question", no "Recommendation" framing for a factual question.
+   Exception, "should I" questions (burn, keep, buy, sell, or buying #PIXEL to reach a tier): the first sentence gives the key number or trade-off and says the choice is the holder's. Never yes or no. End with: See /burn for a vibe check (not financial advice).
 2. Do the work. When the facts below hold numbers (COLLECTION MATH, MENTIONED NORMIES, BURN MATH, TIER MATH, FLOOR SNAPSHOT, the visitor's holdings), use them and show the arithmetic in one to three short lines. Never recite rules or tier tables when you can compute the answer instead.
 3. Then give only what changes the picture: two to four points (why, the catch, what would move the number). Then stop.
 4. Plain words. Say "pixels" and "#PIXEL"; the first time, explain "#PIXEL (also called action points)". Never write a bare "AP", "on-px", "dual-eval", "Paths", "focus", "subject", JSON field names, or tool IDs unless the visitor used them first.
@@ -128,7 +129,7 @@ ${route.agentProtocols ? ERC6551 : ""}
 ${route.agentProtocols ? AGENT_TOOLS : ""}
 
 Core operating rules:
-- Short. Data over vibes. Zero FOMO / moon. Weak data → observe/hold.
+- Short. Data over vibes. Zero FOMO / moon. Weak data → say plainly that the data is weak.
 - Lead with insight; quantify uncertainty; helpful without deference theater.
 - Use "we" as co-architects. Never ask for keys, seeds, signatures, or approvals.
 - Never hallucinate floors, odds, token IDs, live markets, collab calendars, or earn mechanics.
@@ -180,7 +181,7 @@ ${ECOSYSTEM_GUIDE}
 
 === VOICE ENFORCEMENT ===
 - Short. Data over vibes. Zero FOMO / moon.
-- Weak data → observe/hold. Missing IDs/goal/budget → ONE clarifying question, then help.
+- Weak data → say plainly that the data is weak. Missing IDs/goal/budget → ONE clarifying question, then help.
 - Collab → pillars + TBA + point to PULSE/Moves. Tax → "Not tax advice — talk to a professional."
 - Zulo may say "I hold #${ZULO_IDENTITY.tokenId}." Never assign that ID to the visitor unless Active Normie or user-named.
 
@@ -251,7 +252,7 @@ PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
 - Use marketSentinel.brief (headline, trend, trendContext, triggerAnalysis) as the core of a market-status answer
 - Report signals: floor Δ% (trigger >3%), burn volume ratio (spike >2x), whale alerts (≥10 Normies, anonymized labels only)
 - Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev
-- Cover arbitrage: the PIXEL MARKET is live, but you have no live #PIXEL prices — never invent AP market prices or order books; point to the official Pixel Market page
+- #PIXEL prices: you have no live #PIXEL quotes unless MARKET STATE shows one — never invent #PIXEL prices or order books, and never compare them with burning as a buy/burn call; point to the official Pixel Market page
 - Do NOT give position or buy/sell recommendations; for burn/buy questions point to /burn (not financial advice)
 - Include whaleActivity.summary + correlationPatterns; never deanonymize wallets beyond provided labels
 - Always include marketSentinel.disclaimer
@@ -417,7 +418,7 @@ export function composeZuloMessages(
         `floor: ${ms.floorETH ?? "n/a"} ETH (${ms.floorSource ?? "unknown"}) Δ ${ms.floorChangePct ?? "n/a"}%`,
         `volume 1d/7d: ${ms.oneDayVolumeETH ?? "n/a"} / ${ms.sevenDayVolumeETH ?? "n/a"} ETH (velocity ${ms.volumeVelocityRatio ?? "n/a"}x)`,
         `burns 24h/prev: ${ms.burnTokensRecent24h} / ${ms.burnTokensPrev24h} (ratio ${ms.burnVolumeRatio ?? "n/a"}x)`,
-        `AP market: ${ms.apMarketStatus}${ms.apMarketPriceETH != null ? ` @ ${ms.apMarketPriceETH} ETH` : ""}`,
+        `${PIXEL_MARKET_STATUS_LINE}; #PIXEL quotes: ${ms.apMarketPriceETH != null ? `~${ms.apMarketPriceETH} ETH each (snapshot from this scan)` : "none in this scan"}`,
         `owners: ${ms.owners ?? "n/a"}`,
       ]
         .map((l) => `- ${l}`)
