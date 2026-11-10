@@ -45,6 +45,7 @@ The card is a **track record, never a tip.** DYOR appears on every ranked view.
 Every field carries one plain-word label:
 
 - **`verified`**: the source is `onchain` or `official_api`, or it is `nch_computed` where every input is verified. Only verified fields can count toward rank.
+  Exception — Arena Canvas rank: verified by Ryan's call, Nov 11, 2026 (the Level is from the official API); rank names per normiesART's Arena article (Oct 23, 2026), may change.
 - **`self-reported`**: the source is `self_reported`. Always shown with the words "Self-reported" and the date. Weight 0.
 - **`chat-rating`**: the source is `chat_rating`. Shown only in the "Chat rating" panel. Weight 0 for rank. It **never** changes `pulse_level` (AGENTS.md, thesis lock §6). The data is on-chain, but it measures how good the chats were, not how well the agent performed, so it is never mixed into the record.
 - **`pending`**: no official source exists yet. Value is `null`, and `pending_reason` says why (for example `"Arena not live"`).
