@@ -918,3 +918,52 @@ describe("Ask knows where the official Tools directory is", () => {
     assert.match(t!.description, /Official filter/)
   })
 })
+
+// GrokBot, follow-up to #148: AGENTS.md fences burn/keep/buy verdicts to /burn.
+describe("no burn/keep/buy verdicts outside /burn (#148 leftovers)", () => {
+  const VERDICT =
+    /recommend|should burn|floor-buy fodder|act promptly|collectible extreme|better burn efficiency|meant to burn|default to hold|can beat|explicit AP need|do not FOMO|weaker efficiency fodder/i
+
+  it("dual-eval summary lays out both sides, no verdict, points to /burn", () => {
+    const summary = getDualEvalAndPixelMarketContextSummary()
+    const joined = summary.dualEval.join(" ")
+    assert.doesNotMatch(joined, VERDICT)
+    assert.match(joined, /Burn side/)
+    assert.match(joined, /Hold side/)
+    assert.match(joined, /No verdict/)
+    assert.match(joined, /\/burn/)
+    assert.match(joined, /not financial advice/i)
+  })
+
+  it("dual-eval knowledge section 2 has no verdict phrases", async () => {
+    const { DUAL_EVAL_AND_PIXEL_MARKET_MD } = await import("./loadKnowledge")
+    const sec2 = DUAL_EVAL_AND_PIXEL_MARKET_MD.split("## 2. Dual evaluation rule")[1].split("## 3.")[0]
+    assert.doesNotMatch(sec2, VERDICT)
+    assert.match(sec2, /no verdict/i)
+    assert.match(sec2, /\/burn/)
+    assert.doesNotMatch(DUAL_EVAL_AND_PIXEL_MARKET_MD, /collectible extreme|default to hold/i)
+  })
+
+  it("market sentinel trigger notes and AP metrics carry no advice", async () => {
+    const { explainTrigger, describeApMetrics } = await import("./marketSentinel")
+    const lines = [
+      explainTrigger("Floor down 4.00% (threshold ±3%)"),
+      explainTrigger("Burn volume spike 2.50x (threshold 2x)"),
+      explainTrigger("2 whale actor(s) moved ≥10 Normies in sample"),
+      explainTrigger("Trading volume velocity 2.00x vs 7d daily avg"),
+      ...Object.values(describeApMetrics({ apMarketStatus: "planned" })),
+      ...Object.values(describeApMetrics({ apMarketStatus: "live", apMarketPriceETH: 0.0021 })),
+      ...Object.values(describeApMetrics({ apMarketStatus: "live", apMarketPriceETH: null })),
+    ]
+    for (const l of lines) {
+      assert.doesNotMatch(l, VERDICT, l)
+      assert.doesNotMatch(l, /buy-to-burn|fodder|before buying/i, l)
+      // Claude review of #157: no floor-buy-and-burn efficiency figure in words, no bare AP.
+      assert.doesNotMatch(l, /per ETH|ETH per|AP\s*\/\s*ETH|efficien/i, l)
+      assert.doesNotMatch(l, /\bAP\b/, l)
+    }
+    // Status comes from lib/official-status.ts, not a hardcoded sentence.
+    const { PIXEL_MARKET_STATUS_LINE } = await import("../official-status")
+    assert.ok(describeApMetrics({ apMarketStatus: "planned" }).spreadNote.startsWith(PIXEL_MARKET_STATUS_LINE))
+  })
+})
