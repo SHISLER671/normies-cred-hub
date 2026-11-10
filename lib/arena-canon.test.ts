@@ -10,6 +10,7 @@ import {
   arenaHeadStartFor,
   arenaLineFor,
   arenaTypeStats,
+  headStartBandLabel,
 } from "./arena-canon"
 import { ARENA_CANVAS_RANKS } from "./normies-canon"
 
@@ -48,6 +49,13 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
   it("fee line", () => {
     assert.equal(ARENA_FEE_LINE, "The first 2 weeks in the Arena are free for every Normie; after that, 1 #PIXEL per week per agent keeps its Arena pass active")
     assert.doesNotMatch(ARENA_FEE_LINE, NEVER)
+  })
+  it("Level has no cap: Levels 150 and up share the top head start (GrokBot review of #162)", () => {
+    const b = arenaFactsBlock()
+    assert.match(b, /Levels 150 and up share the top head start/)
+    assert.doesNotMatch(b, /up to 150/)
+    assert.equal(headStartBandLabel(ARENA_HEAD_STARTS[0]), "Level 150+ (top Arena rank)")
+    assert.equal(headStartBandLabel(ARENA_HEAD_STARTS.find((h) => h.fromLevel === 10)!), "Level 10+ (Inked)")
   })
   it("the Ask block states facts and forbids the rest", () => {
     const b = arenaFactsBlock()

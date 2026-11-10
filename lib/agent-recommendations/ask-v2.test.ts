@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
 import { computeCollectionMath } from "./collectionMath"
-import { compactContextJson, composeZuloMessages, routePrompt } from "./composePrompt"
+import { compactContextJson, composeZuloMessages, queryNeedsArenaFacts, routePrompt } from "./composePrompt"
 import { isPlaceholderText, postProcessZuloOutput } from "./postProcess"
 import { ensurePulseFirst, isPulseRelevant } from "./pulseFirst"
 import type { ZuloRecommendationContext } from "./types"
@@ -186,6 +186,14 @@ describe("Arena facts from normiesART's article (Ryan, 2026-11-11)", () => {
   it("arena questions get the ARENA FACTS block; other questions don't", () => {
     assert.match(composeZuloMessages(ctx(), "How strong is a Zombie in Arena?", "live").system, /=== ARENA FACTS/)
     assert.doesNotMatch(composeZuloMessages(ctx(), COLLECTION_Q, "live").system, /=== ARENA FACTS/)
+  })
+  it("routing is narrow: everyday words alone don't load ARENA FACTS (GrokBot review of #162)", () => {
+    for (const q of ["What's the Pixel Market fee?", "How do I raise my Level?", "what type is #55?", "how do I enter a blank canvas?", "is a human behind Zulo?"]) {
+      assert.equal(queryNeedsArenaFacts(q), false, q)
+    }
+    for (const q of ["Is Arena live?", "how do I register my Normie", "how much health does a Cat have", "what's the Masterwork head start", "are zombies strong?"]) {
+      assert.equal(queryNeedsArenaFacts(q), true, q)
+    }
   })
   it("a named Normie gets its type and head-start line", () => {
     const c = ctx({

@@ -4,6 +4,8 @@
 // the status lives in lib/official-status.ts. The article says its screenshots are from a closed beta and game data will
 // reset, so every table is labelled "may change".
 
+import { ARENA_CANVAS_RANKS } from "./normies-canon"
+
 export const ARENA_ARTICLE = {
   url: "https://x.com/normiesART/status/2113323053304238383",
   published: "2026-10-23",
@@ -55,15 +57,25 @@ export const ARENA_TYPES: ReadonlyArray<{
  * lib/normies-canon.ts; the top band keeps NCH's neutral label so it is never confused with the NormiesLegendaryCanvas
  * award (the article calls it "Legendary Canvas").
  */
-export const ARENA_HEAD_STARTS: ReadonlyArray<{ fromLevel: number; rank: string; headStart: string }> = [
-  { fromLevel: 150, rank: "Level 150+ (top Arena rank)", headStart: "+60% health, sword V, plate III, boots II, 3 tonics, and the laser" },
-  { fromLevel: 100, rank: "Masterwork", headStart: "+55% health, sword V, plate III, boots II, 2 tonics" },
-  { fromLevel: 50, rank: "Gilded", headStart: "+47% health, sword IV, plate II, boots II, 1 tonic" },
-  { fromLevel: 25, rank: "Painted", headStart: "+39% health, sword III, plate II, boots I, 1 tonic" },
-  { fromLevel: 10, rank: "Inked", headStart: "+28% health, sword III, plate I" },
-  { fromLevel: 2, rank: "Sketched", headStart: "+8% health" },
-  { fromLevel: 1, rank: "Blank", headStart: "no head start" },
-]
+const HEAD_START_BY_LEVEL: Record<number, string> = {
+  150: "+60% health, sword V, plate III, boots II, 3 tonics, and the laser",
+  100: "+55% health, sword V, plate III, boots II, 2 tonics",
+  50: "+47% health, sword IV, plate II, boots II, 1 tonic",
+  25: "+39% health, sword III, plate II, boots I, 1 tonic",
+  10: "+28% health, sword III, plate I",
+  2: "+8% health",
+  1: "no head start",
+}
+
+/** Highest band first. Rank names come from ARENA_CANVAS_RANKS, so the two can never drift apart. */
+export const ARENA_HEAD_STARTS: ReadonlyArray<{ fromLevel: number; rank: string; headStart: string }> = [...ARENA_CANVAS_RANKS]
+  .reverse()
+  .map((r) => ({ fromLevel: r.fromLevel, rank: r.name, headStart: HEAD_START_BY_LEVEL[r.fromLevel] ?? "not published" }))
+
+/** "Level 10+ (Inked)" / "Level 150+ (top Arena rank)": the band with its rank name, never doubled. */
+export function headStartBandLabel(h: { fromLevel: number; rank: string }): string {
+  return h.rank.startsWith("Level ") ? h.rank : `Level ${h.fromLevel}+ (${h.rank})`
+}
 
 export function arenaTypeStats(type: string | null | undefined) {
   const t = (type ?? "").trim().toLowerCase()
@@ -102,7 +114,7 @@ ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}
 - Fee: ${ARENA_FEE_LINE}.
 Type stats (speed compared with a Human):
 ${types}
-Head start by Canvas level (Level = floor(#PIXEL attached ÷ 10) + 1, up to 150; applied each time the Normie walks out of the Hive):
+Head start by Canvas level (Level = floor(#PIXEL attached ÷ 10) + 1; Levels 150 and up share the top head start; applied each time the Normie walks out of the Hive):
 ${heads}
 Rules for these facts:
 - Quote them with the source and "may change". A head start is not a guarantee: the article says even a level-1 Human can climb, and it comes down to the agent's choices.

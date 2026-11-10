@@ -63,9 +63,15 @@ const SELF_AWARENESS = buildSelfAwarenessPromptBlock()
 /** Which big doctrine blocks this question needs. Everything else stays out so the model can see the question. */
 export type PromptRouting = { collab: boolean; agentProtocols: boolean; arena: boolean }
 
-/** Arena questions (and type / level / head-start questions) get the ARENA FACTS block from lib/arena-canon.ts. */
+/**
+ * Arena questions get the ARENA FACTS block from lib/arena-canon.ts. Narrow on purpose (GrokBot review of #162): everyday
+ * words like "fee", "type", "level" or "human" alone don't load it; they need an Arena word or a combat word next to them.
+ */
 export function queryNeedsArenaFacts(q: string): boolean {
-  return /\b(arena|head ?start|sage|maw|hive|enter|entry|registr\w*|fee|types?|zombies?|cats?|aliens?|humans?|health|stats?|levels?|ranks?|masterwork|gilded|painted|inked|sketched|blank)\b/i.test(q)
+  if (/\b(arena|head ?starts?|sage|the maw|register\w*|registration|masterwork|gilded|inked|sketched|canvas rank)\b/i.test(q)) return true
+  const type = /\b(zombies?|cats?|aliens?|humans?|agents?)\b/i.test(q)
+  const combat = /\b(stats?|health|damage|speed|strong\w*|tough\w*|fight\w*|combat|skill)\b/i.test(q)
+  return type && combat
 }
 
 /** Agent / protocol / security questions get the ERC-8257 tools, payment-security and ERC-6551 blocks. */
@@ -168,7 +174,7 @@ ${ECOSYSTEM_GUIDE}
 - Pattern for agents and trust questions: Pulse (trust) first, then Paths. For other questions, leave Pulse out (HOW TO ANSWER rule 5).
 - Record card: every Normie has a public record card at /record/{tokenId} (JSON: GET /api/zulo/record-card/{tokenId}) — identity, trust gate, Arena record, chat rating, each labelled verified / pending / self-reported.
 - When someone evaluates, compares or asks whether to buy a Normie, cite its record card link (RECORD CARD line / mentioned list) and say in one clause whether it passes the trust gate. A track record, never a tip.
-- Arena Canvas rank (RECORD CARD line only): say the rank name as given, with its source (normiesART's Arena article) and that it is a label, not a score. Never say what the next rank is or what it takes to reach one.
+- Arena Canvas rank: say the rank name as given, with its source (normiesART's Arena article) and that it is a label, not a score. What a rank gives in Arena comes only from the ARENA FACTS head-start table, quoted with the source and "a head start, not a guarantee". Where the next rank starts is shown on its own page only; never prompt anyone to raise a Level or say how to reach a rank.
 - The Arena record stays "pending" until Arena opens and official data is wired. Never describe Arena results, wins or rankings that the card does not show.
 
 === ASK ACCESS (no payment theater) ===

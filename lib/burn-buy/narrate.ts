@@ -6,7 +6,7 @@ import type { CliffCost, PixelMarketSnapshot, SellRow } from "./market-math"
 import type { JevVerdict } from "./jev"
 import { BOOSTS, BRACKETS, boostFor, type CliffSide, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
 import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } from "./service"
-import { ARENA_ENTRY, ARENA_FEE_LINE, ARENA_HEAD_STARTS, ARENA_TYPES } from "../arena-canon"
+import { ARENA_ENTRY, ARENA_FEE_LINE, ARENA_HEAD_STARTS, ARENA_TYPES, headStartBandLabel } from "../arena-canon"
 import { ARENA_REGISTRATION_LINE, SURFACE_TAGS } from "../official-status"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
@@ -191,7 +191,7 @@ const ARENA_NOTES = [
   `Arena is not open from this page, and this page cannot enter you into anything. The official Lab overview lists Arena as ${SURFACE_TAGS.arena}.`,
   "Official design (@serc1n, Sep 18): autonomous agents on a 640×640 continent, no human players. Five camps: Human, Cat, Alien, Agent, Zombie. Type, Level and on-chain history matter.",
   "Level: every 10 pixels on a Normie is one level, read live (official docs): Level = floor(pixels on it ÷ 10) + 1. Putting pixels on raises it; taking them off, or paying for a bigger canvas from the Normie, lowers it. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
-  `Head start by Canvas level, per normiesART's Arena article (Oct 23, 2026; closed-beta data, may change): ${[...ARENA_HEAD_STARTS].reverse().filter((h) => h.fromLevel > 1).map((h) => `Level ${h.fromLevel}+ ${h.headStart}`).join("; ")}.`,
+  `Head start by Canvas level, per normiesART's Arena article (Oct 23, 2026; closed-beta data, may change): ${[...ARENA_HEAD_STARTS].reverse().filter((h) => h.fromLevel > 1).map((h) => `${headStartBandLabel(h)}: ${h.headStart}`).join("; ")}.`,
   `Type stats from the same article: ${ARENA_TYPES.map((t) => `${t.type} ${t.health} health`).join(", ")}; each type has its own speed, damage and skill.`,
   "A head start is not a guarantee. Nobody can honestly tell you how many Normies to keep or what Level wins; the article says even a level-1 Human can climb.",
   "When a Normie falls in the Arena, that life is over and the next Normie in the queue walks in at dawn. Death is not a burn: the NFT is never burned or lost. A burn is permanent.",
