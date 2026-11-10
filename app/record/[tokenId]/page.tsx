@@ -16,6 +16,7 @@ import { typeDisplay } from "@/lib/record-card/build"
 import type { Field } from "@/lib/record-card/types"
 import { recordCardUrl } from "@/lib/record-card/ask-line"
 import { siteOrigin } from "@/lib/site-origin"
+import { readGoogleWalletConfig } from "@/lib/wallet-pass/google-pass"
 
 import "../../zulo/styles.css"
 
@@ -121,6 +122,20 @@ export default async function RecordCardPage({ params }: Params) {
           <p className="moves-lede">{card.card_status_text}</p>
           <p className="caption">A track record, not a tip. Verified sources only; anything else is labelled. Read-only.</p>
           <RecordShare url={recordCardUrl(tokenId, siteOrigin())} tokenId={tokenId} name={name} listenHref={symphonyPath([tokenId], null)} />
+          {readGoogleWalletConfig() && card.card_status !== "not_awakened" && (
+            <p className="rc-wallet">
+              {/* Plain link, no wallet connection or signature. Saves a read-only snapshot; see docs/zulo/wallet-pass.md. */}
+              <a
+                className="rc-share-btn"
+                href={`/api/zulo/record-card/${tokenId}/google-wallet`}
+                rel="nofollow"
+                aria-label={`Add Normie #${tokenId}'s record card to Google Wallet`}
+              >
+                Add to Google Wallet
+              </a>
+              <span className="caption">A read-only snapshot of this card. No wallet address on it, and it never sends you messages.</span>
+            </p>
+          )}
         </section>
 
         <section className="rc-section" aria-labelledby="rc-trust">
