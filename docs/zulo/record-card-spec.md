@@ -45,6 +45,7 @@ The card is a **track record, never a tip.** DYOR appears on every ranked view.
 Every field carries one plain-word label:
 
 - **`verified`**: the source is `onchain` or `official_api`, or it is `nch_computed` where every input is verified. Only verified fields can count toward rank.
+  Exception — Arena Canvas rank: verified by Ryan's call, Nov 11, 2026 (the Level is from the official API); rank names per normiesART's Arena article (Oct 23, 2026), may change.
 - **`self-reported`**: the source is `self_reported`. Always shown with the words "Self-reported" and the date. Weight 0.
 - **`chat-rating`**: the source is `chat_rating`. Shown only in the "Chat rating" panel. Weight 0 for rank. It **never** changes `pulse_level` (AGENTS.md, thesis lock §6). The data is on-chain, but it measures how good the chats were, not how well the agent performed, so it is never mixed into the record.
 - **`pending`**: no official source exists yet. Value is `null`, and `pending_reason` says why (for example `"Arena not live"`).
@@ -96,6 +97,7 @@ type Field<T> = {
 | `level` | `number` | official_api: `GET /normie/{id}/canvas/info` → `level` | verified | UI label "Level" |
 | `pixels_attached` | `number` | official_api: `/normie/{id}/canvas/info` → `actionPoints` (same as `/canvas/token/{id}/pixels` `attached`) | verified | UI label "Pixels on this Normie (action points)". Never a bare "AP" |
 | `pixels_locked` / `pixels_free` | `number` | official_api: `/normie/{id}/canvas/info` → `lockedPixels`, `freePixels` | verified | |
+| `arena_canvas_rank` | `string` + `counts_toward_rank: false`, `from_level`, `source_url`, `source_published`, `note` | nch_computed: Level (`/normie/{id}/canvas/info`) → rank names per normiesART's Arena article (Oct 23, 2026; `lib/normies-canon.ts`) | verified (unavailable without a Level) | UI label "Arena Canvas rank". Name only; top band shown as "Level 150+ (top Arena rank)". A label, not a score: never counts toward a rank or Pulse. Not on the share image. The next rank's Level is shown on /burn only |
 | `image_url` | `string` | official_api: `/normie/{id}/image.svg` | verified | |
 
 ### 3.2 Arena record (pending: Arena not live)

@@ -4,7 +4,8 @@
 import { traitType, traitsSourceLabel, type SourcedNormieTraits } from "@/lib/normie-traits"
 import type { ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { pendingCanvasSector } from "./canvas"
-import type { ArenaSector, CanvasSector, CardStatus, Field, RecordCard, SourceKind } from "./types"
+import { ARENA_CANVAS_RANKS_SOURCE, arenaCanvasRankNote, rankForLevel } from "@/lib/normies-canon"
+import type { ArenaCanvasRankField, ArenaSector, CanvasSector, CardStatus, Field, RecordCard, SourceKind } from "./types"
 
 /** The two Pulse checks that make up the trust gate (Ryan, 2026-10-18). Strings match lib/api/agent-pulse.ts. */
 export const GATE_REGISTERED = "ERC-8004 registered"
@@ -75,6 +76,22 @@ export function pulseGate(breakdown: string[] | null | undefined) {
   }
 }
 
+/** The Arena Canvas rank field for a Level read from the official API. Name only; never counted toward a rank. */
+export function arenaCanvasRankField(tokenId: number, level: number | null, asOf: string): ArenaCanvasRankField {
+  const rank = rankForLevel(level)
+  return {
+    value: rank ? rank.name : null,
+    label: rank ? "verified" : "unavailable",
+    source: { kind: "nch_computed", ref: `Level from GET /normie/${tokenId}/canvas/info; rank names per normiesART's Arena article` },
+    as_of: asOf,
+    counts_toward_rank: false,
+    from_level: rank && level !== null ? Math.floor(level) : null,
+    source_url: ARENA_CANVAS_RANKS_SOURCE.url,
+    source_published: ARENA_CANVAS_RANKS_SOURCE.published,
+    note: rank && level !== null ? arenaCanvasRankNote(level) : null,
+  }
+}
+
 export function buildRecordCard(i: RecordCardInputs): RecordCard {
   const t = i.tokenId
   const at = i.now
@@ -124,6 +141,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
       pixels_attached: field(num(i.canvas?.actionPoints), "official_api", `GET /normie/${t}/canvas/info`, at),
       pixels_locked: field(num(i.canvas?.lockedPixels), "official_api", `GET /normie/${t}/canvas/info`, at),
       pixels_free: field(num(i.canvas?.freePixels), "official_api", `GET /normie/${t}/canvas/info`, at),
+      arena_canvas_rank: arenaCanvasRankField(t, num(i.canvas?.level), at),
       image_url: `https://api.normies.art/normie/${t}/image.svg`,
     },
     context: {

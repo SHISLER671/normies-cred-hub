@@ -56,3 +56,64 @@ export function tierLabels(): string[] {
     return Number.isFinite(t.below) ? `${lo}–${t.below - 1}` : `${lo}+`
   })
 }
+
+/**
+ * Arena Canvas ranks: a name for a Level band, per normiesART's X Article on Arena (posted Oct 22, 2026 17:34 UTC,
+ * Oct 23 ChST). Rank names and start Levels only; nothing else from that article is canon here. Arena is Coming Soon
+ * and the article says game data may change. The top band is shown with a neutral label so it is never confused with
+ * the NormiesLegendaryCanvas award. NCH shows the rank as a label: it never counts toward any NCH rank or Pulse.
+ */
+export const ARENA_CANVAS_RANKS_SOURCE = {
+  url: "https://x.com/normiesART/status/2113323053304238383",
+  /** Publication date as Ryan reads it (ChST). */
+  published: "2026-10-23",
+  publishedText: "Oct 23, 2026",
+  checkedAt: "2026-11-10",
+} as const
+
+export const ARENA_CANVAS_TOP_LEVEL = 150
+
+export const ARENA_CANVAS_RANKS: ReadonlyArray<{ name: string; fromLevel: number }> = [
+  { name: "Blank", fromLevel: 1 },
+  { name: "Sketched", fromLevel: 2 },
+  { name: "Inked", fromLevel: 10 },
+  { name: "Painted", fromLevel: 25 },
+  { name: "Gilded", fromLevel: 50 },
+  { name: "Masterwork", fromLevel: 100 },
+  { name: "Level 150+ (top Arena rank)", fromLevel: ARENA_CANVAS_TOP_LEVEL },
+]
+
+const validLevel = (level: number | null | undefined): level is number =>
+  typeof level === "number" && Number.isFinite(level) && level >= 1
+
+/** The Arena Canvas rank for a Level, or null for a missing or invalid Level. Levels past 150 stay in the top band. */
+export function rankForLevel(level: number | null | undefined): { name: string; fromLevel: number } | null {
+  if (!validLevel(level)) return null
+  const l = Math.min(Math.floor(level), ARENA_CANVAS_TOP_LEVEL)
+  let rank = ARENA_CANVAS_RANKS[0]
+  for (const r of ARENA_CANVAS_RANKS) if (l >= r.fromLevel) rank = r
+  return rank
+}
+
+/** The Level where the next Arena Canvas rank starts, or null at the top band or for an invalid Level. */
+export function nextRankLevel(level: number | null | undefined): number | null {
+  if (!validLevel(level)) return null
+  const l = Math.floor(level)
+  return ARENA_CANVAS_RANKS.find((r) => r.fromLevel > l)?.fromLevel ?? null
+}
+
+/** The note shown with a rank (record card page and JSON). */
+export function arenaCanvasRankNote(level: number): string {
+  return `From Level ${Math.floor(level)} (official API). Rank names per normiesART's Arena article (${ARENA_CANVAS_RANKS_SOURCE.publishedText}). Arena is Coming Soon and the article says game data may change. A label, not a score; it does not count toward any rank here.`
+}
+
+/** /burn only: a plain fact, e.g. "Next Arena Canvas rank at Level 25". Null at the top band (see arenaCanvasTopRankText). */
+export function nextArenaCanvasRankText(level: number | null | undefined): string | null {
+  const next = nextRankLevel(level)
+  return next === null ? null : `Next Arena Canvas rank at Level ${next}`
+}
+
+/** /burn only, at the top band (Level 150 and up): "Top Arena Canvas rank (Level 150+)". Null below it or for an invalid Level. */
+export function arenaCanvasTopRankText(level: number | null | undefined): string | null {
+  return validLevel(level) && level >= ARENA_CANVAS_TOP_LEVEL ? `Top Arena Canvas rank (Level ${ARENA_CANVAS_TOP_LEVEL}+)` : null
+}

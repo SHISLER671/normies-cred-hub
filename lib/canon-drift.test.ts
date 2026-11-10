@@ -7,7 +7,7 @@ import { describe, it } from "node:test"
 
 import { apTierForPixelCount, estimateBurnApFromPixels, levelFromActionPoints } from "./agent-recommendations/normiesKnowledge"
 import { launchTier, launchedBurnYield } from "./burn-buy/score"
-import { BLANK_CANVAS_COST, CANVAS_SIZE_COSTS, canvasUpgradeCost, levelFor, tierLabels } from "./normies-canon"
+import { ARENA_CANVAS_RANKS, BLANK_CANVAS_COST, CANVAS_SIZE_COSTS, canvasUpgradeCost, levelFor, rankForLevel, tierLabels } from "./normies-canon"
 
 const ROOT = join(__dirname, "..")
 const SCAN_DIRS = ["app", "components", "lib", "docs/zulo"]
@@ -52,6 +52,8 @@ describe("known-wrong variants never come back", () => {
     ["a DO NOT BURN verdict", /DO NOT BURN/],
     ["a 'lean hold' nudge", /lean hold/i],
     ["burn fodder into a Normie", /burn fodder into/i],
+    // 2026-11-10 (Arena Canvas rank): the top band has a neutral label, so it is never confused with the NormiesLegendaryCanvas award.
+    ["the top Arena Canvas rank called Legendary Canvas", /Legendary Canvas rank|rank:\s*"?Legendary Canvas|name:\s*"Legendary Canvas"/i],
   ]
   for (const [what, re] of banned) {
     it(what, () => assert.deepEqual(offenders(re), []))
@@ -110,6 +112,15 @@ describe("the copies agree with the canon", () => {
     assert.equal(canvasUpgradeCost(40, 80), 4_800)
     assert.equal(canvasUpgradeCost(50, 70), 2_400)
     assert.equal(canvasUpgradeCost(80, 50), null)
+  })
+
+  it("Arena Canvas ranks match normiesART's Arena article (Oct 23, 2026), and use the same Level as everything else", () => {
+    assert.deepEqual(
+      ARENA_CANVAS_RANKS.map((r) => `${r.name}@${r.fromLevel}`),
+      ["Blank@1", "Sketched@2", "Inked@10", "Painted@25", "Gilded@50", "Masterwork@100", "Level 150+ (top Arena rank)@150"],
+    )
+    assert.equal(rankForLevel(levelFor(1_507))?.fromLevel, 150) // #1: 1,507 pixels, Level 151
+    assert.equal(rankForLevel(levelFor(12))?.name, "Sketched") // #7141: 12 pixels, Level 2
   })
 
   it("every stated tier set in user-facing text uses the contract boundaries", () => {

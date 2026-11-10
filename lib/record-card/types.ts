@@ -38,6 +38,11 @@ export type RecordCard = {
     pixels_attached: Field<number>
     pixels_locked: Field<number>
     pixels_free: Field<number>
+    /**
+     * Arena Canvas rank: a name for the Level band, per normiesART's Arena article (lib/normies-canon.ts). A label, never a
+     * score: `counts_toward_rank` is always false. Optional so older cached cards type-check.
+     */
+    arena_canvas_rank?: ArenaCanvasRankField
     image_url: string
   }
   context: {
@@ -95,6 +100,15 @@ export type RecordCard = {
   } | null
   self_reported: Array<{ claim: string; url: string | null; reported_at: string; by: "owner" | "agent" | "third_party" }>
   disclaimer: string
+}
+
+export type ArenaCanvasRankField = Field<string> & {
+  counts_toward_rank: false
+  /** The Normie's Level the rank was read from (official API), or null when Level is unavailable. */
+  from_level: number | null
+  source_url: string
+  source_published: string
+  note: string | null
 }
 
 export type ArenaRecord = {
