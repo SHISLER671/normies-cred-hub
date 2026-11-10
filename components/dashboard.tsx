@@ -69,7 +69,6 @@ export function Dashboard() {
     isError: ethosError,
   } = useEthosScore(ownerAddress)
 
-  const ownerUsername = ethos?.user?.username || null
 
   const {
     data: agentCheck,
@@ -271,7 +270,7 @@ export function Dashboard() {
                         <a href={etherscanAddress(snapshot.owner.owner)} target="_blank" rel="noopener noreferrer" className="font-mono text-foreground hover:text-primary">
                           {shortenAddress(snapshot.owner.owner, 6)}
                         </a>
-                        {ownerUsername && <span className="text-primary text-xs ml-2">@{ownerUsername}</span>}
+                        {/* AGENTS.md: never link a wallet to a social profile, so no Ethos/X handle next to the owner. */}
                       </div>
                       {delegate && !isZeroAddress(delegate) && (
                         <div>

@@ -160,8 +160,10 @@ describe("the page wording under each combination", () => {
     assert.ok(buildPageModel(r, "arena").rows.filter((x) => x.verdict === "burn").every((x) => /about \d+ AP/.test(x.reasons[0])))
   })
 
-  it("the Arena note carries the Level conflict between the Sep 23 article and the Oct 3 video", () => {
-    assert.match(buildPageModel(null, "arena").goalNotes.join(" "), /Sep 23 article said withdrawing #PIXEL strips a level/)
+  it("the Arena note gives Level as the official docs state it (canon sync 2026-11-10: docs settle the old article-vs-video conflict)", () => {
+    const notes = buildPageModel(null, "arena").goalNotes.join(" ")
+    assert.match(notes, /taking them off, or paying for a bigger canvas from the Normie, lowers it/)
+    assert.doesNotMatch(notes, /permanent trait/)
   })
 })
 

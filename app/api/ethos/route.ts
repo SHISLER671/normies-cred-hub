@@ -2,6 +2,7 @@ import { ETHOS_API_BASE, ETHOS_CLIENT_HEADER } from "@/constants/contracts"
 import { type NextRequest, NextResponse } from "next/server"
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
+import { publicReputationOnly } from "@/lib/api/ethos-public"
 
 /**
  * Read-only proxy for the public Ethos reputation API: wallet address → Ethos profile.
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
 
     const arr = (await res.json()) as unknown[]
-    const user = Array.isArray(arr) && arr.length > 0 ? arr[0] : null
+    const user = Array.isArray(arr) && arr.length > 0 ? publicReputationOnly(arr[0], address) : null
 
     return NextResponse.json(
       { user },

@@ -1,6 +1,7 @@
 // lib/agent-recommendations/canvasEvolution.ts
 // Canvas Evolution Advisor — preview transforms + 80×80 expansion readiness.
 
+import { CANVAS_SIZE_COSTS, canvasUpgradeCost } from "@/lib/normies-canon"
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 
@@ -29,7 +30,7 @@ export const SIGNIFICANT_TRANSFORM_PCT = 10
 export const AP_PER_PIXEL_EDIT = 1
 
 export const CANVAS_EVOLUTION_DISCLAIMER =
-  "Canvas previews are estimates from live Normies API state + your stated changes — not an on-chain simulation. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit. AP stays on the keeper; not spent when you draw or preview. CredHub / Normifier preview is not a spend rail. Aesthetic/rarity notes are heuristics. 80×80 expansion readiness is forward-looking and not a guarantee of protocol features. DYOR before transforming. Not financial advice."
+  "Canvas previews are estimates from live Normies API state + your stated changes — not an on-chain simulation. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit. AP stays on the keeper; not spent when you draw or preview. CredHub / Normifier preview is not a spend rail. Aesthetic/rarity notes are heuristics. Bigger-canvas planning scores are Zulo's own heuristics; the official prices are 900 / 2,000 / 3,300 / 4,800 #PIXEL in total for 50 / 60 / 70 / 80 per side. DYOR before transforming. Not financial advice."
 
 export type CanvasVerdict = "PROCEED" | "MODIFY" | "ABANDON"
 
@@ -130,7 +131,7 @@ export interface ExpansionReadinessResult {
   actionPoints: number
   level: number
   customized: boolean
-  /** 0–100 readiness toward 80×80 era utility */
+  /** 0–100 planning score toward an 80×80 canvas (Zulo's heuristic; the official price is in milestones) */
   readinessScore: number
   apReadiness: { score: number; note: string }
   densityReadiness: { score: number; note: string }
@@ -774,7 +775,8 @@ export async function previewCanvas(
 // ─── Expansion readiness (80×80) ─────────────────────────────────────────────
 
 /**
- * Score readiness for planned 80×80 expansion era (AP stockpile, density, level).
+ * Planning read for a bigger canvas (live, official prices in lib/normies-canon.ts): attached #PIXEL vs the price, plus
+ * Zulo's own density and Level heuristics.
  */
 export async function analyzeExpansionReadiness(
   tokenId: number,
@@ -807,13 +809,15 @@ export async function analyzeExpansionReadiness(
     }
   }
 
-  // Heuristic targets for "expansion-ready" operators
-  const AP_TARGET = 200
+  // Official prices (lib/normies-canon.ts): reaching 80×80 from 40×40 costs 4,800 #PIXEL in total, paid from the wallet
+  // or the Normie. The #PIXEL score compares what is attached to THIS Normie with that price; wallet #PIXEL is not read
+  // here, so the real budget can be higher. Density and Level scores are Zulo's own planning heuristics, not requirements.
+  const FULL_COST = canvasUpgradeCost(CANVAS_GRID_SIZE, EXPANSION_GRID_SIZE) ?? 4_800
   const DENSITY_SWEET_MIN = 25
   const DENSITY_SWEET_MAX = 75
   const LEVEL_TARGET = 10
 
-  const apScore = Math.min(100, Math.round((state.actionPoints / AP_TARGET) * 100))
+  const apScore = Math.min(100, Math.round((state.actionPoints / FULL_COST) * 100))
   const dens = state.densityPct
   let densityScore = 100
   if (dens < DENSITY_SWEET_MIN) densityScore = Math.round((dens / DENSITY_SWEET_MIN) * 80)
@@ -826,43 +830,40 @@ export async function analyzeExpansionReadiness(
 
   const readinessScore = Math.round(apScore * 0.5 + densityScore * 0.25 + levelScore * 0.25)
 
+  const affordable = CANVAS_SIZE_COSTS.filter((c) => c.total <= state.actionPoints).map((c) => `${c.size}×${c.size}`)
   const milestones: string[] = [
-    `Current grid ${CANVAS_GRID_SIZE}×${CANVAS_GRID_SIZE} (${CANVAS_PIXEL_CAPACITY} px) → target ${EXPANSION_GRID_SIZE}×${EXPANSION_GRID_SIZE} (${EXPANSION_PIXEL_CAPACITY} px).`,
-    `AP ${state.actionPoints}/${AP_TARGET} planning target (level ${state.level}).`,
-    `Density ${dens}% (sweet band ~${DENSITY_SWEET_MIN}–${DENSITY_SWEET_MAX}% for flexible expansion art).`,
+    `Bigger canvas is live (official). Total #PIXEL from 40×40: ${CANVAS_SIZE_COSTS.map((c) => `${c.size}×${c.size} = ${c.total.toLocaleString("en-US")}`).join(", ")}; an upgrade costs the difference. Paid from the wallet or the Normie; the pixels are burned.`,
+    `#PIXEL attached to this Normie: ${state.actionPoints} of ${FULL_COST.toLocaleString("en-US")} for 80×80${affordable.length ? ` (covers ${affordable.join(", ")})` : ""}. Wallet #PIXEL is not counted here. Paying from the Normie lowers its Level.`,
+    `Density ${dens}% (Zulo's own heuristic band ~${DENSITY_SWEET_MIN}–${DENSITY_SWEET_MAX}% for art that scales well).`,
   ]
 
   const blockers: string[] = []
-  if (state.actionPoints < 50) {
-    blockers.push("Low AP — burn fodder into this Normie to fund future expansion edits.")
+  if (state.actionPoints < CANVAS_SIZE_COSTS[0].total) {
+    blockers.push(`Attached #PIXEL (${state.actionPoints}) is below the smallest upgrade (50×50 = ${CANVAS_SIZE_COSTS[0].total}); wallet #PIXEL can also pay.`)
   }
   if (dens > 90) {
-    blockers.push("Very high density — little headroom; consider subtractive cleanup before expansion era.")
+    blockers.push("Very high density: little empty space to work with.")
   }
   if (dens < 10) {
-    blockers.push("Very sparse canvas — build a coherent base composition first.")
+    blockers.push("Very sparse canvas: little base art to scale up.")
   }
   if (!state.customized && state.actionPoints > 0) {
-    milestones.push("Still purist — expansion prep edits will end untouched status.")
+    milestones.push("Original art so far: edits would end its untouched status.")
   }
 
-  let recommendation: string
-  if (readinessScore >= 75) {
-    recommendation =
-      "Strong expansion readiness — stockpile AP, keep composition modular, watch protocol announcements for 80×80 rails."
-  } else if (readinessScore >= 45) {
-    recommendation =
-      "Moderate readiness — prioritize AP accumulation and a clear 40×40 composition before expansion."
-  } else {
-    recommendation =
-      "Early stage — focus on AP income (strategic burns) and small intentional Canvas practice edits."
-  }
+  // Facts only. Where #PIXEL comes from (burns, the Pixel Market) is the holder's call: see /burn for a vibe check.
+  const recommendation =
+    readinessScore >= 75
+      ? "Most of the planning signals are in place; the official price list above is what an upgrade costs."
+      : readinessScore >= 45
+        ? "Some planning signals are in place; compare the attached #PIXEL with the official price list above."
+        : "Early: the attached #PIXEL is well short of the official upgrade prices above."
 
   const summary = [
-    `80×80 Expansion Readiness #${tokenId}: score ${readinessScore}/100`,
-    `AP ${state.actionPoints} (score ${apScore}), density ${dens}% (score ${densityScore}), level ${state.level} (score ${levelScore}).`,
+    `Bigger-canvas planning #${tokenId}: score ${readinessScore}/100 (Zulo's heuristic, not an official requirement)`,
+    `#PIXEL attached ${state.actionPoints} (score ${apScore} vs ${FULL_COST} for 80×80), density ${dens}% (score ${densityScore}), level ${state.level} (score ${levelScore}).`,
     recommendation,
-    blockers[0] ?? "No critical blockers.",
+    blockers[0] ?? "No blockers found.",
     CANVAS_EVOLUTION_DISCLAIMER,
   ].join("\n")
 
@@ -882,7 +883,7 @@ export async function analyzeExpansionReadiness(
     readinessScore,
     apReadiness: {
       score: apScore,
-      note: `${state.actionPoints} AP vs ${AP_TARGET} planning target`,
+      note: `${state.actionPoints} #PIXEL attached vs ${FULL_COST} official total for 80×80`,
     },
     densityReadiness: {
       score: densityScore,
