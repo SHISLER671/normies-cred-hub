@@ -98,6 +98,32 @@ export function arenaLineFor(type: string | null | undefined, level: number | nu
   return `${parts.join(". ")} (per ${SRC}; a head start, not a guarantee; ${ARENA_MAY_CHANGE})`
 }
 
+/**
+ * What the record card shows under "Arena record" (from the article's tables): a short value and a detail note for the
+ * type and for the head start. Null parts when the input is unknown. No prizes, odds or earnings; the card adds the
+ * source link and "may change".
+ */
+export function arenaCardFacts(
+  type: string | null | undefined,
+  level: number | null | undefined,
+): { type: { value: string; note: string } | null; headStart: { value: string; note: string } | null } {
+  const s = arenaTypeStats(type)
+  const h = arenaHeadStartFor(level)
+  const [first, ...rest] = h ? h.headStart.split(", ") : []
+  return {
+    type: s
+      ? {
+          value: `${s.type}, ${s.health} health`,
+          note: `Damage dealt ${s.damageDealt} · damage from monsters ${s.damageTakenFromMonsters} · speed ${s.speed}. ${s.skill}`,
+        }
+      : null,
+    headStart:
+      h && typeof level === "number"
+        ? { value: first, note: `Level ${Math.floor(level)}: ${headStartBandLabel(h)}${rest.length ? `, also ${rest.join(", ")}` : ""}` }
+        : null,
+  }
+}
+
 /** The ARENA FACTS block for Ask's system prompt. Facts and tables only; no prizes, pools, payouts or odds. */
 export function arenaFactsBlock(): string {
   const types = ARENA_TYPES.map(
