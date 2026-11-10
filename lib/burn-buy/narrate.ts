@@ -6,7 +6,7 @@ import type { CliffCost, PixelMarketSnapshot, SellRow } from "./market-math"
 import type { JevVerdict } from "./jev"
 import { BOOSTS, BRACKETS, boostFor, type CliffSide, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
 import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } from "./service"
-import { SURFACE_TAGS } from "../official-status"
+import { ARENA_REGISTRATION_LINE, SURFACE_TAGS } from "../official-status"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
 
@@ -194,7 +194,7 @@ const ARENA_NOTES = [
   "If an agent dies in a round it waits for the next round and respawns. Death is not a burn. A burn is permanent.",
   "Official trailer (\"They play. You watch.\"): each agent decides for itself, using a decision model. You do not steer it, so your choice is which Normies you own and keep.",
   "The trailer shows a boss, The Maw (\"No Normie can face it alone\"), but gives no numbers.",
-  "Whether a Normie must be awakened to enter, and when entry opens, is not published here. Check @normiesART.",
+  `${ARENA_REGISTRATION_LINE}. Whether a Normie must be awakened to enter is not published.`,
 ]
 
 const ART_NOTES = [

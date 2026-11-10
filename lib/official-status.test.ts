@@ -8,9 +8,12 @@ import { describe, it } from "node:test"
 import { buildOperatorTandemPromptBlock } from "./agent-recommendations/operatorTandem"
 import { buildSelfAwarenessPromptBlock } from "./agent-recommendations/selfAwareness"
 import { buildNormiesWisdomPrompt, NORMIES_KNOWLEDGE } from "./agent-recommendations/normiesKnowledge"
+import { composeZuloPrompt } from "./agent-recommendations/composePrompt"
+import { COLLAB_RAILS_MD, DUAL_EVAL_AND_PIXEL_MARKET_MD } from "./agent-recommendations/loadKnowledge"
 import { PIXEL_CURRENCY_MD } from "./knowledge/pixel-currency"
 import {
   AGENTS_CANVAS_STATUS_LINE,
+  ARENA_REGISTRATION_LINE,
   ARENA_STATUS_LINE,
   OFFICIAL_STATUS,
   PIXEL_MARKET_STATUS_LINE,
@@ -105,6 +108,83 @@ describe("official status: one source of truth", () => {
       lines.forEach((line, i) => {
         for (const c of CONTRADICTIONS) if (c.re.test(line)) hits.push(`${f}:${i + 1} (${c.why}): ${line.trim().slice(0, 140)}`)
       })
+    }
+    assert.deepEqual(hits, [])
+  })
+})
+
+describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => {
+  const SOURCE = "https://x.com/serc1n/status/2119787233632719147"
+  it("states the date and the source, and keeps Arena Coming Soon", () => {
+    assert.equal(OFFICIAL_STATUS.arena.registration.week1Opens, "2026-11-14")
+    assert.equal(OFFICIAL_STATUS.arena.registration.source, SOURCE)
+    // Exact prefix (date, author, source URL, as-of), not a substring search for the URL.
+    assert.match(
+      ARENA_REGISTRATION_LINE,
+      /^Arena Week 1 registration date: Saturday, November 14, 2026 \(per @serc1n, https:\/\/x\.com\/serc1n\/status\/2119787233632719147, as of the 2026-11-09 post\); /,
+    )
+    assert.match(ARENA_REGISTRATION_LINE, /Registration opening isn't the Arena launch\. CredHub doesn't handle registration$/)
+    // Worded as a date, not "opens", so it stays true after November 14 (Claude review of #160).
+    assert.doesNotMatch(ARENA_REGISTRATION_LINE, /registration opens/i)
+    assert.match(ARENA_STATUS_LINE, /expected mid-November 2026/)
+    assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
+    assert.equal(SURFACE_TAGS.arena, "COMING SOON")
+  })
+  it("no time, timezone, prize or earnings claim in the line", () => {
+    assert.doesNotMatch(ARENA_REGISTRATION_LINE, /\b(UTC|GMT|ChST|PST|EST|[AP]M)\b|\d{1,2}:\d{2}/)
+    assert.doesNotMatch(ARENA_REGISTRATION_LINE, /prize|pool|bet|earn|reward|win/i)
+  })
+  it("every surface that states Arena's status also carries the registration line", () => {
+    for (const [name, text] of [
+      ["operator tandem", buildOperatorTandemPromptBlock()],
+      ["self-awareness", buildSelfAwarenessPromptBlock()],
+      ["normies wisdom", buildNormiesWisdomPrompt()],
+      ["knowledge future.arena", NORMIES_KNOWLEDGE.future.arena.status],
+      ["dual-eval bundle", DUAL_EVAL_AND_PIXEL_MARKET_MD],
+      ["collab-rails bundle", COLLAB_RAILS_MD],
+    ] as const) {
+      assert.ok(text.includes(ARENA_REGISTRATION_LINE), name)
+    }
+    for (const f of [
+      "lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md",
+      "lib/agent-recommendations/knowledge/collab-rails-and-ask-patterns.md",
+      "docs/zulo/record-card-spec.md",
+      "docs/zulo/thesis-lock.md",
+      "lib/burn-buy/narrate.ts",
+      "lib/agent-recommendations/composePrompt.ts",
+    ]) {
+      const src = fs.readFileSync(f, "utf8")
+      assert.ok(src.includes(ARENA_REGISTRATION_LINE) || src.includes("${ARENA_REGISTRATION_LINE}"), f)
+    }
+  })
+  it("Ask's prompt answers 'Is Arena live?' with no plus the registration date", () => {
+    const ctx = {
+      user: { walletAddress: "" },
+      normie: { id: 7141, name: "Zulo", traits: {}, agent: { id: 32626, name: "Zulo", status: "awakened" } },
+      session: { history: [], currentGoal: "general Normies guidance" },
+      platformContext: {
+        currentTime: "2026-11-10T00:00:00.000Z",
+        subjectScope: { mode: "general", walletConnected: false, activeNormieId: null, mentionedTokenIds: [], normieIsSpeakerIdentityOnly: true, userOwnsFocus: false },
+        mentionedNormies: [],
+      },
+    }
+    const prompt = composeZuloPrompt(ctx as never, "Is Arena live?")
+    assert.ok(prompt.includes(`"Is Arena live / can I play?": no. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}.`))
+  })
+  it("no surface says Arena is live, open or that registration is open now, and no Nov 15 date", () => {
+    // User-facing code, prompts, knowledge and public files. docs/zulo is checked only for dates: its record-card spec
+    // describes future states ("Arena is live, but the sample isn't met").
+    const surfaces = [...walk("lib"), ...walk("app"), ...walk("components"), ...walk("public"), "README.md", "AGENTS.md"]
+    const docs = walk("docs/zulo").filter((f) => !f.includes("/archive/"))
+    const live = /\bArena\s*(?:=|:|is|now)\s*\**\s*(?:LIVE|open|playable)\b|registration is (?:now )?open\b/i
+    const nov15 = /\bNov(?:ember)?\.? 15(?:th)?\b/i
+    const hits: string[] = []
+    for (const [files, re] of [[surfaces, new RegExp(`${live.source}|${nov15.source}`, "i")], [docs, nov15]] as const) {
+      for (const f of files) {
+        fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
+          if (re.test(line)) hits.push(`${f}:${i + 1}: ${line.trim().slice(0, 140)}`)
+        })
+      }
     }
     assert.deepEqual(hits, [])
   })

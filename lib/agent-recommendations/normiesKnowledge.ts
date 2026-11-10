@@ -1,7 +1,7 @@
 // Comprehensive Normies knowledge for Zulo — structured bible + compact prompt text.
 
 import { NORMIES_NFT } from "@/constants/contracts"
-import { AGENTS_CANVAS_STATUS_LINE, ARENA_STATUS_LINE, OFFICIAL_STATUS, PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
+import { AGENTS_CANVAS_STATUS_LINE, ARENA_REGISTRATION_LINE, ARENA_STATUS_LINE, OFFICIAL_STATUS, PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
 
 export const NORMIES_KNOWLEDGE = {
   collection: {
@@ -113,7 +113,7 @@ export const NORMIES_KNOWLEDGE = {
 
   future: {
     arena: {
-      status: `${ARENA_STATUS_LINE} (official docs: still a work in progress, features and mechanics may change)`,
+      status: `${ARENA_STATUS_LINE} (official docs: still a work in progress, features and mechanics may change). ${ARENA_REGISTRATION_LINE}.`,
       description:
         "Autonomous agents on a 640×640 pixel continent. No human players. No script. (From @serc1n X posts, 2026-09-18; not in the docs, may change.)",
       mechanics:
@@ -261,7 +261,7 @@ STRATEGIC PRINCIPLES:
 - High pixel count (890+) → best burn efficiency band
 - Delegation for collab without giving up ownership
 - ${AGENTS_CANVAS_STATUS_LINE}.
-- ${ARENA_STATUS_LINE} (work in progress, mechanics may change). The 2026-09-18 design (autonomous 640×640 continent; no human players) is from @serc1n X posts, not the docs. ${PIXEL_MARKET_STATUS_LINE} — #PIXEL is AP, not a separate coin; sell-side listings in ETH per pixel; no wallet-to-wallet transfer
+- ${ARENA_STATUS_LINE} (work in progress, mechanics may change). ${ARENA_REGISTRATION_LINE}. The 2026-09-18 design (autonomous 640×640 continent; no human players) is from @serc1n X posts, not the docs. ${PIXEL_MARKET_STATUS_LINE} — #PIXEL is AP, not a separate coin; sell-side listings in ETH per pixel; no wallet-to-wallet transfer
 
 RESOURCES:
 - API ${k.resources.api} | Rarity ${k.resources.rarity} | Multisend ${k.resources.multisend} | Docs ${k.resources.docs}
