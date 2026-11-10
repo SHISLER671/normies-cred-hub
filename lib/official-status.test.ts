@@ -118,9 +118,11 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
   it("states the date and the source, and keeps Arena Coming Soon", () => {
     assert.equal(OFFICIAL_STATUS.arena.registration.week1Opens, "2026-11-14")
     assert.equal(OFFICIAL_STATUS.arena.registration.source, SOURCE)
-    assert.ok(ARENA_REGISTRATION_LINE.startsWith("Arena Week 1 registration opens Saturday, November 14, 2026 (per @serc1n, "))
-    assert.ok(ARENA_REGISTRATION_LINE.includes(SOURCE))
-    assert.ok(ARENA_REGISTRATION_LINE.includes("as of the 2026-11-09 post"))
+    // Exact prefix (date, author, source URL, as-of), not a substring search for the URL.
+    assert.match(
+      ARENA_REGISTRATION_LINE,
+      /^Arena Week 1 registration opens Saturday, November 14, 2026 \(per @serc1n, https:\/\/x\.com\/serc1n\/status\/2119787233632719147, as of the 2026-11-09 post\); /,
+    )
     assert.match(ARENA_REGISTRATION_LINE, /Registration opening is not Arena being live/)
     assert.match(ARENA_STATUS_LINE, /expected mid-November 2026/)
     assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
