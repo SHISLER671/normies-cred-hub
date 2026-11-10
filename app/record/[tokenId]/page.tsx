@@ -99,7 +99,8 @@ export default async function RecordCardPage({ params }: Params) {
   const canvas = sectors.canvas
   const canvasRank = identity.arena_canvas_rank ?? null
   // Arena article facts for this Normie's type and Level (Ryan, 2026-11-11). Shown under the record, never as one.
-  const articleFacts = arenaCardFacts(identity.type?.value ?? identity.mint_type.value, identity.level.value)
+  // Current type only: a Zombie minted Human must never show Human stats, so an unknown type shows no type line.
+  const articleFacts = arenaCardFacts(identity.type?.value ?? null, identity.level.value)
   const asOf = new Date(card.generated_at).toUTCString().replace(" GMT", " UTC")
 
   return (

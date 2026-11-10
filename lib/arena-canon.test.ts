@@ -82,17 +82,23 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
 describe("record card lines (Ryan, 2026-11-11: show the tables)", () => {
   it("type and head start, short value plus detail", () => {
     const f = arenaCardFacts("Cat", 12)
-    assert.deepEqual(f.type, { value: "Cat, 115 health", note: "Damage dealt ×0.94 · damage from monsters −14% · speed fastest (+14%). Nine lives: 1 in 5 hits on a Cat misses" })
+    assert.deepEqual(f.type, { value: "Cat, 115 health", note: "Damage dealt ×0.94 · damage taken from monsters −14% · speed fastest (+14%). Nine lives: 1 in 5 hits on a Cat misses" })
     assert.deepEqual(f.headStart, { value: "+28% health", note: "Level 12: Level 10+ (Inked), also sword III, plate I" })
     assert.deepEqual(arenaCardFacts("Human", 1).headStart, { value: "no head start", note: "Level 1: Level 1+ (Blank)" })
     assert.equal(arenaCardFacts("Human", 151).headStart!.note.startsWith("Level 151: Level 150+ (top Arena rank)"), true)
     assert.deepEqual(arenaCardFacts(null, null), { type: null, headStart: null })
+    // Unknown current type: no type line, the head start still shows (Level is enough).
+    const unknownType = arenaCardFacts(null, 31)
+    assert.equal(unknownType.type, null)
+    assert.deepEqual(unknownType.headStart, { value: "+39% health", note: "Level 31: Level 25+ (Painted), also sword III, plate II, boots I, 1 tonic" })
     assert.doesNotMatch(JSON.stringify(arenaCardFacts("Zombie", 160)), NEVER)
   })
   it("the record page shows them in the Arena section with the source and 'may change', not on the share image", async () => {
     const fs = await import("node:fs")
     const page = fs.readFileSync("app/record/[tokenId]/page.tsx", "utf8")
-    assert.match(page, /arenaCardFacts\(/)
+    // Current type only (GrokBot review of #163): never fall back to the minted type.
+    assert.match(page, /arenaCardFacts\(identity\.type\?\.value \?\? null, identity\.level\.value\)/)
+    assert.doesNotMatch(page.slice(page.indexOf("arenaCardFacts(")), /^[^\n]*mint_type/)
     assert.match(page, /normiesART&apos;s Arena article<\/a>/)
     assert.match(page, /\{ARENA_MAY_CHANGE\}\. A head start, not a guarantee\./)
     for (const f of ["app/record/[tokenId]/opengraph-image.tsx", "lib/record-card/og-art.tsx", "lib/record-card/share-image.ts"]) {

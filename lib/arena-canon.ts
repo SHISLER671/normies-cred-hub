@@ -114,7 +114,7 @@ export function arenaCardFacts(
     type: s
       ? {
           value: `${s.type}, ${s.health} health`,
-          note: `Damage dealt ${s.damageDealt} · damage from monsters ${s.damageTakenFromMonsters} · speed ${s.speed}. ${s.skill}`,
+          note: `Damage dealt ${s.damageDealt} · damage taken from monsters ${s.damageTakenFromMonsters} · speed ${s.speed}. ${s.skill}`,
         }
       : null,
     headStart:
