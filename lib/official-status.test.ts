@@ -121,9 +121,11 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     // Exact prefix (date, author, source URL, as-of), not a substring search for the URL.
     assert.match(
       ARENA_REGISTRATION_LINE,
-      /^Arena Week 1 registration opens Saturday, November 14, 2026 \(per @serc1n, https:\/\/x\.com\/serc1n\/status\/2119787233632719147, as of the 2026-11-09 post\); /,
+      /^Arena Week 1 registration date: Saturday, November 14, 2026 \(per @serc1n, https:\/\/x\.com\/serc1n\/status\/2119787233632719147, as of the 2026-11-09 post\); /,
     )
-    assert.match(ARENA_REGISTRATION_LINE, /Registration opening is not Arena being live/)
+    assert.match(ARENA_REGISTRATION_LINE, /Registration opening isn't the Arena launch\. CredHub doesn't handle registration$/)
+    // Worded as a date, not "opens", so it stays true after November 14 (Claude review of #160).
+    assert.doesNotMatch(ARENA_REGISTRATION_LINE, /registration opens/i)
     assert.match(ARENA_STATUS_LINE, /expected mid-November 2026/)
     assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
     assert.equal(SURFACE_TAGS.arena, "COMING SOON")
