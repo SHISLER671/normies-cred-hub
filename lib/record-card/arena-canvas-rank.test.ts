@@ -175,9 +175,9 @@ function newCopy(): string[] {
 }
 
 describe("lock: new copy stays a label", () => {
+  // Ryan, 2026-11-11: "head start", "boost" and the planned Nov 15 date are allowed when sourced (Claude's #162), so they
+  // are no longer banned here. Prizes, pools, ETH, buy/burn prompts and "Legendary Canvas" still are.
   const banned: Array<[string, RegExp]> = [
-    ["head start", /head start/i],
-    ["boost", /boost/i],
     ["laser", /laser/i],
     ["sword", /sword/i],
     ["prize", /prize/i],
@@ -185,7 +185,6 @@ describe("lock: new copy stays a label", () => {
     ["edge to win", /edge to win/i],
     ["level up by", /level up by/i],
     ["level up / upgrade prompts", /level(ing)? up|upgrade/i],
-    ["Nov 15", /Nov(ember)?\.? 15/i],
     ["Legendary Canvas (the award contract's name)", /Legendary Canvas/i],
     ["earn", /\bearn/i],
     ["profit", /profit/i],

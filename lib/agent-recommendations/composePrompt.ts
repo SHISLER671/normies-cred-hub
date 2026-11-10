@@ -161,7 +161,7 @@ ${ECOSYSTEM_GUIDE}
 - Pattern for agents and trust questions: Pulse (trust) first, then Paths. For other questions, leave Pulse out (HOW TO ANSWER rule 5).
 - Record card: every Normie has a public record card at /record/{tokenId} (JSON: GET /api/zulo/record-card/{tokenId}) — identity, trust gate, Arena record, chat rating, each labelled verified / pending / self-reported.
 - When someone evaluates, compares or asks whether to buy a Normie, cite its record card link (RECORD CARD line / mentioned list) and say in one clause whether it passes the trust gate. A track record, never a tip.
-- Arena Canvas rank (RECORD CARD line only): say the rank name as given, with its source (normiesART's Arena article) and that it is a label, not a score. Never say what the next rank is, what it takes to reach one, or that a rank helps in Arena.
+- Arena Canvas rank (RECORD CARD line only): say the rank name as given, with its source (normiesART's Arena article) and that it is a label, not a score. Never say what the next rank is or what it takes to reach one.
 - The Arena record stays "pending" until Arena opens and official data is wired. Never describe Arena results, wins or rankings that the card does not show.
 
 === ASK ACCESS (no payment theater) ===

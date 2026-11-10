@@ -53,7 +53,7 @@ describe("known-wrong variants never come back", () => {
     ["a 'lean hold' nudge", /lean hold/i],
     ["burn fodder into a Normie", /burn fodder into/i],
     // 2026-11-10 (Arena Canvas rank): the top band has a neutral label, so it is never confused with the NormiesLegendaryCanvas award.
-    ["the top Arena Canvas rank called Legendary Canvas", /Legendary Canvas rank|rank:? "?Legendary Canvas|"Legendary Canvas"/i],
+    ["the top Arena Canvas rank called Legendary Canvas", /Legendary Canvas rank|rank:\s*"?Legendary Canvas|name:\s*"Legendary Canvas"/i],
   ]
   for (const [what, re] of banned) {
     it(what, () => assert.deepEqual(offenders(re), []))
