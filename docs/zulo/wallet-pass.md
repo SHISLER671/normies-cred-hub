@@ -1,6 +1,21 @@
 # Record card wallet pass (Google Wallet)
 
-Drafted 2026-11-10 (ChST) by Claude. Status: **built, off until the env vars are set.** Apple Wallet is not built (see below).
+Drafted 2026-11-10 (ChST) by Claude.
+
+> **Status: PARKED (Ryan, 2026-11-10).** The code is built, tested and switched off: with no `GOOGLE_WALLET_*` env vars, the button is hidden and the route returns 404, so merging changes nothing for visitors. Not a priority right now. Pick it up with "How to finish" below.
+
+Apple Wallet is not built (see below).
+
+## How to finish (in order)
+
+1. **Review and merge** PR #155 (draft). Safe to merge while parked: it is off without the env vars.
+2. **Google setup** (one time, about 30 minutes): steps 1–5 in "Turning it on" below. Use demo mode first.
+3. **Test on a real Android phone**: open `/record/7141`, tap "Add to Google Wallet", save, and check the logo, big image and text read well. Tap Add again after a few minutes and confirm the same card updates (no second card).
+4. **Clear the loose ends** below: a 660×660 logo, Google's official badge for the button, and a crop of the big image if it looks off.
+5. **Ask Google for publishing access** in the Wallet console. Only after approval can anyone outside your test accounts save a pass.
+6. **Optional later**: Apple Wallet (section at the end) and a scheduled refresh so saved cards stay current.
+
+To switch it off again at any time: remove any one of the three env vars and redeploy.
 
 ## What it is
 
