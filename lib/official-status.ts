@@ -20,6 +20,15 @@ export const OFFICIAL_STATUS = {
   arena: {
     status: "COMING_SOON",
     expected: "mid-November 2026 (per @serc1n, Oct 15 broadcast)",
+    /** Registration is not launch: Arena stays COMING_SOON until an official source says it is live. */
+    registration: {
+      week1Opens: "2026-11-14",
+      source: "https://x.com/serc1n/status/2119787233632719147",
+      /** UTC, from the X API. */
+      postedAt: "2026-11-09T13:40:34Z",
+      /** When CredHub last checked the post. */
+      checkedAt: "2026-11-10",
+    },
   },
   zombies: {
     status: "SEALED",
@@ -42,6 +51,8 @@ export type OfficialSurfaceStatus = "LIVE" | "COMING SOON" | "ALL CLAIMED"
 /** Canonical sentences. Copy these, never paraphrase a status. */
 export const PIXEL_MARKET_STATUS_LINE = `Pixel Market = LIVE since ${OFFICIAL_STATUS.pixelMarket.since} (official)`
 export const ARENA_STATUS_LINE = `Arena = Coming Soon (official docs; expected ${OFFICIAL_STATUS.arena.expected}); not playable on CredHub`
+/** Copy next to ARENA_STATUS_LINE wherever Arena's status is stated. Date only, as posted: no time or timezone claim. */
+export const ARENA_REGISTRATION_LINE = `Arena Week 1 registration opens Saturday, November 14, 2026 (per @serc1n, ${OFFICIAL_STATUS.arena.registration.source}, as of the ${OFFICIAL_STATUS.arena.registration.postedAt.slice(0, 10)} post); per the same post it is a fully autonomous agent game. Registration opening is not Arena being live, and CredHub has no registration`
 export const AGENTS_CANVAS_STATUS_LINE = `Agents Canvas = announced by @serc1n (${OFFICIAL_STATUS.agentsCanvas.announced}), not live yet; no official data to read`
 export const ZOMBIES_STATUS_LINE = `Zombies = ${OFFICIAL_STATUS.zombies.claimed}/${OFFICIAL_STATUS.zombies.total} sealed, not Arena, nothing to claim`
 
