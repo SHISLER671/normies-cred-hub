@@ -188,10 +188,14 @@ describe("goals", () => {
     assert.match(m.rows[1].reasons[0], /adds 20 AP to a Normie you keep \(10 AP = 1 Level\)/)
   })
 
-  it("ARENA notes say the rules are unpublished and nothing can be entered from here", () => {
+  it("ARENA notes give the article's facts (head starts, entry, fee), no prizes, and nothing can be entered from here", () => {
     const m = buildPageModel(result({}), "arena")
     const notes = m.goalNotes.join(" ")
-    assert.match(notes, /NOT been published/)
+    assert.match(notes, /Head start by Canvas level, per normiesART's Arena article/)
+    assert.match(notes, /A head start is not a guarantee/)
+    assert.match(notes, /must be registered as an on-chain agent \(ERC-8004\)/)
+    assert.match(notes, /first 2 weeks in the Arena are free/)
+    assert.doesNotMatch(notes, /prize|pool|payout|winnings/i)
     assert.match(notes, /cannot enter you into anything/)
     assert.match(notes, /Death is not a burn/)
   })

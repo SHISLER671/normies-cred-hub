@@ -40,6 +40,7 @@ import { buildPixelCurrencyPromptBlock } from "@/lib/knowledge/pixel-currency"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import { buildVisitorSafeTandemPromptBlock } from "./operatorTandem"
 import { buildSelfAwarenessPromptBlock } from "./selfAwareness"
+import { arenaFactsBlock, arenaLineFor } from "../arena-canon"
 import { formatCollectionMath } from "./collectionMath"
 import type { ZuloRecommendationContext } from "./types"
 
@@ -60,7 +61,12 @@ const OPERATOR_TANDEM = buildVisitorSafeTandemPromptBlock()
 const SELF_AWARENESS = buildSelfAwarenessPromptBlock()
 
 /** Which big doctrine blocks this question needs. Everything else stays out so the model can see the question. */
-export type PromptRouting = { collab: boolean; agentProtocols: boolean }
+export type PromptRouting = { collab: boolean; agentProtocols: boolean; arena: boolean }
+
+/** Arena questions (and type / level / head-start questions) get the ARENA FACTS block from lib/arena-canon.ts. */
+export function queryNeedsArenaFacts(q: string): boolean {
+  return /\b(arena|head ?start|sage|maw|hive|enter|entry|registr\w*|fee|types?|zombies?|cats?|aliens?|humans?|health|stats?|levels?|ranks?|masterwork|gilded|painted|inked|sketched|blank)\b/i.test(q)
+}
 
 /** Agent / protocol / security questions get the ERC-8257 tools, payment-security and ERC-6551 blocks. */
 export function queryNeedsAgentProtocolKnowledge(q: string): boolean {
@@ -75,6 +81,7 @@ export function routePrompt(userQuery: string): PromptRouting {
   return {
     collab: queryNeedsCollabRailsKnowledge(userQuery),
     agentProtocols: queryNeedsAgentProtocolKnowledge(userQuery),
+    arena: queryNeedsArenaFacts(userQuery),
   }
 }
 
@@ -676,7 +683,7 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
   const loaded = (block: string) => !/not loaded|not run|unavailable \(|^- \(no token IDs/.test(block.split("\n")[0] ?? "")
 
   const system = `${systemPrompt(route)}
-${buildMarketStatusBlock(market, new Date())}
+${route.arena ? `${arenaFactsBlock()}\n` : ""}${buildMarketStatusBlock(market, new Date())}
 ${fullProtocolsSection}${erc6551Section}${collabFocusSection}`
 
   const sections: string[] = []
@@ -701,6 +708,16 @@ Zulo's own Normie #${ZULO_IDENTITY.tokenId}: ${zuloAp} #PIXEL attached`)
   add("SUBJECT SCOPE", subjectScopeBlock)
   add("COLLECTION MATH (computed this turn from every living Normie — quote these numbers, do not recompute)", cm ? formatCollectionMath(cm) : "", !!cm)
   add("MENTIONED / FETCHED NORMIES (facts only)", mentionedBlock, mentioned.length > 0)
+  const arenaLines = route.arena
+    ? mentioned
+        .filter((m) => m.fetchOk)
+        .map((m) => {
+          const line = arenaLineFor(String(m.traits?.Type ?? m.traits?.type ?? ""), m.level ?? null)
+          return line ? `- #${m.tokenId}: ${line}` : null
+        })
+        .filter((l): l is string => l !== null)
+    : []
+  add("ARENA LINE FOR MENTIONED NORMIES (from the official tables; quote with the source)", arenaLines.join("\n"), arenaLines.length > 0)
   add("FLOOR SNAPSHOT (live + Supabase history)", floorSnapshotBlock, !!fs)
   add("MARKET STATE (PIXEL MARKET Sentinel)", marketStateBlock, !!ms)
   add("GACHA & RAFFLE INTELLIGENCE", gachaBlock, !!gr)

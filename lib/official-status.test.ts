@@ -126,7 +126,8 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     assert.match(ARENA_REGISTRATION_LINE, /Registration opening isn't the Arena launch\. CredHub doesn't handle registration$/)
     // Worded as a date, not "opens", so it stays true after November 14 (Claude review of #160).
     assert.doesNotMatch(ARENA_REGISTRATION_LINE, /registration opens/i)
-    assert.match(ARENA_STATUS_LINE, /expected mid-November 2026/)
+    // Ryan, 2026-11-11: the planned date from normiesART's Arena article replaces "mid-November".
+    assert.match(ARENA_STATUS_LINE, /expected November 15, 2026 \(planned, per normiesART's Arena article, Oct 23\)/)
     assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
     assert.equal(SURFACE_TAGS.arena, "COMING SOON")
   })
@@ -171,13 +172,14 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     const prompt = composeZuloPrompt(ctx as never, "Is Arena live?")
     assert.ok(prompt.includes(`"Is Arena live / can I play?": no. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}.`))
   })
-  it("no surface says Arena is live, open or that registration is open now, and no Nov 15 date", () => {
+  it("no surface says Arena is live, open or that registration is open now; Nov 15 only as the article's planned launch", () => {
     // User-facing code, prompts, knowledge and public files. docs/zulo is checked only for dates: its record-card spec
     // describes future states ("Arena is live, but the sample isn't met").
     const surfaces = [...walk("lib"), ...walk("app"), ...walk("components"), ...walk("public"), "README.md", "AGENTS.md"]
     const docs = walk("docs/zulo").filter((f) => !f.includes("/archive/"))
     const live = /\bArena\s*(?:=|:|is|now)\s*\**\s*(?:LIVE|open|playable)\b|registration is (?:now )?open\b/i
-    const nov15 = /\bNov(?:ember)?\.? 15(?:th)?\b/i
+    // Ryan, 2026-11-11: November 15, 2026 is the article's PLANNED launch. It may appear only worded as a plan.
+    const nov15 = /\bNov(?:ember)?\.? 15(?:th)?\b(?!, 2026 \(planned|, 2026 \(a plan)/i
     const hits: string[] = []
     for (const [files, re] of [[surfaces, new RegExp(`${live.source}|${nov15.source}`, "i")], [docs, nov15]] as const) {
       for (const f of files) {

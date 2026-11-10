@@ -48,7 +48,7 @@ describe("prompt shape", () => {
   })
 
   it("loads the big collab and agent-protocol doctrine only when the question needs it", () => {
-    assert.deepEqual(routePrompt(COLLECTION_Q), { collab: false, agentProtocols: false })
+    assert.deepEqual(routePrompt(COLLECTION_Q), { collab: false, agentProtocols: false, arena: false })
     assert.equal(routePrompt("What's the Stonk collab?").collab, true)
     assert.equal(routePrompt("what tools should agents call?").agentProtocols, true)
     const plain = composeZuloMessages(ctx(), COLLECTION_Q, "live").system
@@ -179,5 +179,20 @@ describe("GrokBot review of #156", () => {
     const { user } = composeZuloMessages(ctx({ marketState }), "market status", "live")
     assert.doesNotMatch(user, /AP market/)
     assert.ok(user.includes(`${PIXEL_MARKET_STATUS_LINE}; #PIXEL quotes: none in this scan`))
+  })
+})
+
+describe("Arena facts from normiesART's article (Ryan, 2026-11-11)", () => {
+  it("arena questions get the ARENA FACTS block; other questions don't", () => {
+    assert.match(composeZuloMessages(ctx(), "How strong is a Zombie in Arena?", "live").system, /=== ARENA FACTS/)
+    assert.doesNotMatch(composeZuloMessages(ctx(), COLLECTION_Q, "live").system, /=== ARENA FACTS/)
+  })
+  it("a named Normie gets its type and head-start line", () => {
+    const c = ctx({
+      mentionedNormies: [{ tokenId: 1234, fetchOk: true, traits: { Type: "Cat" }, level: 12 }],
+      subjectScope: { mode: "mentioned", walletConnected: false, activeNormieId: null, mentionedTokenIds: [1234], normieIsSpeakerIdentityOnly: false, userOwnsFocus: false },
+    } as never)
+    const { user } = composeZuloMessages(c, "How would #1234 do in Arena?", "live")
+    assert.match(user, /- #1234: Cat: 115 health.*Level 12 \(Inked\) head start: \+28% health, sword III, plate I/)
   })
 })

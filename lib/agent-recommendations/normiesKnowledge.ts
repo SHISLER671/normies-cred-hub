@@ -56,7 +56,7 @@ export const NORMIES_KNOWLEDGE = {
     levels: {
       formula: "Level = floor(actionPoints / 10) + 1",
       start: "Level 1 for all",
-      scaling: "Level is expected to matter in Arena (official design post); the combat rules are not published",
+      scaling: "Canvas level sets the Arena head start (health and gear), per normiesART's Arena article (Oct 23, 2026); a head start, not a guarantee; may change",
       visibility: "Shown on marketplaces",
     },
     delegation: {
@@ -240,7 +240,7 @@ CANVAS / BURN ECONOMICS:
   • 890+ px → 3–4% (highest minimum)
 - Reveal window: ${k.canvas.burnMechanics.revealWindow}; miss window → ${k.canvas.burnMechanics.penalty}
 - AP bound to specific Normie (non-transferable); sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official UI — not an AP debit. CredHub / Normifier preview is not a spend rail.
-- Level = floor(pixels on the Normie / 10) + 1 (starts at 1), read live; taking pixels off lowers it. Level is expected to matter in Arena, but the combat rules are not published
+- Level = floor(pixels on the Normie / 10) + 1 (starts at 1), read live; taking pixels off lowers it. Canvas level sets the Arena head start (health and gear) per normiesART's Arena article (Oct 23, 2026); a head start, not a guarantee
 - Delegate: transform only; cannot burn/claim/transfer; one delegate per Normie
 
 TYPE ROLES (collection types — older deck-building Arena copy is not live 2026-09-18 rules):

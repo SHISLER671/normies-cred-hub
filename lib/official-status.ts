@@ -19,7 +19,7 @@ export const OFFICIAL_STATUS = {
   },
   arena: {
     status: "COMING_SOON",
-    expected: "mid-November 2026 (per @serc1n, Oct 15 broadcast)",
+    expected: "November 15, 2026 (planned, per normiesART's Arena article, Oct 23)",
     /** Registration is not launch: Arena stays COMING_SOON until an official source says it is live. */
     registration: {
       week1Opens: "2026-11-14",
