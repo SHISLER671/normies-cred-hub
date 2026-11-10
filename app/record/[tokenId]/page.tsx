@@ -96,6 +96,7 @@ export default async function RecordCardPage({ params }: Params) {
   const name = identity.agent_name.value ?? `Normie #${tokenId}`
   const arena = sectors.arena
   const canvas = sectors.canvas
+  const canvasRank = identity.arena_canvas_rank ?? null
   const asOf = new Date(card.generated_at).toUTCString().replace(" GMT", " UTC")
 
   return (
@@ -144,6 +145,9 @@ export default async function RecordCardPage({ params }: Params) {
           <StatGrid>
             <Stat label="Level" value={show(identity.level)} note={note(identity.level)} />
             <Stat label="Pixels on this Normie" value={show(identity.pixels_attached)} note={note(identity.pixels_attached)} />
+            {canvasRank && (
+              <Stat label="Arena Canvas rank" value={show(canvasRank)} note={note(canvasRank)} />
+            )}
             <Stat
               label="Type"
               value={typeDisplay(identity) ?? show(identity.mint_type)}
@@ -155,6 +159,12 @@ export default async function RecordCardPage({ params }: Params) {
               note={note(identity.awakened_at)}
             />
           </StatGrid>
+          {canvasRank?.note && (
+            <p className="caption">
+              Arena Canvas rank: {canvasRank.note}{" "}
+              <a href={canvasRank.source_url} target="_blank" rel="noopener noreferrer">Source</a>
+            </p>
+          )}
         </section>
 
         <section className="rc-section" aria-labelledby="rc-arena">

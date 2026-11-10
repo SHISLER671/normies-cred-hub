@@ -19,6 +19,7 @@ import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
 import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
 import { parseCalcAmount } from "@/lib/ap-check/compare-text"
+import { ARENA_CANVAS_RANKS_SOURCE, nextArenaCanvasRankText } from "@/lib/normies-canon"
 
 import { PixelCompare } from "./pixel-compare"
 
@@ -283,6 +284,7 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
                   <div className="burn-body">
                     <p>{r.reasons.join("; ")}.</p>
                     <p className="burn-small">{r.pays}</p>
+                    {model.goal === "arena" && <NextCanvasRank level={r.level} />}
                     {r.jev && <p className="burn-small burn-jevtext"><strong>Second opinion.</strong> {r.jev.text}</p>}
                   </div>
                 </details>
@@ -360,6 +362,17 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
         </details>
       )}
     </>
+  )
+}
+
+/** Arena goal only: where the next Arena Canvas rank starts, as a plain fact. Nothing at the top rank. */
+function NextCanvasRank({ level }: { level: number | null }) {
+  const text = nextArenaCanvasRankText(level)
+  if (!text) return null
+  return (
+    <p className="burn-small">
+      {text}. Rank names per <a href={ARENA_CANVAS_RANKS_SOURCE.url} target="_blank" rel="noopener noreferrer">normiesART&apos;s Arena article</a> ({ARENA_CANVAS_RANKS_SOURCE.publishedText}); Arena is Coming Soon and game data may change.
+    </p>
   )
 }
 

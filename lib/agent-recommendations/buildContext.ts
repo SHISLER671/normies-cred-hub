@@ -580,7 +580,13 @@ export async function buildZuloContext(
       nextSignal: pulseResult.data.next_signal,
       note: pulseResult.data.note,
       chatRatings: chatRatingsLine(pulseResult.data.chat_ratings),
-      recordCard: recordCardLine(pulseResult.data.token_id, pulseResult.data.breakdown, siteOrigin()),
+      recordCard: recordCardLine(
+        pulseResult.data.token_id,
+        pulseResult.data.breakdown,
+        siteOrigin(),
+        undefined,
+        canvasInfo?.level ?? agentInfo?.canvas?.level ?? null,
+      ),
     }
     pulseSummary = buildPulseSummary(pulseResult.data)
   }
