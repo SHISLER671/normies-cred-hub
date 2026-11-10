@@ -39,7 +39,7 @@ Human page: /pixels
 
 Market or burn? (read-only; lives under /burn, labelled not financial advice; values can go up or down):
 GET /api/burn/ap-check?calc=pixels&amount=<n> | ?calc=eth&amount=<eth>   two costs side by side: Pixel Market route and burning floor Normies route, with as-of time
-POST /api/burn/ap-check with the same fields as JSON. The old /api/ap-check?calc= answers 410 with movedTo.
+POST /api/burn/ap-check with the same fields as JSON. The old /api/ap-check?calc= (listed in the registered Pixel Check manifest) still answers with the same labelled result, plus movedTo and page pointing here.
 Human page: /burn#compare
 
 Manifests:

@@ -65,6 +65,12 @@ describe("the compare is reachable only under /burn", () => {
   it("llms.txt and the tool docs point to /api/burn/ap-check, not /api/ap-check?calc=", () => {
     const llms = read("public/llms.txt")
     assert.doesNotMatch(llms, /^GET \/api\/ap-check\?calc=/m)
+    // Option B: the old address keeps answering, so no doc may say it is gone.
+    for (const [f, text] of [["public/llms.txt", llms], ["README.md", read("README.md")]] as const) {
+      const apCheckLines = text.split("\n").filter((l) => /ap-check/.test(l))
+      assert.deepEqual(apCheckLines.filter((l) => /\b410\b|\bGone\b/.test(l)), [], `${f} claims ap-check answers 410`)
+    }
+    assert.match(llms, /old \/api\/ap-check\?calc= .*still answers with the same labelled result, plus movedTo and page/)
     assert.match(llms, /GET \/api\/burn\/ap-check\?calc=pixels/)
     assert.match(read("lib/agent-recommendations/knowledge/agent-tools.md"), /moved to `\/api\/burn\/ap-check`/)
     assert.doesNotMatch(read("lib/erc8257/our-tools.ts"), /buy pixels vs burn floor Normies/)
