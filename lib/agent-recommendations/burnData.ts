@@ -233,7 +233,7 @@ export function findBurnCandidates(
       burnCandidates: [],
       keepCandidates: [only],
       reasoning: `Only one Normie (#${only.tokenId}) in view — default keep unless user explicitly wants to burn. ${
-        only.isPremiumCombo ? "Premium trait combo: do not burn." : ""
+        only.isPremiumCombo ? "Trait combo on Zulo's curated list (supply facts in context)." : ""
       }`.trim(),
     }
   }

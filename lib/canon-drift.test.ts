@@ -39,10 +39,47 @@ describe("known-wrong variants never come back", () => {
     ["#PIXEL said to come only from burns (the Pixel Market sells it too)", /Earn only by burning/],
     ["a wallet linked to an X profile", /ethos\.network\/profile\/x\//],
     ["Arena combat rules stated (they are not published)", /(?<!how )stats scale with Level/i],
+    // 2026-11-10 (readiness → official costs): a canvas is priced, never scored or called ready.
+    ["a canvas called expansion-ready", /expansion[-_ ]ready/i],
+    ["a readiness score", /readiness score/i],
+    ["an 80×80 readiness label", /80(×|x)80 readiness/i],
+    ["a 200 AP target (the next size costs 900 from 40×40)", /\b200 AP\b/],
+    ["a hint that more burns should fund a canvas", /more burns fund/i],
+    ["a 'best efficiency band'", /best efficiency band/i],
+    // Trait and fair-value verdicts (AGENTS.md: no price talk, no burn/keep verdicts outside /burn).
+    ["narrative value", /narrative value/i],
+    ["premium over floor", /premium over floor/i],
+    ["a DO NOT BURN verdict", /DO NOT BURN/],
+    ["a 'lean hold' nudge", /lean hold/i],
+    ["burn fodder into a Normie", /burn fodder into/i],
   ]
   for (const [what, re] of banned) {
     it(what, () => assert.deepEqual(offenders(re), []))
   }
+})
+
+describe("Ask's prompt text: no EV, arbitrage or value estimates (2026-11-10)", () => {
+  const askText = corpus.filter(
+    ({ f }) =>
+      f.startsWith("lib/agent-recommendations/knowledge/") ||
+      ["lib/agent-recommendations/zulo-persona.md", "lib/agent-recommendations/loadKnowledge.ts", "lib/agent-recommendations/composePrompt.ts", "lib/agent-recommendations/skillsCatalog.ts"].includes(f),
+  )
+  it("is scanning the Ask files", () => assert.ok(askText.length >= 6))
+  it('no "+EV" (only the rule that forbids calling a pull "+EV")', () => {
+    const bad = askText.filter(({ text }) => /\+EV/.test(text.replace(/Never call a pull or raffle "\+EV"/g, "")))
+    assert.deepEqual(bad.map(({ f }) => f), [])
+  })
+  it("no arbitrage framing (Gacha EV / Monitor arbitrage / +EV gaps)", () => {
+    assert.deepEqual(askText.filter(({ text }) => /arbitrage|Gacha EV|EV gaps/i.test(text)).map(({ f }) => f), [])
+  })
+  it("fairValue, typeFloor and impliedApCostETH never reach Ask's context", () => {
+    const types = readFileSync(join(ROOT, "lib/agent-recommendations/types.ts"), "utf8")
+    assert.doesNotMatch(types, /fairValue|typeFloor|impliedApCostETH/)
+    const ctx = readFileSync(join(ROOT, "lib/agent-recommendations/buildContext.ts"), "utf8")
+    // Read from the rarity API (typed), but never put on the context object.
+    assert.doesNotMatch(ctx, /\b(fairValue|typeFloor)\s*:/)
+    assert.match(ctx, /impliedApCostETH: _iac, \.\.\.rest/)
+  })
 })
 
 describe("the copies agree with the canon", () => {

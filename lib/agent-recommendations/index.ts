@@ -110,7 +110,9 @@ export type {
 } from "./gachaRaffle"
 export {
   previewCanvas,
+  analyzeCanvasCosts,
   analyzeExpansionReadiness,
+  fetchCanvasPrices,
   runCanvasWatch,
   runCanvasEvolution,
   isCanvasEvolutionQuery,
@@ -126,6 +128,7 @@ export {
 } from "./canvasEvolution"
 export type {
   CanvasPreviewResult,
+  CanvasCostsResult,
   ExpansionReadinessResult,
   CanvasWatchResult,
   CanvasEvolutionResult,

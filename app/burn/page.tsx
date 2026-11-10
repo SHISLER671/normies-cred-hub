@@ -16,6 +16,11 @@ import { burnJsonLd, jsonLdScript } from "@/lib/burn-buy/jsonld"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { launchTimePassed, PIXEL_MARKET_LAUNCH_TEXT } from "@/lib/burn-buy/market-launch"
 import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
+import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
+import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
+import { parseCalcAmount } from "@/lib/ap-check/compare-text"
+
+import { PixelCompare } from "./pixel-compare"
 
 import "../zulo/styles.css"
 import "./burn.css"
@@ -77,7 +82,21 @@ const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
 const SHORT_VERDICT = { keep: "KEEP", burn: "BURN?", neutral: "EITHER" } as const
 const GOAL_NAME = { share: "Revenue share", arena: "Arena", art: "Art", sell: "Sell" } as const
 
-export default async function BurnPage({ searchParams }: { searchParams: Promise<{ wallet?: string | string[]; goal?: string | string[] }> }) {
+type CompareView = Parameters<typeof PixelCompare>[0]["view"]
+
+/** Market-or-burn compare (moved here from /pixels, 2026-11-10). Shared inputs, refreshed once a minute. */
+async function compare(mode: "pixels" | "eth", amountRaw: string | undefined): Promise<CompareView> {
+  const amount = parseCalcAmount(amountRaw, mode)
+  if (amount === null) {
+    return { kind: "error", message: mode === "pixels" ? "Type how many pixels you want, as a whole number, like 500." : "Type how much ETH you want to spend, like 0.5." }
+  }
+  const inputs = await loadBuySmart()
+  if (!inputs) return { kind: "error", message: "Could not load listings and the Pixel Market just now. Try again in a minute." }
+  const depth = inputs.book && !inputs.book.paused ? inputs.book.depth : null
+  return { kind: "answer", inputs, answer: mode === "pixels" ? planForPixels(inputs.picks, depth, amount) : planForBudget(inputs.picks, depth, amount) }
+}
+
+export default async function BurnPage({ searchParams }: { searchParams: Promise<{ wallet?: string | string[]; goal?: string | string[]; calc?: string | string[]; amount?: string | string[] }> }) {
   const sp = await searchParams
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim()
   const typed = first(sp.wallet)
@@ -85,7 +104,13 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
   const goal = parseGoal(first(sp.goal))
   const isExample = !raw
   const wallet = raw || EXAMPLE_WALLET
-  const outcome = await answer(wallet, goal, isExample)
+  const calcRaw = first(sp.calc)
+  const calcMode: "pixels" | "eth" = calcRaw === "eth" ? "eth" : "pixels"
+  const amountRaw = first(sp.amount)
+  const [outcome, compareView] = await Promise.all([
+    answer(wallet, goal, isExample),
+    calcRaw ? compare(calcMode, amountRaw) : Promise.resolve(null),
+  ])
   const shareUrl = `${DEFAULT_SITE_ORIGIN}/burn?wallet=${encodeURIComponent(wallet)}&goal=${goal}`
 
   return (
@@ -142,6 +167,8 @@ export default async function BurnPage({ searchParams }: { searchParams: Promise
             </section>
           )}
         </BurnForm>
+
+        <PixelCompare wallet={isExample ? undefined : wallet} goal={goal} mode={calcMode} amountRaw={amountRaw} view={compareView} />
       </main>
       <SiteFooter />
     </div>

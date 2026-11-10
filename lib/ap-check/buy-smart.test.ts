@@ -84,35 +84,35 @@ describe("burnForPixels picks the cheapest way to reach the target", () => {
   })
 })
 
-describe("verdicts", () => {
+describe("which route costs less (labels, not verdicts)", () => {
   it("pixels: the market wins when it is cheaper", () => {
     const picks = burnPicks([c(1, 0.05, 1000), c(2, 0.05, 1000)], "normal") // 30-40 each for 0.05 ETH
     const a = planForPixels(picks, book, 60) // market: 60 x 0.001 = 0.06; burn: 2 x 0.05 = 0.1
     assert.equal(a.market?.costEth, 0.06)
     assert.equal(a.burn?.costEth, 0.1)
-    assert.equal(a.verdict, "market")
+    assert.equal(a.lowerCost, "pixel_market")
   })
   it("pixels: cheaper with typical rolls but not with bad ones is a gamble", () => {
     const picks = burnPicks([c(1, 0.1, 1000), c(2, 0.1, 1000), c(3, 0.1, 1000)], "normal")
     const dear = [{ priceEth: 0.003, remaining: 1000, partialRemaining: 1000 }]
     const a = planForPixels(picks, dear, 70) // market 0.21; burn typical 2 x 0.1 = 0.2; worst needs 3 = 0.3
-    assert.equal(a.verdict, "gamble")
-    assert.equal(a.savingEth, 0.01)
+    assert.equal(a.lowerCost, "burn_typical_rolls")
+    assert.equal(a.costGapEth, 0.01)
   })
   it("pixels: burn is the clear winner when even the worst case is cheaper", () => {
     const picks = burnPicks([c(1, 0.05, 1000), c(2, 0.05, 1000), c(3, 0.05, 1000)], "normal")
     const dear = [{ priceEth: 0.003, remaining: 1000, partialRemaining: 1000 }]
-    assert.equal(planForPixels(picks, dear, 70).verdict, "burn") // market 0.21, sure burn 0.15
+    assert.equal(planForPixels(picks, dear, 70).lowerCost, "burn_even_worst_rolls") // market 0.21, sure burn 0.15
   })
   it("budget: compares pixels for the same money", () => {
     const picks = burnPicks([c(1, 0.1, 1000), c(2, 0.1, 1000)], "normal") // 2 burns: 60-80, typical 70
-    assert.equal(planForBudget(picks, [{ priceEth: 0.004, remaining: 1000, partialRemaining: 1000 }], 0.2).verdict, "burn") // market 50 < worst 60
-    assert.equal(planForBudget(picks, [{ priceEth: 0.003, remaining: 1000, partialRemaining: 1000 }], 0.2).verdict, "gamble") // market 66: 60 < 66 < 70
-    assert.equal(planForBudget(picks, book, 0.2).verdict, "market") // market 150
+    assert.equal(planForBudget(picks, [{ priceEth: 0.004, remaining: 1000, partialRemaining: 1000 }], 0.2).lowerCost, "burn_even_worst_rolls") // market 50 < worst 60
+    assert.equal(planForBudget(picks, [{ priceEth: 0.003, remaining: 1000, partialRemaining: 1000 }], 0.2).lowerCost, "burn_typical_rolls") // market 66: 60 < 66 < 70
+    assert.equal(planForBudget(picks, book, 0.2).lowerCost, "pixel_market") // market 150
   })
-  it("without an order book the verdict is unknown or only one-sided, never invented", () => {
-    assert.equal(planForPixels([], null, 10).verdict, "unknown")
-    assert.equal(planForBudget([], null, 1).verdict, "unknown")
+  it("without an order book the label is unknown or only one-sided, never invented", () => {
+    assert.equal(planForPixels([], null, 10).lowerCost, "unknown")
+    assert.equal(planForBudget([], null, 1).lowerCost, "unknown")
   })
 })
 

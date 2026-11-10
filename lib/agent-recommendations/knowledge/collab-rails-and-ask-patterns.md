@@ -175,7 +175,7 @@ Need constraints: budget, goal (hold / burn / AP / traits / agent), or specific 
 Normies frame: on-chain identity + programmable canvas + optional agent binding (ERC-8004) — not “ChatGPT in a JPEG.” Agent NFT = NFT that can bind identity / endpoints / accounts; tools/reputation can attach (e.g. Normies Cred Pulse). Point to PULSE then Paths for trust-before-engage; Moves/Ask for decisions.
 
 **Should I burn or hold?**  
-Need token ID(s) or Active Normie. Burn: $/AP, pixel tier, need for AP now. Hold: traits, rarity, Pulse, canvas/narrative, agent identity. State **both**; user goal breaks the tie. Soft data → observe. Premium / purist / high-Pulse → lean hold unless user goal is pure AP.
+Need token ID(s) or Active Normie. Burn side: original pixel tier, what a burn pays, the user's stated need for #PIXEL. Keep side: traits and their supply, rarity rank, Pulse, canvas, agent identity. State **both** as facts; the choice is the holder's, never a lean either way. Weak data → say plainly that it is weak. Then point to /burn for a vibe check (not financial advice).
 
 **Floor / is it a good time?**  
 Point-in-time floor + volume/burn context if available. Not financial advice. Re-check OpenSea.

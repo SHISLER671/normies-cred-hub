@@ -40,9 +40,9 @@ export const NORMIES_KNOWLEDGE = {
       tiers: [
         { pixels: "under 490", minAP: "1%", maxAP: "4%", note: "Low pixel count = lower yield band" },
         { pixels: "490-889", minAP: "2%", maxAP: "4%", note: "Medium yield band" },
-        { pixels: "890+", minAP: "3%", maxAP: "4%", note: "High pixel count = best efficiency band" },
+        { pixels: "890+", minAP: "3%", maxAP: "4%", note: "Highest minimum roll (by original Pixel Count)" },
       ],
-      formula: "AP ≈ pixelCount × randomPercentage (within tier min–max)",
+      formula: "AP ≈ original Pixel Count × randomPercentage (within tier min–max)",
       revealWindow: "~50 minutes (256 blocks)",
       penalty: "Miss reveal window = minimum AP only",
     },
@@ -166,7 +166,7 @@ export type ApTier = {
   note: string
 }
 
-/** AP % band from on-pixel count (Canvas burn tiers). */
+/** AP % band from the ORIGINAL Pixel Count (Canvas burn tiers, contract). */
 export function apTierForPixelCount(pixels: number): ApTier {
   if (!Number.isFinite(pixels) || pixels < 0) {
     return { minPct: 1, maxPct: 4, label: "unknown", note: "Pixel count unavailable" }
@@ -191,7 +191,7 @@ export function apTierForPixelCount(pixels: number): ApTier {
     minPct: 3,
     maxPct: 4,
     label: "890+",
-    note: "High pixel tier — best efficiency band",
+    note: "High original-pixel tier: 3–4% roll",
   }
 }
 
@@ -234,10 +234,10 @@ CANVAS / BURN ECONOMICS:
 - Purpose: ${k.canvas.purpose}
 - Process: ${k.canvas.burnMechanics.process}
 - AP formula: ${k.canvas.burnMechanics.formula}
-- Tiers by pixel count:
-  • under 490 px → 1–4% of pixels as AP
+- Tiers by ORIGINAL Pixel Count (contract; edits never change it):
+  • under 490 px → 1–4% of the original pixel count, as AP
   • 490–889 px → 2–4%
-  • 890+ px → 3–4% (best efficiency band)
+  • 890+ px → 3–4% (highest minimum)
 - Reveal window: ${k.canvas.burnMechanics.revealWindow}; miss window → ${k.canvas.burnMechanics.penalty}
 - AP bound to specific Normie (non-transferable); sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official UI — not an AP debit. CredHub / Normifier preview is not a spend rail.
 - Level = floor(pixels on the Normie / 10) + 1 (starts at 1), read live; taking pixels off lowers it. Level is expected to matter in Arena, but the combat rules are not published

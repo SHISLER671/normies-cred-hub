@@ -35,7 +35,7 @@ import {
   runMarketSentinel,
   type MarketSentinelResult,
 } from "./marketSentinel"
-import { analyzeTraitCombo, type TraitComboAdvice } from "./traitAnalysis"
+import { analyzeTraitCombo, type TraitComboAdvice, type TraitSupply } from "./traitAnalysis"
 
 export interface StrategySnapshot {
   apEstimateForFocus?: APYieldEstimate
@@ -72,10 +72,14 @@ export async function buildStrategySnapshot(input: {
   isHolder?: boolean
   isAwakened?: boolean
   isPremiumFocus?: boolean
+  /** Visitor's own wallet, passed only when it owns the focus Normie (adds a wallet #PIXEL line to canvas costs). */
+  walletAddress?: string | null
+  /** normies.art rarity traitBreakdown for the focus Normie: turns the curated-combo note into supply facts. */
+  focusTraitSupply?: TraitSupply[]
 }): Promise<StrategySnapshot> {
   const type = normalizeType(input.focusType)
   const tier = tierFromRank(input.focusRank ?? null)
-  const traitAdvice = analyzeTraitCombo(input.focusTraits)
+  const traitAdvice = analyzeTraitCombo(input.focusTraits, input.focusTraitSupply)
 
   const runEfficiency =
     input.forceBurnEfficiency === true ||
@@ -133,6 +137,8 @@ export async function buildStrategySnapshot(input: {
           rarityRank: input.focusRank,
           isPremium: input.isPremiumFocus ?? traitAdvice.isPremium,
           watchlist: input.owned?.map((o) => o.tokenId),
+          walletAddress: input.walletAddress,
+          isZombie: String(input.focusType ?? "").toLowerCase() === "zombie",
         })
       : Promise.resolve(undefined),
   ])
@@ -191,7 +197,7 @@ export async function buildStrategySnapshot(input: {
     }
     if (canvasEvolution.expansion) {
       summaryLines.push(
-        `80×80 readiness #${canvasEvolution.expansion.tokenId}: ${canvasEvolution.expansion.readinessScore}/100`,
+        `Canvas costs #${canvasEvolution.expansion.tokenId}: ${canvasEvolution.expansion.facts[0] ?? "unavailable"}`,
       )
     }
   }

@@ -296,3 +296,16 @@ html:not(.dark) .zulo-chrome.burn-page { --accent: var(--text-primary); --cta: #
   .burn-page .burn-table-stack td::before { content: attr(data-label); font: 10px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
   .burn-page .burn-table-stack td.burn-vs { grid-column: 1 / -1; }
 }
+
+/* Market or burn? compare (moved from /pixels, 2026-11-10). Neutral: no winner colour on either side. */
+.burn-compare { margin-top: var(--gap, 18px); }
+.burn-compare-toggle { grid-template-columns: repeat(2, 1fr); margin-bottom: 12px; }
+.burn-compare-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+.burn-compare-side { border: 1px solid var(--border-light); padding: 12px; }
+.burn-compare-side .burn-small { margin-top: 6px; }
+.burn-compare-table { display: block; overflow-x: auto; }
+.burn-compare-table a { color: var(--accent); }
+.burn-compare-flag { display: inline-block; margin-left: 6px; padding: 1px 6px; border: 1px solid var(--border-light); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.burn-compare-notes, .burn-compare-fine { padding-left: 18px; }
+.burn-compare-notes li + li, .burn-compare-fine li + li { margin-top: 6px; }
+@media (max-width: 520px) { .burn-compare-sides { grid-template-columns: 1fr; } }

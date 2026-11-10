@@ -444,11 +444,13 @@ export function explainTrigger(t: string): string {
 export function describeApMetrics(input: {
   apMarketStatus: "planned" | "live"
   apMarketPriceETH?: number | null
+  /** When the quote was read (ISO). */
+  asOf?: string
 }): { spreadNote: string; opportunity: string } {
   const pointer = "Not financial advice; see /burn for a vibe check."
   if (input.apMarketStatus === "live" && input.apMarketPriceETH != null) {
     return {
-      spreadNote: `#PIXEL (action points) ask in this scan: ~${input.apMarketPriceETH} ETH each. A snapshot; check the official Pixel Market page before acting.`,
+      spreadNote: `#PIXEL (action points) ask in this scan: ~${input.apMarketPriceETH} ETH each (source: official Pixel Market order book via api.normies.art/market, as of ${input.asOf ?? new Date().toISOString()}). Prices move and can go up or down; don't take our word for it, the Pixel Market page shows the live book.`,
       opportunity: `No comparison or verdict here. ${pointer}`,
     }
   }
@@ -490,7 +492,7 @@ function buildCorrelations(input: {
 
   if (input.volumeVelocity != null && input.volumeVelocity >= 1.5) {
     patterns.push(
-      "1d trading volume above 7d daily average — higher attention regime; expect noisier floors.",
+      "1d trading volume above the 7d daily average (a measured fact; it says nothing about where the floor goes next).",
     )
   }
 
@@ -703,7 +705,7 @@ export async function runMarketSentinel(options?: {
     impliedApCostETH,
     apMarketPriceETH,
     apMarketStatus,
-    ...describeApMetrics({ apMarketStatus, apMarketPriceETH }),
+    ...describeApMetrics({ apMarketStatus, apMarketPriceETH, asOf: marketState.asOf }),
   }
 
   // AGENTS.md: no burn/keep/buy calls outside /burn. Kept empty for type compat.

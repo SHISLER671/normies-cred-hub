@@ -34,9 +34,13 @@ GET /api/ap-check?wallet=<wallet>   that wallet's open item offers next to each 
 GET /api/ap-check?listings=1        listings showing more pixels than the chain says they hold
 GET /api/ap-check?approvals=<wallet> who may spend that wallet's #PIXEL
 GET /api/ap-check?contract=<0x>     is this an official Normies contract
-GET /api/ap-check?calc=pixels&amount=<n> | ?calc=eth&amount=<eth>   Pixel Market vs burning floor Normies
 POST /api/ap-check with the same fields as JSON, e.g. {"token":7141}
 Human page: /pixels
+
+Market or burn? (read-only; lives under /burn, labelled not financial advice; values can go up or down):
+GET /api/burn/ap-check?calc=pixels&amount=<n> | ?calc=eth&amount=<eth>   two costs side by side: Pixel Market route and burning floor Normies route, with as-of time
+POST /api/burn/ap-check with the same fields as JSON. The old /api/ap-check?calc= answers 410 with movedTo.
+Human page: /burn#compare
 
 Manifests:
 /.well-known/ai-tool/index.json

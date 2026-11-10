@@ -112,6 +112,13 @@ export const NORMIES_PATHS: OurAgentTool = {
  * Open access on every chain (accessPredicate = address(0)). Registered 2026-10-07 by the creator wallet; each listing's
  * stored URI and manifestHash were read back from the registry and match. Abstract skipped: it shuts down 2026-12-15.
  */
+/**
+ * The Pixel Market vs burning compare moved off Pixel Check on 2026-11-10 (AGENTS.md fences buy-vs-burn views to /burn).
+ * The on-chain manifest (pinned by manifestHash) still lists calc on /api/ap-check; that call now answers 410 with movedTo.
+ * Re-registering the manifest without calc is Ryan's call.
+ */
+export const PIXEL_COMPARE_ENDPOINT = "https://normiescredhub.vercel.app/api/burn/ap-check"
+
 export const NORMIES_PIXEL_CHECK: OurAgentTool = {
   name: "Normies Pixel Check",
   slug: "normies-pixel-check",
@@ -210,7 +217,7 @@ ${pixelCheckKnowledge()}Never invent tool IDs. Prefer the official names “${NO
 function pixelCheckKnowledge(): string {
   if (NORMIES_PIXEL_CHECK.listings.length === 0) return ""
   const ids = NORMIES_PIXEL_CHECK.listings.map(listingClause).join("; ")
-  return `Third tool: **${NORMIES_PIXEL_CHECK.name}** (${ids}). Open to everyone, read-only. Live on-chain #PIXEL for a Normie, risky offers, listings that show more pixels than they hold, #PIXEL approvals, official contract check, and buy pixels vs burn floor Normies. Endpoint: GET or POST ${NORMIES_PIXEL_CHECK.endpoint}. Manifest: ${NORMIES_PIXEL_CHECK.manifestPath}. Humans: /pixels.
+  return `Third tool: **${NORMIES_PIXEL_CHECK.name}** (${ids}). Open to everyone, read-only. Live on-chain #PIXEL for a Normie, risky offers, listings that show more pixels than they hold, #PIXEL approvals, and official contract check. Endpoint: GET or POST ${NORMIES_PIXEL_CHECK.endpoint}. Manifest: ${NORMIES_PIXEL_CHECK.manifestPath}. Humans: /pixels. (The Pixel Market vs burning compare moved to ${PIXEL_COMPARE_ENDPOINT} and /burn, next to its not-financial-advice label.)
 
 `
 }

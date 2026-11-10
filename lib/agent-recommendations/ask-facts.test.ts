@@ -706,6 +706,27 @@ describe("the knowledge .md files and their bundled runtime copies stay in sync"
     const { PIXEL_ECONOMY_MD } = await import("./loadKnowledge")
     assert.equal(norm(fs.readFileSync("lib/agent-recommendations/knowledge/pixel-economy.md", "utf8")), norm(PIXEL_ECONOMY_MD))
   })
+  it("zulo-persona", async () => {
+    const fs = await import("node:fs")
+    const { ZULO_PERSONA_MD } = await import("./loadKnowledge")
+    assert.equal(norm(fs.readFileSync("lib/agent-recommendations/zulo-persona.md", "utf8")), norm(ZULO_PERSONA_MD))
+  })
+  it("collab-rails-and-ask-patterns (the bundle drops the --- separators and trailing-space line breaks)", async () => {
+    const fs = await import("node:fs")
+    const { COLLAB_RAILS_MD } = await import("./loadKnowledge")
+    const flat = (s: string) => norm(s).split("\n").map((l) => l.trimEnd()).filter((l) => l.trim() !== "---" && l !== "").join("\n")
+    assert.equal(flat(fs.readFileSync("lib/agent-recommendations/knowledge/collab-rails-and-ask-patterns.md", "utf8")), flat(COLLAB_RAILS_MD))
+  })
+  it("the canvas-cost rule reads the same in the .md, its bundled copy, and the prompt Ask gets (three copies)", async () => {
+    const fs = await import("node:fs")
+    const { PIXEL_ECONOMY_MD } = await import("./loadKnowledge")
+    const rule = /Canvas costs, not a score: [^\n]+/
+    const md = fs.readFileSync("lib/agent-recommendations/knowledge/pixel-economy.md", "utf8").match(rule)?.[0]
+    assert.ok(md, "pixel-economy.md states the canvas-cost rule")
+    assert.equal(PIXEL_ECONOMY_MD.match(rule)?.[0], md)
+    const prompt = composeZuloPrompt(generalContext(), "How much does a bigger canvas cost?")
+    assert.ok(prompt.includes(md!), "Ask's prompt carries the same rule")
+  })
 })
 
 describe("Ask: painting, Level, Canvas and Arena stay inside the official facts (audit 2026-10-05)", () => {
@@ -716,12 +737,14 @@ describe("Ask: painting, Level, Canvas and Arena stay inside the official facts 
     assert.match(prompt, /Never say each pixel flip costs #PIXEL/)
     assert.match(prompt, /painting never spends it/)
   })
-  it("bigger and blank canvas carry the official launch prices, and readiness numbers are labelled as Zulo's own heuristics", () => {
+  it("bigger and blank canvas carry the official launch prices, and the canvas is never scored or called ready", () => {
     assert.match(prompt, /Bigger canvas and blank canvas/)
     assert.match(prompt, /900, 2,000, 3,300 or 4,800 pixels in total, one per pixel added, and an upgrade costs the difference/)
     assert.match(prompt, /A blank canvas drops the base art for 200 pixels/)
     assert.doesNotMatch(prompt, /not available until the market opens/)
-    assert.match(prompt, /Zulo's own planning heuristics, NOT official requirements/)
+    assert.match(prompt, /Canvas costs, not a score/)
+    assert.match(prompt, /locked pixels can pay too, but the contract then clears the painted overlay/)
+    assert.doesNotMatch(prompt, /readiness score|expansion-ready|ready for 80/i)
   })
   it("Level follows the docs: pixels on it / 10 + 1, and taking pixels off lowers it", () => {
     assert.match(prompt, /Level = floor\(AP \/ 10\) \+ 1/)

@@ -2,8 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { bodyToParams } from "@/lib/ap-check/body"
 import { parseTokenInput } from "@/lib/ap-check/core"
-import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
-import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
+import { movedCompareBody, movedCompareUrl } from "@/lib/ap-check/compare-api"
 import { checkApprovals, checkListings, checkToken, checkWallet } from "@/lib/ap-check/load"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { checkContract, parseAddressInput } from "@/lib/official-contracts"
@@ -19,9 +18,11 @@ import { checkRateLimit } from "@/lib/ratelimit"
  * GET /api/ap-check?listings=1   the cheapest listings whose live pixels are below what OpenSea shows, or below our census.
  * GET /api/ap-check?approvals=0x… every address that wallet approved to spend its #PIXEL, with live amounts and official labels.
  * GET /api/ap-check?contract=0x… whether an address is on the official Normies contract list (normies.art/docs).
- * GET /api/ap-check?calc=pixels&amount=500 | ?calc=eth&amount=0.5   Pixel Market vs burning floor Normies (live chain pixels).
+ * GET /api/ap-check?calc=…        410 Gone with movedTo: the Pixel Market vs burning compare moved to /api/burn/ap-check
+ *                                 (2026-11-10: AGENTS.md fences buy-vs-burn views to /burn). The ERC-8257 manifest is pinned
+ *                                 on chain, so it still lists calc; the 410 tells callers where it went.
  *
- * POST /api/ap-check with a JSON body of the same fields ({"token":7141}, {"listings":true}, {"calc":"eth","amount":0.5}, …)
+ * POST /api/ap-check with a JSON body of the same fields ({"token":7141}, {"listings":true}, …)
  * gives the same answers. That is how agents call registered ERC-8257 tools.
  *
  * Public data only. Nothing here can sign, approve or move anything.
@@ -85,19 +86,9 @@ async function answer(sp: URLSearchParams, isPost: boolean): Promise<NextRespons
       if (result.kind === "error") return NextResponse.json({ error: result.message, code: "unavailable", retryable: true }, { status: 502 })
       return NextResponse.json(result, { headers: cache({ "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" }) })
     }
-    const calc = sp.get("calc")
-    if (calc === "pixels" || calc === "eth") {
-      const amount = Number(sp.get("amount"))
-      const ok = calc === "pixels" ? Number.isInteger(amount) && amount > 0 && amount <= 1_000_000 : amount > 0 && amount <= 1_000
-      if (!ok) return NextResponse.json({ error: "amount must be a positive whole number of pixels (calc=pixels) or ETH up to 1000 (calc=eth)", code: "invalid_amount" }, { status: 400 })
-      const inputs = await loadBuySmart()
-      if (!inputs) return NextResponse.json({ error: "listings or the Pixel Market could not be read", code: "unavailable", retryable: true }, { status: 502 })
-      const depth = inputs.book && !inputs.book.paused ? inputs.book.depth : null
-      const plan = calc === "pixels" ? planForPixels(inputs.picks, depth, amount) : planForBudget(inputs.picks, depth, amount)
-      return NextResponse.json(
-        { answer: plan, yieldMode: inputs.yieldMode, modeSource: inputs.modeSource, listingsChecked: inputs.listingsChecked, liveConfirmed: inputs.liveConfirmed, asOf: inputs.asOf },
-        { headers: cache({ "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" }) },
-      )
+    if (sp.get("calc") !== null) {
+      // Moved under /burn. 410 (not a redirect) so no client keeps getting a buy-vs-burn answer outside /burn by accident.
+      return NextResponse.json(movedCompareBody(sp), { status: 410, headers: { ...NO_STORE, Link: `<${movedCompareUrl(sp)}>; rel="alternate"` } })
     }
     const contractRaw = sp.get("contract")
     if (contractRaw !== null) {
@@ -130,8 +121,8 @@ async function answer(sp: URLSearchParams, isPost: boolean): Promise<NextRespons
       return NextResponse.json(result, { headers: cache(HEADERS) })
     }
     const how = isPost
-      ? 'send one of {"token":<id>}, {"wallet":"<0x or .eth>"}, {"listings":true}, {"approvals":"<wallet>"}, {"calc":"pixels"|"eth","amount":<n>} or {"contract":"<0x>"}'
-      : "pass ?token=<id>, ?wallet=<0x address or .eth name>, ?listings=1, ?approvals=<wallet>, ?calc=pixels|eth&amount=<n>, or ?contract=<0x address>"
+      ? 'send one of {"token":<id>}, {"wallet":"<0x or .eth>"}, {"listings":true}, {"approvals":"<wallet>"}, or {"contract":"<0x>"} (the market-or-burn compare moved to /api/burn/ap-check)'
+      : "pass ?token=<id>, ?wallet=<0x address or .eth name>, ?listings=1, ?approvals=<wallet>, or ?contract=<0x address> (the market-or-burn compare moved to /api/burn/ap-check)"
     return NextResponse.json({ error: how, code: "missing_input" }, { status: 400 })
   } catch (err) {
     console.error("[ap-check] unexpected failure", err)
