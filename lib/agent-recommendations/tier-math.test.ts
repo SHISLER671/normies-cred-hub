@@ -99,7 +99,8 @@ describe("tier math: before/after score from the official formula (normies.art R
 
   it("non-tier questions are left alone", () => {
     assert.equal(isTierQuestion("what is the floor today?"), false)
-    assert.match(composeZuloPrompt(ctx(), "what is the floor today?"), /No tier question this turn/)
+    // Ask v2: empty sections are left out of the prompt entirely.
+    assert.doesNotMatch(composeZuloPrompt(ctx(), "what is the floor today?"), /=== TIER MATH/)
   })
 
   it("the wallet spread carries its source and as-of time", () => {

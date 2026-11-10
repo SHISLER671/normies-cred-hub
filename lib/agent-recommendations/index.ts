@@ -2,6 +2,8 @@
 // Main entry point for the standalone Zulo recommendations plugin.
 
 import { buildZuloContext } from "./buildContext"
+import { isCollectionMathQuery } from "./collectionMath"
+import { loadCollectionMath } from "./collectionMath.server"
 import { ASK_BUDGET_MS, generateZuloResponse } from "./generate"
 import { postProcessZuloOutput } from "./postProcess"
 import { ensurePulseFirst } from "./pulseFirst"
@@ -22,17 +24,22 @@ export async function getZuloRecommendation(
 ): Promise<ZuloResponse> {
   // The request budget starts now, so a slow context build leaves less for the model.
   const deadlineMs = Date.now() + ASK_BUDGET_MS
-  const context = await buildZuloContext({
-    normieId: params.normieId,
-    sessionHistory: params.sessionHistory,
-    userWallet: params.userWallet,
-    userEns: params.userEns,
-    userQuery: params.userQuery,
-  })
+  const [context, collectionMath] = await Promise.all([
+    buildZuloContext({
+      normieId: params.normieId,
+      sessionHistory: params.sessionHistory,
+      userWallet: params.userWallet,
+      userEns: params.userEns,
+      userQuery: params.userQuery,
+    }),
+    // Collection-wide questions ("if every Normie burned…") get exact sums from the index. Null on any failure.
+    isCollectionMathQuery(params.userQuery) ? loadCollectionMath() : Promise.resolve(null),
+  ])
+  if (collectionMath && context.platformContext) context.platformContext.collectionMath = collectionMath
 
   const rawOutput = await generateZuloResponse(context, params.userQuery, deadlineMs)
   const processed = postProcessZuloOutput(rawOutput)
-  return ensurePulseFirst(processed, context)
+  return ensurePulseFirst(processed, context, params.userQuery)
 }
 
 export type {

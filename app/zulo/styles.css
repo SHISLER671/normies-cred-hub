@@ -1252,6 +1252,36 @@
   color: var(--text-primary);
 }
 
+/* Ask v2 (2026-11-10): answer first, small trust line, tappable follow-ups. */
+.zulo-chrome .response-block > .response-pulse-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.zulo-chrome .ask-followups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: var(--space-sm);
+}
+.zulo-chrome .ask-followup {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.zulo-chrome .ask-followup:hover,
+.zulo-chrome .ask-followup:focus-visible {
+  border-color: var(--pulse-cyan, #22d3ee);
+  outline: none;
+}
+
 .zulo-chrome .response-section p,
 .zulo-chrome .response-section li {
   font-size: 14px;

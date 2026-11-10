@@ -5,7 +5,7 @@ import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout"
 import { cachedContractStatus } from "@/lib/burn-buy/contract-cache"
 import { marketPin, currentMarket, resolveMarketState } from "@/lib/burn-buy/switches"
 import { isPixelMarketOfficiallyLive } from "@/lib/official-status"
-import { composeZuloPrompt } from "./composePrompt"
+import { composeZuloMessages } from "./composePrompt"
 import type { ZuloRecommendationContext } from "./types"
 
 /** Inference can be slow under load; abort before Vercel kills the function. */
@@ -89,7 +89,7 @@ function resolveProviders(): ProviderConfig[] {
 /** Single OpenAI-compatible chat completion call. Throws ZuloGenerateError. */
 async function callProvider(
   provider: ProviderConfig,
-  prompt: string,
+  messages: { system: string; user: string },
   timeoutMs = INFERENCE_TIMEOUT_MS,
 ): Promise<string> {
   let response: Response
@@ -104,10 +104,13 @@ async function callProvider(
         },
         body: JSON.stringify({
           model: provider.model,
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.35,
-          // Skill replies (scan burns, market, canvas) need room for full JSON.
-          // 1200 often truncated mid-sentence and broke the response parser.
+          // Rules and doctrine in the system message; this turn's facts and the question in the user message.
+          messages: [
+            { role: "system", content: messages.system },
+            { role: "user", content: messages.user },
+          ],
+          temperature: 0.3,
+          // Answers are short now, but skill replies still need room for full JSON; truncation breaks the parser.
           max_tokens: 4096,
         }),
       },
@@ -179,7 +182,7 @@ export async function generateZuloResponse(
   // Fallback (no pin, contract unreadable): the documented official status in lib/official-status.ts, so Ask cannot drift back to
   // "not open yet" when the contract read fails. PIXEL_MARKET=pending still pins it closed.
   const market = resolveMarketState(marketPin(), contract, isPixelMarketOfficiallyLive() ? "live" : currentMarket()).state
-  const prompt = composeZuloPrompt(context, userQuery, market)
+  const messages = composeZuloMessages(context, userQuery, market)
 
   let lastError: unknown
   for (let i = 0; i < providers.length; i++) {
@@ -190,7 +193,7 @@ export async function generateZuloResponse(
       break
     }
     try {
-      return await callProvider(provider, prompt, timeoutMs)
+      return await callProvider(provider, messages, timeoutMs)
     } catch (err) {
       lastError = err
       const isLast = i === providers.length - 1
