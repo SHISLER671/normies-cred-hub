@@ -189,7 +189,7 @@ export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine 
 const ARENA_NOTES = [
   `Arena is not open from this page, and this page cannot enter you into anything. The official Lab overview lists Arena as ${SURFACE_TAGS.arena}.`,
   "Official design (@serc1n, Sep 18): autonomous agents on a 640×640 continent, no human players. Five camps: Human, Cat, Alien, Agent, Zombie. Type, Level and on-chain history matter.",
-  "Level: every 10 pixels is one level, and the official Pixel Market video calls it a permanent trait. (The Sep 23 article said withdrawing #PIXEL strips a level, so check before you move pixels off a Normie.) In numbers, Level = floor(AP ÷ 10) + 1. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
+  "Level: every 10 pixels on a Normie is one level, read live (official docs): Level = floor(pixels on it ÷ 10) + 1. Putting pixels on raises it; taking them off, or paying for a bigger canvas from the Normie, lowers it. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
   "The combat rules have NOT been published. Nobody can honestly tell you how many Normies to keep or what Level wins. Anyone who says they can is guessing, and so would we.",
   "If an agent dies in a round it waits for the next round and respawns. Death is not a burn. A burn is permanent.",
   "Official trailer (\"They play. You watch.\"): each agent decides for itself, using a decision model. You do not steer it, so your choice is which Normies you own and keep.",

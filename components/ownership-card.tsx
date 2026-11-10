@@ -12,7 +12,6 @@ export function OwnershipCard({
   snapshot,
   isLoading,
   isMyAgent = false,
-  ownerEthosUsername,
   delegateAddress,
   delegateEnsName,
   isDelegateController = false,
@@ -20,6 +19,7 @@ export function OwnershipCard({
   snapshot?: NormieSnapshot
   isLoading?: boolean
   isMyAgent?: boolean
+  /** @deprecated Ignored: an owner's social handle is never shown (AGENTS.md). */
   ownerEthosUsername?: string | null
   delegateAddress?: string
   delegateEnsName?: string | null
@@ -51,11 +51,7 @@ export function OwnershipCard({
                 >
                   {shortenAddress(snapshot.owner.owner, 6)}
                 </a>
-                {ownerEthosUsername && (
-                  <a href={`https://app.ethos.network/profile/x/${ownerEthosUsername}`} target="_blank" rel="noopener noreferrer" className="text-primary text-sm hover:underline">
-                    @{ownerEthosUsername}
-                  </a>
-                )}
+                {/* AGENTS.md: never link a wallet to a social profile, so the owner's X handle is not shown. */}
               </div>
             </div>
 

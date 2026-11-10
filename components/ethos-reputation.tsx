@@ -122,12 +122,7 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
   return (
     <>
       <div className="flex flex-col items-center gap-2">
-        {user.username && (
-          <div className="text-primary font-bold">@ {user.username}</div>
-        )}
-        {user.displayName && !user.username && (
-          <div className="text-primary font-bold">{user.displayName}</div>
-        )}
+        {/* AGENTS.md: never link a wallet to a social profile or a person's name, so no @handle or display name here. */}
         <ScoreArc score={user.score} />
         <div className={cn("border px-3 py-0.5 text-sm font-bold tracking-[1px]", meta.className)}>
           {meta.level.toUpperCase()}
@@ -145,12 +140,12 @@ function EthosContent({ result }: { result: EthosScoreResult }) {
       </div>
 
       <a
-        href={user.username ? `https://app.ethos.network/profile/x/${user.username}` : user.links.scoreBreakdown}
+        href={user.links.scoreBreakdown}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-auto inline-flex items-center justify-center gap-1 border border-border bg-card px-3 py-2 text-sm tracking-widest rounded-none hover:bg-primary hover:text-background"
       >
-        {user.username ? 'VIEW ON ETHOS' : 'FULL BREAKDOWN'} <ExternalLink className="size-3" />
+        FULL BREAKDOWN <ExternalLink className="size-3" />
       </a>
     </>
   )
@@ -165,7 +160,7 @@ function EthosFallback({ address }: { address: string }) {
         <div className="text-sm text-muted-foreground mt-1">COULD NOT LOAD ETHOS DATA</div>
       </div>
       <a
-        href={`https://app.ethos.network/profile/x/${address}`}
+        href={`https://app.ethos.network/profile/${address}`}
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs tracking-widest text-primary hover:underline"

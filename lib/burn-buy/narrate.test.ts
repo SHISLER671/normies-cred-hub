@@ -244,11 +244,12 @@ describe("goals", () => {
     assert.ok(notes.includes("(Normies × bracket + #PIXEL ÷ 5) × (1 + boost)"))
   })
 
-  it("ARENA notes carry the official status and permanent Level", () => {
+  it("ARENA notes carry the official status and the docs' Level rule", () => {
     const notes = buildPageModel(result({}), "arena").goalNotes.join(" ")
     assert.match(notes, /COMING SOON/)
-    assert.match(notes, /every 10 pixels is one level/)
-    assert.match(notes, /permanent trait/)
+    assert.match(notes, /every 10 pixels on a Normie is one level/)
+    assert.match(notes, /Level = floor\(pixels on it ÷ 10\) \+ 1/)
+    assert.doesNotMatch(notes, /permanent trait/)
   })
 
   it("empty and delegate-only wallets answer the same in every goal", () => {
