@@ -2,6 +2,22 @@
 
 import type { ZuloResponse } from "./types"
 
+/** Filler the parser puts in older fields when the model left them out. The UI never shows these. */
+export const PLACEHOLDER_TEXTS: ReadonlySet<string> = new Set([
+  "I received your request.",
+  "Based on available model output.",
+  "Based on current context.",
+  "Partial model output (structured parse incomplete).",
+  "Recovered fields from partial model output.",
+  "Showing the full model response (structured fields were incomplete).",
+  "No specific recommendation available.",
+])
+
+export function isPlaceholderText(text: string | undefined | null): boolean {
+  const t = (text ?? "").trim()
+  return t.length === 0 || PLACEHOLDER_TEXTS.has(t)
+}
+
 function sanitizeSources(raw: unknown): string[] {
   if (!Array.isArray(raw)) return []
   return raw
@@ -188,7 +204,34 @@ function normalizeRecommendation(
   return ""
 }
 
-function buildFromPartial(parsed: Partial<ZuloResponse>): ZuloResponse | null {
+/** The current output shape: one answer plus tappable follow-ups (composePrompt OUTPUT_FORMAT). */
+type ModelOutput = Partial<ZuloResponse> & { answer?: unknown }
+
+function sanitizeFollowUps(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    .map((item) => item.trim().replace(/\s+/g, " ").slice(0, 120))
+    .slice(0, 3)
+}
+
+/** New format: { answer, followUps, sources }. Older fields stay filled so API callers keep working. */
+function buildFromAnswer(parsed: ModelOutput): ZuloResponse | null {
+  const answer = typeof parsed.answer === "string" ? parsed.answer.trim() : ""
+  if (!answer) return null
+  return {
+    understanding: "",
+    recommendation: answer,
+    reasoning: "",
+    nextSteps: [],
+    sources: sanitizeSources(parsed.sources),
+    followUps: sanitizeFollowUps(parsed.followUps),
+  }
+}
+
+function buildFromPartial(parsed: ModelOutput): ZuloResponse | null {
+  const fromAnswer = buildFromAnswer(parsed)
+  if (fromAnswer) return fromAnswer
   const recommendation = normalizeRecommendation(parsed.recommendation)
   const understanding =
     typeof parsed.understanding === "string" && parsed.understanding.trim()
@@ -224,7 +267,11 @@ function buildFromPartial(parsed: Partial<ZuloResponse>): ZuloResponse | null {
 }
 
 /** Best-effort field scrape when JSON.parse fails even after repair. */
-function scrapePartialFields(text: string): Partial<ZuloResponse> {
+function scrapePartialFields(text: string): ModelOutput {
+  const answer = extractStringField(text, "answer")
+  if (answer) {
+    return { answer, followUps: extractStringArrayField(text, "followUps"), sources: extractStringArrayField(text, "sources") }
+  }
   const recArray = extractRecommendationArray(text)
   const recString = extractStringField(text, "recommendation")
   const recommendation = recArray ?? recString
@@ -246,7 +293,7 @@ function scrapePartialFields(text: string): Partial<ZuloResponse> {
 function fallbackFromRaw(rawOutput: string): ZuloResponse {
   const cleaned = stripCodeFences(rawOutput).trim()
   // If it looked like JSON, surface the scraped fields we can still get
-  if (cleaned.includes("{") && cleaned.includes("recommendation")) {
+  if (cleaned.includes("{") && (cleaned.includes("recommendation") || cleaned.includes("\"answer\""))) {
     const scraped = buildFromPartial(scrapePartialFields(cleaned))
     if (scraped) {
       return {
@@ -265,10 +312,11 @@ function fallbackFromRaw(rawOutput: string): ZuloResponse {
     rawOutput.trim() ||
     "No specific recommendation available."
 
+  // Plain text (no JSON) is usually a fine answer on its own: show it as the answer, with no filler around it.
   return {
-    understanding: "I received your request.",
+    understanding: "",
     recommendation: useful,
-    reasoning: "Showing the full model response (structured fields were incomplete).",
+    reasoning: "",
     nextSteps: [],
     confidence: 55,
     sources: [],
@@ -300,7 +348,7 @@ export function postProcessZuloOutput(rawOutput: string): ZuloResponse {
   for (const candidate of candidates) {
     // 1) Strict parse
     try {
-      const parsed = JSON.parse(candidate) as Partial<ZuloResponse>
+      const parsed = JSON.parse(candidate) as ModelOutput
       const built = buildFromPartial(parsed)
       if (built) return built
     } catch {
@@ -310,7 +358,7 @@ export function postProcessZuloOutput(rawOutput: string): ZuloResponse {
     // 2) Repair truncated JSON then parse
     try {
       const repaired = repairTruncatedJson(candidate)
-      const parsed = JSON.parse(repaired) as Partial<ZuloResponse>
+      const parsed = JSON.parse(repaired) as ModelOutput
       const built = buildFromPartial(parsed)
       if (built) {
         return {

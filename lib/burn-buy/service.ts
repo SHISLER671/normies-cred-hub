@@ -71,6 +71,8 @@ export interface MarketSnapshot {
   oldestIndexedAt: string | null
   /** Each owner's score as computed from the index (lower-case address), to keep the census consistent. */
   walletScores: Map<string, number>
+  /** #PIXEL (action points) sitting on living Normies, summed from the index. Optional: older fixtures don't set it. */
+  attachedActionPoints?: number
 }
 
 export interface Deps {

@@ -124,6 +124,8 @@ export interface ZuloRecommendationContext {
   }
   platformContext?: {
     currentTime: string
+    /** Collection-wide sums (every living Normie), loaded only for collection-wide questions. See collectionMath.ts. */
+    collectionMath?: import("./collectionMath").CollectionMath | null
     recentMarketTrends?: string
     /** Contextual next-step / utility hints derived from live data (never burn/buy calls — those live on /burn) */
     nextSteps?: string[]
@@ -743,8 +745,10 @@ export interface ZuloResponse {
   confidence?: number
   /** Optional tool / doc URLs or labels cited in the answer */
   sources?: string[]
-  /** Canonical Pulse-first lead. Always set when a subject tokenId exists. */
+  /** One-line Pulse snapshot, set only when trust is part of the question (see pulseFirst.ts). */
   pulseLead?: string
+  /** Up to 3 short questions the visitor is likely to ask next (tappable in the UI). */
+  followUps?: string[]
 }
 
 /**

@@ -493,13 +493,16 @@ describe("composed Ask prompt", () => {
     }
   })
 
-  it("instructs Pulse-first structure before ranked advice", () => {
+  it("answers first, and keeps Pulse for questions where trust matters (Ask v2, 2026-11-10)", () => {
     const prompt = composeZuloPrompt(generalContext(), "what should I burn")
-    assert.match(prompt, /PULSE-FIRST RESPONSE RULES/)
-    assert.match(prompt, /Always open with or immediately include the subject's Pulse/)
+    assert.match(prompt, /HOW TO ANSWER/)
+    assert.match(prompt, /Answer the exact question in your first sentence/)
+    assert.match(prompt, /Pulse \(trust\) comes up only when the question is about trust/)
     assert.match(prompt, /Pulse data unavailable for this token/)
     assert.match(prompt, /do not act/i)
     assert.match(prompt, /Never manufacture urgency/)
+    assert.doesNotMatch(prompt, /PULSE-FIRST RESPONSE RULES/)
+    assert.doesNotMatch(prompt, /MUST open with the Pulse snapshot/)
   })
 
   it("teaches Normies Cred Pulse then Normies Paths with canonical Ethereum IDs", () => {

@@ -14,6 +14,7 @@ import {
   MAX_USER_QUERY_CHARS,
   ZULO_IDENTITY,
 } from "@/lib/agent-recommendations/constants"
+import { isPlaceholderText } from "@/lib/agent-recommendations/postProcess"
 import type { ZuloResponse } from "@/lib/agent-recommendations/types"
 import { cn } from "@/lib/utils"
 import { trustedHref } from "@/lib/zulo/link-policy"
@@ -28,12 +29,13 @@ type ChatMessage = {
 
 /** Optional skill prompts — collapsed by default, nearly hidden. */
 const QUICK_PROMPTS = [
-  { label: "Analyze PULSE", prompt: "Analyze my PULSE" },
+  { label: "#PIXEL if every Normie burned", prompt: "How much #PIXEL would exist if every Normie was burned?" },
+  { label: "How burning works", prompt: "How does burning a Normie work, step by step, and what do I get?" },
+  { label: "Check a Normie", prompt: "Tell me about Normie #7141: pixels, level, and can I trust its agent?" },
   { label: "Market status", prompt: "market status" },
-  { label: "Preview canvas", prompt: "preview canvas add 12 pixels" },
-  { label: "Gacha status", prompt: "gacha status" },
-  { label: "80×80 readiness", prompt: "80x80 expansion readiness" },
-  { label: "Raise my Level", prompt: "How do I raise my Normie's Level (action points) strategically?" },
+  { label: "Raise my Level", prompt: "How do I raise my Normie's Level?" },
+  // Score formula only: no ETH, payout or simulator figures (GrokBot review of #156).
+  { label: "How revenue share is scored", prompt: "How is the Pixel Market revenue-share score calculated? Just the formula, no earnings estimates." },
 ] as const
 
 /**
@@ -42,10 +44,10 @@ const QUICK_PROMPTS = [
  */
 const ASK_STATUS_PHASES = [
   { afterMs: 0, label: "Reading your question…" },
-  { afterMs: 2_000, label: "Checking saved resources…" },
-  { afterMs: 4_000, label: "Using Zulo's PULSE tool…" },
-  { afterMs: 7_000, label: "Asking Venice…" },
-  { afterMs: 12_000, label: "Zulo is deliberating…" },
+  { afterMs: 2_000, label: "Pulling live Normies data…" },
+  { afterMs: 6_000, label: "Doing the math…" },
+  { afterMs: 12_000, label: "Writing it up…" },
+  { afterMs: 25_000, label: "Still on it, thanks for your patience…" },
 ] as const
 
 /** Timeout / 504 coaching — concise, mobile-friendly, example-led. */
@@ -68,7 +70,10 @@ function formatZuloReplyForHistory(response: ZuloResponse): string {
     response.sources && response.sources.length
       ? `\nSources: ${response.sources.join(" · ")}`
       : ""
-  return `${response.understanding}\n${rec}\n${response.reasoning}${sources}`
+  return [response.understanding, rec, response.reasoning]
+    .filter((t) => !isPlaceholderText(t))
+    .join("\n")
+    .concat(sources)
 }
 
 export function ZuloExperience({
@@ -131,7 +136,7 @@ export function ZuloExperience({
         id: "welcome",
         role: "zulo",
         content:
-          "I am Zulo. Ask about burns, Canvas, PULSE, or any Normie by token ID — free, no wallet required. Connect to scope advice to your Active Normie. What are we deciding?",
+          "I am Zulo. Ask me anything about Normies: burns and #PIXEL math, Canvas, the Pixel Market, or any Normie by its number (try #7141). Free, no wallet needed. Connect a wallet and I'll talk about your Normie. What shall we work out?",
       },
     ])
   }, [])
@@ -240,13 +245,16 @@ export function ZuloExperience({
       }
 
       const structured: ZuloResponse = {
-        understanding: data.understanding || "I received your request.",
-        recommendation:
-          data.recommendation ?? "No specific recommendation available.",
-        reasoning: data.reasoning || "Based on current context.",
+        understanding: data.understanding || "",
+        recommendation: data.recommendation ?? "",
+        reasoning: data.reasoning || "",
         nextSteps: Array.isArray(data.nextSteps) ? data.nextSteps : [],
         confidence: data.confidence,
         sources: Array.isArray(data.sources) ? data.sources : [],
+        pulseLead: typeof data.pulseLead === "string" ? data.pulseLead : undefined,
+        followUps: Array.isArray(data.followUps)
+          ? data.followUps.filter((f): f is string => typeof f === "string" && f.trim().length > 0).slice(0, 3)
+          : [],
       }
 
       const content = Array.isArray(structured.recommendation)
@@ -339,7 +347,12 @@ export function ZuloExperience({
                   {msg.structured && msg.role === "zulo" ? (
                     <StructuredCard
                       response={msg.structured}
-                      compact={isMobile}
+                      onFollowUp={
+                        // Only the latest reply offers follow-ups, so old chips can't fire out of context.
+                        msg.id === messages[messages.length - 1]?.id && !loading
+                          ? (q) => void sendMessage(q)
+                          : undefined
+                      }
                     />
                   ) : (
                     <div
@@ -459,18 +472,18 @@ export function ZuloExperience({
   )
 }
 
+/**
+ * One reply, read top to bottom: the answer, then (only if trust was part of the question) a Pulse line, then sources
+ * and tappable follow-ups. Same on phone and desktop: nothing is hidden on mobile any more (it used to cut answers off).
+ * Older-format replies (understanding / recommendation / reasoning) are shown as one answer without the filler labels.
+ */
 function StructuredCard({
   response,
-  compact = false,
+  onFollowUp,
 }: {
   response: ZuloResponse
-  compact?: boolean
+  onFollowUp?: (question: string) => void
 }) {
-  const confidence =
-    typeof response.confidence === "number" && Number.isFinite(response.confidence)
-      ? Math.max(0, Math.min(100, Math.round(response.confidence)))
-      : 70
-
   const recs = Array.isArray(response.recommendation)
     ? response.recommendation
     : [response.recommendation]
@@ -479,36 +492,25 @@ function StructuredCard({
     (s): s is string => typeof s === "string" && s.trim().length > 0,
   )
 
-  const understanding = response.understanding?.trim() ?? ""
   const pulseLead = response.pulseLead?.trim() ?? ""
-  const understandingWithoutLead =
-    pulseLead && understanding.startsWith(pulseLead)
-      ? understanding.slice(pulseLead.length).trim()
-      : understanding
+  const stripLead = (t: string) => (pulseLead && t.trim().startsWith(pulseLead) ? t.trim().slice(pulseLead.length).trim() : t.trim())
+  const understanding = stripLead(response.understanding ?? "")
+  const reasoning = response.reasoning?.trim() ?? ""
+  const answerParts = recs.map((r) => stripLead(r ?? "")).filter((r) => !isPlaceholderText(r))
+  const followUps = (response.followUps ?? []).slice(0, 3)
+  // Older replies carried "next steps"; show them as a plain list only when there is no new-style follow-up.
+  const legacySteps = followUps.length === 0 ? (response.nextSteps ?? []) : []
 
   return (
-    <div className={cn("response-block", compact && "response-block-compact")}>
-      {pulseLead ? (
-        <div className="response-section response-pulse-lead">
-          <p className="response-label">Pulse</p>
-          <p className="response-pulse-text">{pulseLead}</p>
-        </div>
-      ) : null}
-
-      {!compact && understandingWithoutLead ? (
-        <div className="response-section">
-          <p className="response-label">Understanding</p>
-          <ZuloRichText text={understandingWithoutLead} />
-        </div>
-      ) : null}
+    <div className="response-block">
+      {!isPlaceholderText(understanding) ? <ZuloRichText text={understanding} /> : null}
 
       <div className="response-section response-section-primary">
-        <p className="response-label">Recommendation</p>
-        {recs.length === 1 ? (
-          <ZuloRichText text={recs[0] ?? ""} emphasis />
+        {answerParts.length <= 1 ? (
+          <ZuloRichText text={answerParts[0] ?? "I couldn't put an answer together that time. Please ask again."} emphasis />
         ) : (
           <ul className="zulo-rich-list response-rec-list">
-            {recs.map((rec, i) => (
+            {answerParts.map((rec, i) => (
               <li key={i}>
                 <ZuloRichText text={rec} emphasis />
               </li>
@@ -517,41 +519,34 @@ function StructuredCard({
         )}
       </div>
 
-      {!compact && response.reasoning ? (
-        <div className="response-section">
-          <p className="response-label">Reasoning</p>
-          <ZuloRichText text={response.reasoning} />
-        </div>
+      {!isPlaceholderText(reasoning) ? <ZuloRichText text={reasoning} /> : null}
+
+      {legacySteps.length > 0 ? (
+        <ul className="zulo-rich-list">
+          {legacySteps.map((step, i) => (
+            <li key={i}>
+              <ZuloRichText text={step} />
+            </li>
+          ))}
+        </ul>
       ) : null}
 
-      {response.nextSteps && response.nextSteps.length > 0 ? (
-        <div className="response-section">
-          <p className="response-label">Next steps</p>
-          <ul className="zulo-rich-list">
-            {response.nextSteps.map((step, i) => (
-              <li key={i}>
-                <ZuloRichText text={step} />
-              </li>
-            ))}
-          </ul>
-        </div>
+      {pulseLead ? (
+        <p className="response-pulse-text mono" aria-label="Trust signal">
+          {pulseLead.replace(/ Ranked paths below are conditioned on this\.$/, "")}
+        </p>
       ) : null}
 
-      <div className="response-meta mono">
-        <span>Confidence {confidence}%</span>
-        {sources.length > 0 ? (
+      {sources.length > 0 ? (
+        <div className="response-meta mono">
+          <span>Sources</span>
           <ul className="response-sources">
             {sources.slice(0, 4).map((src, i) => {
               const href = trustedHref(src.trim())
               return (
                 <li key={i}>
                   {href ? (
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="zulo-rich-link"
-                    >
+                    <a href={href} target="_blank" rel="noopener noreferrer" className="zulo-rich-link">
                       {src.replace(/^https?:\/\//i, "").replace(/\/$/, "")}
                     </a>
                   ) : (
@@ -561,8 +556,18 @@ function StructuredCard({
               )
             })}
           </ul>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
+
+      {onFollowUp && followUps.length > 0 ? (
+        <div className="ask-followups" role="group" aria-label="Ask a follow-up">
+          {followUps.map((q, i) => (
+            <button key={i} type="button" className="ask-followup" onClick={() => onFollowUp(q)}>
+              {q}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

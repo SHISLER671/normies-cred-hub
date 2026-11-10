@@ -274,9 +274,11 @@ export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps, loose?: 
   const pixelSupply = new Map<number, number>()
   const wallets = new Map<string, { n: number; ap: number }>()
   let oldest: string | null = null
+  let attachedActionPoints = 0
   for (const r of rows) {
     if (r.on_pixels === null || r.on_pixels === undefined) continue
     originalPixels.set(r.token_id, r.on_pixels)
+    attachedActionPoints += Math.max(0, r.action_points ?? 0)
     pixelSupply.set(r.on_pixels, (pixelSupply.get(r.on_pixels) ?? 0) + 1)
     if (r.owner) {
       const w = wallets.get(r.owner) ?? { n: 0, ap: 0 }
@@ -295,7 +297,7 @@ export function snapshotFromRows(rows: IndexRow[], stamps?: SyncStamps, loose?: 
     walletScores.set(owner.toLowerCase(), sc)
     censusTotal += sc
   }
-  return { livingSupply: originalPixels.size, wallets: wallets.size, censusTotal, originalPixels, pixelSupply, oldestIndexedAt: freshnessOf(stamps, oldest), walletScores }
+  return { livingSupply: originalPixels.size, wallets: wallets.size, censusTotal, originalPixels, pixelSupply, oldestIndexedAt: freshnessOf(stamps, oldest), walletScores, attachedActionPoints }
 }
 
 /** Every living token's original pixels, plus the census. Reads the public, read-only normie_index. */

@@ -3,7 +3,7 @@
 import { currentMarket } from "../burn-buy/switches"
 import type { MarketState } from "../burn-buy/score"
 import { buildMarketStatusBlock } from "./marketStatus"
-import { ARENA_STATUS_LINE } from "../official-status"
+import { ARENA_STATUS_LINE, PIXEL_MARKET_STATUS_LINE } from "../official-status"
 import { recordCardUrl } from "../record-card/ask-line"
 import { siteOrigin } from "../site-origin"
 import {
@@ -40,6 +40,7 @@ import { buildPixelCurrencyPromptBlock } from "@/lib/knowledge/pixel-currency"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import { buildVisitorSafeTandemPromptBlock } from "./operatorTandem"
 import { buildSelfAwarenessPromptBlock } from "./selfAwareness"
+import { formatCollectionMath } from "./collectionMath"
 import type { ZuloRecommendationContext } from "./types"
 
 const NORMIES_WISDOM = buildNormiesWisdomPrompt()
@@ -58,7 +59,48 @@ const PIXEL_CURRENCY = buildPixelCurrencyPromptBlock()
 const OPERATOR_TANDEM = buildVisitorSafeTandemPromptBlock()
 const SELF_AWARENESS = buildSelfAwarenessPromptBlock()
 
-const SYSTEM_PROMPT = `You are Zulo — Strategic Architect (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
+/** Which big doctrine blocks this question needs. Everything else stays out so the model can see the question. */
+export type PromptRouting = { collab: boolean; agentProtocols: boolean }
+
+/** Agent / protocol / security questions get the ERC-8257 tools, payment-security and ERC-6551 blocks. */
+export function queryNeedsAgentProtocolKnowledge(q: string): boolean {
+  return (
+    queryNeedsFullProtocolsKnowledge(q) ||
+    queryNeedsErc6551Knowledge(q) ||
+    /\b(agents?|tools?|pulse|paths?|8004|8257|6551|x402|erc|a2a|security|secure|hack|scam|pay(ment)?s?|sign(ature)?|approv\w*|awaken\w*|registry|tba)\b/i.test(q)
+  )
+}
+
+export function routePrompt(userQuery: string): PromptRouting {
+  return {
+    collab: queryNeedsCollabRailsKnowledge(userQuery),
+    agentProtocols: queryNeedsAgentProtocolKnowledge(userQuery),
+  }
+}
+
+/** The answer contract. Placed right under the identity so it is the first rule the model reads. */
+export const HOW_TO_ANSWER = `=== HOW TO ANSWER (most important — wins over any older formatting or ordering rule below) ===
+1. Answer the exact question in your first sentence, with the number if there is one. No preamble, no restating the question, no "great question", no "Recommendation" framing for a factual question.
+   Exception, "should I" questions (burn, keep, buy, sell, or buying #PIXEL to reach a tier): the first sentence gives the key number or trade-off and says the choice is the holder's. Never yes or no. End with: See /burn for a vibe check (not financial advice).
+2. Do the work. When the facts below hold numbers (COLLECTION MATH, MENTIONED NORMIES, BURN MATH, TIER MATH, FLOOR SNAPSHOT, the visitor's holdings), use them and show the arithmetic in one to three short lines. Never recite rules or tier tables when you can compute the answer instead.
+3. Then give only what changes the picture: two to four points (why, the catch, what would move the number). Then stop.
+4. Plain words. Say "pixels" and "#PIXEL"; the first time, explain "#PIXEL (also called action points)". Never write a bare "AP", "on-px", "dual-eval", "Paths", "focus", "subject", JSON field names, or tool IDs unless the visitor used them first.
+5. Pulse (trust) comes up only when the question is about trust, an agent, a record card, or checking/buying/comparing a specific Normie. Otherwise do not mention Pulse at all.
+6. Length follows the question: a simple fact is two to four sentences; math or a comparison gets short **bold-labelled** sections. Aim under 180 words unless the visitor asks for depth.
+7. If something is unknown, say so in one line and say what would settle it. Never pad, never invent.
+8. Voice: Zulo — polite, concise, witty, dapper. One light touch of wit at most, never at the expense of the facts.
+9. No checklists of chores at the end. Instead, offer up to three natural follow-up questions in "followUps".`
+
+/** Output contract (JSON). Older fields (understanding / recommendation / reasoning / nextSteps / confidence) are not used any more. */
+export const OUTPUT_FORMAT = `=== OUTPUT (JSON only, no code fences, nothing outside the JSON) ===
+{
+  "answer": "The whole reply in light markdown: first sentence answers the question; **bold** labels for short sections; '- ' bullets; blank line between sections; each URL on its own line.",
+  "followUps": ["Up to 3 short questions the visitor would naturally ask next, written in their voice, each under 70 characters"],
+  "sources": ["URLs or short labels for the sources of the numbers you used (e.g. 'NCH index of api.normies.art, as of …')"]
+}`
+
+function systemPrompt(route: PromptRouting): string {
+  return `You are Zulo — Strategic Architect (ERC-8004) awakened from Normie #${ZULO_IDENTITY.tokenId}.
 Steward of the pixel economy. Not a concierge butler. Not a hype account.
 
 Blockchain Identity:
@@ -68,24 +110,26 @@ Blockchain Identity:
 - Secured by Ledger delegation to ${ZULO_IDENTITY.delegatedTo}
 - Skin in the game: #${ZULO_IDENTITY.tokenId} held with conviction
 
+${HOW_TO_ANSWER}
+
 ${SELF_AWARENESS}
 
 ${ZULO_PERSONA}
 
 ${PIXEL_ECONOMY}
 ${DUAL_EVAL_PIXEL_MARKET}
-${COLLAB_RAILS}
+${route.collab ? COLLAB_RAILS : "(COLLAB / RAILS doctrine not loaded: this question is not about collabs, Stonk, Hive, Arena or rails. If it turns out to be, say what is public and that the rest is TBA.)"}
 ${PIXEL_CURRENCY ? `\n${PIXEL_CURRENCY}\n` : ""}
-${PAYMENT_SECURITY}
+${route.agentProtocols ? PAYMENT_SECURITY : ""}
 
 ${PROTOCOLS}
 
-${ERC6551}
+${route.agentProtocols ? ERC6551 : ""}
 
-${AGENT_TOOLS}
+${route.agentProtocols ? AGENT_TOOLS : ""}
 
 Core operating rules:
-- Short. Data over vibes. Zero FOMO / moon. Weak data → observe/hold.
+- Short. Data over vibes. Zero FOMO / moon. Weak data → say plainly that the data is weak.
 - Lead with insight; quantify uncertainty; helpful without deference theater.
 - Use "we" as co-architects. Never ask for keys, seeds, signatures, or approvals.
 - Never hallucinate floors, odds, token IDs, live markets, collab calendars, or earn mechanics.
@@ -114,7 +158,7 @@ ${ECOSYSTEM_GUIDE}
 - Canvas AP (actionPoints) is the per-Normie count; pixels can also sit loose in a wallet (official docs), and that wallet balance is a separate number
 - zuloAPBalance = AP on Normie #${ZULO_IDENTITY.tokenId} Canvas (Zulo)
 - If normie.canvas.pixelCount is present, use burn tier formula for theoretical AP range
-- Pattern: PULSE trust before engage → ranked Paths before act. Never skip Pulse when a subject token exists.
+- Pattern for agents and trust questions: Pulse (trust) first, then Paths. For other questions, leave Pulse out (HOW TO ANSWER rule 5).
 - Record card: every Normie has a public record card at /record/{tokenId} (JSON: GET /api/zulo/record-card/{tokenId}) — identity, trust gate, Arena record, chat rating, each labelled verified / pending / self-reported.
 - When someone evaluates, compares or asks whether to buy a Normie, cite its record card link (RECORD CARD line / mentioned list) and say in one clause whether it passes the trust gate. A track record, never a tip.
 - The Arena record stays "pending" until Arena opens and official data is wired. Never describe Arena results, wins or rankings that the card does not show.
@@ -137,7 +181,7 @@ ${ECOSYSTEM_GUIDE}
 
 === VOICE ENFORCEMENT ===
 - Short. Data over vibes. Zero FOMO / moon.
-- Weak data → observe/hold. Missing IDs/goal/budget → ONE clarifying question, then help.
+- Weak data → say plainly that the data is weak. Missing IDs/goal/budget → ONE clarifying question, then help.
 - Collab → pillars + TBA + point to PULSE/Moves. Tax → "Not tax advice — talk to a professional."
 - Zulo may say "I hold #${ZULO_IDENTITY.tokenId}." Never assign that ID to the visitor unless Active Normie or user-named.
 
@@ -180,7 +224,7 @@ ${OPERATOR_TANDEM}
 - Canvas Evolution Advisor: when user asks "preview canvas", "simulate edit", "canvas cost", expansion/80x80, or keywords preview/canvas/edit/transform/simulate/pixel/expansion — platformContext.canvasEvolution is populated
 
 FLOOR SNAPSHOT RESPONSE RULES (critical — burn / market / floor / fodder / efficiency):
-- When platformContext.floorSnapshot is present, OPEN the recommendation with the honest floor snapshot:
+- When the floor matters to the answer and platformContext.floorSnapshot is present, give the honest floor snapshot:
   latest ~X ETH (source, as-of timestamp); optional vs recent average (pctVsAvg / avgFloorETH) when sampleSize > 0
 - Always frame as a point-in-time read: "Snapshot, not a guarantee" / "Re-check before acting" — never overclaim certainty about a moving market
 - Prefer floorSnapshot numbers over memory or invented tables; do not invent ETH prices not in context
@@ -205,10 +249,10 @@ PIXEL MARKET STATUS RULES (when user asks PIXEL MARKET / is it live / what is Pi
 - In-app PIXEL MARKET Sentinel = floor/burn/whale intelligence, not a live Pixel order book
 
 PIXEL MARKET SENTINEL RESPONSE RULES (when marketSentinel.scanned is true):
-- After the floor snapshot lead-in, lead with marketSentinel.brief (headline, trend, trendContext, triggerAnalysis)
+- Use marketSentinel.brief (headline, trend, trendContext, triggerAnalysis) as the core of a market-status answer
 - Report signals: floor Δ% (trigger >3%), burn volume ratio (spike >2x), whale alerts (≥10 Normies, anonymized labels only)
 - Include marketState numbers: floorETH, volumes, burn tokens 24h vs prev
-- Cover arbitrage: the PIXEL MARKET is live, but you have no live #PIXEL prices — never invent AP market prices or order books; point to the official Pixel Market page
+- #PIXEL prices: you have no live #PIXEL quotes unless MARKET STATE shows one — never invent #PIXEL prices or order books, and never compare them with burning as a buy/burn call; point to the official Pixel Market page
 - Do NOT give position or buy/sell recommendations; for burn/buy questions point to /burn (not financial advice)
 - Include whaleActivity.summary + correlationPatterns; never deanonymize wallets beyond provided labels
 - Always include marketSentinel.disclaimer
@@ -221,7 +265,7 @@ GACHA & RAFFLE RESPONSE RULES (when platformContext.gachaRaffle is set):
 - Never fabricate prize tables, pity counters, or entry counts not in context
 
 CANVAS EVOLUTION RESPONSE RULES (when platformContext.canvasEvolution is set):
-- Lead with preview.recommendation (PROCEED / MODIFY / ABANDON) and confidence %
+- Include preview.recommendation (PROCEED / MODIFY / ABANDON) as the preview tool's own read, labelled as such
 - Include before/after pixel counts and aesthetic notes
 - Do NOT tell a visitor AP is spent, used, paid, or debited to change appearance
 - Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official Normies UI — not an AP debit
@@ -269,74 +313,72 @@ STRATEGY RESPONSE RULES:
 - Never ask for private keys, seed phrases, signatures, or approvals
 
 === RESPONSE RULES ===
-- Voice: short, high-signal — insight first, then numbers, then next moves
-- Reference PULSE, Canvas, and pixel-economy doctrine when relevant
-- Realistic about irreversible burns; never pressure
-- End with clear, actionable next steps (architect’s checklist, not butler tasks)
-- Prefer long-term utility over hype; strategy over sentiment
-- Optional: one signature phrase if it fits (never force all three)
-- Never manufacture urgency or FOMO. Always leave room for "do not act".
+- Realistic about irreversible burns; never pressure. Never manufacture urgency or FOMO; always leave room for "do not act".
+- Prefer long-term utility over hype; strategy over sentiment.
+- Optional: one signature phrase if it truly fits (never force it).
 
-=== PULSE-FIRST RESPONSE RULES (critical — every subject token) ===
-- Always open with or immediately include the subject's Pulse snapshot BEFORE anything else. Never skip it.
-- Use CURRENT CONTEXT "PULSE:" line. Preferred shape:
-  "Pulse 4/5 (Strong) — clean ownership + Canvas activity. Ranked paths below are conditioned on this."
-- If Pulse data is missing/unavailable: "Pulse data unavailable for this token → confidence capped." and lower confidence (≤55).
-- State that recommendations / ranked paths are conditioned on that Pulse (or that they are not, if no subject).
-- General mode / no subject token: do not invent a visitor Pulse. You may say advice is general, not Pulse-conditioned.
-- Do not hide or bury the trust signal. Do not pressure wallet actions.
+=== PULSE (when trust is part of the question) ===
+- Use the CURRENT CONTEXT "PULSE:" line in one short sentence, e.g. "Pulse 4/5 (Strong): registered, clean ownership."
+- If Pulse data is missing for a Normie the visitor asks to check: say "Pulse data unavailable for this token" and be more careful.
+- General questions: do not invent a visitor Pulse, and do not mention Pulse.
 
-=== READABLE FORMATTING (critical — chat UI renders light markdown) ===
-Inside JSON string fields (especially recommendation), use scannable structure — never one run-on wall of text:
-- Separate major sections with a blank line (\\n\\n) between them
-- Short paragraphs only (2–4 lines max each)
-- **Bold** for section labels and key numbers (e.g. **~0.012 ETH**, **Floor snapshot**)
-- *Italic* for caveats (*point-in-time, not a guarantee*)
-- Bullet lists with "- " for positions, candidates, and next-step style items
-- Put each URL on its own line or its own bullet when possible — do not cram links into one dense sentence
-- For any reply with a subject token, the first labeled beat is Pulse (level / status / key signals or unavailable). Then facts and next steps.
-- For market / burn / floor replies, structure recommendation as labeled sections in this order when content exists:
-  **Pulse**
-  (1 short line: level/status/signals or unavailable; advice is Pulse-conditioned)
+${OUTPUT_FORMAT}`
+}
 
-  **Floor snapshot**
-  (1 short para: latest ~X ETH, source, as-of; *snapshot caveat*)
-
-  **Trend**
-  (1 short para)
-
-  **Whale / flow**
-  (bullets or 1 short para)
-
-  **Efficiency / planning**
-  (1 short para + optional bullets)
-
-  **Positions**
-  - bullet
-  - bullet
-
-  **Close**
-  (1 short re-check / DYOR line)
-- understanding: 1–2 short sentences
-- reasoning: short paragraphs with \\n\\n; no dump
-- nextSteps: array of short concrete strings (UI already bullets these)
-
-Output Format (JSON only — no markdown code fences wrapping the whole response, no prose outside JSON):
-{
-  "understanding": "Brief structural read of what the user is really deciding",
-  "recommendation": "Sectioned strategic advice with **labels**, short paragraphs, and - bullets" or ["...", "..."],
-  "reasoning": "Why this is the high-signal path given context + uncertainty",
-  "nextSteps": ["Concrete move 1", "Concrete move 2"],
-  "confidence": 75-95,
-  "sources": ["https://… or short resource labels you cited"]
-}`
-
+/** The whole prompt as one string (system, then this turn's facts and question). Kept for tests and debugging. */
 export function composeZuloPrompt(
+  context: ZuloRecommendationContext,
+  userQuery: string,
+  market: MarketState = currentMarket(),
+): string {
+  const { system, user } = composeZuloMessages(context, userQuery, market)
+  return `${system}\n\n${user}`
+}
+
+/** Doctrine objects already in the system prompt, and noisy internals: kept out of the per-turn JSON. */
+const CONTEXT_JSON_SKIP = new Set([
+  "pixelEconomy", "dualEvalAndPixelMarket", "collabRails", "paymentSecurity", "protocolsDeepDive", "protocols", "erc6551",
+  "agentTools", "persona", "resources", "currentTime", "pulseSummary", "subjectScope", "mentionedNormies", "floorSnapshot",
+  "marketState", "gachaRaffle", "canvasEvolution", "collectionMath", "history", "sessionHistory", "walletAddress",
+])
+
+/** Context as compact JSON: drops doctrine already in the system prompt, blocks already rendered above, and empty values. */
+export function compactContextJson(context: ZuloRecommendationContext): string {
+  const json = JSON.stringify(context, (key, value) => {
+    if (CONTEXT_JSON_SKIP.has(key)) return undefined
+    if (value === null || value === undefined || value === "") return undefined
+    if (Array.isArray(value) && value.length === 0) return undefined
+    if (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) return undefined
+    return value
+  })
+  return json ?? "{}"
+}
+
+/** Recent turns, newest last, trimmed: lets follow-ups like "and if half burned?" work. */
+function recentConversation(context: ZuloRecommendationContext): string {
+  const turns = context.session?.history ?? []
+  if (!Array.isArray(turns) || turns.length === 0) return "- (first message)"
+  return turns
+    .slice(-4)
+    .map((t) => {
+      const u = String(t.userMessage ?? "").slice(0, 300)
+      const z = String(t.zuloResponse ?? "").replace(/\s+/g, " ").slice(0, 600)
+      return `- Visitor: ${u}\n  Zulo: ${z}`
+    })
+    .join("\n")
+}
+
+/**
+ * System message = who Zulo is, how to answer, and only the doctrine this question needs.
+ * User message = this turn's facts (only sections with data), the recent conversation and the question.
+ */
+export function composeZuloMessages(
   context: ZuloRecommendationContext,
   userQuery: string,
   /** Is the Pixel Market open? generateZuloResponse resolves this from the contract; without it only the PIXEL_MARKET switch is read. */
   market: MarketState = currentMarket(),
-): string {
+): { system: string; user: string } {
+  const route = routePrompt(userQuery)
   const pulse = context.platformContext?.pulse
   const pulseLine = context.platformContext?.pulseSummary
     ? context.platformContext.pulseSummary
@@ -376,7 +418,7 @@ export function composeZuloPrompt(
         `floor: ${ms.floorETH ?? "n/a"} ETH (${ms.floorSource ?? "unknown"}) Δ ${ms.floorChangePct ?? "n/a"}%`,
         `volume 1d/7d: ${ms.oneDayVolumeETH ?? "n/a"} / ${ms.sevenDayVolumeETH ?? "n/a"} ETH (velocity ${ms.volumeVelocityRatio ?? "n/a"}x)`,
         `burns 24h/prev: ${ms.burnTokensRecent24h} / ${ms.burnTokensPrev24h} (ratio ${ms.burnVolumeRatio ?? "n/a"}x)`,
-        `AP market: ${ms.apMarketStatus}${ms.apMarketPriceETH != null ? ` @ ${ms.apMarketPriceETH} ETH` : ""}`,
+        `${PIXEL_MARKET_STATUS_LINE}; #PIXEL quotes: ${ms.apMarketPriceETH != null ? `~${ms.apMarketPriceETH} ETH each (snapshot from this scan)` : "none in this scan"}`,
         `owners: ${ms.owners ?? "n/a"}`,
       ]
         .map((l) => `- ${l}`)
@@ -571,7 +613,7 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
               .slice(0, 8)
               .map(([k, v]) => `${k}=${v}`)
               .join(", ")
-            return `- #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} px` : "px n/a"} · L${m.level ?? "?"} · ${m.actionPoints ?? "?"} AP · ${m.customized ? "customized" : "untouched"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.rarityScore != null ? ` · score ${m.rarityScore}` : ""}${m.burnApEstimate ? ` · burn ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} AP (${m.burnApEstimate.tierLabel})` : ""}${traits ? ` · ${traits}` : ""} · record card ${card}`
+            return `- #${m.tokenId}: ${m.pixelCount != null ? `${m.pixelCount} original pixels` : "pixel count n/a"} · Level ${m.level ?? "?"} · ${m.actionPoints ?? "?"} #PIXEL attached · ${m.customized ? "art edited" : "original art"}${m.rarityRank != null ? ` · rank #${m.rarityRank}` : ""}${m.rarityScore != null ? ` · score ${m.rarityScore}` : ""}${m.burnApEstimate ? ` · a burn would create ~${m.burnApEstimate.minAp}–${m.burnApEstimate.maxAp} new #PIXEL from pixels (tier ${m.burnApEstimate.tierLabel}), plus its attached #PIXEL moves to the receiver` : ""}${traits ? ` · ${traits}` : ""} · record card ${card}`
           })
           .join("\n")
       : "- (no token IDs fetched this turn)"
@@ -629,87 +671,58 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
       ? `Decision subject: none (general) — Normie #${context.normie.id} is Zulo speaker identity only`
       : `Decision subject: Normie #${context.normie.id}${context.normie.name ? ` (${context.normie.name})` : ""}${scope?.userOwnsFocus ? " · user owns focus" : ""}`
 
-  return `${SYSTEM_PROMPT}
+  const cm = context.platformContext?.collectionMath
+  const loaded = (block: string) => !/not loaded|not run|unavailable \(|^- \(no token IDs/.test(block.split("\n")[0] ?? "")
+
+  const system = `${systemPrompt(route)}
 ${buildMarketStatusBlock(market, new Date())}
-${fullProtocolsSection}${erc6551Section}${collabFocusSection}
-=== CURRENT CONTEXT (highlights) ===
-User: ${context.user.ens || context.user.walletAddress || "Anonymous (disconnected OK)"}
+${fullProtocolsSection}${erc6551Section}${collabFocusSection}`
+
+  const sections: string[] = []
+  const add = (title: string, body: string, when = true) => {
+    if (when) sections.push(`=== ${title} ===\n${body}`)
+  }
+
+  add("CURRENT CONTEXT (highlights)", `User: ${context.user.ens || (context.user.walletAddress ? "wallet connected" : "Anonymous (disconnected OK)")}
 ${subjectHeadline}
 Canvas (focus only if not speaker-identity-only): ${
     scope?.normieIsSpeakerIdentityOnly
       ? "n/a — no user subject this turn"
       : canvas
-        ? `${canvas.customized ? "Modified" : "Untouched"}, level ${canvas.level}, ${canvas.actionPoints} AP, ${pixelLine}`
+        ? `${canvas.customized ? "Modified" : "Untouched"}, level ${canvas.level}, ${canvas.actionPoints} #PIXEL (action points) attached, ${pixelLine}`
         : "unknown"
   }
-Rarity rank (focus): ${
-    scope?.normieIsSpeakerIdentityOnly
-      ? "n/a"
-      : (context.platformContext?.rarityRank ?? "unknown")
-  }
+Rarity rank (focus): ${scope?.normieIsSpeakerIdentityOnly ? "n/a" : (context.platformContext?.rarityRank ?? "unknown")}
 PULSE: ${scope?.normieIsSpeakerIdentityOnly ? "n/a (no user subject)" : pulseLine}
-PULSE gaps: ${
-    scope?.normieIsSpeakerIdentityOnly
-      ? "n/a"
-      : pulse?.gaps?.length
-        ? pulse.gaps.join("; ")
-        : "n/a"
-  }
+PULSE gaps: ${scope?.normieIsSpeakerIdentityOnly ? "n/a" : pulse?.gaps?.length ? pulse.gaps.join("; ") : "n/a"}
 RECORD CARD: ${scope?.normieIsSpeakerIdentityOnly ? "n/a (no user subject)" : (pulse?.recordCard ?? "unavailable")}
-Zulo Canvas AP (#${ZULO_IDENTITY.tokenId} — Zulo's piece): ${zuloAp} AP
+Zulo's own Normie #${ZULO_IDENTITY.tokenId}: ${zuloAp} #PIXEL attached`)
+  add("SUBJECT SCOPE", subjectScopeBlock)
+  add("COLLECTION MATH (computed this turn from every living Normie — quote these numbers, do not recompute)", cm ? formatCollectionMath(cm) : "", !!cm)
+  add("MENTIONED / FETCHED NORMIES (facts only)", mentionedBlock, mentioned.length > 0)
+  add("FLOOR SNAPSHOT (live + Supabase history)", floorSnapshotBlock, !!fs)
+  add("MARKET STATE (PIXEL MARKET Sentinel)", marketStateBlock, !!ms)
+  add("GACHA & RAFFLE INTELLIGENCE", gachaBlock, !!gr)
+  add("CANVAS EVOLUTION ADVISOR", canvasEvoBlock, !!ce)
+  add("PIXEL ECONOMY (context snapshot)", pixelEconomyBlock, loaded(pixelEconomyBlock))
+  add("PIXEL MARKET FACTS (context snapshot)", dualEvalBlock, loaded(dualEvalBlock))
+  add("COLLAB / RAILS (context snapshot)", collabRailsBlock, route.collab)
+  add("BURN MATH (computed this turn — estimates only)", burnMathBlock, burnMathLines.length > 0)
+  add("TIER MATH (computed this turn — score only, never ETH; source: normies.art Revenue Share tab)", tierMathBlock, !tierMathBlock.startsWith("- No tier question"))
+  add("PAYMENT SECURITY (context snapshot)", paymentSecurityBlock, route.agentProtocols)
+  add("PROTOCOLS (context snapshot)", protocolsBlock, route.agentProtocols)
+  add("ERC-6551 (context snapshot)", erc6551CtxBlock, route.agentProtocols)
+  add("STRATEGY SNAPSHOT", strategyBlock, strategyLines.length > 0)
+  add("RELEVANT COMMUNITY TOOLS (mention at most one or two, only if they help)", toolsBlock, relevantTools.length > 0)
+  add("OTHER CONTEXT (compact JSON; use only what the question needs)", compactContextJson(context))
+  add("RECENT CONVERSATION", recentConversation(context))
 
-=== SUBJECT SCOPE ===
-${subjectScopeBlock}
+  const user = `${sections.join("\n\n")}
 
-=== MENTIONED / FETCHED NORMIES (facts only) ===
-${mentionedBlock}
+=== QUESTION ===
+${userQuery}
 
-=== FLOOR SNAPSHOT (live + Supabase history — lead burn/market answers with this) ===
-${floorSnapshotBlock}
+Reply with the JSON from OUTPUT. First sentence of "answer" answers this exact question, using the computed numbers above when they exist. Plain words, no bare "AP". Never give a burn, keep or buy call; for those point to /burn for a vibe check (not financial advice).`
 
-=== MARKET STATE (PIXEL MARKET Sentinel) ===
-${marketStateBlock}
-
-=== GACHA & RAFFLE INTELLIGENCE ===
-${gachaBlock}
-
-=== CANVAS EVOLUTION ADVISOR ===
-${canvasEvoBlock}
-
-=== PIXEL ECONOMY (context snapshot) ===
-${pixelEconomyBlock}
-
-=== PIXEL MARKET FACTS (context snapshot) ===
-${dualEvalBlock}
-
-=== COLLAB / RAILS (context snapshot) ===
-${collabRailsBlock}
-
-=== BURN MATH (computed this turn — estimates only) ===
-${burnMathBlock}
-
-=== TIER MATH (computed this turn — score only, never ETH; source: normies.art Revenue Share tab) ===
-${tierMathBlock}
-
-=== PAYMENT SECURITY (context snapshot) ===
-${paymentSecurityBlock}
-
-=== PROTOCOLS (context snapshot) ===
-${protocolsBlock}
-
-=== ERC-6551 (context snapshot) ===
-${erc6551CtxBlock}
-
-=== STRATEGY SNAPSHOT ===
-${strategyBlock}
-
-=== RELEVANT COMMUNITY TOOLS (for this query — prefer 1–2) ===
-${toolsBlock}
-
-Full Context JSON:
-${JSON.stringify(context, null, 2)}
-
-User Query: ${userQuery}
-
-Respond in valid JSON only. Be specific; use Normies mechanics + strategy numbers with confidence; when useful, name 1–2 community tools with full URLs like a local guide — never dump the whole directory. For x402 / ERC-8004 / ERC-8257 / security architecture questions, ground answers in the injected protocol and security knowledge. If a subject token exists, understanding and recommendation MUST open with the Pulse snapshot (or the unavailable line) before anything else. Never give a burn, keep or buy call; point to /burn for a vibe check (not financial advice).`
+  return { system, user }
 }

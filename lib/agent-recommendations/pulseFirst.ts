@@ -86,13 +86,27 @@ function prependText(existing: string, lead: string): string {
 }
 
 /**
- * Guarantee Pulse appears early on every Ask reply that has a subject token.
+ * Is trust part of this question? Pulse is a trust signal: it belongs on "can I trust / should I check / is this agent
+ * legit / tell me about #1234", not on "how many pixels exist" or "how does burning work". Forcing it onto every reply
+ * buried the actual answer under an unrelated line (live, 2026-11-10).
+ */
+export function isPulseRelevant(userQuery: string): boolean {
+  return /\b(pulse|trust\w*|agents?|record( card)?|safe|legit\w*|scam\w*|rug\w*|buy\w*|purchas\w*|evaluat\w*|check\w*|compar\w*|vs\.?|versus|owners?|owned|delegat\w*|8004|awake\w*|reputation|ratings?|analy[sz]\w*|look (up|into|at)|tell me about|what about|who is|is #?\d{1,4})\b/i.test(
+    userQuery,
+  )
+}
+
+/**
+ * Put the Pulse snapshot on replies where trust is part of the question and a subject token exists.
+ * Pass the visitor's question to apply that relevance check; without it (older callers, tests) every subject reply gets it.
  * Never throws. Does not change ranking.
  */
 export function ensurePulseFirst(
   response: ZuloResponse,
   context: ZuloRecommendationContext,
+  userQuery?: string,
 ): ZuloResponse {
+  if (userQuery !== undefined && !isPulseRelevant(userQuery)) return response
   const subject = resolvePulseSubject(context)
   const lead = formatPulseLead(subject)
   if (!lead) return response
@@ -108,7 +122,8 @@ export function ensurePulseFirst(
   return {
     ...response,
     pulseLead: lead,
-    understanding: prependText(response.understanding, lead),
+    // New-format answers have no "understanding": the lead lives in pulseLead only, so it is not shown twice.
+    understanding: response.understanding.trim() ? prependText(response.understanding, lead) : "",
     confidence,
   }
 }
