@@ -107,8 +107,13 @@ export function arenaCanvasRankNote(level: number): string {
   return `From Level ${Math.floor(level)} (official API). Rank names per normiesART's Arena article (${ARENA_CANVAS_RANKS_SOURCE.publishedText}). Arena is Coming Soon and the article says game data may change. A label, not a score; it does not count toward any rank here.`
 }
 
-/** /burn only: a plain fact, e.g. "Next Arena Canvas rank at Level 25". Null at the top band (nothing is shown). */
+/** /burn only: a plain fact, e.g. "Next Arena Canvas rank at Level 25". Null at the top band (see arenaCanvasTopRankText). */
 export function nextArenaCanvasRankText(level: number | null | undefined): string | null {
   const next = nextRankLevel(level)
   return next === null ? null : `Next Arena Canvas rank at Level ${next}`
+}
+
+/** /burn only, at the top band (Level 150 and up): "Top Arena Canvas rank (Level 150+)". Null below it or for an invalid Level. */
+export function arenaCanvasTopRankText(level: number | null | undefined): string | null {
+  return validLevel(level) && level >= ARENA_CANVAS_TOP_LEVEL ? `Top Arena Canvas rank (Level ${ARENA_CANVAS_TOP_LEVEL}+)` : null
 }

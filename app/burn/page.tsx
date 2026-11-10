@@ -19,7 +19,7 @@ import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
 import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
 import { parseCalcAmount } from "@/lib/ap-check/compare-text"
-import { ARENA_CANVAS_RANKS_SOURCE, nextArenaCanvasRankText } from "@/lib/normies-canon"
+import { ARENA_CANVAS_RANKS_SOURCE, arenaCanvasTopRankText, nextArenaCanvasRankText } from "@/lib/normies-canon"
 
 import { PixelCompare } from "./pixel-compare"
 
@@ -365,9 +365,9 @@ function Results({ model, result, wallet, isExample }: { model: PageModel; resul
   )
 }
 
-/** Arena goal only: where the next Arena Canvas rank starts, as a plain fact. Nothing at the top rank. */
+/** Arena goal only: where the next Arena Canvas rank starts, or that it is at the top rank, as a plain fact. */
 function NextCanvasRank({ level }: { level: number | null }) {
-  const text = nextArenaCanvasRankText(level)
+  const text = nextArenaCanvasRankText(level) ?? arenaCanvasTopRankText(level)
   if (!text) return null
   return (
     <p className="burn-small">

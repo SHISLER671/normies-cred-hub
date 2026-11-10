@@ -9,6 +9,7 @@ import {
   ARENA_CANVAS_RANKS,
   ARENA_CANVAS_RANKS_SOURCE,
   arenaCanvasRankNote,
+  arenaCanvasTopRankText,
   nextArenaCanvasRankText,
   nextRankLevel,
   rankForLevel,
@@ -61,6 +62,17 @@ describe("rankForLevel / nextRankLevel boundaries", () => {
     assert.equal(nextArenaCanvasRankText(14), "Next Arena Canvas rank at Level 25")
     assert.equal(nextArenaCanvasRankText(150), null)
     assert.equal(nextArenaCanvasRankText(151), null)
+  })
+  it("top-rank line at Level 150 and 151+, absent below (Ryan, Nov 10)", () => {
+    for (const l of [150, 151, 1_000]) {
+      assert.equal(arenaCanvasTopRankText(l), "Top Arena Canvas rank (Level 150+)")
+      assert.equal(nextArenaCanvasRankText(l), null)
+    }
+    for (const l of [1, 2, 9, 10, 24, 25, 49, 50, 99, 100, 149, 149.9]) {
+      assert.equal(arenaCanvasTopRankText(l), null, `Level ${l}`)
+      assert.notEqual(nextArenaCanvasRankText(l), null, `Level ${l}`)
+    }
+    for (const bad of [null, undefined, 0, Number.NaN]) assert.equal(arenaCanvasTopRankText(bad), null)
   })
 })
 
@@ -148,6 +160,7 @@ function newCopy(): string[] {
     ...ARENA_CANVAS_RANKS.map((r) => r.name),
     ...[1, 2, 10, 25, 50, 100, 150, 151].map((l) => arenaCanvasRankNote(l)),
     ...[1, 2, 10, 25, 50, 100, 149].map((l) => nextArenaCanvasRankText(l)!),
+    ...[150, 151].map((l) => arenaCanvasTopRankText(l)!),
     ...[1, 14, 151].map((l) => recordCardLine(7141, [], ORIGIN, "COMING_SOON", l)),
   ]
   const prompt = read("lib/agent-recommendations/composePrompt.ts").split("\n").filter((l) => l.includes("Arena Canvas rank"))
@@ -211,18 +224,20 @@ describe("where the rank shows", () => {
       "lib/record-card/og-art.ts",
       "components/record-share.tsx",
     ]) {
-      assert.doesNotMatch(read(f), /arena_canvas_rank|Canvas rank|rankForLevel|ARENA_CANVAS|nextRankLevel/, f)
+      assert.doesNotMatch(read(f), /arena_canvas_rank|Canvas rank|rankForLevel|ARENA_CANVAS|nextRankLevel|TopRank/, f)
     }
   })
   it("the next rank shows on /burn only", () => {
     const files = ["app", "components", "lib"].flatMap((d) => walk(join(ROOT, d))).map((f) => f.slice(ROOT.length + 1))
-    const users = files.filter((f) => /nextArenaCanvasRankText|nextRankLevel|Next Arena Canvas rank/.test(read(f)))
+    const users = files.filter((f) => /nextArenaCanvasRankText|nextRankLevel|Next Arena Canvas rank|arenaCanvasTopRankText|Top Arena Canvas rank/.test(read(f)))
     assert.deepEqual(users.sort(), ["app/burn/page.tsx", "lib/normies-canon.ts"])
   })
   it("/burn shows it in Arena mode only, with the Not financial advice label kept", () => {
     const burn = read("app/burn/page.tsx")
     assert.match(burn, /model\.goal === "arena" && <NextCanvasRank level=\{r\.level\} \/>/)
     assert.match(burn, /<li>Not financial advice<\/li>/)
+    assert.match(burn, /nextArenaCanvasRankText\(level\) \?\? arenaCanvasTopRankText\(level\)/)
+    assert.match(burn, /Rank names per <a href=\{ARENA_CANVAS_RANKS_SOURCE\.url\}/)
   })
   it("the record card page shows the rank and its source link", () => {
     const rec = read("app/record/[tokenId]/page.tsx")
