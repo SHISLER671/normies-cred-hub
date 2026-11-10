@@ -4,7 +4,7 @@ import { bodyToParams } from "@/lib/ap-check/body"
 import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
 import { COMPARE_API_NOTES } from "@/lib/ap-check/compare-api"
-import { checkRateLimit } from "@/lib/ratelimit"
+import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 
 /**
  * Market or burn? (moved here from /api/ap-check?calc=, 2026-11-10). Lives under /burn because AGENTS.md fences every
@@ -50,13 +50,10 @@ export async function POST(req: NextRequest) {
   return answer(params, true)
 }
 
+/** AGENTS.md: every route that calls an outside service uses enforceDualRateLimit (per IP and per wallet). */
 async function rateLimited(req: NextRequest): Promise<NextResponse | null> {
-  const rl = await checkRateLimit(req, "burn-ap-check", 20, 60)
-  if (rl.ok) return null
-  return NextResponse.json(
-    { error: "Too many requests. Patience compounds.", code: "rate_limit", retryable: true },
-    { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
-  )
+  const rl = await enforceDualRateLimit(req, "default", { bucketPrefix: "burn-ap-check" })
+  return rl.ok ? null : rl.response
 }
 
 async function answer(sp: URLSearchParams, isPost: boolean): Promise<NextResponse> {

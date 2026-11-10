@@ -109,16 +109,16 @@ export const NORMIES_PATHS: OurAgentTool = {
 }
 
 /**
- * Open access on every chain (accessPredicate = address(0)). Registered 2026-10-07 by the creator wallet; each listing's
- * stored URI and manifestHash were read back from the registry and match. Abstract skipped: it shuts down 2026-12-15.
- */
-/**
  * The Pixel Market vs burning compare moved off Pixel Check on 2026-11-10 (AGENTS.md fences buy-vs-burn views to /burn).
  * The on-chain manifest (pinned by manifestHash) still lists calc on /api/ap-check; that call now answers 410 with movedTo.
  * Re-registering the manifest without calc is Ryan's call.
  */
 export const PIXEL_COMPARE_ENDPOINT = "https://normiescredhub.vercel.app/api/burn/ap-check"
 
+/**
+ * Open access on every chain (accessPredicate = address(0)). Registered 2026-10-07 by the creator wallet; each listing's
+ * stored URI and manifestHash were read back from the registry and match. Abstract skipped: it shuts down 2026-12-15.
+ */
 export const NORMIES_PIXEL_CHECK: OurAgentTool = {
   name: "Normies Pixel Check",
   slug: "normies-pixel-check",
