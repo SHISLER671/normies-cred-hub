@@ -88,6 +88,10 @@ export interface MarketSentinelResult {
   signals: MarketSignalSet
   marketState: MarketStateSnapshot
   arbitrage: ArbitrageAnalysis
+  /**
+   * @deprecated Always empty. Burn, keep and buy calls are fenced to /burn
+   * (AGENTS.md); kept so existing callers of the result type don't break.
+   */
   positionRecommendations: string[]
   whaleActivity: {
     summary: string
@@ -410,67 +414,49 @@ function buildTrend(
   return { trend, context: parts.join("; ") + "." }
 }
 
-function buildPositionRecs(input: {
-  trend: MarketTrend
-  floorTriggered: boolean
-  floorChangePct: number | null
-  burnSpike: boolean
-  whaleTriggered: boolean
+/**
+ * Plain-fact note for one trigger line. AGENTS.md: burn/keep/buy calls are
+ * fenced to /burn, so these describe what moved, never what to do about it.
+ */
+export function explainTrigger(t: string): string {
+  if (t.includes("Floor")) {
+    return `${t}. Change vs an earlier floor sample in this process (source and as-of time in marketState).`
+  }
+  if (t.includes("Burn volume")) {
+    return `${t}. More Normies burned in the last 24h than in the 24h before; counts are approximate.`
+  }
+  if (t.includes("whale")) {
+    return `${t}. Large anonymized clusters can skew burn stats in this sample.`
+  }
+  if (t.includes("volume velocity")) {
+    return `${t}. Secondary trading volume is above its 7d daily average.`
+  }
+  return t
+}
+
+/**
+ * Numbers-only line for the AP metrics. No "can beat" / "buy here" framing:
+ * the comparison is the holder's; /burn is the vibe check (not financial advice).
+ */
+export function describeApMetrics(input: {
+  apMarketStatus: "planned" | "live"
+  medianAp: number
   floorBuyEfficiency: number | null
-  floorETH: number | null
-}): string[] {
-  const recs: string[] = []
-
-  if (input.floorChangePct != null && input.floorChangePct <= -FLOOR_CHANGE_THRESHOLD_PCT) {
-    recs.push(
-      "Floor soft: consider selective floor-buy fodder for burns if you need AP — re-check listings live before buying.",
-    )
-  } else if (
-    input.floorChangePct != null &&
-    input.floorChangePct >= FLOOR_CHANGE_THRESHOLD_PCT
-  ) {
-    recs.push(
-      "Floor firm: avoid chasing listings; protect purist / premium trait Normies; burns of commons only with explicit AP need.",
-    )
-  } else {
-    recs.push(
-      "Floor range-bound: stick to planned AP needs rather than reactive burns; verify OpenSea before any acquisition.",
-    )
+  impliedApCostETH: number | null
+}): { spreadNote: string; opportunity: string } {
+  if (input.apMarketStatus === "planned") {
+    return {
+      spreadNote:
+        "The Pixel Market is live, but this scan has no #PIXEL quotes, so no AP↔floor spread is computed here. The official Pixel Market page shows its asks.",
+      opportunity: `Metric only: ~${input.medianAp} AP median burn yield / floor ≈ ${input.floorBuyEfficiency ?? "n/a"} AP per ETH (≈ ${input.impliedApCostETH ?? "n/a"} ETH per AP). Not financial advice; see /burn for a vibe check.`,
+    }
   }
-
-  if (input.burnSpike) {
-    recs.push(
-      "Burn volume elevated: fodder competition may tighten near floor — act promptly only if you already planned AP, else wait for listing depth.",
-    )
+  return {
+    spreadNote:
+      "Live #PIXEL asks and the floor-based ETH per AP are shown as numbers only.",
+    opportunity:
+      "Numbers only, no verdict. Not financial advice; see /burn for a vibe check.",
   }
-
-  if (input.whaleTriggered) {
-    recs.push(
-      "Whale-sized burn clusters active: watch for short-term floor wicks and copycat listing pressure; do not FOMO into premium pieces.",
-    )
-  }
-
-  if (input.floorBuyEfficiency != null && input.floorETH != null) {
-    recs.push(
-      `Floor-buy efficiency ~${input.floorBuyEfficiency.toFixed(1)} AP/ETH at ~${input.floorETH.toFixed(4)} ETH floor — use as planning metric only (pixel tier + RNG dominate outcomes).`,
-    )
-  }
-
-  if (input.trend === "bullish") {
-    recs.push(
-      "Trend lean bullish: hold high-signal awakened agents; prefer utility (Canvas/PULSE) over pure flip framing.",
-    )
-  } else if (input.trend === "bearish") {
-    recs.push(
-      "Trend lean soft: prioritize AP efficiency and avoid non-essential ETH deployment until floor stabilizes.",
-    )
-  }
-
-  recs.push(
-    "The Pixel Market is live, but this scan has no #PIXEL quotes — compare its asks on the official page with the floor-burn cost before buying either.",
-  )
-
-  return recs
 }
 
 function buildCorrelations(input: {
@@ -676,21 +662,7 @@ export async function runMarketSentinel(options?: {
     headline,
     trend,
     trendContext,
-    triggerAnalysis: triggers.map((t) => {
-      if (t.includes("Floor")) {
-        return `${t}. Floor moves >${FLOOR_CHANGE_THRESHOLD_PCT}% vs process baseline can change buy-to-burn math and listing psychology.`
-      }
-      if (t.includes("Burn volume")) {
-        return `${t}. Spikes imply higher AP creation / fodder demand; watch OpenSea depth.`
-      }
-      if (t.includes("whale")) {
-        return `${t}. Large anonymized clusters can temporarily skew burn stats and near-floor liquidity.`
-      }
-      if (t.includes("volume velocity")) {
-        return `${t}. Elevated secondary volume often precedes noisier floor prints.`
-      }
-      return t
-    }),
+    triggerAnalysis: triggers.map(explainTrigger),
   }
 
   const marketState: MarketStateSnapshot = {
@@ -732,25 +704,16 @@ export async function runMarketSentinel(options?: {
     impliedApCostETH,
     apMarketPriceETH,
     apMarketStatus,
-    spreadNote:
-      apMarketStatus === "planned"
-        ? "The Pixel Market is live, but this scan has no #PIXEL quotes — cannot compute an executable AP↔floor spread here. Check the official Pixel Market page for asks."
-        : "Compare AP market ask vs implied ETH cost per AP from floor fodder.",
-    opportunity:
-      apMarketStatus === "planned"
-        ? `Planning metric only: ~${medianAp} AP median / floor ≈ ${floorBuyEfficiency ?? "n/a"} AP per ETH (≈ ${impliedApCostETH ?? "n/a"} ETH per AP). Compare with the Pixel Market's asks on the official page: buying #PIXEL there can beat floor-burn, or not.`
-        : "Evaluate live AP quotes against floor-burn efficiency and gas.",
+    ...describeApMetrics({
+      apMarketStatus,
+      medianAp,
+      floorBuyEfficiency,
+      impliedApCostETH,
+    }),
   }
 
-  const positionRecommendations = buildPositionRecs({
-    trend,
-    floorTriggered,
-    floorChangePct,
-    burnSpike: burnSpikeTriggered,
-    whaleTriggered,
-    floorBuyEfficiency,
-    floorETH,
-  })
+  // AGENTS.md: no burn/keep/buy calls outside /burn. Kept empty for type compat.
+  const positionRecommendations: string[] = []
 
   const correlationPatterns = buildCorrelations({
     floorChangePct,
