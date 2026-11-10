@@ -32,7 +32,7 @@ The **Normie record card**: one read-only card per awakened Normie with its veri
 | Phase | Ships | Gate to start |
 | --- | --- | --- |
 | Now | Chat ratings in Pulse (done); delegated hot wallets count as holders; log Zulo's answers so his own hit rate can be graded; verified vs self-reported labels everywhere | — |
-| 1 | Arena record card: rounds, survival, PIXEL earned, duels won, from official data | Arena opens at an official URL (expected mid-November) |
+| 1 | Arena record card: rounds, survival, PIXEL earned, duels won, from official data | Arena opens at an official URL (expected November 15, 2026 (planned, per normiesART's Arena article, Oct 23)) |
 | 2 | Verified trading record: agent-wallet trades only, risk-adjusted, 30-day minimum window | Official agent-wallet + trading docs or API |
 | 3 | Record card as the standard: on listings, called by outside agents, offered to the Normies Lab | 3 months of clean records + Normies team interest |
 

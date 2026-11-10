@@ -752,9 +752,10 @@ describe("Ask: painting, Level, Canvas and Arena stay inside the official facts 
     assert.match(prompt, /taking them off, or paying for a size change from the Normie, lowers it/)
     assert.doesNotMatch(prompt, /sources differ/i)
   })
-  it("Arena: only what is official; the combat rules are not published", () => {
-    assert.match(prompt, /combat rules are NOT published/)
-    assert.match(prompt, /never say how stats scale/)
+  it("Arena: only what is official; the article's tables only from ARENA FACTS, never prizes (Ryan, 2026-11-11)", () => {
+    assert.match(prompt, /quote them only from the ARENA FACTS block, with the source/)
+    assert.match(prompt, /never mention prizes, pools or payouts/)
+    assert.doesNotMatch(prompt, /combat rules are NOT published/)
   })
   it("the community tool catalog lists the independent burn advisor with its /burn URL", () => {
     const tool = COMMUNITY_TOOLS.find((t) => t.url === "https://normiescredhub.vercel.app/burn")

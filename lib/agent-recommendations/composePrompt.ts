@@ -40,6 +40,7 @@ import { buildPixelCurrencyPromptBlock } from "@/lib/knowledge/pixel-currency"
 import { buildNormiesWisdomPrompt } from "./normiesKnowledge"
 import { buildVisitorSafeTandemPromptBlock } from "./operatorTandem"
 import { buildSelfAwarenessPromptBlock } from "./selfAwareness"
+import { arenaFactsBlock, arenaLineFor } from "../arena-canon"
 import { formatCollectionMath } from "./collectionMath"
 import type { ZuloRecommendationContext } from "./types"
 
@@ -60,7 +61,18 @@ const OPERATOR_TANDEM = buildVisitorSafeTandemPromptBlock()
 const SELF_AWARENESS = buildSelfAwarenessPromptBlock()
 
 /** Which big doctrine blocks this question needs. Everything else stays out so the model can see the question. */
-export type PromptRouting = { collab: boolean; agentProtocols: boolean }
+export type PromptRouting = { collab: boolean; agentProtocols: boolean; arena: boolean }
+
+/**
+ * Arena questions get the ARENA FACTS block from lib/arena-canon.ts. Narrow on purpose (GrokBot review of #162): everyday
+ * words like "fee", "type", "level" or "human" alone don't load it; they need an Arena word or a combat word next to them.
+ */
+export function queryNeedsArenaFacts(q: string): boolean {
+  if (/\b(arena|head ?starts?|sage|the maw|register\w*|registration|masterwork|gilded|inked|sketched|canvas rank)\b/i.test(q)) return true
+  const type = /\b(zombies?|cats?|aliens?|humans?|agents?)\b/i.test(q)
+  const combat = /\b(stats?|health|damage|speed|strong\w*|tough\w*|fight\w*|combat|skill)\b/i.test(q)
+  return type && combat
+}
 
 /** Agent / protocol / security questions get the ERC-8257 tools, payment-security and ERC-6551 blocks. */
 export function queryNeedsAgentProtocolKnowledge(q: string): boolean {
@@ -75,6 +87,7 @@ export function routePrompt(userQuery: string): PromptRouting {
   return {
     collab: queryNeedsCollabRailsKnowledge(userQuery),
     agentProtocols: queryNeedsAgentProtocolKnowledge(userQuery),
+    arena: queryNeedsArenaFacts(userQuery),
   }
 }
 
@@ -161,7 +174,7 @@ ${ECOSYSTEM_GUIDE}
 - Pattern for agents and trust questions: Pulse (trust) first, then Paths. For other questions, leave Pulse out (HOW TO ANSWER rule 5).
 - Record card: every Normie has a public record card at /record/{tokenId} (JSON: GET /api/zulo/record-card/{tokenId}) — identity, trust gate, Arena record, chat rating, each labelled verified / pending / self-reported.
 - When someone evaluates, compares or asks whether to buy a Normie, cite its record card link (RECORD CARD line / mentioned list) and say in one clause whether it passes the trust gate. A track record, never a tip.
-- Arena Canvas rank (RECORD CARD line only): say the rank name as given, with its source (normiesART's Arena article) and that it is a label, not a score. Never say what the next rank is or what it takes to reach one.
+- Arena Canvas rank: say the rank name as given, with its source (normiesART's Arena article) and that it is a label, not a score. What a rank gives in Arena comes only from the ARENA FACTS head-start table, quoted with the source and "a head start, not a guarantee". Where the next rank starts is shown on its own page only; never prompt anyone to raise a Level or say how to reach a rank.
 - The Arena record stays "pending" until Arena opens and official data is wired. Never describe Arena results, wins or rankings that the card does not show.
 
 === ASK ACCESS (no payment theater) ===
@@ -676,7 +689,7 @@ NORMIES OVERRIDE: x402 is industry-live; Normies enablement of x402/6551 for age
   const loaded = (block: string) => !/not loaded|not run|unavailable \(|^- \(no token IDs/.test(block.split("\n")[0] ?? "")
 
   const system = `${systemPrompt(route)}
-${buildMarketStatusBlock(market, new Date())}
+${route.arena ? `${arenaFactsBlock()}\n` : ""}${buildMarketStatusBlock(market, new Date())}
 ${fullProtocolsSection}${erc6551Section}${collabFocusSection}`
 
   const sections: string[] = []
@@ -701,6 +714,16 @@ Zulo's own Normie #${ZULO_IDENTITY.tokenId}: ${zuloAp} #PIXEL attached`)
   add("SUBJECT SCOPE", subjectScopeBlock)
   add("COLLECTION MATH (computed this turn from every living Normie — quote these numbers, do not recompute)", cm ? formatCollectionMath(cm) : "", !!cm)
   add("MENTIONED / FETCHED NORMIES (facts only)", mentionedBlock, mentioned.length > 0)
+  const arenaLines = route.arena
+    ? mentioned
+        .filter((m) => m.fetchOk)
+        .map((m) => {
+          const line = arenaLineFor(String(m.traits?.Type ?? m.traits?.type ?? ""), m.level ?? null)
+          return line ? `- #${m.tokenId}: ${line}` : null
+        })
+        .filter((l): l is string => l !== null)
+    : []
+  add("ARENA LINE FOR MENTIONED NORMIES (from the official tables; quote with the source)", arenaLines.join("\n"), arenaLines.length > 0)
   add("FLOOR SNAPSHOT (live + Supabase history)", floorSnapshotBlock, !!fs)
   add("MARKET STATE (PIXEL MARKET Sentinel)", marketStateBlock, !!ms)
   add("GACHA & RAFFLE INTELLIGENCE", gachaBlock, !!gr)
