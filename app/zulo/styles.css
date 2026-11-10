@@ -3558,6 +3558,7 @@
 .zulo-chrome .record-card .rc-share-btn:focus-visible { background: var(--text-primary); color: var(--bg-primary); outline: none; }
 .zulo-chrome .record-card .rc-share-primary { border-color: var(--pulse-cyan); background: var(--pulse-cyan); color: var(--on-cta); }
 @media (max-width: 480px) { .zulo-chrome .record-card .rc-share-btn { flex: 1 1 auto; } }
+.zulo-chrome .record-card .rc-wallet { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
 
 /* ================================================================================================
    PULSE page v2 (2026-10-18) — live heartbeat hero, trust gate, record card, growth track.
