@@ -110,8 +110,8 @@ export const NORMIES_PATHS: OurAgentTool = {
 
 /**
  * The Pixel Market vs burning compare moved off Pixel Check on 2026-11-10 (AGENTS.md fences buy-vs-burn views to /burn).
- * The on-chain manifest (pinned by manifestHash) still lists calc on /api/ap-check; that call now answers 410 with movedTo.
- * Re-registering the manifest without calc is Ryan's call.
+ * The on-chain manifest (pinned by manifestHash) still lists calc on /api/ap-check, so that call keeps answering (Ryan,
+ * option B): the same labelled answer plus movedTo. Re-registering the manifest without calc is a later step.
  */
 export const PIXEL_COMPARE_ENDPOINT = "https://normiescredhub.vercel.app/api/burn/ap-check"
 

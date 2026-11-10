@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { bodyToParams } from "@/lib/ap-check/body"
 import { parseTokenInput } from "@/lib/ap-check/core"
-import { movedCompareBody, movedCompareUrl } from "@/lib/ap-check/compare-api"
+import { compareResponse } from "@/lib/ap-check/compare-answer"
+import { movedCompareFields, movedCompareUrl } from "@/lib/ap-check/compare-api"
 import { checkApprovals, checkListings, checkToken, checkWallet } from "@/lib/ap-check/load"
 import { normalizeWalletInput } from "@/lib/burn-buy/wallet-input"
 import { checkContract, parseAddressInput } from "@/lib/official-contracts"
@@ -18,9 +19,10 @@ import { checkRateLimit } from "@/lib/ratelimit"
  * GET /api/ap-check?listings=1   the cheapest listings whose live pixels are below what OpenSea shows, or below our census.
  * GET /api/ap-check?approvals=0x… every address that wallet approved to spend its #PIXEL, with live amounts and official labels.
  * GET /api/ap-check?contract=0x… whether an address is on the official Normies contract list (normies.art/docs).
- * GET /api/ap-check?calc=…        410 Gone with movedTo: the Pixel Market vs burning compare moved to /api/burn/ap-check
- *                                 (2026-11-10: AGENTS.md fences buy-vs-burn views to /burn). The ERC-8257 manifest is pinned
- *                                 on chain, so it still lists calc; the 410 tells callers where it went.
+ * GET /api/ap-check?calc=pixels&amount=500 | ?calc=eth&amount=0.5   still answers (Ryan, 2026-11-10, option B): the
+ *                                 ERC-8257 manifest pinned on chain lists calc, so registered calls keep working. Same answer
+ *                                 as /api/burn/ap-check (its home under /burn), with the not-financial-advice notes and
+ *                                 movedTo added. Re-registering the manifest without calc is a later, separate step.
  *
  * POST /api/ap-check with a JSON body of the same fields ({"token":7141}, {"listings":true}, …)
  * gives the same answers. That is how agents call registered ERC-8257 tools.
@@ -87,8 +89,10 @@ async function answer(sp: URLSearchParams, isPost: boolean): Promise<NextRespons
       return NextResponse.json(result, { headers: cache({ "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" }) })
     }
     if (sp.get("calc") !== null) {
-      // Moved under /burn. 410 (not a redirect) so no client keeps getting a buy-vs-burn answer outside /burn by accident.
-      return NextResponse.json(movedCompareBody(sp), { status: 410, headers: { ...NO_STORE, Link: `<${movedCompareUrl(sp)}>; rel="alternate"` } })
+      // Kept for the pinned manifest (additive, AGENTS.md): same labelled answer as /api/burn/ap-check, plus where it lives now.
+      const res = await compareResponse(sp, isPost, movedCompareFields(sp))
+      res.headers.set("Link", `<${movedCompareUrl(sp)}>; rel="alternate"`)
+      return res
     }
     const contractRaw = sp.get("contract")
     if (contractRaw !== null) {

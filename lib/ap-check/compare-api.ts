@@ -1,5 +1,5 @@
-// /api/burn/ap-check: the market-or-burn compare as JSON. Pure request → response pieces, so the route stays thin and the
-// "moved" answer for the old /api/ap-check?calc= is shared and tested.
+// /api/burn/ap-check: the market-or-burn compare as JSON. Pure request → response pieces, so the routes stay thin and the
+// extra fields for the old /api/ap-check?calc= address are shared and tested.
 
 import { COMPARE_FINE_PRINT, COMPARE_SOURCES } from "./compare-text"
 
@@ -17,16 +17,14 @@ export function movedCompareUrl(sp: URLSearchParams): string {
 }
 
 /**
- * 410 body for /api/ap-check?calc=…: the compare moved under /burn (AGENTS.md: buy-vs-burn views are fenced to /burn).
- * Same JSON error shape the ERC-8257 manifest documents ({error, code, retryable}), plus where to go.
+ * Fields added to answers on the old /api/ap-check?calc= address (kept working for the ERC-8257 manifest pinned on chain;
+ * Ryan chose this over a 410 on 2026-11-10). Additive only: the answer itself is identical to /api/burn/ap-check.
  */
-export function movedCompareBody(sp: URLSearchParams) {
+export function movedCompareFields(sp: URLSearchParams) {
   return {
-    error: "The Pixel Market vs burning compare moved under /burn. Call movedTo instead (same calc and amount).",
-    code: "moved",
-    retryable: false,
     movedTo: movedCompareUrl(sp),
     page: "/burn#compare",
+    deprecated: "This compare lives under /burn now. Call movedTo; this address keeps answering for the registered tool.",
   }
 }
 

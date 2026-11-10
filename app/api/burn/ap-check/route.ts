@@ -1,9 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { bodyToParams } from "@/lib/ap-check/body"
-import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
-import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
-import { COMPARE_API_NOTES } from "@/lib/ap-check/compare-api"
+import { compareResponse } from "@/lib/ap-check/compare-answer"
 import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 
 /**
@@ -56,26 +54,6 @@ async function rateLimited(req: NextRequest): Promise<NextResponse | null> {
   return rl.ok ? null : rl.response
 }
 
-async function answer(sp: URLSearchParams, isPost: boolean): Promise<NextResponse> {
-  const cache = isPost ? { "Cache-Control": "no-store" } : { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30" }
-  const calc = sp.get("calc")
-  if (calc !== "pixels" && calc !== "eth") {
-    return NextResponse.json({ error: "pass calc=pixels or calc=eth, with amount", code: "invalid_calc" }, { status: 400 })
-  }
-  const amount = Number(sp.get("amount"))
-  const ok = calc === "pixels" ? Number.isInteger(amount) && amount > 0 && amount <= 1_000_000 : amount > 0 && amount <= 1_000
-  if (!ok) return NextResponse.json({ error: "amount must be a positive whole number of pixels (calc=pixels) or ETH up to 1000 (calc=eth)", code: "invalid_amount" }, { status: 400 })
-  try {
-    const inputs = await loadBuySmart()
-    if (!inputs) return NextResponse.json({ error: "listings or the Pixel Market could not be read", code: "unavailable", retryable: true }, { status: 502 })
-    const depth = inputs.book && !inputs.book.paused ? inputs.book.depth : null
-    const plan = calc === "pixels" ? planForPixels(inputs.picks, depth, amount) : planForBudget(inputs.picks, depth, amount)
-    return NextResponse.json(
-      { answer: plan, yieldMode: inputs.yieldMode, modeSource: inputs.modeSource, listingsChecked: inputs.listingsChecked, liveConfirmed: inputs.liveConfirmed, asOf: inputs.asOf, ...COMPARE_API_NOTES },
-      { headers: cache },
-    )
-  } catch (err) {
-    console.error("[burn ap-check] unexpected failure", err)
-    return NextResponse.json({ error: "Something went wrong on our side.", code: "internal", retryable: true }, { status: 500 })
-  }
+function answer(sp: URLSearchParams, isPost: boolean): Promise<NextResponse> {
+  return compareResponse(sp, isPost)
 }

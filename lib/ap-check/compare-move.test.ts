@@ -1,12 +1,13 @@
 // Market-or-burn compare moved under /burn (Ryan, 2026-11-10). AGENTS.md fences buy-vs-burn views to /burn, so the /pixels
-// Buy tab is gone, the API lives at /api/burn/ap-check, and the old /api/ap-check?calc= answers 410 with a pointer.
+// Buy tab is gone, the API lives at /api/burn/ap-check, and the old /api/ap-check?calc= keeps answering (pinned ERC-8257
+// manifest; Ryan chose option B) with the same labels plus movedTo.
 import assert from "node:assert/strict"
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, it } from "node:test"
 
 import { burnPicks, planForBudget, planForPixels, type BurnCandidate } from "./buy-smart"
-import { COMPARE_API_NOTES, COMPARE_API_PATH, movedCompareBody, movedCompareUrl } from "./compare-api"
+import { COMPARE_API_NOTES, COMPARE_API_PATH, movedCompareFields, movedCompareUrl } from "./compare-api"
 import { COMPARE_FINE_PRINT, compareLines, parseCalcAmount } from "./compare-text"
 
 const ROOT = join(__dirname, "..", "..")
@@ -30,9 +31,12 @@ describe("the compare is reachable only under /burn", () => {
     assert.match(page, /redirect\(`\/burn\?\$\{q\.toString\(\)\}#compare`\)/)
     assert.match(page, /id: "market", label: "Market"/)
   })
-  it("only /burn and /api/burn use the compare math in app/", () => {
+  it("in app/, only /burn computes the compare; the APIs go through the one labelled helper", () => {
     const users = walk("app").filter((f) => /planForPixels|planForBudget/.test(read(f)))
-    assert.deepEqual(users.sort(), ["app/api/burn/ap-check/route.ts", "app/burn/page.tsx"])
+    assert.deepEqual(users.sort(), ["app/burn/page.tsx"])
+    const helperUsers = walk("app").filter((f) => /compareResponse\(/.test(read(f)))
+    // /api/ap-check stays only for the ERC-8257 manifest pinned on chain (Ryan, option B, 2026-11-10).
+    assert.deepEqual(helperUsers.sort(), ["app/api/ap-check/route.ts", "app/api/burn/ap-check/route.ts"])
   })
   it("/burn renders the compare with its labels", () => {
     assert.match(read("app/burn/page.tsx"), /<PixelCompare /)
@@ -45,16 +49,18 @@ describe("the compare is reachable only under /burn", () => {
       "Don't take our word for it: check the order book and the listings yourself before you do anything.",
     ])
   })
-  it("the old /api/ap-check?calc= answers 410 with movedTo, and no longer computes it", () => {
+  it("the old /api/ap-check?calc= keeps answering for the pinned manifest: same shared answer, labels, plus movedTo", () => {
     const route = read("app/api/ap-check/route.ts")
-    assert.doesNotMatch(route, /planForPixels|planForBudget|loadBuySmart/)
-    assert.match(route, /movedCompareBody\(sp\), \{ status: 410/)
+    assert.match(route, /compareResponse\(sp, isPost, movedCompareFields\(sp\)\)/)
+    assert.doesNotMatch(route, /status: 410/)
+    // One implementation for both addresses, so the labels can never differ.
+    assert.match(read("app/api/burn/ap-check/route.ts"), /compareResponse\(sp, isPost\)/)
+    assert.match(read("lib/ap-check/compare-answer.ts"), /\.\.\.COMPARE_API_NOTES/)
     const sp = new URLSearchParams({ calc: "eth", amount: "0.5", token: "1" })
     assert.equal(movedCompareUrl(sp), "/api/burn/ap-check?calc=eth&amount=0.5")
-    const body = movedCompareBody(sp)
-    assert.equal(body.code, "moved")
-    assert.equal(body.retryable, false)
-    assert.equal(body.movedTo, `${COMPARE_API_PATH}?calc=eth&amount=0.5`)
+    const extra = movedCompareFields(sp)
+    assert.equal(extra.movedTo, `${COMPARE_API_PATH}?calc=eth&amount=0.5`)
+    assert.equal(extra.page, "/burn#compare")
   })
   it("llms.txt and the tool docs point to /api/burn/ap-check, not /api/ap-check?calc=", () => {
     const llms = read("public/llms.txt")
