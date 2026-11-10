@@ -3,6 +3,7 @@
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
 
 import { estimateAPYield, fetchLiveBurns } from "./burnData"
 import { ECOSYSTEM_LINKS } from "./constants"
@@ -435,27 +436,25 @@ export function explainTrigger(t: string): string {
 }
 
 /**
- * Numbers-only line for the AP metrics. No "can beat" / "buy here" framing:
- * the comparison is the holder's; /burn is the vibe check (not financial advice).
+ * Notes for the #PIXEL (action points) metrics. Facts only, no buy-to-burn math: a "#PIXEL per ETH from buying a floor
+ * Normie and burning it" figure is exactly the efficiency pick Ask must not give (AGENTS.md, /burn fence), so it is
+ * never put into words here. The raw numbers (floorBuyEfficiency, impliedApCostETH) stay on the result for internal use
+ * and are stripped from Ask's context in buildContext. Market status comes from lib/official-status.ts, never hardcoded.
  */
 export function describeApMetrics(input: {
   apMarketStatus: "planned" | "live"
-  medianAp: number
-  floorBuyEfficiency: number | null
-  impliedApCostETH: number | null
+  apMarketPriceETH?: number | null
 }): { spreadNote: string; opportunity: string } {
-  if (input.apMarketStatus === "planned") {
+  const pointer = "Not financial advice; see /burn for a vibe check."
+  if (input.apMarketStatus === "live" && input.apMarketPriceETH != null) {
     return {
-      spreadNote:
-        "The Pixel Market is live, but this scan has no #PIXEL quotes, so no AP↔floor spread is computed here. The official Pixel Market page shows its asks.",
-      opportunity: `Metric only: ~${input.medianAp} AP median burn yield / floor ≈ ${input.floorBuyEfficiency ?? "n/a"} AP per ETH (≈ ${input.impliedApCostETH ?? "n/a"} ETH per AP). Not financial advice; see /burn for a vibe check.`,
+      spreadNote: `#PIXEL (action points) ask in this scan: ~${input.apMarketPriceETH} ETH each. A snapshot; check the official Pixel Market page before acting.`,
+      opportunity: `No comparison or verdict here. ${pointer}`,
     }
   }
   return {
-    spreadNote:
-      "Live #PIXEL asks and the floor-based ETH per AP are shown as numbers only.",
-    opportunity:
-      "Numbers only, no verdict. Not financial advice; see /burn for a vibe check.",
+    spreadNote: `${PIXEL_MARKET_STATUS_LINE}. This scan has no #PIXEL (action points) quotes; the official Pixel Market page shows its asks.`,
+    opportunity: `No comparison or verdict here. ${pointer}`,
   }
 }
 
@@ -704,12 +703,7 @@ export async function runMarketSentinel(options?: {
     impliedApCostETH,
     apMarketPriceETH,
     apMarketStatus,
-    ...describeApMetrics({
-      apMarketStatus,
-      medianAp,
-      floorBuyEfficiency,
-      impliedApCostETH,
-    }),
+    ...describeApMetrics({ apMarketStatus, apMarketPriceETH }),
   }
 
   // AGENTS.md: no burn/keep/buy calls outside /burn. Kept empty for type compat.

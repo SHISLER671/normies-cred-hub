@@ -948,12 +948,19 @@ describe("no burn/keep/buy verdicts outside /burn (#148 leftovers)", () => {
       explainTrigger("Burn volume spike 2.50x (threshold 2x)"),
       explainTrigger("2 whale actor(s) moved ≥10 Normies in sample"),
       explainTrigger("Trading volume velocity 2.00x vs 7d daily avg"),
-      ...Object.values(describeApMetrics({ apMarketStatus: "planned", medianAp: 30, floorBuyEfficiency: 100, impliedApCostETH: 0.01 })),
-      ...Object.values(describeApMetrics({ apMarketStatus: "live", medianAp: 30, floorBuyEfficiency: 100, impliedApCostETH: 0.01 })),
+      ...Object.values(describeApMetrics({ apMarketStatus: "planned" })),
+      ...Object.values(describeApMetrics({ apMarketStatus: "live", apMarketPriceETH: 0.0021 })),
+      ...Object.values(describeApMetrics({ apMarketStatus: "live", apMarketPriceETH: null })),
     ]
     for (const l of lines) {
       assert.doesNotMatch(l, VERDICT, l)
       assert.doesNotMatch(l, /buy-to-burn|fodder|before buying/i, l)
+      // Claude review of #157: no floor-buy-and-burn efficiency figure in words, no bare AP.
+      assert.doesNotMatch(l, /per ETH|ETH per|AP\s*\/\s*ETH|efficien/i, l)
+      assert.doesNotMatch(l, /\bAP\b/, l)
     }
+    // Status comes from lib/official-status.ts, not a hardcoded sentence.
+    const { PIXEL_MARKET_STATUS_LINE } = await import("../official-status")
+    assert.ok(describeApMetrics({ apMarketStatus: "planned" }).spreadNote.startsWith(PIXEL_MARKET_STATUS_LINE))
   })
 })

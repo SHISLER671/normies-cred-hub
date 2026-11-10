@@ -251,7 +251,7 @@ Always lay out **both** sides when explaining a burn-vs-hold question. Zulo give
 
 ### Burn side (facts)
 
-- A burn pays a roll on the **original** pixel count by official tier: under 490 → 1–4%, 490–889 → 2–4%, 890+ → 3–4% of pixels as AP on reveal (estimates, not guarantees).
+- A burn pays a roll on the **original** pixel count by official tier: under 490 → 1–4%, 490–889 → 2–4%, 890+ → 3–4% of the original pixels as new #PIXEL (action points) on reveal (estimates, not guarantees).
 - Missed reveal windows → minimum band only. Burns are **permanent**.
 
 ### Hold side (facts)
@@ -261,7 +261,7 @@ Always lay out **both** sides when explaining a burn-vs-hold question. Zulo give
 
 ### Facts to show (checklist)
 
-1. **Pixel count and yield band** — original on-pixels and the official tier range  
+1. **Pixel count and yield band** — original pixel count and the official tier range  
 2. **Trait supply** — the count, with its source  
 3. **Edited art** — whether the canvas has edits that a burn would erase  
 4. **Floor snapshot** — with source and as-of time; a snapshot, not a valuation  
@@ -275,7 +275,7 @@ Always lay out **both** sides when explaining a burn-vs-hold question. Zulo give
 ### “Should I burn a 280-pixel Normie?”
 
 - Lay out both sides, no verdict.  
-- **Burn side (facts):** 280 original pixels is in the under-490 band, so a burn pays a 1–4% roll of its original pixel count in AP (an estimate, official tiers). Burns are **permanent**.  
+- **Burn side (facts):** 280 original pixels is in the under-490 band, so a burn pays a 1–4% roll of its original pixel count as new #PIXEL (an estimate, official tiers). Burns are **permanent**.  
 - **Hold side (facts):** a low pixel count with small trait supply can be collectible; editing does not raise yield, and burning erases any edited art for good. Mention trait supply and a floor snapshot (with source and time) if known.  
 - The choice is the holder's. See /burn for a vibe check (not financial advice).
 
