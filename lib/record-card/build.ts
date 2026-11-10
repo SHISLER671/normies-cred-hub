@@ -76,12 +76,21 @@ export function pulseGate(breakdown: string[] | null | undefined) {
   }
 }
 
-/** The Arena Canvas rank field for a Level read from the official API. Name only; never counted toward a rank. */
+/** Why the rank is "pending", not "verified" (spec 2.2: verified means every input is on-chain or official API). */
+export const ARENA_CANVAS_RANK_PENDING_REASON =
+  "Arena is Coming Soon; the rank names come from normiesART's Arena article, not the docs or the chain, and may change"
+
+/**
+ * The Arena Canvas rank field for a Level read from the official API. Name only; never counted toward a rank.
+ * Labelled "pending" (Claude review of #161): the Level is official, but the rank table is from an X article for a game
+ * that is not live, so it is not a verified input and must never look like one (only verified fields may count).
+ */
 export function arenaCanvasRankField(tokenId: number, level: number | null, asOf: string): ArenaCanvasRankField {
   const rank = rankForLevel(level)
   return {
     value: rank ? rank.name : null,
-    label: rank ? "verified" : "unavailable",
+    label: rank ? "pending" : "unavailable",
+    ...(rank ? { pending_reason: ARENA_CANVAS_RANK_PENDING_REASON } : {}),
     source: { kind: "nch_computed", ref: `Level from GET /normie/${tokenId}/canvas/info; rank names per normiesART's Arena article` },
     as_of: asOf,
     counts_toward_rank: false,

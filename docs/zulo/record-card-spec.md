@@ -96,7 +96,7 @@ type Field<T> = {
 | `level` | `number` | official_api: `GET /normie/{id}/canvas/info` → `level` | verified | UI label "Level" |
 | `pixels_attached` | `number` | official_api: `/normie/{id}/canvas/info` → `actionPoints` (same as `/canvas/token/{id}/pixels` `attached`) | verified | UI label "Pixels on this Normie (action points)". Never a bare "AP" |
 | `pixels_locked` / `pixels_free` | `number` | official_api: `/normie/{id}/canvas/info` → `lockedPixels`, `freePixels` | verified | |
-| `arena_canvas_rank` | `string` + `counts_toward_rank: false`, `from_level`, `source_url`, `source_published`, `note` | nch_computed: Level (`/normie/{id}/canvas/info`) → rank names per normiesART's Arena article (Oct 23, 2026; `lib/normies-canon.ts`) | verified (unavailable without a Level) | UI label "Arena Canvas rank". Name only; top band shown as "Level 150+ (top Arena rank)". A label, not a score: never counts toward a rank or Pulse. Not on the share image. The next rank's Level is shown on /burn only |
+| `arena_canvas_rank` | `string` + `counts_toward_rank: false`, `from_level`, `source_url`, `source_published`, `note` | nch_computed: Level (`/normie/{id}/canvas/info`) → rank names per normiesART's Arena article (Oct 23, 2026; `lib/normies-canon.ts`) | pending, with `pending_reason` (unavailable without a Level): the rank table is from an X article for a game that is not live, so it is not a verified input | UI label "Arena Canvas rank". Name only; top band shown as "Level 150+ (top Arena rank)". A label, not a score: never counts toward a rank or Pulse. Not on the share image. The next rank's Level is shown on /burn only |
 | `image_url` | `string` | official_api: `/normie/{id}/image.svg` | verified | |
 
 ### 3.2 Arena record (pending: Arena not live)

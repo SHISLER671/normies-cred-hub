@@ -114,7 +114,9 @@ describe("record card JSON", () => {
   it("identity.arena_canvas_rank: name, source url, as_of, never counted", async () => {
     const r = (await card(2)).identity.arena_canvas_rank!
     assert.equal(r.value, "Sketched")
-    assert.equal(r.label, "verified")
+    // Not "verified": the rank table is from an X article for a game that is not live (spec 2.2). Claude review of #161.
+    assert.equal(r.label, "pending")
+    assert.match(r.pending_reason!, /Arena is Coming Soon; the rank names come from normiesART's Arena article/)
     assert.equal(r.counts_toward_rank, false)
     assert.equal(r.from_level, 2)
     assert.equal(r.source_url, ARENA_CANVAS_RANKS_SOURCE.url)
