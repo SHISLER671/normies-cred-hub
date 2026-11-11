@@ -43,7 +43,7 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 - Ryan merges. Pull `main` and check merged PRs before assuming anything is unmerged.
 - Run `pnpm typecheck` and `pnpm test:all` before opening a PR. New test files go into the `test:all` and `test:unit` scripts.
 - Sign your work: put your agent name (Claude, GrokBot, GrokProject, Zulo Desk) in the commit message and PR title or body.
-- **Scope check** (`.github/workflows/scope-check.yml`): every task PR must stay inside `.claude/contract.txt` as it is on `main` (one glob per line; land the contract first). Workflows, `.github/scripts/`, `public/.well-known/`, env files and lockfiles are always protected. Only Ryan adds the `contract-override` label to let a PR past either rule.
+- **Scope check** (`.github/workflows/scope-check.yml`): every task PR must stay inside `.claude/contract.txt` as it is on `main` (one glob per line; land the contract first). Workflows, `.github/scripts/`, `public/.well-known/`, env files (incl. `.envrc`), key files and lockfiles are always protected. The check runs on `pull_request_target` from main's copy and only reads PR files with git; never add a step there that runs PR code. Only Ryan adds the `contract-override` label to let a PR past either rule.
 
 ## Where things live (keep this file rules-only)
 - Product status → `lib/official-status.ts`.

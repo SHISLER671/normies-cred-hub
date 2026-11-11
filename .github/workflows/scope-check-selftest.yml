@@ -1,0 +1,26 @@
+name: Scope check self-test
+
+# Runs the scope check's own tests when a PR changes them. Uses plain
+# pull_request (read-only token, no secrets), so running PR code here is safe.
+# This is NOT the gate; the gate is scope-check.yml.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/**"
+      - ".github/workflows/scope-check*.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Self-test
+        run: bash .github/scripts/scope-check.test.sh

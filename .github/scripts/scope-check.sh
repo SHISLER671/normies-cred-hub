@@ -21,7 +21,8 @@ if jq -e --arg l "$OVERRIDE_LABEL" 'index($l) != null' <<<"$LABELS_JSON" >/dev/n
 fi
 
 # --no-renames lists a rename as delete(old) + add(new), so both paths are checked.
-mapfile -t changed < <(git diff --name-only --no-renames --diff-filter=ACMRDT "origin/${BASE_REF}...HEAD")
+# core.quotePath=false keeps non-ASCII names (e.g. app/café/) as real paths, not "\303\251" escapes.
+mapfile -t changed < <(git -c core.quotePath=false diff --name-only --no-renames --diff-filter=ACMRDT "origin/${BASE_REF}...HEAD")
 
 # Always-forbidden rules. Hardcoded here on purpose: nothing in the repo can relax them.
 # Prints a reason if the path is protected, nothing otherwise.
@@ -37,11 +38,15 @@ forbidden_reason() {
     pnpm-lock.yaml|package-lock.json|yarn.lock|bun.lockb|bun.lock|npm-shrinkwrap.json)
       echo "protected: lockfile"; return ;;
   esac
-  # Env files: .env, .env.*, *.env — except names ending in .example (names only, checked by CI).
+  # Env files: .env, .env.*, *.env, .envrc — except names ending in .example (names only, checked by CI).
   if [[ "$base" == *.example ]]; then return; fi
-  if [[ "$base" == ".env" || "$base" == .env.* || "$base" == *.env ]]; then
+  if [[ "$base" == ".env" || "$base" == .env.* || "$base" == *.env || "$base" == ".envrc" ]]; then
     echo "protected: env file"; return
   fi
+  # Key material.
+  case "$base" in
+    *.pem|*.key|*.p12|*.pfx|id_rsa|id_ed25519) echo "protected: key file"; return ;;
+  esac
 }
 
 # Contract allow list from the BASE branch only (never from the PR head).

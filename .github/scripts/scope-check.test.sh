@@ -55,6 +55,9 @@ run_case "override label passes everything"   0 '["bug","contract-override"]' "$
 run_case "other labels do not override"       1 '["contract-overrides"]' "$C" 'echo y >README.md'
 run_case "missing contract: normal file passes" 0 '[]' "NONE" 'echo y >README.md'
 run_case "missing contract: workflow still fails" 1 '[]' "NONE" 'echo y >.github/workflows/ci.yml'
+run_case "non-ASCII path inside contract passes" 0 '[]' "$C" 'mkdir -p "app/café"; echo y >"app/café/page.tsx"'
+run_case ".envrc fails"                       1 '[]' "NONE" 'echo y >.envrc'
+run_case "key file fails"                     1 '[]' "NONE" 'echo y >app/signer.pem'
 run_case "empty contract fails any change"    1 '[]' '# nothing allowed\n' 'echo y >app/page.tsx'
 
 echo
