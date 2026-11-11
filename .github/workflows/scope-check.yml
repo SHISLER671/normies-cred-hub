@@ -1,0 +1,43 @@
+name: Scope check
+
+# Fails a PR that changes protected files, or files outside the task contract
+# (.claude/contract.txt as it is on the base branch). Ryan's `contract-override`
+# label lets a PR through. See .github/scripts/scope-check.sh.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: scope-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Self-test
+        run: bash .github/scripts/scope-check.test.sh
+      - name: Check scope
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          # Run the base branch's copy of the script when it exists, so a PR
+          # cannot weaken the check by editing the script it is checked by.
+          if git cat-file -e "origin/${BASE_REF}:.github/scripts/scope-check.sh" 2>/dev/null; then
+            git show "origin/${BASE_REF}:.github/scripts/scope-check.sh" >"$RUNNER_TEMP/scope-check.sh"
+          else
+            cp .github/scripts/scope-check.sh "$RUNNER_TEMP/scope-check.sh"
+          fi
+          bash "$RUNNER_TEMP/scope-check.sh"
