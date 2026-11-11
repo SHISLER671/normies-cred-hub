@@ -3,9 +3,14 @@ name: Scope check
 # Fails a PR that changes protected files, or files outside the task contract
 # (.claude/contract.txt as it is on the base branch). Ryan's `contract-override`
 # label lets a PR through. See .github/scripts/scope-check.sh.
+#
+# Why pull_request_target: GitHub runs THIS file as it is on main, not the PR's
+# copy, so a PR cannot edit the workflow or the script to make itself pass.
+# Safety rule for this trigger: PR code is only read with git, never executed.
+# Do not add install, build, test or any step that runs files from the PR head.
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, labeled, unlabeled]
     branches: [main]
 
@@ -22,22 +27,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Checks out the BASE branch (main). Trusted code only.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          persist-credentials: false
-      - name: Self-test
-        run: bash .github/scripts/scope-check.test.sh
+
+      - name: Copy the trusted script out of the base checkout
+        run: cp .github/scripts/scope-check.sh "$RUNNER_TEMP/scope-check.sh"
+
+      - name: Fetch PR head as data (not executed)
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pr/head"
+          if [ "$(git rev-parse refs/remotes/pr/head)" != "$HEAD_SHA" ]; then
+            echo "::error::PR head moved while fetching; re-run."
+            exit 2
+          fi
+          git checkout --quiet --detach refs/remotes/pr/head
+
       - name: Check scope
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
-        run: |
-          # Run the base branch's copy of the script when it exists, so a PR
-          # cannot weaken the check by editing the script it is checked by.
-          if git cat-file -e "origin/${BASE_REF}:.github/scripts/scope-check.sh" 2>/dev/null; then
-            git show "origin/${BASE_REF}:.github/scripts/scope-check.sh" >"$RUNNER_TEMP/scope-check.sh"
-          else
-            cp .github/scripts/scope-check.sh "$RUNNER_TEMP/scope-check.sh"
-          fi
-          bash "$RUNNER_TEMP/scope-check.sh"
+        run: bash "$RUNNER_TEMP/scope-check.sh"
