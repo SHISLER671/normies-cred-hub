@@ -127,9 +127,16 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     // Worded as a date, not "opens", so it stays true after November 14 (Claude review of #160).
     assert.doesNotMatch(ARENA_REGISTRATION_LINE, /registration opens/i)
     // Ryan, 2026-11-11: the planned date from normiesART's Arena article replaces "mid-November".
-    assert.match(ARENA_STATUS_LINE, /expected November 15, 2026 \(planned, per normiesART's Arena article, Oct 23\)/)
+    assert.equal(OFFICIAL_STATUS.arena.source, "https://x.com/normiesART/status/2120475856372142292")
+    assert.equal(OFFICIAL_STATUS.arena.expected, "Monday, November 16, 2026 (planned, per normiesART's Nov 11 post)")
+    assert.doesNotMatch(OFFICIAL_STATUS.arena.expected, /http/i)
+    assert.match(ARENA_STATUS_LINE, /expected Monday, November 16, 2026 \(planned, per normiesART's Nov 11 post, https:\/\/x\.com\/normiesART\/status\/2120475856372142292\)/)
     assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
     assert.equal(SURFACE_TAGS.arena, "COMING SOON")
+  })
+  it("on-page expected copy has no URL; the status line still carries the source", () => {
+    assert.doesNotMatch(OFFICIAL_STATUS.arena.expected, /http/i)
+    assert.ok(ARENA_STATUS_LINE.includes(OFFICIAL_STATUS.arena.source))
   })
   it("no time, timezone, prize or earnings claim in the line", () => {
     assert.doesNotMatch(ARENA_REGISTRATION_LINE, /\b(UTC|GMT|ChST|PST|EST|[AP]M)\b|\d{1,2}:\d{2}/)
@@ -172,16 +179,19 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     const prompt = composeZuloPrompt(ctx as never, "Is Arena live?")
     assert.ok(prompt.includes(`"Is Arena live / can I play?": no. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}.`))
   })
-  it("no surface says Arena is live, open or that registration is open now; Nov 15 only as the article's planned launch", () => {
+  it("no surface says Arena is live, open or that registration is open now; Nov 16 only as the planned launch", () => {
     // User-facing code, prompts, knowledge and public files. docs/zulo is checked only for dates: its record-card spec
     // describes future states ("Arena is live, but the sample isn't met").
     const surfaces = [...walk("lib"), ...walk("app"), ...walk("components"), ...walk("public"), "README.md", "AGENTS.md"]
     const docs = walk("docs/zulo").filter((f) => !f.includes("/archive/"))
     const live = /\bArena\s*(?:=|:|is|now)\s*\**\s*(?:LIVE|open|playable)\b|registration is (?:now )?open\b/i
-    // Ryan, 2026-11-11: November 15, 2026 is the article's PLANNED launch. It may appear only worded as a plan.
-    const nov15 = /\bNov(?:ember)?\.? 15(?:th)?\b(?!, 2026 \(planned|, 2026 \(a plan)/i
+    // The earlier planned date is banned outright, even when worded as a plan. Nov 16 may appear only as a plan.
+    // walk() already skips *.test.* files, so historical test comments are not scanned.
+    const nov15 = /\bNov(?:ember)?\.? 15(?:th)?\b|2026-11-15/
+    const nov16 = /\bNov(?:ember)?\.? 16(?:th)?\b(?!, 2026 \(planned|, 2026 \(a plan)/i
+    const dates = new RegExp(`${nov15.source}|${nov16.source}`, "i")
     const hits: string[] = []
-    for (const [files, re] of [[surfaces, new RegExp(`${live.source}|${nov15.source}`, "i")], [docs, nov15]] as const) {
+    for (const [files, re] of [[surfaces, new RegExp(`${live.source}|${dates.source}`, "i")], [docs, dates]] as const) {
       for (const f of files) {
         fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
           if (re.test(line)) hits.push(`${f}:${i + 1}: ${line.trim().slice(0, 140)}`)

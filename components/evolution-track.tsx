@@ -1,5 +1,5 @@
 import { Chip, Eyebrow, StepLabel } from "@/components/brand"
-import { AGENTS_CANVAS_STATUS_LINE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
+import { AGENTS_CANVAS_STATUS_LINE, ARENA_LAUNCH_SOURCE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
 import { isAgentsCanvasLive } from "@/lib/record-card/canvas"
 
 /** "COMING SOON" → "Coming soon": the official tag word, in sentence case. */
@@ -71,7 +71,14 @@ export function EvolutionTrack({
                 <span className="ev-sector-status">
                   {arenaOpen
                     ? "Launched; the record fills from official data once it is connected"
-                    : `${sentence(SURFACE_TAGS.arena)}, expected ${OFFICIAL_STATUS.arena.expected}`}
+                    : (
+                      <>
+                        {sentence(SURFACE_TAGS.arena)}, expected {OFFICIAL_STATUS.arena.expected}{" "}
+                        <a href={ARENA_LAUNCH_SOURCE} target="_blank" rel="noopener noreferrer" className="ev-link">
+                          source
+                        </a>
+                      </>
+                    )}
                 </span>
               </li>
               <li>

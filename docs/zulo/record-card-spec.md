@@ -4,7 +4,7 @@ Drafted 2026-10-18 (ChST) by GrokBot; score model folded in by Claude the same d
 
 Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` (the verified scoreboard; "Phase 1: Arena record card"), `docs/zulo/thesis-lock.md` §5–§7, `lib/official-status.ts`.
 
-Arena status (copied from `lib/official-status.ts`, never paraphrased): **Arena = Coming Soon (official docs; expected November 15, 2026 (planned, per normiesART's Arena article, Oct 23)); not playable on CredHub.** Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration.
+Arena status (copied from `lib/official-status.ts`, never paraphrased): **Arena = Coming Soon (official docs; expected Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, https://x.com/normiesART/status/2120475856372142292)); not playable on CredHub.** Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration.
 
 So every Arena field below is **pending: Arena not live**. There is no Arena route in `https://api.normies.art/llms.txt` (checked 2026-10-18) and no Arena contract in `lib/official-contracts.ts`. No endpoint in this file is invented. Anything not yet available is marked `pending` or `proposed`.
 

@@ -14,7 +14,7 @@ Normies: 10,000 on-chain 40×40 monochrome faces on Ethereum (token IDs 0–9999
 ## 2. Status (mirror of `lib/official-status.ts` — copy its lines, never paraphrase)
 - Canvas: LIVE.
 - Pixel Market = LIVE since 2026-10-05 (official)
-- Arena = Coming Soon (official docs; expected November 15, 2026 (planned, per normiesART's Arena article, Oct 23)); not playable on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. No "enter Arena" nextStep until the Lab ships a URL.
+- Arena = Coming Soon (official docs; expected Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, https://x.com/normiesART/status/2120475856372142292)); not playable on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. No "enter Arena" nextStep until the Lab ships a URL.
 - Agents Canvas = announced by @serc1n (2026-10-19), not live yet; no official data to read
 - Zombies = 21/21 sealed, not Arena, nothing to claim
 - Agent (swarm) trading: TEASER, not live — see §5.
