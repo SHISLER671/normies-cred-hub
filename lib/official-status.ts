@@ -19,7 +19,8 @@ export const OFFICIAL_STATUS = {
   },
   arena: {
     status: "COMING_SOON",
-    expected: "November 15, 2026 (planned, per normiesART's Arena article, Oct 23)",
+    // https://x.com/normiesART/status/2120475856372142292 (Nov 11, 2026): launching Monday; registration Saturday.
+    expected: "Monday, November 16, 2026 (planned, per normiesART)",
     /** Registration is not launch: Arena stays COMING_SOON until an official source says it is live. */
     registration: {
       week1Opens: "2026-11-14",

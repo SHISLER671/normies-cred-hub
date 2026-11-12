@@ -5,6 +5,7 @@ import { describe, it } from "node:test"
 import {
   ARENA_FEE_LINE,
   ARENA_HEAD_STARTS,
+  ARENA_PLANNED_LAUNCH,
   ARENA_TYPES,
   arenaFactsBlock,
   arenaHeadStartFor,
@@ -61,6 +62,8 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
   it("the Ask block states facts and forbids the rest", () => {
     const b = arenaFactsBlock()
     assert.match(b, /source: normiesART's Arena article, Oct 23, 2026/)
+    assert.equal(ARENA_PLANNED_LAUNCH, "2026-11-16")
+    assert.match(b, /Planned launch: Monday, November 16, 2026 \(a plan, per normiesART\)/)
     assert.match(b, /closed beta and may change/)
     assert.match(b, /a head start is not a guarantee/i)
     assert.match(b, /Never mention prizes, a prize pool, payouts/)

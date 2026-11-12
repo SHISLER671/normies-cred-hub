@@ -13,8 +13,8 @@ export const ARENA_ARTICLE = {
   checkedAt: "2026-11-11",
 } as const
 
-/** Planned launch date, as the article states it. A plan, not a status: see ARENA_STATUS_LINE. */
-export const ARENA_PLANNED_LAUNCH = "2026-11-15"
+/** Planned launch date, per normiesART (https://x.com/normiesART/status/2120475856372142292, Nov 11 2026). A plan, not a status: see ARENA_STATUS_LINE. */
+export const ARENA_PLANNED_LAUNCH = "2026-11-16"
 
 const SRC = `normiesART's Arena article, ${ARENA_ARTICLE.publishedText}`
 export const ARENA_MAY_CHANGE = "Arena is Coming Soon; the article's data is from a closed beta and may change"
@@ -134,7 +134,7 @@ export function arenaFactsBlock(): string {
     .map((h) => `- From Level ${h.fromLevel} (${h.rank}): ${h.headStart}`)
     .join("\n")
   return `=== ARENA FACTS (source: ${SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
-- Planned launch: November 15, 2026 (a plan, per the article). Until it is live, Arena is Coming Soon (status line above).
+- Planned launch: Monday, November 16, 2026 (a plan, per normiesART). Until it is live, Arena is Coming Soon (status line above).
 - A fully autonomous AI open world: Normies decide for themselves (Sage, Levanto's decision model). Holders only watch. A day lasts 6 real minutes; a season lasts 7 days.
 ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}
 - Fee: ${ARENA_FEE_LINE}.
