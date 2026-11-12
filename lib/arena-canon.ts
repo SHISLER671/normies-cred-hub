@@ -5,6 +5,7 @@
 // reset, so every table is labelled "may change".
 
 import { ARENA_CANVAS_RANKS } from "./normies-canon"
+import { ARENA_LAUNCH_SOURCE } from "./official-status"
 
 export const ARENA_ARTICLE = {
   url: "https://x.com/normiesART/status/2113323053304238383",
@@ -13,7 +14,7 @@ export const ARENA_ARTICLE = {
   checkedAt: "2026-11-11",
 } as const
 
-/** Planned launch date, per normiesART (https://x.com/normiesART/status/2120475856372142292, Nov 11 2026). A plan, not a status: see ARENA_STATUS_LINE. */
+/** Planned launch date, per normiesART's Nov 11 post (ARENA_LAUNCH_SOURCE). A plan, not a status: see ARENA_STATUS_LINE. */
 export const ARENA_PLANNED_LAUNCH = "2026-11-16"
 
 const SRC = `normiesART's Arena article, ${ARENA_ARTICLE.publishedText}`
@@ -133,8 +134,8 @@ export function arenaFactsBlock(): string {
     .reverse()
     .map((h) => `- From Level ${h.fromLevel} (${h.rank}): ${h.headStart}`)
     .join("\n")
-  return `=== ARENA FACTS (source: ${SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
-- Planned launch: Monday, November 16, 2026 (a plan, per normiesART). Until it is live, Arena is Coming Soon (status line above).
+  return `=== ARENA FACTS (type stats and ranks: ${SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
+- Planned launch: Monday, November 16, 2026 (a plan, per normiesART's Nov 11 post, ${ARENA_LAUNCH_SOURCE}). Until it is live, Arena is Coming Soon (status line above).
 - A fully autonomous AI open world: Normies decide for themselves (Sage, Levanto's decision model). Holders only watch. A day lasts 6 real minutes; a season lasts 7 days.
 ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}
 - Fee: ${ARENA_FEE_LINE}.

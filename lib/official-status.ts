@@ -8,6 +8,9 @@
 
 export const OFFICIAL_STATUS_AS_OF = "2026-10-19"
 
+/** Planned Arena launch source: @normiesART, Nov 11, 2026 ("launching on Monday. Registration starts on Saturday."). */
+export const ARENA_LAUNCH_SOURCE = "https://x.com/normiesART/status/2120475856372142292"
+
 export const OFFICIAL_STATUS = {
   pixelMarket: {
     status: "LIVE",
@@ -19,8 +22,8 @@ export const OFFICIAL_STATUS = {
   },
   arena: {
     status: "COMING_SOON",
-    // https://x.com/normiesART/status/2120475856372142292 (Nov 11, 2026): launching Monday; registration Saturday.
-    expected: "Monday, November 16, 2026 (planned, per normiesART)",
+    expected: `Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, ${ARENA_LAUNCH_SOURCE})`,
+    source: ARENA_LAUNCH_SOURCE,
     /** Registration is not launch: Arena stays COMING_SOON until an official source says it is live. */
     registration: {
       week1Opens: "2026-11-14",
