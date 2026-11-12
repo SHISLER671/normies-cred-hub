@@ -2591,7 +2591,8 @@
   opacity: 0.9;
 }
 
-.zulo-chrome .home-future-manifest a {
+.zulo-chrome .home-future-manifest a,
+.zulo-chrome .home-future-nested .card-body a {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -3737,7 +3738,7 @@
   display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
   padding: 8px 0; border-top: 1px solid var(--border-light); font-size: 14px;
 }
-.zulo-chrome.dash-shell .ev-sector-status { font-size: 13px; color: var(--text-muted); text-align: right; }
+.zulo-chrome.dash-shell .ev-sector-status { font-size: 13px; color: var(--text-muted); text-align: right; flex: 1; min-width: 0; overflow-wrap: break-word; }
 
 /* Your agents */
 .zulo-chrome.dash-shell .pulse-agents { display: flex; flex-direction: column; gap: 16px; min-width: 0; }

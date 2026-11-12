@@ -22,7 +22,7 @@ export const OFFICIAL_STATUS = {
   },
   arena: {
     status: "COMING_SOON",
-    expected: `Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, ${ARENA_LAUNCH_SOURCE})`,
+    expected: "Monday, November 16, 2026 (planned, per normiesART's Nov 11 post)",
     source: ARENA_LAUNCH_SOURCE,
     /** Registration is not launch: Arena stays COMING_SOON until an official source says it is live. */
     registration: {
@@ -54,7 +54,7 @@ export type OfficialSurfaceStatus = "LIVE" | "COMING SOON" | "ALL CLAIMED"
 
 /** Canonical sentences. Copy these, never paraphrase a status. */
 export const PIXEL_MARKET_STATUS_LINE = `Pixel Market = LIVE since ${OFFICIAL_STATUS.pixelMarket.since} (official)`
-export const ARENA_STATUS_LINE = `Arena = Coming Soon (official docs; expected ${OFFICIAL_STATUS.arena.expected}); not playable on CredHub`
+export const ARENA_STATUS_LINE = `Arena = Coming Soon (official docs; expected ${OFFICIAL_STATUS.arena.expected.replace(/\)$/, `, ${ARENA_LAUNCH_SOURCE})`)}); not playable on CredHub`
 /** Copy next to ARENA_STATUS_LINE wherever Arena's status is stated. Date only, as posted: no time or timezone claim. */
 export const ARENA_REGISTRATION_LINE = `Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, ${OFFICIAL_STATUS.arena.registration.source}, as of the ${OFFICIAL_STATUS.arena.registration.postedAt.slice(0, 10)} post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration`
 export const AGENTS_CANVAS_STATUS_LINE = `Agents Canvas = announced by @serc1n (${OFFICIAL_STATUS.agentsCanvas.announced}), not live yet; no official data to read`

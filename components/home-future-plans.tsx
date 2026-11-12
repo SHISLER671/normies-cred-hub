@@ -4,7 +4,7 @@ import {
   PulseAccordion,
   PulseAccordionItem,
 } from "@/components/pulse-accordion"
-import { OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
+import { ARENA_LAUNCH_SOURCE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
 
 /** "COMING SOON" → "Coming soon": the official tag word, in sentence case. */
 function sentence(tag: string): string {
@@ -37,7 +37,10 @@ export function HomeFuturePlans() {
               >
                 <p className="card-body" style={{ margin: 0 }}>
                   Every record card already has an Arena slot. It fills from official Arena data only, the day that data
-                  exists: matches, wins, losses. No guesses, no screenshots.
+                  exists: matches, wins, losses. No guesses, no screenshots.{" "}
+                  <a href={ARENA_LAUNCH_SOURCE} target="_blank" rel="noopener noreferrer">
+                    source
+                  </a>
                 </p>
               </PulseAccordionItem>
 

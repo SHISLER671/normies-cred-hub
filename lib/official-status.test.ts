@@ -128,10 +128,15 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     assert.doesNotMatch(ARENA_REGISTRATION_LINE, /registration opens/i)
     // Ryan, 2026-11-11: the planned date from normiesART's Arena article replaces "mid-November".
     assert.equal(OFFICIAL_STATUS.arena.source, "https://x.com/normiesART/status/2120475856372142292")
-    assert.equal(OFFICIAL_STATUS.arena.expected, `Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, ${OFFICIAL_STATUS.arena.source})`)
+    assert.equal(OFFICIAL_STATUS.arena.expected, "Monday, November 16, 2026 (planned, per normiesART's Nov 11 post)")
+    assert.doesNotMatch(OFFICIAL_STATUS.arena.expected, /http/i)
     assert.match(ARENA_STATUS_LINE, /expected Monday, November 16, 2026 \(planned, per normiesART's Nov 11 post, https:\/\/x\.com\/normiesART\/status\/2120475856372142292\)/)
     assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
     assert.equal(SURFACE_TAGS.arena, "COMING SOON")
+  })
+  it("on-page expected copy has no URL; the status line still carries the source", () => {
+    assert.doesNotMatch(OFFICIAL_STATUS.arena.expected, /http/i)
+    assert.ok(ARENA_STATUS_LINE.includes(OFFICIAL_STATUS.arena.source))
   })
   it("no time, timezone, prize or earnings claim in the line", () => {
     assert.doesNotMatch(ARENA_REGISTRATION_LINE, /\b(UTC|GMT|ChST|PST|EST|[AP]M)\b|\d{1,2}:\d{2}/)
