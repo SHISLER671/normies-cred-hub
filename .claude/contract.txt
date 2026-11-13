@@ -1,0 +1,22 @@
+# Pulse PR-1 scope: make "Clean ownership & delegation" real.
+# Source: docs/zulo/pulse-trust-fixes-spec.md (Scope contract, PR-1).
+# One active contract on main; this list is for PR-1 only. Replace it before PR-2.
+# Format: one git-path glob per line. # starts a comment. Empty lines ignored.
+# ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
+# The scope check reads this file from main (the PR base), never from the PR head.
+# Always-protected regardless of this list: .github/workflows/, .github/scripts/,
+# public/.well-known/, this file, lockfiles, env files, key files.
+#
+# package.json is allowed so test:unit / test:all can gain new test files.
+# The check is path-level and cannot enforce "test scripts only" — do not change
+# anything else in package.json. Lockfiles stay protected.
+
+lib/api/agent-pulse.ts
+lib/api/*.test.ts
+lib/ownership-check*.ts
+lib/owners-refresh*.ts
+supabase/functions/owners-refresh/**
+supabase/sql/2026-11-*-normie-owner-since.sql
+app/api/cron/owner-since-backfill/**
+lib/record-card/**
+package.json
