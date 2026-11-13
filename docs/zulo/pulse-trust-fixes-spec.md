@@ -27,6 +27,8 @@ Keep the breakdown string "Clean ownership & delegation" exactly as it is (`GATE
 
 - Check (c) catches the stale case: a delegate set by a previous owner that survived a transfer. ("Delegations outlive transfers" is already noted in `lib/delegations.ts`.)
 - Check (d) doesn't fail anyone for having delegations. It only makes sure the delegation read worked, and records what it found for the evidence block (1.4).
+- **Just-transferred rule (added 2026-11-14):** if the live on-chain owner from check (a) differs from `normie_index.owner`, treat the Normie as just transferred: not granted, reason `tenure_short`. Don't use `owner_since` until the refresh catches up. This way the refresh schedule only affects when an honest new buyer's days start counting, never whether a fresh flip slips through.
+- **Check (c) is a display check (settled 2026-11-14).** The canvas contract already ignores a delegate left by a previous owner (see Loose ends), so a stale delegate has no painting power. Proposed: report `canvas_delegate_stale` in `ownership_check.reasons` and show it as "Delegate from a previous owner, not honored", but don't let it alone block level 4. Ryan to confirm in review; if he'd rather keep it strict, leave the table as written.
 - Default N = 30 days. Put it in one exported constant (`OWNER_TENURE_DAYS`) so it can be tuned in one place.
 
 ### 1.2 Owner tenure (data)
@@ -107,7 +109,7 @@ Be honest in the copy. Normies' own docs say the A2A transport isn't live yet. T
 Checked 2026-11-14 by BossBot:
 
 - **Agent card URL: confirmed.** `https://api.normies.art/agents/agent-card/7141` returns 200 with `"name":"Zulo"` and an A2A interface at `https://api.normies.art/agents/a2a/7141`. PR-3's name match works for #7141.
-- **`delegateSetBy` meaning: consistent, not proven.** For #7141, `delegateSetBy` (0xfafd…1031) equals the current owner from `/normie/7141/owner`, and the delegate is 0xb879…8767. That fits "address that set the delegate", but a token where a previous owner set it is still needed to prove check (c) catches the stale case. Check one recently transferred Normie with a delegate against the canvas contract's event on Etherscan before building PR-1.
+- **`delegateSetBy` meaning: settled from verified source.** NormiesCanvasV2 (0xF14f2852e1fD6A4108156054AF49B3915dc40E2e, Sourcify-verified): `setDelegate` requires the token owner and stores `msg.sender` as `setBy`; `revokeDelegate` clears both. `_isAuthorizedTransformer` honors the canvas delegate only when `setBy == normies.ownerOf(tokenId)`, and the `effectiveDelegate` comment says "The delegate only counts while that owner still holds it." So `delegateSetBy` is the owner who set it, a delegate from a previous owner is already ignored on-chain, and check (c) is a display/consistency check. (For #7141, `delegateSetBy` 0xfafd…1031 equals the current owner.)
 - **owners-refresh frequency: not in the repo.** The job is pg_cron → pg_net, but its `cron.schedule` isn't in `supabase/sql/` (only `approvals-refresh` is), so it was set up directly in Supabase. Ryan to check `select jobname, schedule from cron.job;`. If it runs less than daily, show "owner data as of …" next to the check. (`delegates-refresh` is noted as hourly in its header.)
 - **Spec fix:** `supabase/functions/owners-refresh/plan.ts` mirrors `lib/owners-refresh.ts` byte for byte; both are now in PR-1's scope.
 
