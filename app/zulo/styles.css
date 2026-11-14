@@ -3627,18 +3627,18 @@
 .zulo-chrome.dash-shell .ph-muted,
 .zulo-chrome.dash-shell .ph-ghost { color: var(--text-muted); }
 
-/* The trace — a pixel heartbeat on the Normies grid (100 × 24 square pixels; columns mark the five checks) */
+/* The trace — a pixel heartbeat on the Normies grid (80 × 24 square pixels; columns mark the four trust checks) */
 .zulo-chrome .ph-trace {
   margin: 28px 0 0;
   border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);
   background-image: linear-gradient(to right, var(--border-light) 1px, transparent 1px);
-  background-size: 20% 100%;
+  background-size: 25% 100%;
 }
 .zulo-chrome .ph-trace-svg {
-  display: block; width: 100%; height: auto; aspect-ratio: 100 / 24;
+  display: block; width: 100%; height: auto; aspect-ratio: 80 / 24;
   /* One sweep, left to right, in pixel-sized steps. */
   clip-path: inset(0 100% 0 0);
-  animation: ph-sweep 1200ms steps(25, end) 150ms forwards;
+  animation: ph-sweep 1200ms steps(20, end) 150ms forwards;
 }
 .zulo-chrome [data-state="loading"] .ph-trace-svg,
 .zulo-chrome [data-state="idle"] .ph-trace-svg { clip-path: none; animation: none; }
@@ -3651,7 +3651,7 @@
 
 .zulo-chrome .ph-beats {
   list-style: none; margin: 0; padding: 8px 0 10px;
-  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
   font-size: 9.5px; line-height: 1.35; letter-spacing: 0.14em; text-transform: uppercase; text-align: center; color: var(--text-muted);
 }
 @media (min-width: 640px) { .zulo-chrome .ph-beats { font-size: 12px; } }
@@ -3903,7 +3903,7 @@
 .zulo-chrome.dash-shell .ev-status { margin-top: 0; }
 .zulo-chrome.dash-shell .ev-sectors li > span:first-child { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-primary); }
 
-/* Narrow screens: tracked beat labels need less spacing to fit five columns */
+/* Narrow screens: tracked beat labels need less spacing to fit four columns */
 @media (max-width: 520px) {
   .zulo-chrome .ph-beats { font-size: 8.5px; letter-spacing: 0.03em; }
   .zulo-chrome .ph-beat-gate { letter-spacing: 0.12em; }

@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og"
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
-import { pulseBeats } from "@/lib/pulse/beats"
+import { PULSE_MAX_LEVEL, pulseBeats } from "@/lib/pulse/beats"
 import { loadRecordCard } from "@/lib/record-card/load"
 import { cleanBitmap, faceSvg, svgDataUri, traceSvg } from "@/lib/record-card/og-art"
 import { ogSafeText } from "@/lib/og-safe-text"
@@ -64,7 +64,7 @@ export default async function Image({ params }: { params: Promise<{ tokenId: str
   const pulse = card?.pulse
   const ready = !!pulse?.available && card?.card_status !== "not_awakened"
   const level = ready ? (pulse!.level ?? 0) : null
-  const max = pulse?.max_level ?? 5
+  const max = pulse?.max_level ?? PULSE_MAX_LEVEL
   const beats = pulseBeats(ready ? pulse!.breakdown : [])
   const gate = ready ? pulse!.gate.passed : null
 
@@ -144,7 +144,7 @@ export default async function Image({ params }: { params: Promise<{ tokenId: str
 
         <div style={{ display: "flex", marginTop: "auto", borderTop: `2px solid ${LINE}`, paddingTop: 14 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={svgDataUri(traceSvg(beats, INK, "#5c5d5e"))} width={1100} height={242} alt="" />
+          <img src={svgDataUri(traceSvg(beats, INK, "#5c5d5e"))} width={880} height={242} alt="" />
         </div>
       </div>
     ),

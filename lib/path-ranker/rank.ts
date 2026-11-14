@@ -32,6 +32,7 @@ import type {
   RankedPath,
 } from "./types"
 import { MAX_PATHS, MIN_PATHS } from "./types"
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 
 export async function rankPaths(input: RankPathsInput): Promise<RankPathsResult> {
   const intent = parseIntent({
@@ -88,7 +89,7 @@ export async function rankPaths(input: RankPathsInput): Promise<RankPathsResult>
         status: subject.status,
         badge:
           subject.pulse_level != null
-            ? `Pulse ${subject.pulse_level}/5${subject.status ? ` · ${subject.status}` : ""}`
+            ? `Pulse ${subject.pulse_level}/${PULSE_MAX_LEVEL}${subject.status ? ` · ${subject.status}` : ""}`
             : "Pulse — load a Normie",
       },
       access: c.access,
@@ -192,7 +193,7 @@ function subjectToCtx(
             token_id: subject.tokenId ?? 0,
             agent_id: null,
             pulse_level: subject.pulse_level,
-            max_level: 5,
+            max_level: PULSE_MAX_LEVEL,
             status: subject.status ?? "Unknown",
             breakdown: subject.breakdown ?? [],
             next_signal: null,

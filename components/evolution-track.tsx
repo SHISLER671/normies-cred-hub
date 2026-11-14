@@ -1,5 +1,6 @@
 import { Chip, Eyebrow, StepLabel } from "@/components/brand"
 import { AGENTS_CANVAS_STATUS_LINE, ARENA_LAUNCH_SOURCE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 import { isAgentsCanvasLive } from "@/lib/record-card/canvas"
 
 /** "COMING SOON" → "Coming soon": the official tag word, in sentence case. */
@@ -14,7 +15,7 @@ function sentence(tag: string): string {
 export function EvolutionTrack({
   tokenId,
   level,
-  maxLevel = 5,
+  maxLevel = PULSE_MAX_LEVEL,
   gatePassed,
 }: {
   tokenId: number
@@ -37,7 +38,7 @@ export function EvolutionTrack({
           <span className="ev-node" aria-hidden />
           <div className="ev-body">
             <h3 className="ev-name"><StepLabel>Step 1 · Trust</StepLabel></h3>
-            <p>Pulse: five checks read live from Ethereum and the Normies API. Measures trust, never skill.</p>
+            <p>Pulse: four trust checks read live from Ethereum and the Normies API. Measures trust, never skill.</p>
             <p className="ev-here">
               {level === null ? `#${tokenId}: no reading yet` : `#${tokenId}: ${level} of ${maxLevel}`}
             </p>

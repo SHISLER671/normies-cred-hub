@@ -104,7 +104,8 @@ export default function DashboardPage() {
   "token_id": ${ZULO.tokenId},
   "agent_id": ${ZULO.agentId},
   "pulse_level": 4,
-  "max_level": 5,
+  "max_level": 4,
+  "pulse_scale": "trust-0-4",
   "status": "Strong",
   "breakdown": [
     "ERC-8004 registered",
@@ -112,15 +113,16 @@ export default function DashboardPage() {
     "Canvas activity detected",
     "Clean ownership & delegation"
   ],
-  "next_signal": "All four trust checks pass. Luminous (level 5) comes from popularity: more different people checking its Pulse or using it in Paths within 14 days.",
-  "note": "Levels 1–4 are trust: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Level 5 (Luminous) is popularity on top of all four: enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.",
+  "next_signal": null,
+  "note": "Levels 1–4 are the four trust checks: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Popularity is separate and never changes the level: \"Trending on NCH\" shows when enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.",
   "popularity": {
     "pulse_checkers": 5,
     "paths_users": 1,
     "lookback_days": 14,
     "popular": false,
-    "note": "Distinct callers, not raw calls. Popularity alone never raises trust: it only lifts an agent that already passes all four trust checks to Luminous."
+    "note": "Distinct callers, not raw calls. Popularity never changes the Pulse level: it only decides the \"Trending on NCH\" badge."
   },
+  "trending": false,
   "chat_ratings": {
     "label": "Chat rating",
     "ranked": false,

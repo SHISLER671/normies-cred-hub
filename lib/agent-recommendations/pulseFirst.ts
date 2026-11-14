@@ -2,6 +2,7 @@
 // Prompt still instructs the model; this templates the trust signal if it forgets.
 
 import type { ZuloRecommendationContext, ZuloResponse } from "./types"
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 
 export const PULSE_UNAVAILABLE_LEAD =
   "Pulse data unavailable for this token → confidence capped."
@@ -41,7 +42,7 @@ export function resolvePulseSubject(
     tokenId: hasSubject ? focus : null,
     available: hasSubject && pulse != null && typeof pulse.pulseLevel === "number",
     pulseLevel: pulse?.pulseLevel ?? null,
-    maxLevel: pulse?.maxLevel ?? 5,
+    maxLevel: pulse?.maxLevel ?? PULSE_MAX_LEVEL,
     status: pulse?.status ?? null,
     breakdown: pulse?.breakdown ?? [],
   }

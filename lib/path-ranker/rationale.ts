@@ -1,6 +1,7 @@
 // Short Zulo path-finder notes — personality only, never multi-turn chat.
 
 import type { PathCandidate, ParsedIntent, RankPathsSubject } from "./types"
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 
 /**
  * Template-based rationale (1–2 sentences). No LLM.
@@ -12,7 +13,7 @@ export function buildRationale(
 ): string {
   const pulseNote =
     subject.pulse_level != null
-      ? `Pulse ${subject.pulse_level}/5${subject.status ? ` (${subject.status})` : ""}`
+      ? `Pulse ${subject.pulse_level}/${PULSE_MAX_LEVEL}${subject.status ? ` (${subject.status})` : ""}`
       : "no Normie loaded for Pulse weighting"
 
   if (candidate.kind === "zulo-skill") {

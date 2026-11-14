@@ -556,7 +556,7 @@ describe("pulse-first guarantee", () => {
       tokenId: 7141,
       agentId: 32626,
       pulseLevel: 4,
-      maxLevel: 5,
+      maxLevel: 4,
       status: "Strong",
       breakdown: [
         "ERC-8004 registered",
@@ -579,9 +579,9 @@ describe("pulse-first guarantee", () => {
       },
       ctx,
     )
-    assert.match(out.pulseLead ?? "", /^Pulse 4\/5 \(Strong\)/)
+    assert.match(out.pulseLead ?? "", /^Pulse 4\/4 \(Strong\)/)
     assert.match(out.pulseLead ?? "", /conditioned on this/)
-    assert.match(out.understanding, /^Pulse 4\/5 \(Strong\)/)
+    assert.match(out.understanding, /^Pulse 4\/4 \(Strong\)/)
     assert.equal(out.confidence, 82)
   })
 
@@ -626,7 +626,7 @@ describe("pulse-first guarantee", () => {
       tokenId: 1,
       agentId: null,
       pulseLevel: 2,
-      maxLevel: 5,
+      maxLevel: 4,
       status: "Building",
       breakdown: ["ERC-8004 registered"],
       gaps: [],
@@ -644,7 +644,7 @@ describe("pulse-first guarantee", () => {
       },
       ctx,
     )
-    const count = (out.understanding.match(/Pulse 2\/5/g) ?? []).length
+    const count = (out.understanding.match(/Pulse 2\/4/g) ?? []).length
     assert.equal(count, 1)
   })
 })

@@ -1,3 +1,5 @@
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
+
 export const ZULO_HORIZON_LIMITS = {
   maxTotalMessages: 12,
   maxUserMessages: 6,
@@ -83,7 +85,7 @@ function pulseInsight(agent: HorizonAgentContext): HorizonInsight | null {
 
   return {
     label: "Pulse",
-    text: `Pulse ${agent.pulseLevel}/5${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""} — ${signals}. I read this from Normies Cred Pulse before we chat.`,
+    text: `Pulse ${agent.pulseLevel}/${PULSE_MAX_LEVEL}${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""} — ${signals}. I read this from Normies Cred Pulse before we chat.`,
   }
 }
 
@@ -220,7 +222,7 @@ The user currently has Normie #${agent.tokenId} loaded in the dashboard.
 ${agent.canvasLevel != null ? `- Canvas level: ${agent.canvasLevel}` : ""}
 ${agent.actionPoints != null ? `- Action Points: ${agent.actionPoints}` : ""}
 ${agent.ethosScore != null ? `- Owner Ethos score: ${agent.ethosScore}` : ""}
-${agent.pulseLevel != null ? `- Agent Pulse: ${agent.pulseLevel}/5${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""}` : ""}
+${agent.pulseLevel != null ? `- Agent Pulse: ${agent.pulseLevel}/${PULSE_MAX_LEVEL}${agent.pulseStatus ? ` (${agent.pulseStatus})` : ""}` : ""}
 ${agent.pulseBreakdown?.length ? `- Pulse signals present: ${agent.pulseBreakdown.join(", ")}` : ""}
 ${agent.pulseBreakdown ? `- Pulse gaps (missing signals): ${deriveHorizonPulseGaps(agent.pulseBreakdown).join(", ") || "none"}` : ""}
 ${agent.holderAddress ? `- Holder wallet (for tool access checks): ${agent.holderAddress}` : ""}

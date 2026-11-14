@@ -60,11 +60,11 @@ export type RecordCard = {
     max_level: number
     status: string | null
     breakdown: string[]
-    /** What the next level needs, in plain words. Null at max level or when Pulse is unavailable. */
+    /** The trust checks still missing, in plain words. Null when all four pass or when Pulse is unavailable. */
     next_signal: string | null
     /**
-     * Raw usage behind Luminous (level 5): distinct callers in the window, shown so a botted Luminous is visible.
-     * Popularity only counts once all four trust checks pass. Null when the counters couldn't be read.
+     * Raw usage behind the "Trending on NCH" badge: distinct callers in the window, shown so a botted spike is visible.
+     * Popularity is separate from trust and never changes the level. Null when the counters couldn't be read.
      * Optional so older cached cards still type-check.
      */
     popularity?: {
@@ -74,6 +74,8 @@ export type RecordCard = {
       lookback_days: number
       popular: boolean
     } | null
+    /** "Trending on NCH": the popularity threshold is met. False when the counters couldn't be read. Never changes `level`. Optional so older cached cards still type-check. */
+    trending?: boolean
     gate: {
       passed: boolean
       registered: boolean
