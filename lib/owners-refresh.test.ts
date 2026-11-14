@@ -1,5 +1,6 @@
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
+import fs from "node:fs"
 
 import { planOwnersRefresh, type OwnerRowLite } from "./owners-refresh"
 
@@ -49,5 +50,56 @@ describe("planOwnersRefresh", () => {
   it("rejects a malformed address from the chain as unknown", () => {
     const plan = planOwnersRefresh(chainOf(100, (i) => (i === 0 ? "0x1234" : A)), rows(100))
     assert.deepEqual(plan.unknown, [0])
+  })
+})
+
+describe("planOwnersRefresh: owner_since (Pulse level 4 counts the owner's days from it)", () => {
+  const NOW = "2026-11-14T06:00:00.000Z"
+  it("owner changed: owner_since is the time of this run", () => {
+    const plan = planOwnersRefresh(chainOf(100, (i) => (i === 5 ? B : A)), rows(100), NOW)
+    assert.deepEqual(plan.updates, [{ token_id: 5, owner: B, owner_since: NOW }])
+  })
+  it("owner unchanged: no update at all, so owner_since is left alone", () => {
+    const plan = planOwnersRefresh(chainOf(100, () => A), rows(100), NOW)
+    assert.equal(plan.updates.length, 0)
+    assert.equal(plan.unchanged, 100)
+  })
+  it("owner unknown (lookup failed): no update, so neither owner nor owner_since moves", () => {
+    const plan = planOwnersRefresh(chainOf(100, (i) => (i === 5 ? null : A)), rows(100), NOW)
+    assert.equal(plan.updates.length, 0)
+    assert.deepEqual(plan.unknown, [5])
+  })
+  it("a first-seen owner (index had none) starts counting now, never earlier", () => {
+    const index = rows(100).map((r) => (r.token_id === 5 ? { ...r, owner: null } : r))
+    const plan = planOwnersRefresh(chainOf(100, () => A), index, NOW)
+    assert.deepEqual(plan.updates, [{ token_id: 5, owner: A, owner_since: NOW }])
+  })
+  it("defaults to the current time when no time is passed", () => {
+    const before = Date.now()
+    const plan = planOwnersRefresh(chainOf(100, (i) => (i === 5 ? B : A)), rows(100))
+    const at = Date.parse(plan.updates[0].owner_since)
+    assert.ok(at >= before && at <= Date.now())
+  })
+  it("a guard trip still writes nothing, owner_since included", () => {
+    const plan = planOwnersRefresh(chainOf(100, (i) => (i < 40 ? C : A)), rows(100), NOW)
+    assert.equal(plan.ok, false)
+    assert.equal(plan.updates.length, 0)
+  })
+})
+
+describe("the owners-refresh job and the SQL draft", () => {
+  const job = fs.readFileSync("supabase/functions/owners-refresh/index.ts", "utf8")
+  it("the job writes owner and owner_since together, from the plan", () => {
+    assert.match(job, /\.update\(\{ owner: u\.owner, owner_since: u\.owner_since \}\)/)
+    assert.doesNotMatch(job, /\.update\(\{ owner: u\.owner \}\)/)
+  })
+  it("the SQL file is marked DRAFT or APPLIED on its first line and adds a nullable owner_since", () => {
+    const files = fs.readdirSync("supabase/sql").filter((f) => /^2026-11-\d\d-normie-owner-since\.sql$/.test(f))
+    assert.equal(files.length, 1)
+    const sql = fs.readFileSync(`supabase/sql/${files[0]}`, "utf8")
+    assert.match(sql.split("\n")[0], /^-- (DRAFT|APPLIED \d{4}-\d\d-\d\d)/)
+    assert.match(sql, /add column if not exists owner_since timestamptz null/)
+    assert.doesNotMatch(sql, /security definer/i)
+    assert.match(sql, /revoke execute on function public\.normie_index_touch_owner_since\(\) from public, anon, authenticated/)
   })
 })

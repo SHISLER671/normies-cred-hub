@@ -2,6 +2,8 @@ import { ERC8004, IDENTITY_REGISTRY_READ_ABI, NORMIES_API_BASE } from "@/constan
 import { getChatRatings, type ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { getTokenUsageSignal } from "@/lib/instrumentation/pulse-paths"
+import type { OwnershipCheck } from "@/lib/ownership-check"
+import { loadOwnershipCheck, type OwnershipDeps } from "@/lib/ownership-check-load"
 import type { AgentInfo, CanvasDiff, CanvasInfo, NormieOwner } from "@/lib/types"
 import { publicClient } from "@/lib/viem-client"
 
@@ -71,6 +73,11 @@ export type AgentPulseResponse = {
   chat_ratings?: ChatRatingsSummary | null
   /** Raw usage counts behind Luminous. Null when the counters couldn't be read (not the same as zero). */
   popularity?: PulsePopularity | null
+  /**
+   * The evidence behind "Clean ownership & delegation" (lib/ownership-check.ts). `passed` is exactly whether that check is in
+   * `breakdown`. `reasons` says what failed or couldn't be read; a display-only reason can sit next to passed: true.
+   */
+  ownership_check?: OwnershipCheck
 }
 
 export type AgentPulseResult =
@@ -96,14 +103,6 @@ async function readNormies<T>(path: string): Promise<Read<T>> {
   } catch {
     return { data: null, status: "failed" }
   }
-}
-
-function isZeroAddr(addr?: string | null): boolean {
-  return !addr || addr === "0x0000000000000000000000000000000000000000"
-}
-
-function isValidAddr(addr?: string | null): boolean {
-  return !!addr && /^0x[a-fA-F0-9]{40}$/.test(addr) && !isZeroAddr(addr)
 }
 
 /** Registration rarely changes: keep a successful on-chain answer for 5 minutes per server instance. */
@@ -165,6 +164,8 @@ export function parseTokenId(value: unknown): number | null {
 export type AgentPulseOptions = {
   /** Also read Hive chat ratings (adds a capped, cached on-chain read). Off by default so ranking stays fast. */
   chatRatings?: boolean
+  /** Test seam: the on-chain owner, owner index and delegate.xyz reads behind the ownership check. */
+  ownershipDeps?: OwnershipDeps
 }
 
 export async function getAgentPulse(
@@ -217,12 +218,16 @@ export async function getAgentPulse(
     breakdown.push("Canvas activity detected")
   }
 
-  // Only granted when the canvas delegate was actually read: a failed read used to look like "no delegate" (clean).
-  const hasCleanOwnership =
-    canvasRead.status === "ok" &&
-    isValidAddr(owner.owner) &&
-    (isZeroAddr(canvas?.delegate) || isValidAddr(canvas?.delegate))
-  if (hasCleanOwnership) {
+  // Four checks, fail-closed (lib/ownership-check.ts): a read that fails is reported as a reason, never counted as clean.
+  const ownershipCheck = await loadOwnershipCheck(
+    tokenId,
+    {
+      apiOwner: { ok: true, value: owner.owner },
+      canvas: canvasRead.status === "ok" ? { ok: true, value: canvas } : { ok: false },
+    },
+    options.ownershipDeps,
+  )
+  if (ownershipCheck.passed) {
     breakdown.push("Clean ownership & delegation")
   }
 
@@ -258,6 +263,7 @@ export async function getAgentPulse(
       max_level: MAX_LEVEL,
       ...assembled,
       popularity,
+      ownership_check: ownershipCheck,
       ...(chatRatings !== undefined ? { chat_ratings: chatRatings } : {}),
     },
   }
