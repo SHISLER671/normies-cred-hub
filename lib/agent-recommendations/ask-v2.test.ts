@@ -201,6 +201,6 @@ describe("Arena facts from normiesART's article (Ryan, 2026-11-11)", () => {
       subjectScope: { mode: "mentioned", walletConnected: false, activeNormieId: null, mentionedTokenIds: [1234], normieIsSpeakerIdentityOnly: false, userOwnsFocus: false },
     } as never)
     const { user } = composeZuloMessages(c, "How would #1234 do in Arena?", "live")
-    assert.match(user, /- #1234: Cat: 115 health.*Level 12 \(Inked\) head start: \+28% health, sword III, plate I/)
+    assert.match(user, /- #1234: Cat: 115 health.*Level 12 \(Inked\) head start: \+28% health \(official table at Level 10, 90 #PIXEL attached\)/)
   })
 })

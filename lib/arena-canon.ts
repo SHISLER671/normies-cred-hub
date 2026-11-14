@@ -1,11 +1,16 @@
-// Arena canon from normiesART's Arena article (X Article, posted Oct 22, 2026 17:34 UTC / Oct 23 ChST). Pure, no I/O.
-// Ryan, 2026-11-11: quote the official tables (type stats, rank head starts) and the entry fee, with the source; never
-// prizes, pools, payouts or earnings (AGENTS.md "Numbers yes, promises never"). Arena stays Coming Soon until it is live:
-// the status lives in lib/official-status.ts. The article says its screenshots are from a closed beta and game data will
-// reset, so every table is labelled "may change".
+// Arena canon. Mechanics, the fee, the schedule and the Canvas head-start table come from the official
+// Arena entry page (https://arena.normies.art/world/enter). Type stats still come from normiesART's Arena
+// article (X Article, posted Oct 22, 2026 17:34 UTC / Oct 23 ChST). Pure, no I/O.
+//
+// Never prizes, pools, payouts, winnings, rewards or earnings (AGENTS.md "Numbers yes, promises never").
+// Arena stays Coming Soon until it is live: the status lives in lib/official-status.ts. Every table is
+// labelled "may change". The official page's top Canvas band is shown with NCH's neutral label so it is
+// never confused with the NormiesLegendaryCanvas award.
 
-import { ARENA_CANVAS_RANKS } from "./normies-canon"
-import { ARENA_LAUNCH_SOURCE } from "./official-status"
+import { ARENA_CANVAS_RANKS, rankForLevel } from "./normies-canon"
+import { ARENA_ENTER_SOURCE, ARENA_LAUNCH_SOURCE } from "./official-status"
+
+export { ARENA_ENTER_SOURCE }
 
 export const ARENA_ARTICLE = {
   url: "https://x.com/normiesART/status/2113323053304238383",
@@ -17,23 +22,37 @@ export const ARENA_ARTICLE = {
 /** Planned launch date, per normiesART's Nov 11 post (ARENA_LAUNCH_SOURCE). A plan, not a status: see ARENA_STATUS_LINE. */
 export const ARENA_PLANNED_LAUNCH = "2026-11-16"
 
-const SRC = `normiesART's Arena article, ${ARENA_ARTICLE.publishedText}`
-export const ARENA_MAY_CHANGE = "Arena is Coming Soon; the article's data is from a closed beta and may change"
+const TYPE_SRC = `normiesART's Arena article, ${ARENA_ARTICLE.publishedText}`
+const ENTER_SRC = "the official Arena entry page"
 
-/** Who can enter and how many play (article: "Getting your Normie in" / "Who plays"). */
+export const ARENA_MAY_CHANGE = "Arena is Coming Soon; figures are per the official entry page and may change"
+
+/**
+ * Each game runs Monday 20:00 CET to Saturday 20:00 CET. Game 1 start, with the Guam clock beside it.
+ * The "Monday, November 16, 2026 (planned)" launch line stays in official-status; this is the clock time.
+ */
+export const ARENA_GAME_WINDOW = "Monday 20:00 CET to Saturday 20:00 CET"
+export const ARENA_GAME_START_CHST = "Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST)"
+export const ARENA_GAME_WINDOW_LINE = `Each game runs ${ARENA_GAME_WINDOW}. Game 1 starts ${ARENA_GAME_START_CHST}`
+
+/** Who can enter and how a week works (official entry page). */
 export const ARENA_ENTRY = [
   "To enter, a Normie must be registered as an on-chain agent (ERC-8004), i.e. awakened",
-  "Entry is a free signed message at the official Arena gate; CredHub has no registration",
-  "Up to 8 agents per wallet; 200 Normies play at once and the rest wait in a queue at the Hive",
-  "When a Normie falls, its agent's life ends and the next in the queue walks in at dawn; the NFT is never burned or lost",
+  "Entry is at the official Arena gate; CredHub has no registration",
+  "Up to 8 agents per wallet; 200 Normies play at once and the rest wait in line",
+  "Seats fill first come, first served from the line (FIFO), not a random draw",
+  "Fallen agents rest 8 hours, keep their PX and come back; the NFT never leaves your wallet",
+  "You can't steer an agent once it walks in",
 ] as const
 
 /**
- * The entry fee, exactly as published. Deliberately no ETH or dollar figure (the article's are at one day's #PIXEL
- * price) and nothing about where the fees go: NCH never talks about prizes, pools or payouts.
+ * The entry fee, as published on the official entry page. Deliberately no ETH or dollar figure
+ * and nothing about where the fees go: NCH never talks about prizes, pools or payouts.
  */
 export const ARENA_FEE_LINE =
-  "The first 2 weeks in the Arena are free for every Normie; after that, 1 #PIXEL per week per agent keeps its Arena pass active"
+  "The first 2 weeks in the Arena are free for every Normie; after that, 1 #PIXEL per agent per week (only for a Normie that gets a seat; those still in line are not charged)"
+
+export const ARENA_GEAR_LINE = "Gear unlocks at milestones (Sword, Armour, Boots, Tonics)"
 
 export type ArenaType = "Zombie" | "Agent" | "Alien" | "Cat" | "Human"
 
@@ -53,29 +72,89 @@ export const ARENA_TYPES: ReadonlyArray<{
   { type: "Human", health: 100, damageDealt: "×0.82", damageTakenFromMonsters: "−7%", speed: "base", skill: "Survivor: the lightest body, lives by its gear, friends and wits" },
 ]
 
-/**
- * Head start by Canvas level (article: "The entry boost and the tier list"). Rank names match ARENA_CANVAS_RANKS in
- * lib/normies-canon.ts; the top band keeps NCH's neutral label so it is never confused with the NormiesLegendaryCanvas
- * award (the article calls it "Legendary Canvas").
- */
-const HEAD_START_BY_LEVEL: Record<number, string> = {
-  150: "+60% health, sword V, plate III, boots II, 3 tonics, and the laser",
-  100: "+55% health, sword V, plate III, boots II, 2 tonics",
-  50: "+47% health, sword IV, plate II, boots II, 1 tonic",
-  25: "+39% health, sword III, plate II, boots I, 1 tonic",
-  10: "+28% health, sword III, plate I",
-  2: "+8% health",
-  1: "no head start",
+/** Format a #PIXEL attached count the way the official table does (1,190 / 1,490). */
+export function pixelsAttachedText(n: number): string {
+  return n.toLocaleString("en-US")
 }
 
-/** Highest band first. Rank names come from ARENA_CANVAS_RANKS, so the two can never drift apart. */
-export const ARENA_HEAD_STARTS: ReadonlyArray<{ fromLevel: number; rank: string; headStart: string }> = [...ARENA_CANVAS_RANKS]
-  .reverse()
-  .map((r) => ({ fromLevel: r.fromLevel, rank: r.name, headStart: HEAD_START_BY_LEVEL[r.fromLevel] ?? "not published" }))
+export type ArenaHeadStartRow = {
+  /** Published milestone Level on the official table. */
+  fromLevel: number
+  /** Canvas rank name at that Level; Level 150 uses NCH's neutral top-band label. */
+  rank: string
+  pixelsAttached: number
+  /** Official health column: "base" or a published bonus such as "+28%". */
+  health: string
+  /** Extra published at this row, if any (only the Laser at the top band). */
+  extra?: "Laser"
+  /** One-line head start, e.g. "+28% health" or "+60% health plus Laser". */
+  headStart: string
+}
+
+function headStartText(health: string, extra?: "Laser"): string {
+  if (health === "base") return "base"
+  return extra ? `${health} health plus ${extra}` : `${health} health`
+}
+
+const RANK_AT = (level: number): string => {
+  if (level >= 150) return "Level 150+ (top Arena rank)"
+  return rankForLevel(level)?.name ?? "Blank"
+}
+
+/**
+ * Official Canvas head-start table (entry page). Health bonus and #PIXEL attached at published
+ * milestones. Health rises with every level; for a Level not listed, use the highest published
+ * row at or below it. Never invent an in-between bonus.
+ */
+export const ARENA_HEAD_START_ROWS: ReadonlyArray<ArenaHeadStartRow> = (
+  [
+    [1, 0, "base"],
+    [2, 10, "+8%"],
+    [3, 20, "+13%"],
+    [5, 40, "+19%"],
+    [10, 90, "+28%"],
+    [15, 140, "+32%"],
+    [20, 190, "+36%"],
+    [25, 240, "+39%"],
+    [35, 340, "+43%"],
+    [50, 490, "+47%"],
+    [60, 590, "+49%"],
+    [75, 740, "+52%"],
+    [100, 990, "+55%"],
+    [120, 1_190, "+57%"],
+    [150, 1_490, "+60%", "Laser"],
+  ] as const
+).map((row) => {
+  const fromLevel = row[0]
+  const pixelsAttached = row[1]
+  const health = row[2]
+  const extra = row[3]
+  return {
+    fromLevel,
+    rank: RANK_AT(fromLevel),
+    pixelsAttached,
+    health,
+    ...(extra ? { extra } : {}),
+    headStart: headStartText(health, extra),
+  }
+})
+
+/**
+ * Band-start rows only (Blank / Sketched / Inked / … / top band), for labels that talk about a
+ * rank band rather than every published milestone.
+ */
+export const ARENA_HEAD_STARTS: ReadonlyArray<ArenaHeadStartRow> = ARENA_CANVAS_RANKS.map(
+  (r) => ARENA_HEAD_START_ROWS.find((row) => row.fromLevel === r.fromLevel)!,
+)
 
 /** "Level 10+ (Inked)" / "Level 150+ (top Arena rank)": the band with its rank name, never doubled. */
 export function headStartBandLabel(h: { fromLevel: number; rank: string }): string {
   return h.rank.startsWith("Level ") ? h.rank : `Level ${h.fromLevel}+ (${h.rank})`
+}
+
+/** "Level 15 (Inked)" for a published milestone; the top band keeps its neutral label. */
+export function headStartRowLabel(h: { fromLevel: number; rank: string }): string {
+  return h.rank.startsWith("Level ") ? h.rank : `Level ${h.fromLevel} (${h.rank})`
 }
 
 export function arenaTypeStats(type: string | null | undefined) {
@@ -83,26 +162,44 @@ export function arenaTypeStats(type: string | null | undefined) {
   return ARENA_TYPES.find((r) => r.type.toLowerCase() === t) ?? null
 }
 
-export function arenaHeadStartFor(level: number | null | undefined) {
+/** Highest published official row at or below this Level, or null if the Level is unknown. */
+export function arenaHeadStartFor(level: number | null | undefined): ArenaHeadStartRow | null {
   if (typeof level !== "number" || !Number.isFinite(level) || level < 1) return null
-  return ARENA_HEAD_STARTS.find((r) => Math.floor(level) >= r.fromLevel) ?? null
+  const l = Math.floor(level)
+  let found: ArenaHeadStartRow | null = null
+  for (const row of ARENA_HEAD_START_ROWS) if (l >= row.fromLevel) found = row
+  return found
 }
 
-/** One line for a named Normie (Ask, record card), e.g. "Arena (Cat, Level 12, Inked): 115 health …". Null if unknown. */
+function sourceSuffix(hasType: boolean, hasHead: boolean): string {
+  const parts: string[] = []
+  if (hasType) parts.push(`type stats per ${TYPE_SRC}`)
+  if (hasHead) parts.push(`head start per ${ENTER_SRC}`)
+  return `${parts.join("; ")}; a head start, not a guarantee; ${ARENA_MAY_CHANGE}`
+}
+
+/** One line for a named Normie (Ask, record card), e.g. "Cat: 115 health …". Null if unknown. */
 export function arenaLineFor(type: string | null | undefined, level: number | null | undefined): string | null {
   const s = arenaTypeStats(type)
   const h = arenaHeadStartFor(level)
+  const band = typeof level === "number" ? rankForLevel(level) : null
   if (!s && !h) return null
   const parts: string[] = []
   if (s) parts.push(`${s.type}: ${s.health} health, damage dealt ${s.damageDealt}, damage taken from monsters ${s.damageTakenFromMonsters}, speed ${s.speed}; skill: ${s.skill}`)
-  if (h && typeof level === "number") parts.push(`Level ${Math.floor(level)} (${h.rank}) head start: ${h.headStart}`)
-  return `${parts.join(". ")} (per ${SRC}; a head start, not a guarantee; ${ARENA_MAY_CHANGE})`
+  if (h && typeof level === "number") {
+    const bandName = band?.name ?? h.rank
+    const published = h.fromLevel === Math.floor(level)
+      ? `${h.headStart} (${pixelsAttachedText(h.pixelsAttached)} #PIXEL attached)`
+      : `${h.headStart} (official table at Level ${h.fromLevel}, ${pixelsAttachedText(h.pixelsAttached)} #PIXEL attached)`
+    parts.push(`Level ${Math.floor(level)} (${bandName}) head start: ${published}`)
+  }
+  return `${parts.join(". ")} (per ${sourceSuffix(Boolean(s), Boolean(h))})`
 }
 
 /**
- * What the record card shows under "Arena record" (from the article's tables): a short value and a detail note for the
- * type and for the head start. Null parts when the input is unknown. No prizes, odds or earnings; the card adds the
- * source link and "may change".
+ * What the record card shows under "Arena record": a short value and a detail note for the
+ * type and for the head start. Null parts when the input is unknown. No prizes, odds or earnings;
+ * the card adds the source link and "may change".
  */
 export function arenaCardFacts(
   type: string | null | undefined,
@@ -110,7 +207,7 @@ export function arenaCardFacts(
 ): { type: { value: string; note: string } | null; headStart: { value: string; note: string } | null } {
   const s = arenaTypeStats(type)
   const h = arenaHeadStartFor(level)
-  const [first, ...rest] = h ? h.headStart.split(", ") : []
+  const band = typeof level === "number" ? rankForLevel(level) : null
   return {
     type: s
       ? {
@@ -120,9 +217,20 @@ export function arenaCardFacts(
       : null,
     headStart:
       h && typeof level === "number"
-        ? { value: first, note: `Level ${Math.floor(level)}: ${headStartBandLabel(h)}${rest.length ? `, also ${rest.join(", ")}` : ""}` }
+        ? {
+            value: h.headStart,
+            note: `Level ${Math.floor(level)}: ${band && !band.name.startsWith("Level ") ? `Level ${band.fromLevel}+ (${band.name})` : (band?.name ?? h.rank)}; official table at Level ${h.fromLevel} is ${pixelsAttachedText(h.pixelsAttached)} #PIXEL attached, ${h.headStart}`,
+          }
         : null,
   }
+}
+
+/** Plain-text official table, one published row per line, for /burn notes and tests. */
+export function arenaHeadStartTableText(): string {
+  const rows = ARENA_HEAD_START_ROWS.map(
+    (r) => `- ${headStartRowLabel(r)}: ${pixelsAttachedText(r.pixelsAttached)} #PIXEL attached, ${r.headStart}`,
+  ).join("\n")
+  return `Canvas head start (per ${ENTER_SRC}, ${ARENA_ENTER_SOURCE}; a head start, not a guarantee; ${ARENA_MAY_CHANGE}):\n${rows}\n${ARENA_GEAR_LINE}.`
 }
 
 /** The ARENA FACTS block for Ask's system prompt. Facts and tables only; no prizes, pools, payouts or odds. */
@@ -130,21 +238,17 @@ export function arenaFactsBlock(): string {
   const types = ARENA_TYPES.map(
     (t) => `- ${t.type}: ${t.health} health · damage dealt ${t.damageDealt} · damage taken from monsters ${t.damageTakenFromMonsters} · speed ${t.speed} · ${t.skill}`,
   ).join("\n")
-  const heads = [...ARENA_HEAD_STARTS]
-    .reverse()
-    .map((h) => `- From Level ${h.fromLevel} (${h.rank}): ${h.headStart}`)
-    .join("\n")
-  return `=== ARENA FACTS (type stats and ranks: ${SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
+  return `=== ARENA FACTS (mechanics, fee, schedule and Canvas table: ${ENTER_SRC}, ${ARENA_ENTER_SOURCE}; type stats: ${TYPE_SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
 - Planned launch: Monday, November 16, 2026 (a plan, per normiesART's Nov 11 post, ${ARENA_LAUNCH_SOURCE}). Until it is live, Arena is Coming Soon (status line above).
-- A fully autonomous AI open world: Normies decide for themselves (Sage, Levanto's decision model). Holders only watch. A day lasts 6 real minutes; a season lasts 7 days.
+- ${ARENA_GAME_WINDOW_LINE}.
 ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}
 - Fee: ${ARENA_FEE_LINE}.
-Type stats (speed compared with a Human):
+Type stats (speed compared with a Human; per ${TYPE_SRC}, closed-beta data, may change):
 ${types}
-Head start by Canvas level (Level = floor(#PIXEL attached ÷ 10) + 1; Levels 150 and up share the top head start; applied each time the Normie walks out of the Hive):
-${heads}
+Head start by Canvas level (Level = floor(#PIXEL attached ÷ 10) + 1; Levels 150 and up share the top head start). ${ARENA_GEAR_LINE}. Official published rows:
+${arenaHeadStartTableText()}
 Rules for these facts:
-- Quote them with the source and "may change". A head start is not a guarantee: the article says even a level-1 Human can climb, and it comes down to the agent's choices.
-- Never mention prizes, a prize pool, payouts, rewards, winnings, odds or what a Normie could earn, and never convert #PIXEL to ETH or dollars. If asked, say NCH doesn't cover rewards and link the article.
+- Quote them with the source and "may change". A head start is not a guarantee.
+- Never mention prizes, a prize pool, payouts, rewards, winnings, odds or what a Normie could earn, and never convert #PIXEL to ETH or dollars. If asked, say NCH doesn't cover rewards and link the official entry page.
 - Never tell anyone to buy #PIXEL, level up or attach pixels to get ahead. Facts only; it is the holder's call.`
 }

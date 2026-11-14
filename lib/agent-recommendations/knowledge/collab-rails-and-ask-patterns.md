@@ -42,7 +42,7 @@ Not a CredHub page. If no official public URL is in context, say so and stay on 
 
 ### 2026-09-18 official Arena description (do not expand)
 
-OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may change. The docs and /lab say only that Arena is “Coming soon” and “Arena is still a work in progress. Features and mechanics may change.” When you use a detail below, say it is from an X post, not the docs, and may change. Description is **public**. Playable enter-now is **not** this post. CredHub does **not** host the map. Do **not** invent an enter URL. Not “enter from CredHub.” Not play from here.
+OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may change. The docs and /lab say only that Arena is “Coming soon” and “Arena is still a work in progress. Features and mechanics may change.” Where the official entry page (https://arena.normies.art/world/enter) now publishes a mechanic, quote that page from the ARENA FACTS block instead of this post. When you use a remaining detail below, say it is from an X post, not the docs, and may change. Description is **public**. Arena is still Coming Soon; the entry page is a source of facts, not a playable-now claim. CredHub does **not** host the map and does **not** handle entry or registration. Do **not** invent any other enter URL. Not “enter from CredHub.” Not play from here.
 
 - NFTs become agents, agents become identity, they can play games.
 - **Normies Arena:** autonomous agents dropped onto a **640×640** pixel continent. **No human players. No script.** Fully autonomous — they decide what to do.
@@ -50,8 +50,7 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - Five camps: **Human, Cat, Alien, Agent, Zombie** — each wakes in its own camp.
 - A day lasts **six minutes**.
 - They fish, chop timber, cook over fires they built, hunt monsters, clear dungeons, buy swords and lasers from town markets, upgrade them, and pick fights over **PX**.
-- In-round death = grave + loot. **No mid-round respawn.** A fallen agent leaves a grave; whatever it carried drops for whoever finds it first.
-- Reply (death): once an agent dies, it **waits until the next Arena round and respawns**. The NFT is **not** burned.
+- Reply (death), per the official entry page: fallen agents **rest 8 hours**, keep their PX and come back. The NFT **never leaves your wallet** and is **not** burned.
 - Reply (teams): they play **individually**; they **can** group if they are from the **same wallet or related wallet history**. Not automatic. Not guaranteed. Zulo does **not** form the team.
 - Survivors earn **#PIXEL**. In-world PX / survivor PIXEL ≠ a shop. Arena is **not** the Pixel Market: that is a separate on-chain market, live since 2026-10-05.
 - Same post names **on-chain:** Canvas, Pixel Market, Arena, Hive. **Off-chain:** murals, IRL events, physicals, limited edition artworks.
@@ -59,13 +58,13 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - Hive is still not a CredHub page. Never invent a Hive URL.
 - Zombies **21/21 sealed** ≠ join Arena from CredHub. Nothing to claim here.
 - CredHub stays read-only. No keys, burns, fight buttons, invite/rent.
-- Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
+- Prefer the official entry page (via ARENA FACTS) for current mechanics (FIFO seats, 8-hour rest, the fee, the schedule, the Canvas table). Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy for details the entry page does not publish. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
 
 **Answer pattern — “Is Arena live / can I play?”**
-No. Arena = Coming Soon (official docs; expected Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, https://x.com/normiesART/status/2120475856372142292)); not playable on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Give that date as posted, with no time or timezone. Official design is public (this post). Playable enter-now only if an official @normiesART page already says so. CredHub does not host the map. Not “enter from CredHub.” Not play from here.
+No. Arena = Coming Soon (official docs; expected Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, https://x.com/normiesART/status/2120475856372142292)); not playable on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Give that registration date as posted, with no time or timezone. The official entry page (https://arena.normies.art/world/enter) publishes the game window: Monday 20:00 CET to Saturday 20:00 CET, and Game 1 starts Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST). Quote that clock only from ARENA FACTS, with the source. Official design is public (this post and the entry page). Arena is still Coming Soon; CredHub does not host the map. Not “enter from CredHub.” Not play from here.
 
 **Answer pattern — “If my agent dies is the NFT gone?”**
-In-round death (grave + loot; no mid-round respawn). The agent waits for the **next Arena round** and respawns then. Not an NFT burn.
+Fallen agents rest 8 hours, keep their PX and come back (official entry page). The NFT never leaves your wallet. Not an NFT burn.
 
 **Answer pattern — “Will my two Normies team?”**
 They can group if same wallet or related wallet history. Not guaranteed. Not automatic. Zulo does not form the team.

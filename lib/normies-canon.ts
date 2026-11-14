@@ -58,17 +58,16 @@ export function tierLabels(): string[] {
 }
 
 /**
- * Arena Canvas ranks: a name for a Level band, per normiesART's X Article on Arena (posted Oct 22, 2026 17:34 UTC,
- * Oct 23 ChST). Rank names and start Levels only; nothing else from that article is canon here. Arena is Coming Soon
- * and the article says game data may change. The top band is shown with a neutral label so it is never confused with
- * the NormiesLegendaryCanvas award. NCH shows the rank as a label: it never counts toward any NCH rank or Pulse.
+ * Arena Canvas ranks: a name for a Level band, per the official Arena entry page (names first published in
+ * normiesART's Arena article, Oct 23, 2026, and now on the official page). Rank names and start Levels only.
+ * Arena is Coming Soon and figures may change. The top band is shown with a neutral label so it is never
+ * confused with the NormiesLegendaryCanvas award. NCH shows the rank as a label: it never counts toward any
+ * NCH rank or Pulse.
  */
 export const ARENA_CANVAS_RANKS_SOURCE = {
-  url: "https://x.com/normiesART/status/2113323053304238383",
-  /** Publication date as Ryan reads it (ChST). */
-  published: "2026-10-23",
-  publishedText: "Oct 23, 2026",
-  checkedAt: "2026-11-10",
+  url: "https://arena.normies.art/world/enter",
+  published: "official-entry-page",
+  publishedText: "official Arena entry page",
 } as const
 
 export const ARENA_CANVAS_TOP_LEVEL = 150
@@ -104,7 +103,7 @@ export function nextRankLevel(level: number | null | undefined): number | null {
 
 /** The note shown with a rank (record card page and JSON). */
 export function arenaCanvasRankNote(level: number): string {
-  return `From Level ${Math.floor(level)} (official API). Rank names per normiesART's Arena article (${ARENA_CANVAS_RANKS_SOURCE.publishedText}). Arena is Coming Soon and the article says game data may change. A label, not a score; it does not count toward any rank here.`
+  return `From Level ${Math.floor(level)} (official API). Rank names per the official Arena entry page. Arena is Coming Soon and figures may change. A label, not a score; it does not count toward any rank here.`
 }
 
 /** /burn only: a plain fact, e.g. "Next Arena Canvas rank at Level 25". Null at the top band (see arenaCanvasTopRankText). */

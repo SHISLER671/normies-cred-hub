@@ -29,7 +29,7 @@ export function recordCardLine(
     : "Arena record: pending (Arena not open yet)"
   const rank = rankForLevel(level)
   const canvasRank = rank && typeof level === "number"
-    ? ` · Arena Canvas rank: ${rank.name} (from Level ${Math.floor(level)}, official API; rank names per normiesART's Arena article, ${ARENA_CANVAS_RANKS_SOURCE.publishedText}, ${ARENA_CANVAS_RANKS_SOURCE.url}; Arena is Coming Soon and game data may change; a label, not a score)`
+    ? ` · Arena Canvas rank: ${rank.name} (from Level ${Math.floor(level)}, official API; rank names per the official Arena entry page, ${ARENA_CANVAS_RANKS_SOURCE.url}; Arena is Coming Soon and figures may change; a label, not a score)`
     : ""
   return `Record card: ${recordCardUrl(tokenId, origin)} — ${gate.text} · ${arena}${canvasRank}`
 }

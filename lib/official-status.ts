@@ -11,6 +11,9 @@ export const OFFICIAL_STATUS_AS_OF = "2026-10-19"
 /** Planned Arena launch source: @normiesART, Nov 11, 2026 ("launching on Monday. Registration starts on Saturday."). */
 export const ARENA_LAUNCH_SOURCE = "https://x.com/normiesART/status/2120475856372142292"
 
+/** Official Arena entry page. Source for mechanics, fee, schedule and the Canvas table. Arena stays Coming Soon. */
+export const ARENA_ENTER_SOURCE = "https://arena.normies.art/world/enter"
+
 export const OFFICIAL_STATUS = {
   pixelMarket: {
     status: "LIVE",
@@ -24,6 +27,7 @@ export const OFFICIAL_STATUS = {
     status: "COMING_SOON",
     expected: "Monday, November 16, 2026 (planned, per normiesART's Nov 11 post)",
     source: ARENA_LAUNCH_SOURCE,
+    enterPage: ARENA_ENTER_SOURCE,
     /** Registration is not launch: Arena stays COMING_SOON until an official source says it is live. */
     registration: {
       week1Opens: "2026-11-14",

@@ -13,6 +13,7 @@ import { COLLAB_RAILS_MD, DUAL_EVAL_AND_PIXEL_MARKET_MD } from "./agent-recommen
 import { PIXEL_CURRENCY_MD } from "./knowledge/pixel-currency"
 import {
   AGENTS_CANVAS_STATUS_LINE,
+  ARENA_ENTER_SOURCE,
   ARENA_REGISTRATION_LINE,
   ARENA_STATUS_LINE,
   OFFICIAL_STATUS,
@@ -128,6 +129,8 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     assert.doesNotMatch(ARENA_REGISTRATION_LINE, /registration opens/i)
     // Ryan, 2026-11-11: the planned date from normiesART's Arena article replaces "mid-November".
     assert.equal(OFFICIAL_STATUS.arena.source, "https://x.com/normiesART/status/2120475856372142292")
+    assert.equal(ARENA_ENTER_SOURCE, "https://arena.normies.art/world/enter")
+    assert.equal(OFFICIAL_STATUS.arena.enterPage, ARENA_ENTER_SOURCE)
     assert.equal(OFFICIAL_STATUS.arena.expected, "Monday, November 16, 2026 (planned, per normiesART's Nov 11 post)")
     assert.doesNotMatch(OFFICIAL_STATUS.arena.expected, /http/i)
     assert.match(ARENA_STATUS_LINE, /expected Monday, November 16, 2026 \(planned, per normiesART's Nov 11 post, https:\/\/x\.com\/normiesART\/status\/2120475856372142292\)/)
@@ -188,7 +191,8 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     // The earlier planned date is banned outright, even when worded as a plan. Nov 16 may appear only as a plan.
     // walk() already skips *.test.* files, so historical test comments are not scanned.
     const nov15 = /\bNov(?:ember)?\.? 15(?:th)?\b|2026-11-15/
-    const nov16 = /\bNov(?:ember)?\.? 16(?:th)?\b(?!, 2026 \(planned|, 2026 \(a plan)/i
+    // Official Game 1 clock (entry page) may use "Nov 16, 20:00 CET". Any other Nov 16 must still be a plan.
+    const nov16 = /\bNov(?:ember)?\.? 16(?:th)?\b(?!, 2026 \(planned|, 2026 \(a plan|, 20:00 CET)/i
     const dates = new RegExp(`${nov15.source}|${nov16.source}`, "i")
     const hits: string[] = []
     for (const [files, re] of [[surfaces, new RegExp(`${live.source}|${dates.source}`, "i")], [docs, dates]] as const) {
@@ -208,5 +212,40 @@ describe("surface tags fail closed", () => {
     assert.match(src, /arena: \(String\(OFFICIAL_STATUS\.arena\.status\) === "LIVE" \? "LIVE" : "COMING SOON"\)/)
     assert.doesNotMatch(src, /: "COMING SOON" : "LIVE"\)/)
     assert.equal(SURFACE_TAGS.arena, "COMING SOON")
+  })
+})
+
+describe("the earlier planned Arena calendar date stays out of copy and tests", () => {
+  it("no user-facing file or test spells that day in words", () => {
+    const month = "Nov"
+    const needles = [`${month}ember 15`, `${month} 15`]
+    const files = [
+      ...walk("lib"),
+      ...walk("app"),
+      ...walk("components"),
+      ...walk("public"),
+      ...walk("docs/zulo").filter((f) => !f.includes("/archive/")),
+      "README.md",
+      "AGENTS.md",
+    ]
+    // Also scan tests (walk() skips *.test.*).
+    const tests: string[] = []
+    const walkTests = (dir: string) => {
+      if (!fs.existsSync(dir)) return
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (["node_modules", ".next", ".git", "archive"].includes(e.name)) continue
+        const p = path.join(dir, e.name)
+        if (e.isDirectory()) walkTests(p)
+        else if (/\.test\.(ts|tsx)$/.test(e.name)) tests.push(p)
+      }
+    }
+    for (const d of ["lib", "app", "components"]) walkTests(d)
+    const hits: string[] = []
+    for (const f of [...files, ...tests]) {
+      fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
+        for (const s of needles) if (line.includes(s)) hits.push(`${f}:${i + 1}: ${line.trim().slice(0, 140)}`)
+      })
+    }
+    assert.deepEqual(hits, [])
   })
 })

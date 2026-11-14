@@ -19,6 +19,7 @@ import { DEFAULT_SITE_ORIGIN } from "@/lib/site-origin"
 import { planForBudget, planForPixels } from "@/lib/ap-check/buy-smart"
 import { loadBuySmart } from "@/lib/ap-check/buy-smart-load"
 import { parseCalcAmount } from "@/lib/ap-check/compare-text"
+import { ARENA_ENTER_SOURCE, ARENA_GEAR_LINE, ARENA_HEAD_START_ROWS, ARENA_MAY_CHANGE, headStartRowLabel, pixelsAttachedText } from "@/lib/arena-canon"
 import { ARENA_CANVAS_RANKS_SOURCE, arenaCanvasTopRankText, nextArenaCanvasRankText } from "@/lib/normies-canon"
 
 import { PixelCompare } from "./pixel-compare"
@@ -371,7 +372,7 @@ function NextCanvasRank({ level }: { level: number | null }) {
   if (!text) return null
   return (
     <p className="burn-small">
-      {text}. Rank names per <a href={ARENA_CANVAS_RANKS_SOURCE.url} target="_blank" rel="noopener noreferrer">normiesART&apos;s Arena article</a> ({ARENA_CANVAS_RANKS_SOURCE.publishedText}); Arena is Coming Soon and game data may change.
+      {text}. Rank names per <a href={ARENA_CANVAS_RANKS_SOURCE.url} target="_blank" rel="noopener noreferrer">the official Arena entry page</a>; Arena is Coming Soon and figures may change.
     </p>
   )
 }
@@ -389,8 +390,36 @@ function GoalNotes({ model }: { model: PageModel }) {
           <li><strong>Grow</strong><span>burn or hold for a bigger score, repeat</span></li>
         </ol>
       )}
+      {model.goal === "arena" && <ArenaHeadStartTable />}
       <ul className="burn-plain">{model.goalNotes.map((n, i) => <li key={i}>{n}</li>)}</ul>
     </details>
+  )
+}
+
+function ArenaHeadStartTable() {
+  return (
+    <table className="burn-table">
+      <caption className="burn-small">
+        Canvas head start per <a href={ARENA_ENTER_SOURCE} target="_blank" rel="noopener noreferrer">the official Arena entry page</a>.
+        {" "}A head start, not a guarantee. {ARENA_MAY_CHANGE}. {ARENA_GEAR_LINE}.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Level</th>
+          <th scope="col">#PIXEL attached</th>
+          <th scope="col">Health bonus</th>
+        </tr>
+      </thead>
+      <tbody>
+        {ARENA_HEAD_START_ROWS.map((row) => (
+          <tr key={row.fromLevel}>
+            <th scope="row">{headStartRowLabel(row)}</th>
+            <td>{pixelsAttachedText(row.pixelsAttached)}</td>
+            <td>{row.headStart}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
 
