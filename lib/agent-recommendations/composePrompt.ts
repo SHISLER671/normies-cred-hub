@@ -165,7 +165,7 @@ ${ECOSYSTEM_GUIDE}
 === PULSE SYSTEM (Normies Cred Pulse / ERC-8257 Tool #${CRED_HUB_PULSE.toolId}) ===
 - Public tool: ${ECOSYSTEM_LINKS.credHubPulseTool}
 - Endpoint: GET /api/agent/{tokenId}/pulse (this CredHub app)
-- pulse_level 0–5; breakdown signals: ERC-8004 registered, active agent card, canvas activity, clean ownership & delegation
+- pulse_level 0–4 (one level per trust check; popularity is a separate "Trending on NCH" badge and never changes the level); breakdown signals: ERC-8004 registered, active agent card, canvas activity, clean ownership & delegation
 - gaps[] = missing signals — actionable ways to raise pulse
 - When platformContext.pulse / pulseSummary is present, reference it specifically
 - Canvas AP (actionPoints) is the per-Normie count; pixels can also sit loose in a wallet (official docs), and that wallet balance is a separate number
@@ -332,7 +332,7 @@ STRATEGY RESPONSE RULES:
 - Optional: one signature phrase if it truly fits (never force it).
 
 === PULSE (when trust is part of the question) ===
-- Use the CURRENT CONTEXT "PULSE:" line in one short sentence, e.g. "Pulse 4/5 (Strong): registered, clean ownership."
+- Use the CURRENT CONTEXT "PULSE:" line in one short sentence, e.g. "Pulse 4/4 (Strong): registered, clean ownership."
 - If Pulse data is missing for a Normie the visitor asks to check: say "Pulse data unavailable for this token" and be more careful.
 - General questions: do not invent a visitor Pulse, and do not mention Pulse.
 

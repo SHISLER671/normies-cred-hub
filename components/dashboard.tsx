@@ -42,6 +42,7 @@ import {
 import { ERC8004, ZULO } from "@/constants/contracts"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { getCurrentSignals, validateSignals } from "@/lib/signals"
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 
 export function Dashboard() {
   const { address, isConnected } = useAccount()
@@ -175,7 +176,7 @@ export function Dashboard() {
       <EvolutionTrack
         tokenId={tokenId}
         level={recordCard?.pulse.available ? recordCard.pulse.level : null}
-        maxLevel={recordCard?.pulse.max_level ?? 5}
+        maxLevel={recordCard?.pulse.max_level ?? PULSE_MAX_LEVEL}
         gatePassed={recordCard?.pulse.available ? recordCard.pulse.gate.passed : null}
       />
 

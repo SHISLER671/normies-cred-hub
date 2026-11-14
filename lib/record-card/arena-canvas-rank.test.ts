@@ -106,7 +106,7 @@ describe("record card JSON", () => {
       canvas: { actionPoints: 12, level, customized: false, delegate: null, gridSize: 40 },
       owner: { owner: "0xfafd8fb6b4e43ace0e365553f1b9242384591031" },
       zombie: { info: { isZombie: false } },
-      pulse: { pulse_level: 4, max_level: 5, status: "Strong", breakdown: [GATE_REGISTERED, GATE_CLEAN_OWNERSHIP] },
+      pulse: { pulse_level: 4, max_level: 4, status: "Strong", breakdown: [GATE_REGISTERED, GATE_CLEAN_OWNERSHIP] },
       chatRatings: null,
       arena: await loadArenaSector(7141, NOW, { status: "COMING_SOON" }),
     })

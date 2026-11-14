@@ -8,7 +8,7 @@ import { PulseTrace } from "@/components/pulse-trace"
 import { RecordShare } from "@/components/record-share"
 import { publicClient } from "@/lib/viem-client"
 import { symphonyPath } from "@/lib/symphony/pin"
-import { pulseBeats } from "@/lib/pulse/beats"
+import { popularityCountsText, pulseBeats, TRENDING_LABEL } from "@/lib/pulse/beats"
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { loadRecordCard } from "@/lib/record-card/load"
@@ -142,6 +142,16 @@ export default async function RecordCardPage({ params }: Params) {
             {pulse.available ? `Pulse ${pulse.level}/${pulse.max_level} (${pulse.status}). ` : "Pulse unavailable right now. "}
             Pulse is trust, not skill. Only the two checks above decide who can appear in a skill rank.
           </p>
+          {pulse.popularity && (
+            <p className="caption">
+              {pulse.trending && (
+                <>
+                  <Chip tone="live">{TRENDING_LABEL}</Chip>{" "}
+                </>
+              )}
+              {popularityCountsText(pulse.popularity)}. Popularity is separate from trust and never changes the Pulse level.
+            </p>
+          )}
         </section>
 
         <section className="rc-section" aria-labelledby="rc-id">

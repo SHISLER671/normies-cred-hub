@@ -10,6 +10,7 @@ import { useWalletGate } from "@/components/wallet-gate"
 
 import { IntentChips } from "./intent-chips"
 import { PathCard } from "./path-card"
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 
 const MAX_INTENT = 200
 
@@ -214,7 +215,7 @@ export function PathBoard({
           <p className="moves-pulse-lead">
             {result.subject.tokenId != null
               ? result.subject.pulse_level != null
-                ? `Pulse ${result.subject.pulse_level}/5${
+                ? `Pulse ${result.subject.pulse_level}/${PULSE_MAX_LEVEL}${
                     result.subject.status ? ` (${result.subject.status})` : ""
                   } — ranked moves below are conditioned on this.`
                 : "Pulse data unavailable for this token → ranking uses other signals; confidence capped."

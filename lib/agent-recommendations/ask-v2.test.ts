@@ -26,7 +26,7 @@ function ctx(over: Partial<NonNullable<ZuloRecommendationContext["platformContex
         userOwnsFocus: true,
       },
       pulse: {
-        tokenId: 7141, agentId: 32626, pulseLevel: 4, maxLevel: 5, status: "Strong",
+        tokenId: 7141, agentId: 32626, pulseLevel: 4, maxLevel: 4, status: "Strong",
         breakdown: ["ERC-8004 registered", "Clean ownership & delegation"], gaps: [], nextSignal: null, note: "",
       },
       mentionedNormies: [],
@@ -113,7 +113,7 @@ describe("Pulse only when trust is part of the question", () => {
 
   it("a trust question gets it, without stuffing it into an empty understanding", () => {
     const out = ensurePulseFirst(reply, ctx(), "can I trust my agent?")
-    assert.match(out.pulseLead ?? "", /^Pulse 4\/5 \(Strong\)/)
+    assert.match(out.pulseLead ?? "", /^Pulse 4\/4 \(Strong\)/)
     assert.equal(out.understanding, "")
   })
 })

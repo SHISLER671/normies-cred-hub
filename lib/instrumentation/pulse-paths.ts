@@ -9,12 +9,12 @@ import type { NextRequest } from "next/server"
 import { getClientId } from "@/lib/ratelimit"
 
 export const PULSE_RECENT_WINDOW_SEC = 900
-/** Rolling window for popularity (Luminous, level 5, once all four trust checks pass). */
+/** Rolling window for popularity (the "Trending on NCH" badge). */
 export const USAGE_LOOKBACK_DAYS = 14
 /**
  * Popularity counts DISTINCT callers (keyed hash of the IP), not raw calls: one script calling Pulse 8 times must not inflate a
- * token's count. A caller counts once per token, however often it calls. Popularity only lifts an agent that already
- * passes all four trust checks to Luminous; it never stands in for a trust check.
+ * token's count. A caller counts once per token, however often it calls. Popularity only decides the "Trending on NCH"
+ * badge; it never changes the Pulse level and never stands in for a trust check.
  */
 export const USAGE_PULSE_CALLS_THRESHOLD = 8
 export const USAGE_CONDITIONED_PATHS_THRESHOLD = 3
@@ -272,7 +272,7 @@ async function incrDaily(
 export type TokenUsageSignal = {
   pulseCalls: number
   conditionedPaths: number
-  /** Popularity threshold met. Lifts to Luminous only when all four trust checks pass (lib/api/agent-pulse.ts). */
+  /** Popularity threshold met: shown as the "Trending on NCH" badge. Never changes the Pulse level (lib/api/agent-pulse.ts). */
   earned: boolean
   lookbackDays: number
   /** False when the counters couldn't be read: show nothing rather than a false zero. */
@@ -289,7 +289,7 @@ export function usageCountsAvailable(o: { secret: string | null; hasRedis: boole
 }
 
 /**
- * Popularity read for Pulse (distinct callers over the lookback window): raw counts plus whether Luminous is earned.
+ * Popularity read for Pulse (distinct callers over the lookback window): raw counts plus whether the threshold for the "Trending on NCH" badge is met.
  * Never throws; a failed read, or counting that isn't set up (see usageCountsAvailable), returns `readable: false`.
  */
 export async function getTokenUsageSignal(
