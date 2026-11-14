@@ -1,42 +1,33 @@
-# Pulse PR-2 scope: move popularity out of the level ("Trending on NCH").
-# Source: docs/zulo/pulse-trust-fixes-spec.md (PR-2).
-# One active contract on main; this list is for PR-2 only. Replace it before PR-3.
+# Pulse PR-3 scope: "Has active agent card" actually reads the card.
+# Source: docs/zulo/pulse-trust-fixes-spec.md (PR-3).
+# One active contract on main; this list is for PR-3 only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
 # The scope check reads this file from main (the PR base), never from the PR head.
 # Always-protected regardless of this list: .github/workflows/, .github/scripts/,
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
+# lib/security/ssrf.ts: allowlist change only (start with api.normies.art).
 
-lib/api/agent-pulse.ts
+lib/api/agent-pulse*.ts
 lib/api/*.test.ts
-components/pulse-hero.tsx
-components/dashboard.tsx
-components/agent-pulse-bar.tsx
-app/dashboard/page.tsx
-app/record/[tokenId]/opengraph-image.tsx
-app/api/chat-ratings/[agentId]/route.ts
-lib/record-card/**
-lib/path-ranker/**
+lib/agent-card*.ts
+lib/agent-card/**
+lib/security/ssrf.ts
+lib/security/ssrf*.test.ts
+lib/security/hardening.test.ts
 lib/pulse/**
-lib/instrumentation/pulse-paths*.ts
+lib/record-card/**
+components/pulse-hero.tsx
+components/agent-pulse-bar.tsx
+app/record/**
+app/dashboard/page.tsx
 lib/agent-recommendations/pulseFirst*.ts
-lib/burn-buy/market-feed*.ts
-lib/db/supabase.ts
-AGENTS.md
+lib/agent-recommendations/ask-facts.test.ts
+lib/zulo-horizon.ts
 README.md
+AGENTS.md
 docs/zulo/strategy.md
 docs/zulo/record-card-spec.md
-package.json
-components/path-board/path-board.tsx
-lib/zulo-horizon.ts
-lib/agent-recommendations/composePrompt*.ts
-lib/api/agent-pulse*.ts
-app/record/**
-app/api/chat-ratings/**
 docs/zulo/pulse-trust-fixes-spec.md
-app/zulo/styles.css
-components/evolution-track.tsx
-lib/agent-recommendations/ask-facts.test.ts
-lib/agent-recommendations/ask-v2.test.ts
-lib/zulo/answer-log.test.ts
+package.json
