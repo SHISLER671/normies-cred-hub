@@ -1,6 +1,8 @@
 // Plan a refresh of normie_index.owner from the chain (ownerOf per living token). Pure: no I/O.
-// The bulk rarity list has no owners, so this is the only source. Only `owner` is changed here; burned flags stay with
-// the census refresh (lib/census-refresh.ts), which has the complete official list to check against.
+// The bulk rarity list has no owners, so this is the only source. Only `owner` and `owner_since` are changed here; burned flags
+// stay with the census refresh (lib/census-refresh.ts), which has the complete official list to check against.
+// owner_since is when this job first saw the new owner, so it can be up to one run late, never early. Pulse level 4 counts the
+// owner's days from it (lib/ownership-check.ts).
 
 export interface OwnerRowLite {
   token_id: number
@@ -12,7 +14,8 @@ export interface OwnerRowLite {
 export type ChainOwners = ReadonlyMap<number, string | null>
 
 export interface OwnersPlan {
-  updates: Array<{ token_id: number; owner: string }>
+  /** owner_since is the time of this run: set only for a token whose owner changed, never touched otherwise. */
+  updates: Array<{ token_id: number; owner: string; owner_since: string }>
   unchanged: number
   /** Living in the index but the chain call failed: left exactly as they are, listed for the report. */
   unknown: number[]
@@ -27,7 +30,7 @@ export const MAX_UNKNOWN_SHARE = 0.05
 const norm = (a: string | null | undefined) => (a ?? "").toLowerCase()
 const ADDRESS = /^0x[a-f0-9]{40}$/
 
-export function planOwnersRefresh(chain: ChainOwners, index: readonly OwnerRowLite[]): OwnersPlan {
+export function planOwnersRefresh(chain: ChainOwners, index: readonly OwnerRowLite[], now: string = new Date().toISOString()): OwnersPlan {
   const living = index.filter((r) => !r.burned)
   const updates: OwnersPlan["updates"] = []
   const unknown: number[] = []
@@ -38,7 +41,7 @@ export function planOwnersRefresh(chain: ChainOwners, index: readonly OwnerRowLi
     const owner = typeof got === "string" ? got.toLowerCase() : null
     if (!owner || !ADDRESS.test(owner)) { unknown.push(row.token_id); continue }
     if (owner === norm(row.owner)) unchanged++
-    else updates.push({ token_id: row.token_id, owner })
+    else updates.push({ token_id: row.token_id, owner, owner_since: now })
   }
 
   const n = Math.max(1, living.length)

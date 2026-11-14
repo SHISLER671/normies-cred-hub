@@ -1,4 +1,4 @@
-// Scheduled job (pg_cron -> pg_net): refresh normie_index.owner from the chain (ownerOf for every living token via Multicall3),
+// Scheduled job (pg_cron -> pg_net): refresh normie_index.owner (and owner_since, when the owner changed) from the chain (ownerOf for every living token via Multicall3),
 // with the same guards as scripts/refresh-owners.ts. plan.ts is a byte-for-byte copy of lib/owners-refresh.ts (a test fails if they drift).
 // Only the cron secret in public.sync_config can trigger it. `?dry=1` plans and returns, writes nothing.
 import { createClient } from "npm:@supabase/supabase-js@2"
@@ -46,7 +46,7 @@ async function run(db: ReturnType<typeof createClient>, dry: boolean) {
 
   for (let i = 0; i < plan.updates.length; i += 20) {
     await Promise.all(plan.updates.slice(i, i + 20).map(async (u) => {
-      const { error } = await db.from("normie_index").update({ owner: u.owner }).eq("token_id", u.token_id)
+      const { error } = await db.from("normie_index").update({ owner: u.owner, owner_since: u.owner_since }).eq("token_id", u.token_id)
       if (error) throw new Error(`update #${u.token_id}: ${error.message}`)
     }))
   }

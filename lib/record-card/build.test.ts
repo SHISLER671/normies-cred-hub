@@ -39,6 +39,42 @@ describe("pulseGate (trust checks, never a level)", () => {
   })
 })
 
+describe("ownership check on the card (evidence for the gate's clean-ownership half)", () => {
+  const check = {
+    passed: true,
+    reasons: ["canvas_delegate_stale" as const],
+    owner_since: "2026-09-01T00:00:00.000Z",
+    tenure_days_required: 30,
+    canvas_delegate_set_by_owner: false,
+    delegate_xyz: { checked: true, delegations_found: 0 },
+    as_of: NOW,
+  }
+  const pulse = { pulse_level: 4, max_level: 5, status: "Strong", breakdown: [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", GATE_CLEAN_OWNERSHIP] }
+  it("the gate string is unchanged", () => {
+    assert.equal(GATE_CLEAN_OWNERSHIP, "Clean ownership & delegation")
+  })
+  it("carries the check with plain-word lines; a leftover delegate shows without failing the gate", async () => {
+    const c = buildRecordCard(await inputs({ pulse: { ...pulse, ownership_check: check } }))
+    assert.equal(c.pulse.gate.passed, true)
+    assert.deepEqual(c.pulse.ownership_check, {
+      ...check,
+      lines: ["Owner confirmed on-chain and held for at least 30 days", "Delegate from a previous owner, not honored"],
+    })
+  })
+  it("a recently traded Normie is out of the gate, and the card says why in plain words", async () => {
+    const short = { ...check, passed: false, reasons: ["tenure_short" as const], canvas_delegate_set_by_owner: true }
+    const c = buildRecordCard(await inputs({ pulse: { ...pulse, pulse_level: 3, status: "Solid", breakdown: pulse.breakdown.slice(0, 3), ownership_check: short } }))
+    assert.equal(c.pulse.gate.passed, false)
+    assert.equal(c.pulse.gate.clean_ownership, false)
+    assert.deepEqual(c.pulse.ownership_check?.lines, ["Owner has held it for less than 30 days"])
+    assert.doesNotMatch(JSON.stringify(c.pulse.ownership_check), /0x[a-fA-F0-9]{40}/)
+  })
+  it("is null when the Pulse didn't send one (older Pulse, or Pulse unavailable)", async () => {
+    assert.equal(buildRecordCard(await inputs()).pulse.ownership_check, null)
+    assert.equal(buildRecordCard(await inputs({ pulse: null })).pulse.ownership_check, null)
+  })
+})
+
 describe("buildRecordCard", () => {
   it("builds Zulo's card from real API shapes, every live field verified with its source", async () => {
     const c = buildRecordCard(await inputs())

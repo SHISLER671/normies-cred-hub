@@ -1,6 +1,8 @@
 // Normie record card — shared types. Shape follows docs/zulo/record-card-spec.md (spec v0.1).
 // Every value is wrapped in a Field so a reader always sees where it came from, how it is labelled, and when it was read.
 
+import type { OwnershipCheck } from "@/lib/ownership-check"
+
 export type SourceKind = "onchain" | "official_api" | "nch_computed" | "self_reported" | "chat_rating"
 
 /** Plain-word field labels. Only `verified` fields may ever count toward a rank. */
@@ -78,6 +80,12 @@ export type RecordCard = {
       clean_ownership: boolean
       text: string
     }
+    /**
+     * Why "Clean ownership & delegation" passed or didn't (lib/ownership-check.ts), with the same check in plain words.
+     * A leftover delegate from a previous owner is listed but doesn't fail the check on its own. Null when the Pulse is
+     * unavailable. Optional so older cached cards still type-check.
+     */
+    ownership_check?: (OwnershipCheck & { lines: string[] }) | null
     available: boolean
   }
   /** Sector ranks (skill). Arena is the first sector; Trading and Tools/utility arrive with their own specs. */

@@ -3,6 +3,7 @@
 
 import { traitType, traitsSourceLabel, type SourcedNormieTraits } from "@/lib/normie-traits"
 import type { ChatRatingsSummary } from "@/lib/chat-ratings/load"
+import { ownershipCheckLines, type OwnershipCheck } from "@/lib/ownership-check"
 import { pendingCanvasSector } from "./canvas"
 import { ARENA_CANVAS_RANKS_SOURCE, arenaCanvasRankNote, rankForLevel } from "@/lib/normies-canon"
 import type { ArenaCanvasRankField, ArenaSector, CanvasSector, CardStatus, Field, RecordCard, SourceKind } from "./types"
@@ -39,6 +40,8 @@ export type RecordCardInputs = {
     breakdown: string[]
     next_signal?: string | null
     popularity?: { pulse_checkers: number; paths_users: number; lookback_days: number; popular: boolean } | null
+    /** The evidence behind "Clean ownership & delegation", as the Pulse returned it. */
+    ownership_check?: OwnershipCheck | null
   } | null
   chatRatings: ChatRatingsSummary | null | undefined
   arena: ArenaSector
@@ -169,6 +172,9 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
           }
         : null,
       gate,
+      ownership_check: i.pulse?.ownership_check
+        ? { ...i.pulse.ownership_check, lines: ownershipCheckLines(i.pulse.ownership_check) }
+        : null,
       available: !!i.pulse,
     },
     sectors: { arena: i.arena, canvas: i.canvasSector ?? pendingCanvasSector(at) },
