@@ -93,11 +93,11 @@ describe("the owners-refresh job and the SQL draft", () => {
     assert.match(job, /\.update\(\{ owner: u\.owner, owner_since: u\.owner_since \}\)/)
     assert.doesNotMatch(job, /\.update\(\{ owner: u\.owner \}\)/)
   })
-  it("the SQL file is a DRAFT that adds a nullable owner_since", () => {
+  it("the SQL file is marked DRAFT or APPLIED on its first line and adds a nullable owner_since", () => {
     const files = fs.readdirSync("supabase/sql").filter((f) => /^2026-11-\d\d-normie-owner-since\.sql$/.test(f))
     assert.equal(files.length, 1)
     const sql = fs.readFileSync(`supabase/sql/${files[0]}`, "utf8")
-    assert.match(sql.split("\n")[0], /^-- DRAFT/)
+    assert.match(sql.split("\n")[0], /^-- (DRAFT|APPLIED \d{4}-\d\d-\d\d)/)
     assert.match(sql, /add column if not exists owner_since timestamptz null/)
     assert.doesNotMatch(sql, /security definer/i)
     assert.match(sql, /revoke execute on function public\.normie_index_touch_owner_since\(\) from public, anon, authenticated/)

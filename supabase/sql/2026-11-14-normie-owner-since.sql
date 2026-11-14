@@ -1,5 +1,5 @@
--- DRAFT (not applied). Pulse level 4 "Clean ownership & delegation": when the current owner took each Normie.
--- Spec: docs/zulo/pulse-trust-fixes-spec.md, PR-1 (1.2). Apply by hand, then change this line to APPLIED with the date.
+-- APPLIED 2026-11-14. Pulse level 4 "Clean ownership & delegation": when the current owner took each Normie. Do not re-run.
+-- Spec: docs/zulo/pulse-trust-fixes-spec.md, PR-1 (1.2). Applied to the NCH Supabase project (rvbbpuulwsatykcredbh) by Claude at Ryan's request.
 --
 -- Order matters. Until step 1 is applied AND the backfill has run, every Normie reads "tenure_unknown" and none gets level 4:
 --   1. Apply this file.
