@@ -1,11 +1,11 @@
 -- APPLIED 2026-11-14. Pulse level 4 "Clean ownership & delegation": when the current owner took each Normie. Do not re-run.
 -- Spec: docs/zulo/pulse-trust-fixes-spec.md, PR-1 (1.2). Applied to the NCH Supabase project (rvbbpuulwsatykcredbh) by Claude at Ryan's request.
 --
--- Order matters. Until step 1 is applied AND the backfill has run, every Normie reads "tenure_unknown" and none gets level 4:
---   1. Apply this file.
---   2. Deploy the owners-refresh function (it now writes owner_since when an owner changes).
---   3. Run the one-off backfill (POST /api/cron/owner-since-backfill, see that route's header) until it answers "done": true.
---   4. Only then deploy the app change that reads owner_since.
+-- Backfill: done by hand on 2026-11-14 through the database (no route). Source: the Normies contract's Transfer logs for blocks
+-- 26194638 to 26410638 (2026-10-15 01:30:11 UTC to 2026-11-14 03:49:35 UTC), 651 events in 217 ranges of 1,000 blocks.
+--   379 Normies (376 living, 3 burned) got the block time of their latest transfer in that window;
+--   the other 6,613 living Normies got the window start, 2026-10-15 01:30:11 UTC. No living row was left empty.
+-- owner_since was only set where it was empty; no other column was touched.
 
 -- 1. The column. Null means "not known yet", which Pulse reports as tenure_unknown and never treats as long-held.
 alter table public.normie_index add column if not exists owner_since timestamptz null;

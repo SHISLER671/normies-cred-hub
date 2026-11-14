@@ -1,5 +1,6 @@
 // Pulse level 4, "Clean ownership & delegation" (docs/zulo/pulse-trust-fixes-spec.md, PR-1): four checks, fail-closed.
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 import { describe, it } from "node:test"
 
 import type { DelegateXyzResult } from "@/lib/delegations"
@@ -274,5 +275,13 @@ describe("loadOwnershipCheck: the reads, fail-closed", () => {
   it("canvas that the Pulse couldn't read is canvas_unreadable", async () => {
     const c = await loadOwnershipCheck(7141, { ...api, canvas: { ok: false } }, deps())
     assert.deepEqual(c.reasons, ["canvas_unreadable"])
+  })
+})
+
+describe("read-only", () => {
+  it("no on-chain write or signature of any kind in the ownership check", () => {
+    for (const f of ["lib/ownership-check.ts", "lib/ownership-check-load.ts"]) {
+      assert.doesNotMatch(readFileSync(f, "utf8"), /writeContract|sendTransaction|signTypedData|signMessage|walletClient/, f)
+    }
   })
 })
