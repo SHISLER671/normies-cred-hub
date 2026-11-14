@@ -35,3 +35,8 @@ lib/api/agent-pulse*.ts
 app/record/**
 app/api/chat-ratings/**
 docs/zulo/pulse-trust-fixes-spec.md
+app/zulo/styles.css
+components/evolution-track.tsx
+lib/agent-recommendations/ask-facts.test.ts
+lib/agent-recommendations/ask-v2.test.ts
+lib/zulo/answer-log.test.ts
