@@ -157,3 +157,25 @@ export async function safeFetchText(
     clearTimeout(timer)
   }
 }
+
+/** Hosts an agent's registration file and agent card may be fetched from (Pulse "Has active agent card"). Exact names, no wildcards. */
+export const AGENT_CARD_HOST_ALLOWLIST: readonly string[] = ["api.normies.art"]
+
+/**
+ * assertPublicHttpsUrl plus an exact-host allowlist. The host is checked first, so a URL off the list is refused without a
+ * DNS lookup or any request. Throws SsrfBlockedError.
+ */
+export async function assertAllowlistedHttpsUrl(
+  raw: string,
+  allowedHosts: readonly string[],
+  lookup: LookupFn = defaultLookup,
+): Promise<URL> {
+  let host: string
+  try {
+    host = new URL(raw).hostname.toLowerCase()
+  } catch {
+    throw new SsrfBlockedError("not a URL")
+  }
+  if (!allowedHosts.some((h) => h.toLowerCase() === host)) throw new SsrfBlockedError("host is not on the allowlist")
+  return assertPublicHttpsUrl(raw, lookup)
+}

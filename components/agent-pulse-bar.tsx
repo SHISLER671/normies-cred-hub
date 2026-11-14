@@ -54,7 +54,7 @@ export function PulseExplainer({ className, label = "How Pulse works" }: { class
               </p>
               <ul className="mt-2 list-inside list-disc space-y-1">
                 <li>ERC-8004 registered on Ethereum</li>
-                <li>Active agent card (name, tagline, prompts)</li>
+                <li>Agent card published (the public card is read and names this agent; it doesn&apos;t show that the agent answers messages)</li>
                 <li>Canvas activity on normies.art</li>
                 <li>Clean ownership &amp; delegation</li>
               </ul>

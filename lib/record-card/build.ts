@@ -3,6 +3,7 @@
 
 import { traitType, traitsSourceLabel, type SourcedNormieTraits } from "@/lib/normie-traits"
 import type { ChatRatingsSummary } from "@/lib/chat-ratings/load"
+import type { AgentCardCheck } from "@/lib/agent-card"
 import { ownershipCheckLines, type OwnershipCheck } from "@/lib/ownership-check"
 import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 import { pendingCanvasSector } from "./canvas"
@@ -43,6 +44,8 @@ export type RecordCardInputs = {
     popularity?: { pulse_checkers: number; paths_users: number; lookback_days: number; popular: boolean } | null
     /** The evidence behind "Clean ownership & delegation", as the Pulse returned it. */
     ownership_check?: OwnershipCheck | null
+    /** The evidence behind "Has active agent card", as the Pulse returned it. */
+    agent_card?: AgentCardCheck | null
   } | null
   chatRatings: ChatRatingsSummary | null | undefined
   arena: ArenaSector
@@ -173,6 +176,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
           }
         : null,
       trending: i.pulse?.popularity?.popular ?? false,
+      agent_card: i.pulse?.agent_card ?? null,
       gate,
       ownership_check: i.pulse?.ownership_check
         ? { ...i.pulse.ownership_check, lines: ownershipCheckLines(i.pulse.ownership_check) }

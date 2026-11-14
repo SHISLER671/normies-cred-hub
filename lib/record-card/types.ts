@@ -1,6 +1,7 @@
 // Normie record card — shared types. Shape follows docs/zulo/record-card-spec.md (spec v0.1).
 // Every value is wrapped in a Field so a reader always sees where it came from, how it is labelled, and when it was read.
 
+import type { AgentCardCheck } from "@/lib/agent-card"
 import type { OwnershipCheck } from "@/lib/ownership-check"
 
 export type SourceKind = "onchain" | "official_api" | "nch_computed" | "self_reported" | "chat_rating"
@@ -76,6 +77,12 @@ export type RecordCard = {
     } | null
     /** "Trending on NCH": the popularity threshold is met. False when the counters couldn't be read. Never changes `level`. Optional so older cached cards still type-check. */
     trending?: boolean
+    /**
+     * Why "Has active agent card" passed or didn't (lib/agent-card.ts): the card was read, with its sha256. It means the card
+     * is published and names this agent, not that the agent is online. Null when the Pulse is unavailable. Optional so
+     * older cached cards still type-check.
+     */
+    agent_card?: AgentCardCheck | null
     gate: {
       passed: boolean
       registered: boolean

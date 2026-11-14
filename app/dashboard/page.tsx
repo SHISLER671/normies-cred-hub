@@ -114,7 +114,7 @@ export default function DashboardPage() {
     "Clean ownership & delegation"
   ],
   "next_signal": null,
-  "note": "Levels 1–4 are the four trust checks: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Popularity is separate and never changes the level: \"Trending on NCH\" shows when enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.",
+  "note": "Levels 1–4 are the four trust checks: ERC-8004 registration, a published agent card, Canvas activity and clean ownership & delegation. Popularity is separate and never changes the level: \"Trending on NCH\" shows when enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.",
   "popularity": {
     "pulse_checkers": 5,
     "paths_users": 1,
@@ -123,6 +123,12 @@ export default function DashboardPage() {
     "note": "Distinct callers, not raw calls. Popularity never changes the Pulse level: it only decides the \"Trending on NCH\" badge."
   },
   "trending": false,
+  "agent_card": {
+    "checked": true,
+    "passed": true,
+    "card_hash": "<sha256 of the card body>",
+    "as_of": "2026-11-14T00:00:00.000Z"
+  },
   "chat_ratings": {
     "label": "Chat rating",
     "ranked": false,
