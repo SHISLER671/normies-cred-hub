@@ -113,12 +113,21 @@ async function readNormies<T>(path: string): Promise<Read<T>> {
   }
 }
 
+/**
+ * The registry is an ERC-721: an agent's registration URI is read with tokenURI(agentId). It has no agentURI() getter;
+ * that call reverts (checked on mainnet 2026-11-14, agent #32626), so the URI was never actually read before PR-3 and
+ * "registered" rested on ownerOf alone. "agentURI" is the name the registry's events and ERC-8004 use for the same value.
+ */
+const REGISTRY_TOKEN_URI_ABI = [
+  { type: "function", name: "tokenURI", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ name: "", type: "string" }] },
+] as const
+
 /** What the Identity Registry says about one agent. Read once per Pulse check and shared by checks 1 and 2. */
 type Registration = {
   registered: boolean
-  /** agentURI(agentId): where the agent's registration file is. Null when empty or when the read failed. */
+  /** The agent's registration URI (tokenURI(agentId)): where its registration file is. Null when empty or when the read failed. */
   agentURI: string | null
-  /** False when the agentURI read itself failed: "no URI" is then unknown, not a fact. */
+  /** False when the URI read itself failed: "no URI" is then unknown, not a fact. */
   uriReadable: boolean
 }
 
@@ -135,8 +144,8 @@ async function readRegistration(agentId: number): Promise<Registration> {
   const [agentURIResult, ownerResult] = await Promise.allSettled([
     publicClient.readContract({
       address: registry,
-      abi: IDENTITY_REGISTRY_READ_ABI,
-      functionName: "agentURI",
+      abi: REGISTRY_TOKEN_URI_ABI,
+      functionName: "tokenURI",
       args,
     }),
     publicClient.readContract({
@@ -157,7 +166,7 @@ async function readRegistration(agentId: number): Promise<Registration> {
     agentURI: agentURI || null,
     uriReadable: agentURIResult.status === "fulfilled",
   }
-  // Cache only a complete answer. When the agentURI read failed, "no URI" may just mean "couldn't read", and the agent
+  // Cache only a complete answer. When the URI read failed, "no URI" may just mean "couldn't read", and the agent
   // card check (which needs the URI) must be able to try again on the next call.
   if (agentURIResult.status === "fulfilled") {
     if (registrationCache.size > 5_000) registrationCache.clear()

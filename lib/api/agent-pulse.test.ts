@@ -242,10 +242,10 @@ describe("getAgentPulse: popularity is a separate badge, never a level", () => {
       // The Identity Registry reads (JSON-RPC eth_call): ownerOf answers an address, agentURI answers the registration URL.
       if (checks >= 3 && init?.method === "POST" && typeof init.body === "string" && init.body.includes("eth_call")) {
         const call = JSON.parse(init.body) as { id: number; params: [{ data: string }] }
-        const result = call.params[0].data.startsWith("0x6352211e")
-          ? "0x" + OWNER.slice(2).padStart(64, "0")
-          : encodeAbiParameters([{ type: "string" }], [REGISTRATION_URL])
-        return json({ jsonrpc: "2.0", id: call.id, result })
+        const data = call.params[0].data
+        if (data.startsWith("0x6352211e")) return json({ jsonrpc: "2.0", id: call.id, result: "0x" + OWNER.slice(2).padStart(64, "0") })
+        if (data.startsWith("0xc87b56dd")) return json({ jsonrpc: "2.0", id: call.id, result: encodeAbiParameters([{ type: "string" }], [REGISTRATION_URL]) })
+        return json({ jsonrpc: "2.0", id: call.id, error: { code: 3, message: "execution reverted" } })
       }
       if (url.includes("api.normies.art")) return json({ error: "not found" }, 404)
       throw new Error(`unexpected fetch in test: ${url}`)
@@ -362,7 +362,9 @@ describe("getAgentPulse: \"Has active agent card\" comes from reading the card",
       if (init?.method === "POST" && typeof init.body === "string" && init.body.includes("eth_call")) {
         const call = JSON.parse(init.body) as { id: number; params: [{ data: string }] }
         if (call.params[0].data.startsWith("0x6352211e")) return json({ jsonrpc: "2.0", id: call.id, result: "0x" + OWNER.slice(2).padStart(64, "0") })
-        if (sc.agentURI === "revert") return json({ jsonrpc: "2.0", id: call.id, error: { code: 3, message: "execution reverted" } })
+        // Like the real registry: there is no agentURI(uint256) getter (selector 0x78396cb3), only tokenURI (0xc87b56dd).
+        const isTokenURI = call.params[0].data.startsWith("0xc87b56dd")
+        if (!isTokenURI || sc.agentURI === "revert") return json({ jsonrpc: "2.0", id: call.id, error: { code: 3, message: "execution reverted" } })
         return json({ jsonrpc: "2.0", id: call.id, result: encodeAbiParameters([{ type: "string" }], [regUrl]) })
       }
       if (url === regUrl || url === cardUrl) {
@@ -436,6 +438,15 @@ describe("getAgentPulse: \"Has active agent card\" comes from reading the card",
     const again = await pulse({ agentId: 50005 })
     assert.ok(again.p.breakdown.includes(CARD))
     assert.equal(again.requested.length, 2)
+  })
+
+  it("the registration URI is read with tokenURI, the getter the registry really has", async () => {
+    // The stub above reverts on anything but ownerOf and tokenURI, as mainnet does. A pass proves which one was called.
+    const { p } = await pulse({ agentId: 50008 })
+    assert.equal(p.agent_card?.passed, true)
+    const src = (await import("node:fs")).readFileSync("lib/api/agent-pulse.ts", "utf8")
+    assert.match(src, /functionName: "tokenURI"/)
+    assert.doesNotMatch(src, /functionName: "agentURI"/)
   })
 
   it("the registry's agentURI read failing is card_unreadable (not \"no card\"), and is not cached either", async () => {
