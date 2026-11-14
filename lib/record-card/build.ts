@@ -89,7 +89,7 @@ export function arenaCanvasRankField(tokenId: number, level: number | null, asOf
   return {
     value: rank ? rank.name : null,
     label: rank ? "verified" : "unavailable",
-    source: { kind: "nch_computed", ref: `Level from GET /normie/${tokenId}/canvas/info; rank names per normiesART's Arena article` },
+    source: { kind: "nch_computed", ref: `Level from GET /normie/${tokenId}/canvas/info; rank names per the official Arena entry page` },
     as_of: asOf,
     counts_toward_rank: false,
     from_level: rank && level !== null ? Math.floor(level) : null,

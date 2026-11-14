@@ -42,7 +42,7 @@ export type RecordCard = {
     pixels_locked: Field<number>
     pixels_free: Field<number>
     /**
-     * Arena Canvas rank: a name for the Level band, per normiesART's Arena article (lib/normies-canon.ts). A label, never a
+     * Arena Canvas rank: a name for the Level band, per the official Arena entry page (lib/normies-canon.ts). A label, never a
      * score: `counts_toward_rank` is always false. Optional so older cached cards type-check.
      */
     arena_canvas_rank?: ArenaCanvasRankField

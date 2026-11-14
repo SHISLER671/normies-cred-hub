@@ -1,25 +1,38 @@
-// Arena canon from normiesART's Arena article (Ryan, 2026-11-11): tables and the fee yes, prizes/pools/payouts never.
+// Arena canon from the official entry page (mechanics, fee, schedule, Canvas table) and the Oct 23 article (type stats).
+// Tables and the fee yes; prizes, pools, payouts never.
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
+import fs from "node:fs"
 
 import {
+  ARENA_ENTER_SOURCE,
+  ARENA_ENTRY,
   ARENA_FEE_LINE,
+  ARENA_GAME_START_CHST,
+  ARENA_GAME_WINDOW,
+  ARENA_GAME_WINDOW_LINE,
+  ARENA_GEAR_LINE,
+  ARENA_HEAD_START_ROWS,
   ARENA_HEAD_STARTS,
+  ARENA_MAY_CHANGE,
   ARENA_PLANNED_LAUNCH,
   ARENA_TYPES,
   arenaFactsBlock,
   arenaHeadStartFor,
+  arenaHeadStartTableText,
   arenaLineFor,
   arenaCardFacts,
   arenaTypeStats,
   headStartBandLabel,
+  headStartRowLabel,
+  pixelsAttachedText,
 } from "./arena-canon"
 import { ARENA_CANVAS_RANKS } from "./normies-canon"
 
-const NEVER = /prize|pool|payout|reward(?!s? for)|winnings|\bodds\b|\bETH\b|\$\d|earn(?:s|ed|ings)? (?:#PIXEL|PIXEL|ETH)/i
+const NEVER = /prize|pool|payout|reward(?!s? for)|winnings|\bodds\b|\bETH\b|\$\d|earn(?:s|ed|ings)? (?:#PIXEL|PIXEL|ETH)|\bprofit\b|\btrading\b/i
 
-describe("tables match the article", () => {
-  it("type stats", () => {
+describe("tables match the official sources", () => {
+  it("type stats stay the article's published numbers", () => {
     assert.deepEqual(
       ARENA_TYPES.map((t) => [t.type, t.health, t.damageDealt, t.damageTakenFromMonsters]),
       [
@@ -31,84 +44,177 @@ describe("tables match the article", () => {
       ],
     )
   })
-  it("head starts use exactly #161's rank bands and names (ARENA_CANVAS_RANKS)", () => {
-    const fromCanon = [...ARENA_CANVAS_RANKS].map((r) => [r.fromLevel, r.name]).reverse()
+  it("band-start head starts still use #161's rank bands and names (ARENA_CANVAS_RANKS)", () => {
+    const fromCanon = ARENA_CANVAS_RANKS.map((r) => [r.fromLevel, r.name])
     assert.deepEqual(ARENA_HEAD_STARTS.map((h) => [h.fromLevel, h.rank]), fromCanon)
     assert.deepEqual(ARENA_HEAD_STARTS.map((h) => [h.fromLevel, h.rank]), [
-      [150, "Level 150+ (top Arena rank)"], [100, "Masterwork"], [50, "Gilded"], [25, "Painted"], [10, "Inked"], [2, "Sketched"], [1, "Blank"],
+      [1, "Blank"], [2, "Sketched"], [10, "Inked"], [25, "Painted"], [50, "Gilded"], [100, "Masterwork"], [150, "Level 150+ (top Arena rank)"],
     ])
-    assert.match(ARENA_HEAD_STARTS[0].headStart, /\+60% health.*the laser/)
+  })
+  it("the official Canvas table has every published milestone, #PIXEL attached and health bonus", () => {
+    assert.deepEqual(
+      ARENA_HEAD_START_ROWS.map((r) => [r.fromLevel, r.rank, r.pixelsAttached, r.health, r.extra ?? "", r.headStart]),
+      [
+        [1, "Blank", 0, "base", "", "base"],
+        [2, "Sketched", 10, "+8%", "", "+8% health"],
+        [3, "Sketched", 20, "+13%", "", "+13% health"],
+        [5, "Sketched", 40, "+19%", "", "+19% health"],
+        [10, "Inked", 90, "+28%", "", "+28% health"],
+        [15, "Inked", 140, "+32%", "", "+32% health"],
+        [20, "Inked", 190, "+36%", "", "+36% health"],
+        [25, "Painted", 240, "+39%", "", "+39% health"],
+        [35, "Painted", 340, "+43%", "", "+43% health"],
+        [50, "Gilded", 490, "+47%", "", "+47% health"],
+        [60, "Gilded", 590, "+49%", "", "+49% health"],
+        [75, "Gilded", 740, "+52%", "", "+52% health"],
+        [100, "Masterwork", 990, "+55%", "", "+55% health"],
+        [120, "Masterwork", 1_190, "+57%", "", "+57% health"],
+        [150, "Level 150+ (top Arena rank)", 1_490, "+60%", "Laser", "+60% health plus Laser"],
+      ],
+    )
+    assert.equal(pixelsAttachedText(1_490), "1,490")
+    assert.equal(pixelsAttachedText(1_190), "1,190")
+    assert.equal(arenaHeadStartFor(12)!.fromLevel, 10)
+    assert.equal(arenaHeadStartFor(12)!.headStart, "+28% health")
+    assert.equal(arenaHeadStartFor(149)!.fromLevel, 120)
     assert.equal(arenaHeadStartFor(149)!.rank, "Masterwork")
     assert.equal(arenaHeadStartFor(1000)!.fromLevel, 150)
     assert.equal(arenaHeadStartFor(0), null)
+    assert.match(ARENA_GEAR_LINE, /Sword, Armour, Boots, Tonics/)
   })
-  it("never uses the article's 'Legendary Canvas' name (confusable with the NormiesLegendaryCanvas award)", () => {
-    assert.doesNotMatch(JSON.stringify(ARENA_HEAD_STARTS), /Legendary Canvas/)
+  it("never uses the official page's top-band name that is confusable with the award contract", () => {
+    const corpus = [
+      JSON.stringify(ARENA_HEAD_START_ROWS),
+      JSON.stringify(ARENA_HEAD_STARTS),
+      arenaHeadStartTableText(),
+      arenaFactsBlock(),
+      arenaLineFor("Human", 151) ?? "",
+      JSON.stringify(arenaCardFacts("Human", 151)),
+    ].join("\n")
+    assert.doesNotMatch(corpus, /Legendary/)
+    assert.match(corpus, /Level 150\+ \(top Arena rank\)/)
+  })
+})
+
+describe("mechanics match the official entry page", () => {
+  it("seats are FIFO, rest is 8 hours, NFT stays put, agents cannot be steered", () => {
+    const entry = ARENA_ENTRY.join("\n")
+    assert.match(entry, /first come, first served from the line \(FIFO\), not a random draw/)
+    assert.match(entry, /Fallen agents rest 8 hours, keep their PX/)
+    assert.match(entry, /the NFT never leaves your wallet/)
+    assert.match(entry, /can't steer an agent once it walks in/)
+    assert.match(entry, /8 agents per wallet/)
+    assert.match(entry, /200 Normies play at once/)
+    assert.match(entry, /ERC-8004/)
+    assert.doesNotMatch(entry, /drawn at random|15 minutes|15-minute|walks in at dawn/i)
+    assert.doesNotMatch(entry, /(?<!not a )random draw/i)
+  })
+  it("the game window includes the official CET hours and the Guam clock", () => {
+    assert.equal(ARENA_GAME_WINDOW, "Monday 20:00 CET to Saturday 20:00 CET")
+    assert.equal(ARENA_GAME_START_CHST, "Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST)")
+    assert.equal(ARENA_GAME_WINDOW_LINE, `Each game runs ${ARENA_GAME_WINDOW}. Game 1 starts ${ARENA_GAME_START_CHST}`)
   })
 })
 
 describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
   it("fee line", () => {
-    assert.equal(ARENA_FEE_LINE, "The first 2 weeks in the Arena are free for every Normie; after that, 1 #PIXEL per week per agent keeps its Arena pass active")
+    assert.equal(
+      ARENA_FEE_LINE,
+      "The first 2 weeks in the Arena are free for every Normie; after that, 1 #PIXEL per agent per week (only for a Normie that gets a seat; those still in line are not charged)",
+    )
     assert.doesNotMatch(ARENA_FEE_LINE, NEVER)
   })
   it("Level has no cap: Levels 150 and up share the top head start (GrokBot review of #162)", () => {
     const b = arenaFactsBlock()
     assert.match(b, /Levels 150 and up share the top head start/)
     assert.doesNotMatch(b, /up to 150/)
-    assert.equal(headStartBandLabel(ARENA_HEAD_STARTS[0]), "Level 150+ (top Arena rank)")
+    assert.equal(headStartBandLabel(ARENA_HEAD_STARTS[ARENA_HEAD_STARTS.length - 1]), "Level 150+ (top Arena rank)")
     assert.equal(headStartBandLabel(ARENA_HEAD_STARTS.find((h) => h.fromLevel === 10)!), "Level 10+ (Inked)")
+    assert.equal(headStartRowLabel(ARENA_HEAD_START_ROWS.find((h) => h.fromLevel === 15)!), "Level 15 (Inked)")
   })
-  it("the Ask block states facts and forbids the rest", () => {
+  it("the Ask block states official-page facts and forbids the rest", () => {
     const b = arenaFactsBlock()
-    assert.match(b, /type stats and ranks: normiesART's Arena article, Oct 23, 2026/)
+    assert.match(b, /mechanics, fee, schedule and Canvas table: the official Arena entry page, https:\/\/arena\.normies\.art\/world\/enter/)
+    assert.match(b, /type stats: normiesART's Arena article, Oct 23, 2026/)
     assert.equal(ARENA_PLANNED_LAUNCH, "2026-11-16")
     assert.match(b, /Planned launch: Monday, November 16, 2026 \(a plan, per normiesART's Nov 11 post, https:\/\/x\.com\/normiesART\/status\/2120475856372142292\)/)
+    assert.match(b, /Each game runs Monday 20:00 CET to Saturday 20:00 CET\. Game 1 starts Mon Nov 16, 20:00 CET \(Tue Nov 17, 5 AM ChST\)/)
+    assert.match(b, /first come, first served from the line \(FIFO\), not a random draw/)
+    assert.match(b, /Fallen agents rest 8 hours, keep their PX/)
+    assert.match(b, /a head start, not a guarantee/)
+    assert.match(b, /A head start is not a guarantee/)
+    assert.ok(b.includes(ARENA_ENTER_SOURCE))
+    assert.ok(b.includes(ARENA_MAY_CHANGE))
     for (const line of b.split("\n")) {
-      if (/November 16|2026-11-16/.test(line)) assert.doesNotMatch(line, /Oct 23|Arena article/)
+      if (/November 16|2026-11-16/.test(line) && /Planned launch/.test(line)) assert.doesNotMatch(line, /Oct 23|Arena article/)
     }
-    assert.match(b, /closed beta and may change/)
-    assert.match(b, /a head start is not a guarantee/i)
     assert.match(b, /Never mention prizes, a prize pool, payouts/)
-    // Outside the rules lines, no prize/pool/ETH words at all.
     const facts = b.split("Rules for these facts:")[0]
     assert.doesNotMatch(facts, NEVER)
+    assert.doesNotMatch(facts, /OpenSea|Pixel Market/)
+    assert.doesNotMatch(b, /drawn at random|15 minutes|walks in at dawn/i)
+    assert.doesNotMatch(b, /(?<!not a )random draw/i)
   })
   it("a line for one Normie", () => {
     const line = arenaLineFor("Cat", 12)!
     assert.match(line, /^Cat: 115 health/)
-    assert.match(line, /Level 12 \(Inked\) head start: \+28% health, sword III, plate I/)
+    assert.match(line, /Level 12 \(Inked\) head start: \+28% health \(official table at Level 10, 90 #PIXEL attached\)/)
     assert.match(line, /a head start, not a guarantee/)
+    assert.match(line, /head start per the official Arena entry page/)
+    assert.match(line, /type stats per normiesART's Arena article/)
     assert.doesNotMatch(line, NEVER)
     assert.equal(arenaLineFor(null, null), null)
     assert.equal(arenaTypeStats("zombie")!.health, 175)
   })
 })
 
-describe("record card lines (Ryan, 2026-11-11: show the tables)", () => {
-  it("type and head start, short value plus detail", () => {
+describe("record card lines", () => {
+  it("type and head start, short value plus the official-table row", () => {
     const f = arenaCardFacts("Cat", 12)
     assert.deepEqual(f.type, { value: "Cat, 115 health", note: "Damage dealt ×0.94 · damage taken from monsters −14% · speed fastest (+14%). Nine lives: 1 in 5 hits on a Cat misses" })
-    assert.deepEqual(f.headStart, { value: "+28% health", note: "Level 12: Level 10+ (Inked), also sword III, plate I" })
-    assert.deepEqual(arenaCardFacts("Human", 1).headStart, { value: "no head start", note: "Level 1: Level 1+ (Blank)" })
+    assert.deepEqual(f.headStart, { value: "+28% health", note: "Level 12: Level 10+ (Inked); official table at Level 10 is 90 #PIXEL attached, +28% health" })
+    assert.deepEqual(arenaCardFacts("Human", 1).headStart, { value: "base", note: "Level 1: Level 1+ (Blank); official table at Level 1 is 0 #PIXEL attached, base" })
     assert.equal(arenaCardFacts("Human", 151).headStart!.note.startsWith("Level 151: Level 150+ (top Arena rank)"), true)
+    assert.match(arenaCardFacts("Human", 151).headStart!.note, /1,490 #PIXEL attached, \+60% health plus Laser/)
     assert.deepEqual(arenaCardFacts(null, null), { type: null, headStart: null })
-    // Unknown current type: no type line, the head start still shows (Level is enough).
     const unknownType = arenaCardFacts(null, 31)
     assert.equal(unknownType.type, null)
-    assert.deepEqual(unknownType.headStart, { value: "+39% health", note: "Level 31: Level 25+ (Painted), also sword III, plate II, boots I, 1 tonic" })
+    assert.deepEqual(unknownType.headStart, { value: "+39% health", note: "Level 31: Level 25+ (Painted); official table at Level 25 is 240 #PIXEL attached, +39% health" })
     assert.doesNotMatch(JSON.stringify(arenaCardFacts("Zombie", 160)), NEVER)
   })
-  it("the record page shows them in the Arena section with the source and 'may change', not on the share image", async () => {
-    const fs = await import("node:fs")
+  it("the record page shows them in the Arena section with the official entry page and 'may change', not on the share image", async () => {
     const page = fs.readFileSync("app/record/[tokenId]/page.tsx", "utf8")
-    // Current type only (GrokBot review of #163): never fall back to the minted type.
     assert.match(page, /arenaCardFacts\(identity\.type\?\.value \?\? null, identity\.level\.value\)/)
     assert.doesNotMatch(page.slice(page.indexOf("arenaCardFacts(")), /^[^\n]*mint_type/)
-    assert.match(page, /normiesART&apos;s Arena article<\/a>/)
+    assert.match(page, /ARENA_ENTER_SOURCE/)
+    assert.match(page, /the official Arena entry page/)
     assert.match(page, /\{ARENA_MAY_CHANGE\}\. A head start, not a guarantee\./)
     for (const f of ["app/record/[tokenId]/opengraph-image.tsx", "lib/record-card/og-art.tsx", "lib/record-card/share-image.ts"]) {
       if (fs.existsSync(f)) assert.doesNotMatch(fs.readFileSync(f, "utf8"), /arena-canon|arenaCardFacts/, f)
     }
+  })
+})
+
+describe("copy lock on arena canon", () => {
+  it("user-facing arena strings never use banned wording", () => {
+    const corpus = [
+      ARENA_ENTRY.join("\n"),
+      ARENA_FEE_LINE,
+      ARENA_MAY_CHANGE,
+      ARENA_GAME_WINDOW_LINE,
+      arenaHeadStartTableText(),
+      arenaFactsBlock().split("Rules for these facts:")[0],
+      arenaLineFor("Cat", 12) ?? "",
+      JSON.stringify(arenaCardFacts("Zombie", 160)),
+    ].join("\n")
+    assert.doesNotMatch(corpus, /OpenSea/)
+    assert.doesNotMatch(corpus, /Pixel Market/)
+    assert.doesNotMatch(corpus, /Legendary/)
+    assert.doesNotMatch(corpus, /walks in at dawn|15 minutes|15-minute|drawn at random/i)
+    assert.doesNotMatch(corpus, /(?<!not a )random draw/i)
+    // Build the earlier planned-date needles without writing those words as a literal in this test.
+    const month = "Nov"
+    const earlier = [`${month}ember 15`, `${month} 15`]
+    for (const s of earlier) assert.equal(corpus.includes(s), false, s)
   })
 })

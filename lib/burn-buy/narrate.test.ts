@@ -188,16 +188,19 @@ describe("goals", () => {
     assert.match(m.rows[1].reasons[0], /adds 20 AP to a Normie you keep \(10 AP = 1 Level\)/)
   })
 
-  it("ARENA notes give the article's facts (head starts, entry, fee), no prizes, and nothing can be entered from here", () => {
+  it("ARENA notes give the official entry-page facts (head starts, entry, fee), no prizes, and nothing can be entered from here", () => {
     const m = buildPageModel(result({}), "arena")
     const notes = m.goalNotes.join(" ")
-    assert.match(notes, /Head start by Canvas level, per normiesART's Arena article/)
-    assert.match(notes, /Level 10\+ \(Inked\): \+28% health/)
-    assert.match(notes, /Level 150\+ \(top Arena rank\): \+60% health/)
+    assert.match(notes, /Canvas head start is in the table on this page \(per the official Arena entry page/)
+    assert.match(notes, /Gear unlocks at milestones \(Sword, Armour, Boots, Tonics\)/)
     assert.match(notes, /A head start is not a guarantee/)
     assert.match(notes, /must be registered as an on-chain agent \(ERC-8004\)/)
     assert.match(notes, /first 2 weeks in the Arena are free/)
+    assert.match(notes, /first come, first served from the line \(FIFO\)/)
+    assert.match(notes, /Fallen agents rest 8 hours, keep their PX/)
+    assert.match(notes, /Mon Nov 16, 20:00 CET \(Tue Nov 17, 5 AM ChST\)/)
     assert.doesNotMatch(notes, /prize|pool|payout|winnings/i)
+    assert.doesNotMatch(notes, /walks in at dawn|15 minutes|drawn at random/i)
     assert.match(notes, /cannot enter you into anything/)
     assert.match(notes, /Death is not a burn/)
   })
@@ -300,7 +303,7 @@ describe("card data for the compact layout", () => {
   it("ARENA notes include the official trailer lines", () => {
     const notes = buildPageModel(result({}), "arena").goalNotes.join(" ")
     assert.match(notes, /They play\. You watch\./)
-    assert.match(notes, /You do not steer it/)
+    assert.match(notes, /You can't steer it once it walks in/)
     assert.match(notes, /The Maw/)
     assert.match(notes, /gives no numbers/)
   })
