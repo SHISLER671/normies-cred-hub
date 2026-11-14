@@ -1,22 +1,37 @@
-# Pulse PR-1 scope: make "Clean ownership & delegation" real.
-# Source: docs/zulo/pulse-trust-fixes-spec.md (Scope contract, PR-1).
-# One active contract on main; this list is for PR-1 only. Replace it before PR-2.
+# Pulse PR-2 scope: move popularity out of the level ("Trending on NCH").
+# Source: docs/zulo/pulse-trust-fixes-spec.md (PR-2).
+# One active contract on main; this list is for PR-2 only. Replace it before PR-3.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
 # The scope check reads this file from main (the PR base), never from the PR head.
 # Always-protected regardless of this list: .github/workflows/, .github/scripts/,
 # public/.well-known/, this file, lockfiles, env files, key files.
-#
-# package.json is allowed so test:unit / test:all can gain new test files.
-# The check is path-level and cannot enforce "test scripts only" — do not change
-# anything else in package.json. Lockfiles stay protected.
+# docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
 lib/api/agent-pulse.ts
 lib/api/*.test.ts
-lib/ownership-check*.ts
-lib/owners-refresh*.ts
-supabase/functions/owners-refresh/**
-supabase/sql/2026-11-*-normie-owner-since.sql
-app/api/cron/owner-since-backfill/**
+components/pulse-hero.tsx
+components/dashboard.tsx
+components/agent-pulse-bar.tsx
+app/dashboard/page.tsx
+app/record/[tokenId]/opengraph-image.tsx
+app/api/chat-ratings/[agentId]/route.ts
 lib/record-card/**
+lib/path-ranker/**
+lib/pulse/**
+lib/instrumentation/pulse-paths*.ts
+lib/agent-recommendations/pulseFirst*.ts
+lib/burn-buy/market-feed*.ts
+lib/db/supabase.ts
+AGENTS.md
+README.md
+docs/zulo/strategy.md
+docs/zulo/record-card-spec.md
 package.json
+components/path-board/path-board.tsx
+lib/zulo-horizon.ts
+lib/agent-recommendations/composePrompt*.ts
+lib/api/agent-pulse*.ts
+app/record/**
+app/api/chat-ratings/**
+docs/zulo/pulse-trust-fixes-spec.md
