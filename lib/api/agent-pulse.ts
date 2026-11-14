@@ -1,19 +1,24 @@
 import { ERC8004, IDENTITY_REGISTRY_READ_ABI, NORMIES_API_BASE } from "@/constants/contracts"
 import { getChatRatings, type ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
-import { getTokenUsageSignal } from "@/lib/instrumentation/pulse-paths"
+import { getTokenUsageSignal, type TokenUsageSignal } from "@/lib/instrumentation/pulse-paths"
 import type { OwnershipCheck } from "@/lib/ownership-check"
 import { loadOwnershipCheck, type OwnershipDeps } from "@/lib/ownership-check-load"
 import type { AgentInfo, CanvasDiff, CanvasInfo, NormieOwner } from "@/lib/types"
 import { publicClient } from "@/lib/viem-client"
 
 /**
- * Pulse levels 1–4 are trust: one per trust check. Level 5 ("Luminous") is popularity ON TOP of trust (Ryan,
- * 2026-10-19: "you can be real and do good but popular is popular"). It needs all four trust checks first, so
- * popularity can never stand in for a missing trust check (before 2026-10-19 a 3-check agent reached 4 with usage).
- * The raw counts ship as `popularity` next to the level, so a botted Luminous is visible to anyone checking.
+ * Pulse is trust and nothing else: levels 1–4 are the four trust checks, one level per check passed (Ryan, 2026-11-14).
+ * Popularity no longer changes the level. Until 2026-11-14 a fifth level ("level 5") was popularity on top of all four
+ * checks; it is now a separate "Trending on NCH" badge (`trending`), shown with the raw counts (`popularity`) beside it.
  */
-export const MAX_LEVEL = 5
+export const MAX_LEVEL = 4
+
+/** Tells outside consumers which scale `pulse_level` is on. The scale before 2026-11-14 ran 0–5 and had no such field. */
+export const PULSE_SCALE = "trust-0-4"
+
+/** The popularity badge. Separate from the level: it never raises or lowers `pulse_level`. */
+export const TRENDING_LABEL = "Trending on NCH"
 
 /** The four trust checks, in the order they are tested. lib/pulse/beats.ts must match these strings exactly. */
 export const TRUST_SIGNALS = [
@@ -23,14 +28,8 @@ export const TRUST_SIGNALS = [
   "Clean ownership & delegation",
 ] as const
 
-/** Level 5 marker in the breakdown. Only present when all four trust checks pass AND the agent is popular. */
-export const USAGE_BREAKDOWN_SIGNAL = "Recent agent usage / interaction signal"
-
 export const NOTE =
-  "Levels 1–4 are trust: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Level 5 (Luminous) is popularity on top of all four: enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them."
-
-export const NEXT_SIGNAL_LUMINOUS =
-  "All four trust checks pass. Luminous (level 5) comes from popularity: more different people checking its Pulse or using it in Paths within 14 days."
+  'Levels 1–4 are the four trust checks: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Popularity is separate and never changes the level: "Trending on NCH" shows when enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.'
 
 const STATUS_BY_LEVEL: Record<number, string> = {
   0: "Dormant",
@@ -38,7 +37,6 @@ const STATUS_BY_LEVEL: Record<number, string> = {
   2: "Building",
   3: "Solid",
   4: "Strong",
-  5: "Luminous",
 }
 
 /** Raw usage counts shown next to Pulse. Distinct callers, never raw calls. */
@@ -48,13 +46,13 @@ export type PulsePopularity = {
   /** Distinct callers who ran Paths with this Normie's Pulse in the window. */
   paths_users: number
   lookback_days: number
-  /** Popularity threshold met. Raises the level to Luminous only when all four trust checks pass. */
+  /** Popularity threshold met. Shown as the "Trending on NCH" badge; never changes the level. */
   popular: boolean
   note: string
 }
 
 export const POPULARITY_NOTE =
-  "Distinct callers, not raw calls. Popularity alone never raises trust: it only lifts an agent that already passes all four trust checks to Luminous."
+  'Distinct callers, not raw calls. Popularity never changes the Pulse level: it only decides the "Trending on NCH" badge.'
 
 export type AgentPulseResponse = {
   token_id: number
@@ -71,8 +69,12 @@ export type AgentPulseResponse = {
    * Present on the public Pulse endpoints; omitted when the caller didn't ask for it or the agent isn't awakened.
    */
   chat_ratings?: ChatRatingsSummary | null
-  /** Raw usage counts behind Luminous. Null when the counters couldn't be read (not the same as zero). */
+  /** Raw usage counts behind the "Trending on NCH" badge. Null when the counters couldn't be read (not the same as zero). */
   popularity?: PulsePopularity | null
+  /** "Trending on NCH": the popularity threshold is met (= popularity.popular). False when the counters couldn't be read. Never changes pulse_level. */
+  trending?: boolean
+  /** Which scale pulse_level is on. "trust-0-4": levels are the four trust checks only. Absent on the older 0–5 scale. */
+  pulse_scale?: typeof PULSE_SCALE
   /**
    * The evidence behind "Clean ownership & delegation" (lib/ownership-check.ts). `passed` is exactly whether that check is in
    * `breakdown`. `reasons` says what failed or couldn't be read; a display-only reason can sit next to passed: true.
@@ -166,6 +168,8 @@ export type AgentPulseOptions = {
   chatRatings?: boolean
   /** Test seam: the on-chain owner, owner index and delegate.xyz reads behind the ownership check. */
   ownershipDeps?: OwnershipDeps
+  /** Test seam: the popularity counters read. */
+  readUsage?: (tokenId: number) => Promise<TokenUsageSignal>
 }
 
 export async function getAgentPulse(
@@ -233,7 +237,7 @@ export async function getAgentPulse(
 
   let popularity: PulsePopularity | null = null
   try {
-    const usage = await getTokenUsageSignal(tokenId)
+    const usage = await (options.readUsage ?? getTokenUsageSignal)(tokenId)
     if (usage.readable) {
       popularity = {
         pulse_checkers: usage.pulseCalls,
@@ -247,8 +251,8 @@ export async function getAgentPulse(
     popularity = null
   }
 
-  // Unreadable counters fail closed: no Luminous, but the trust level still stands.
-  const assembled = assemblePulseSignals(breakdown, popularity?.popular ?? false)
+  // Popularity never touches the level. Unreadable counters fail closed: not trending.
+  const assembled = assemblePulseSignals(breakdown)
 
   const chatRatings =
     options.chatRatings && agentId && Number.isFinite(agentId) && agentId > 0
@@ -261,8 +265,10 @@ export async function getAgentPulse(
       token_id: tokenId,
       agent_id: agentId,
       max_level: MAX_LEVEL,
+      pulse_scale: PULSE_SCALE,
       ...assembled,
       popularity,
+      trending: popularity?.popular ?? false,
       ownership_check: ownershipCheck,
       ...(chatRatings !== undefined ? { chat_ratings: chatRatings } : {}),
     },
@@ -270,12 +276,11 @@ export async function getAgentPulse(
 }
 
 /**
- * Level = trust checks passed (0–4), plus 1 (Luminous) when all four pass AND the agent is popular.
- * next_signal names the trust checks still missing, in test order; at 4 it points to Luminous; null at 5.
+ * Level = trust checks passed (0–4). Nothing else counts: unknown strings in the input are ignored.
+ * next_signal names the trust checks still missing, in test order; null when all four pass.
  */
 export function assemblePulseSignals(
   staticBreakdown: string[],
-  popular: boolean,
 ): Pick<
   AgentPulseResponse,
   "breakdown" | "pulse_level" | "status" | "next_signal" | "note"
@@ -283,14 +288,12 @@ export function assemblePulseSignals(
   const have = new Set(staticBreakdown)
   const breakdown: string[] = TRUST_SIGNALS.filter((sig) => have.has(sig))
   const missing = TRUST_SIGNALS.filter((sig) => !have.has(sig))
-  const luminous = missing.length === 0 && popular
-  if (luminous) breakdown.push(USAGE_BREAKDOWN_SIGNAL)
   const pulse_level = Math.min(MAX_LEVEL, breakdown.length)
   return {
     breakdown,
     pulse_level,
     status: STATUS_BY_LEVEL[pulse_level] ?? "Dormant",
-    next_signal: luminous ? null : missing.length === 0 ? NEXT_SIGNAL_LUMINOUS : `Still missing: ${missing.join(", ")}.`,
+    next_signal: missing.length === 0 ? null : `Still missing: ${missing.join(", ")}.`,
     note: NOTE,
   }
 }

@@ -5,14 +5,14 @@ import { Chip, PixelMeter } from "@/components/brand"
 import { RecordShare } from "@/components/record-share"
 import { useRecordCard } from "@/hooks/use-record-card"
 import { normieImageUrl } from "@/lib/api/normies"
-import { pulseBeats } from "@/lib/pulse/beats"
+import { popularityCountsText, PULSE_MAX_LEVEL, pulseBeats, TRENDING_LABEL } from "@/lib/pulse/beats"
 import { PulseTrace } from "@/components/pulse-trace"
 import { recordCardUrl } from "@/lib/record-card/ask-line"
 import { siteOrigin } from "@/lib/site-origin"
 
 /**
  * The top of the Pulse page: one awakened Normie's live Pulse drawn as a heartbeat.
- * Each of the five checks is a beat; passed beats spike in cyan, missing ones stay flat.
+ * Each of the four trust checks is a beat; passed beats spike in cyan, missing ones stay flat.
  * Data comes from the record card endpoint (read-only; viewing never counts as a Pulse check).
  */
 export function PulseHero({
@@ -42,7 +42,7 @@ export function PulseHero({
   const pulseReady = !!pulse?.available && !notAwakened
   const beats = pulseBeats(pulseReady ? pulse!.breakdown : [])
   const level = pulseReady ? (pulse!.level ?? 0) : null
-  const max = pulse?.max_level ?? 5
+  const max = pulse?.max_level ?? PULSE_MAX_LEVEL
   const name = card?.identity.agent_name.value ?? `Normie #${tokenId}`
   const agentId = card?.identity.agent_id.value ?? null
   const gate = pulse?.gate
@@ -117,10 +117,13 @@ export function PulseHero({
             </p>
             {pulse!.next_signal && <p className="ph-next">{pulse!.next_signal}</p>}
             {pulse!.popularity && (
-              <p className="ph-next" title="Distinct callers, not raw calls. Popularity only counts once all four trust checks pass.">
-                Popularity: checked by {pulse!.popularity.pulse_checkers}{" "}
-                {pulse!.popularity.pulse_checkers === 1 ? "person" : "people"}, used in Paths by{" "}
-                {pulse!.popularity.paths_users} in the last {pulse!.popularity.lookback_days} days.
+              <p className="ph-next" title="Different people, not raw calls. Popularity is separate from trust and never changes the Pulse level.">
+                {pulse!.trending && (
+                  <>
+                    <Chip tone="live">{TRENDING_LABEL}</Chip>{" "}
+                  </>
+                )}
+                {popularityCountsText(pulse!.popularity)}.
               </p>
             )}
           </>

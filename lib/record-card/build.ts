@@ -4,6 +4,7 @@
 import { traitType, traitsSourceLabel, type SourcedNormieTraits } from "@/lib/normie-traits"
 import type { ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { ownershipCheckLines, type OwnershipCheck } from "@/lib/ownership-check"
+import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 import { pendingCanvasSector } from "./canvas"
 import { ARENA_CANVAS_RANKS_SOURCE, arenaCanvasRankNote, rankForLevel } from "@/lib/normies-canon"
 import type { ArenaCanvasRankField, ArenaSector, CanvasSector, CardStatus, Field, RecordCard, SourceKind } from "./types"
@@ -158,7 +159,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
     },
     pulse: {
       level: i.pulse ? i.pulse.pulse_level : null,
-      max_level: i.pulse?.max_level ?? 5,
+      max_level: i.pulse?.max_level ?? PULSE_MAX_LEVEL,
       status: i.pulse?.status ?? null,
       breakdown: i.pulse?.breakdown ?? [],
       next_signal: i.pulse?.next_signal ?? null,
@@ -171,6 +172,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
             popular: i.pulse.popularity.popular,
           }
         : null,
+      trending: i.pulse?.popularity?.popular ?? false,
       gate,
       ownership_check: i.pulse?.ownership_check
         ? { ...i.pulse.ownership_check, lines: ownershipCheckLines(i.pulse.ownership_check) }

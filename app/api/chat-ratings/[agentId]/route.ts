@@ -1,7 +1,7 @@
 // GET /api/chat-ratings/{agentId}
 // Ranked Hive chat ratings for any ERC-8004 agent, straight from the Reputation Registry.
 // Read-only: no wallet, no signing. Separate from the Pulse endpoints so the dashboard can show ratings
-// without counting as a Pulse check (Pulse checks feed the Luminous usage signal).
+// without counting as a Pulse check (Pulse checks feed the popularity counts behind the "Trending on NCH" badge).
 
 import { type NextRequest, NextResponse } from "next/server"
 

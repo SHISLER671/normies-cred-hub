@@ -16,7 +16,7 @@ async function inputs(over: Partial<RecordCardInputs> = {}): Promise<RecordCardI
     canvas: { actionPoints: 12, level: 2, customized: false, delegate: "0xb8792e6516b88e73ed0723f8c1c8a92531a98767", gridSize: 40, baseCleared: false, lockedPixels: 0, freePixels: 12 },
     owner: { owner: "0xfafd8fb6b4e43ace0e365553f1b9242384591031" },
     zombie: { info: { isZombie: false } },
-    pulse: { pulse_level: 4, max_level: 5, status: "Strong", breakdown: [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", GATE_CLEAN_OWNERSHIP] },
+    pulse: { pulse_level: 4, max_level: 4, status: "Strong", breakdown: [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", GATE_CLEAN_OWNERSHIP] },
     chatRatings: null,
     arena: await loadArenaSector(7141, NOW, { status: "COMING_SOON" }),
     ...over,
@@ -49,7 +49,7 @@ describe("ownership check on the card (evidence for the gate's clean-ownership h
     delegate_xyz: { checked: true, delegations_found: 0 },
     as_of: NOW,
   }
-  const pulse = { pulse_level: 4, max_level: 5, status: "Strong", breakdown: [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", GATE_CLEAN_OWNERSHIP] }
+  const pulse = { pulse_level: 4, max_level: 4, status: "Strong", breakdown: [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", GATE_CLEAN_OWNERSHIP] }
   it("the gate string is unchanged", () => {
     assert.equal(GATE_CLEAN_OWNERSHIP, "Clean ownership & delegation")
   })
@@ -72,6 +72,38 @@ describe("ownership check on the card (evidence for the gate's clean-ownership h
   it("is null when the Pulse didn't send one (older Pulse, or Pulse unavailable)", async () => {
     assert.equal(buildRecordCard(await inputs()).pulse.ownership_check, null)
     assert.equal(buildRecordCard(await inputs({ pulse: null })).pulse.ownership_check, null)
+  })
+})
+
+describe("Trending on NCH on the card: a separate badge, never a level", () => {
+  const FOUR = [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", GATE_CLEAN_OWNERSHIP]
+  const pop = (popular: boolean) => ({ pulse_checkers: popular ? 40 : 2, paths_users: popular ? 9 : 0, lookback_days: 14, popular })
+  it("a 4/4 agent with high usage stays 4 of 4 and is trending", async () => {
+    const c = buildRecordCard(await inputs({ pulse: { pulse_level: 4, max_level: 4, status: "Strong", breakdown: FOUR, popularity: pop(true) } }))
+    assert.equal(c.pulse.level, 4)
+    assert.equal(c.pulse.max_level, 4)
+    assert.equal(c.pulse.status, "Strong")
+    assert.equal(c.pulse.trending, true)
+    assert.deepEqual(c.pulse.popularity, { label: "Popularity", ...pop(true) })
+  })
+  it("a 3/4 agent with high usage stays 3 and is trending; the gate is unaffected", async () => {
+    const base = { pulse_level: 3, max_level: 4, status: "Solid", breakdown: FOUR.slice(0, 3) }
+    const busy = buildRecordCard(await inputs({ pulse: { ...base, popularity: pop(true) } }))
+    const quiet = buildRecordCard(await inputs({ pulse: { ...base, popularity: pop(false) } }))
+    assert.equal(busy.pulse.level, 3)
+    assert.equal(busy.pulse.trending, true)
+    assert.equal(quiet.pulse.trending, false)
+    assert.deepEqual(busy.pulse.gate, quiet.pulse.gate)
+    assert.equal(busy.pulse.gate.passed, false)
+  })
+  it("unreadable counters, or no Pulse at all: not trending, and the level is untouched", async () => {
+    const c = buildRecordCard(await inputs({ pulse: { pulse_level: 4, max_level: 4, status: "Strong", breakdown: FOUR, popularity: null } }))
+    assert.equal(c.pulse.trending, false)
+    assert.equal(c.pulse.popularity, null)
+    assert.equal(c.pulse.level, 4)
+    const none = buildRecordCard(await inputs({ pulse: null }))
+    assert.equal(none.pulse.trending, false)
+    assert.equal(none.pulse.max_level, 4)
   })
 })
 

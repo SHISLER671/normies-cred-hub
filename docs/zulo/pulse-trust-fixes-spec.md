@@ -1,6 +1,6 @@
 # Pulse trust fixes: level 4, Trending badge, agent card (spec, docs only)
 
-Drafted 2026-11-14 (ChST) by Claude from the NCH planning doc and a read of main at 232b1a5. **Status: Proposed.** Nothing here is built. Three small PRs, one branch each, all targeting main.
+Drafted 2026-11-14 (ChST) by Claude from the NCH planning doc and a read of main at 232b1a5. **Status: PR-1 Done (merged 2026-11-14, #176; backfill done by hand). PR-2 In progress. PR-3 Proposed.** Three small PRs, one branch each, all targeting main.
 
 Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` ("The Pulse gate"), `docs/zulo/thesis-lock.md`, `lib/api/agent-pulse.ts`, `lib/instrumentation/pulse-paths.ts`, `lib/delegations.ts`.
 

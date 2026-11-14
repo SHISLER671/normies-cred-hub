@@ -1,4 +1,4 @@
-// The five Pulse checks as "beats" for the Pulse page trace. Pure and client-safe (no server imports).
+// The four Pulse trust checks as "beats" for the Pulse page trace. Pure and client-safe (no server imports).
 // The signal strings must match lib/api/agent-pulse.ts exactly; lib/pulse/beats.test.ts fails if they drift.
 
 export type PulseBeat = {
@@ -37,13 +37,18 @@ export const PULSE_BEATS: readonly PulseBeat[] = [
     meaning: "Owner and delegate check out with nothing odd.",
     gate: true,
   },
-  {
-    signal: "Recent agent usage / interaction signal",
-    label: "Popular",
-    meaning: "Popular: enough different people checked it recently. Counts only once all four trust checks pass (Luminous).",
-    gate: false,
-  },
 ] as const
+
+/** Top Pulse level: one per trust check. Client-safe twin of MAX_LEVEL in lib/api/agent-pulse.ts (a test keeps them equal). */
+export const PULSE_MAX_LEVEL = PULSE_BEATS.length
+
+/** The popularity badge. Separate from the trace and the level; shown with the raw counts beside it. */
+export const TRENDING_LABEL = "Trending on NCH"
+
+/** The raw counts shown beside the badge, in plain words. Distinct callers, never raw calls. */
+export function popularityCountsText(p: { pulse_checkers: number; paths_users: number; lookback_days: number }): string {
+  return `Checked by ${p.pulse_checkers} ${p.pulse_checkers === 1 ? "person" : "people"}, used in Paths by ${p.paths_users}, in the last ${p.lookback_days} days`
+}
 
 export type LitBeat = PulseBeat & { lit: boolean }
 
@@ -53,17 +58,17 @@ export function pulseBeats(breakdown: readonly string[] | null | undefined): Lit
   return PULSE_BEATS.map((b) => ({ ...b, lit: have.has(b.signal) }))
 }
 
-/** Pixel grid for the trace: 20 columns per beat, 24 rows, baseline on row 14 (0 = top). Pixels stay square. */
+/** Pixel grid for the trace (80 × 24): 20 columns per beat, 24 rows, baseline on row 14 (0 = top). Pixels stay square. */
 export const PIXEL_COLS_PER_BEAT = 20
 export const PIXEL_ROWS = 24
 export const PIXEL_BASELINE = 14
-export const PIXEL_COLS = PIXEL_COLS_PER_BEAT * 5
+export const PIXEL_COLS = PIXEL_COLS_PER_BEAT * PULSE_BEATS.length
 
 /** One passed beat, as the row the line sits on in each of its 20 columns (a stepped ECG: P wave, QRS spike, T wave). */
 const LIT_ROWS: readonly number[] = [14, 14, 14, 14, 14, 14, 13, 12, 13, 16, 2, 22, 14, 13, 12, 12, 13, 14, 14, 14]
 
 /**
- * The pixels for one beat as [column, row] pairs in the 100 × 24 grid. Passed beats are a connected stepped line
+ * The pixels for one beat as [column, row] pairs in the 80 × 24 grid. Passed beats are a connected stepped line
  * (each column fills the run from the previous row to its own); missing beats are a dotted baseline.
  */
 export function beatPixels(index: number, lit: boolean): Array<[number, number]> {

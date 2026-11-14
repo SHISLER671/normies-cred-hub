@@ -10,7 +10,7 @@ describe("buildAnswerLogRow", () => {
       recommendation: "Hold #7141; burn #5678 for pixels.",
       nextSteps: ["Check Pulse", "Compare the Pixel Market price"],
       confidence: 0.8,
-      pulseLead: "Pulse 4/5 (Strong)",
+      pulseLead: "Pulse 4/4 (Strong)",
       // Things the log must never keep, even if a caller passes them:
       userQuery: "my wallet is 0xabc…",
       userWallet: "0x1111111111111111111111111111111111111111",

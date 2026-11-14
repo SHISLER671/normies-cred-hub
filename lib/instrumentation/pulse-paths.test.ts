@@ -177,7 +177,7 @@ describe("metrics + fail-open", () => {
   })
 })
 
-describe("popularity signal for Luminous (distinct callers only)", () => {
+describe("popularity signal for the Trending on NCH badge (distinct callers only)", () => {
   it("does not earn with sparse Pulse calls", async () => {
     __resetUsageMemoryForTests()
     await recordPulseCall({ tokenId: 200, source: "get", callerKey: "c1" })
