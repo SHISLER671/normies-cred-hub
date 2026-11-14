@@ -28,3 +28,10 @@ README.md
 docs/zulo/strategy.md
 docs/zulo/record-card-spec.md
 package.json
+components/path-board/path-board.tsx
+lib/zulo-horizon.ts
+lib/agent-recommendations/composePrompt*.ts
+lib/api/agent-pulse*.ts
+app/record/**
+app/api/chat-ratings/**
+docs/zulo/pulse-trust-fixes-spec.md
