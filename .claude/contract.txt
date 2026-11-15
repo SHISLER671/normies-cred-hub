@@ -1,33 +1,44 @@
-# Pulse PR-3 scope: "Has active agent card" actually reads the card.
-# Source: docs/zulo/pulse-trust-fixes-spec.md (PR-3).
-# One active contract on main; this list is for PR-3 only. Replace it before the next PR.
+# Scope for two PRs, built one after the other:
+#   PR-3b: fix the ERC-8004 registry read (agentURI does not exist; use tokenURI) and leftover wording (PR #181 findings).
+#   PR-4: Arena is live (arena.normies.art, official /arena/* API): official status, Arena record adapter, Ask Zulo facts.
+# One active contract on main; this list is for PR-3b and PR-4 only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
 # The scope check reads this file from main (the PR base), never from the PR head.
 # Always-protected regardless of this list: .github/workflows/, .github/scripts/,
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
-# lib/security/ssrf.ts: allowlist change only (start with api.normies.art).
 
+constants/contracts.ts
+constants/*.test.ts
+hooks/use-erc8004.ts
+components/erc8004-card.tsx
 lib/api/agent-pulse*.ts
 lib/api/*.test.ts
 lib/agent-card*.ts
-lib/agent-card/**
-lib/security/ssrf.ts
-lib/security/ssrf*.test.ts
-lib/security/hardening.test.ts
-lib/pulse/**
-lib/record-card/**
-components/pulse-hero.tsx
-components/agent-pulse-bar.tsx
-app/record/**
-app/dashboard/page.tsx
-lib/agent-recommendations/pulseFirst*.ts
+lib/agent-recommendations/loadKnowledge.ts
+lib/agent-recommendations/knowledge/protocols-deep-dive.md
+lib/agent-recommendations/buildContext.ts
+lib/agent-recommendations/composePrompt*.ts
 lib/agent-recommendations/ask-facts.test.ts
-lib/zulo-horizon.ts
-README.md
-AGENTS.md
-docs/zulo/strategy.md
-docs/zulo/record-card-spec.md
+lib/agent-recommendations/ask-v2.test.ts
+lib/*.test.ts
 docs/zulo/pulse-trust-fixes-spec.md
+AGENTS.md
+README.md
 package.json
+
+# PR-4 (Arena)
+lib/official-status*.ts
+lib/official-contracts*.ts
+lib/arena-canon*.ts
+lib/canon-drift*.ts
+lib/record-card/**
+app/record/**
+app/api/zulo/record-card/**
+lib/agent-recommendations/knowledge/**
+lib/agent-recommendations/collectionMath*.ts
+lib/zulo/answer-log.test.ts
+docs/zulo/record-card-spec.md
+docs/zulo/strategy.md
+docs/zulo/agent-trading-readiness.md
