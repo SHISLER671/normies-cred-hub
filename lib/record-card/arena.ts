@@ -3,7 +3,7 @@
 // Arena is LIVE (lib/official-status.ts) and its official data is public at api.normies.art/arena/*. This file reads that data
 // and turns it into the Arena part of the card. Rules:
 //   - Official data only. Anything the API doesn't give is `pending` with a reason, never zero and never guessed.
-//   - Being in the line is not a record. Until a Normie has played a round the card says "entered and in line".
+//   - Being in the line is not a record. Until a Normie has played a round the card says "Entered (line position N; first seats are drawn at random)".
 //   - Ranking stays off until the minimum sample is met (ARENA_RANK_MINIMUM), and that needs data the API doesn't publish yet.
 //   - No #PIXEL amounts: the API reports pixels won, charged and refunded, but NCH doesn't show or net them (AGENTS.md
 //     "Numbers yes, promises never"; nothing about prizes, pools, payouts or winnings).
@@ -243,7 +243,10 @@ export async function loadArenaSector(
   }
 
   if (snap.rounds_played === 0) {
-    const where = snap.position !== null ? `Entered and in line, place ${snap.position}` : "Entered and in line"
+    const where =
+      snap.position !== null
+        ? `Entered (line position ${snap.position}; first seats are drawn at random)`
+        : "Entered (first seats are drawn at random)"
     const funds = snap.needs_funds ? " The official data says this entry needs funds before it can be admitted." : ""
     const rounds =
       snap.any_round_started === false

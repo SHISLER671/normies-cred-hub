@@ -56,6 +56,9 @@ describe("known-wrong variants never come back", () => {
     ["the top Arena Canvas rank called Legendary Canvas", /Legendary Canvas rank|rank:\s*"?Legendary Canvas|name:\s*"Legendary Canvas"/i],
     ["Arena seats described as first come, first served or FIFO", /\bFIFO\b|first[\s-]*come[\s,]*first[\s-]*served|not a random draw|next in line|first 200 in line/i],
     ["fallen Normies said to rest 8 hours", /rests? 8 hours|8-hour rest|walks in at dawn/i],
+    // 2026-11-16 (official FAQ): refills go to Normies that have not walked in yet; not every opted-in Normie is promised a seat.
+    ["a fallen Normie's seat said to be refilled by a random draw", /another is drawn at random/i],
+    ["every opted-in Normie promised a game", /so every Normie opted in plays|every opted-in Normie plays/i],
   ]
   for (const [what, re] of banned) {
     it(what, () => assert.deepEqual(offenders(re), []))

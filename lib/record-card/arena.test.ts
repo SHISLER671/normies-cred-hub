@@ -63,10 +63,10 @@ describe("the pinned responses are what the code expects (field names seen, not 
 })
 
 describe("live data: entered and in line is not a record", () => {
-  it("Zulo: entered, place 353, no round started yet, and every record field is pending", async () => {
+  it("Zulo: entered, line position 353, no round started yet, and every record field is pending", async () => {
     const { sector, asked } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS) })
     assert.equal(sector.status, "entered")
-    assert.equal(sector.status_text, "Entered and in line, place 353. No Arena round has started yet, so there's no record")
+    assert.equal(sector.status_text, "Entered (line position 353; first seats are drawn at random). No Arena round has started yet, so there's no record")
     assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status"])
     assert.equal(sector.entry?.entered.value, true)
     assert.equal(sector.entry?.entered.label, "verified")
@@ -90,7 +90,7 @@ describe("live data: entered and in line is not a record", () => {
   it("when the status read fails, the card still says entered and in line, without claiming whether rounds have started", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": "throws" })
     assert.equal(sector.status, "entered")
-    assert.equal(sector.status_text, "Entered and in line, place 353. It hasn't played a round yet, so there's no record")
+    assert.equal(sector.status_text, "Entered (line position 353; first seats are drawn at random). It hasn't played a round yet, so there's no record")
   })
   it("an entry that needs funds says so, as the official data's statement", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...ZULO, needsFunds: true }), "/arena/status": ok(STATUS) })
@@ -228,7 +228,7 @@ describe("the card and the wiring", () => {
     }
     const card = buildRecordCard(inputs)
     assert.equal(card.card_status, "unranked")
-    assert.equal(card.card_status_text, "Entered and in line, place 353. No Arena round has started yet, so there's no record")
+    assert.equal(card.card_status_text, "Entered (line position 353; first seats are drawn at random). No Arena round has started yet, so there's no record")
     assert.equal(card.sectors.arena.status, "entered")
     assert.equal(card.sectors.arena.record.matches.value, null)
     assert.equal(card.sectors.arena.record.wins.value, null)

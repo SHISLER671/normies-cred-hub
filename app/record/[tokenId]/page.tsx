@@ -190,7 +190,7 @@ export default async function RecordCardPage({ params }: Params) {
               <Stat
                 label="In Arena"
                 value={arena.entry.entered.value === null ? "—" : arena.entry.entered.value ? (arena.entry.in_line.value ? "Entered, in line" : "Entered") : "Not entered"}
-                note={arena.entry.line_position.value !== null ? `Place ${arena.entry.line_position.value} in line. ${note(arena.entry.line_position)}` : note(arena.entry.entered)}
+                note={arena.entry.line_position.value !== null ? `Line position ${arena.entry.line_position.value}; first seats are drawn at random. ${note(arena.entry.line_position)}` : note(arena.entry.entered)}
               />
             )}
             <Stat label="Rounds played" value={show(arena.record.matches)} note={note(arena.record.matches)} />

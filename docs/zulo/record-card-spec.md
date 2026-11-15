@@ -64,7 +64,7 @@ Exactly one, checked in this order:
 | `arena_not_live` | `OFFICIAL_STATUS.arena.status !== "LIVE"` (not the case since 2026-11-14; kept so the card fails closed if the status ever changes) | "Arena isn't live, so there's no record" (identity and context still show) |
 | `arena_source_pending` | Arena is live but the official Arena data couldn't be read (404, a failed or malformed read) | "Arena data is unavailable right now" |
 | `stale` | The record's `as_of` is past its stale limit (§5) | "Record out of date, refreshing" |
-| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, entered and in line, or building a record | "Not entered in Arena" / "Entered and in line, place N. No Arena round has started yet, so there's no record" / "Building a record: X rounds played" |
+| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, entered and in line, or building a record | "Not entered in Arena" / "Entered (line position N; first seats are drawn at random). No Arena round has started yet, so there's no record" / "Building a record: X rounds played" |
 | `ranked` | Arena is live, the sample is met, and every ranked input is `verified` and fresh | "Verified record" |
 
 Today every awakened Normie's card is `arena_not_live`.
