@@ -50,7 +50,7 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - Five camps: **Human, Cat, Alien, Agent, Zombie** — each wakes in its own camp.
 - A day lasts **six minutes**.
 - They fish, chop timber, cook over fires they built, hunt monsters, clear dungeons, buy swords and lasers from town markets, upgrade them, and pick fights over **PX**.
-- Reply (death), per the official entry page: fallen agents **rest 15 minutes**, keep their PX and go back in line for their next life, free. The NFT **never leaves your wallet** and is **not** burned.
+- Reply (death), per the official entry page: fallen agents **rest 15 minutes at the Hive**, keep their PX and go back in line for their next life, free. The NFT **never leaves your wallet** and is **not** burned.
 - Reply (teams): they play **individually**; they **can** group if they are from the **same wallet or related wallet history**. Not automatic. Not guaranteed. Zulo does **not** form the team.
 - Survivors earn **#PIXEL**. In-world PX / survivor PIXEL ≠ a shop. Arena is **not** the Pixel Market: that is a separate on-chain market, live since 2026-10-05.
 - Same post names **on-chain:** Canvas, Pixel Market, Arena, Hive. **Off-chain:** murals, IRL events, physicals, limited edition artworks.
@@ -58,13 +58,13 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - Hive is still not a CredHub page. Never invent a Hive URL.
 - Zombies **21/21 sealed** ≠ join Arena from CredHub. Nothing to claim here.
 - CredHub stays read-only. No keys, burns, fight buttons, invite/rent.
-- Prefer the official entry page (via ARENA FACTS) for current mechanics (FIFO seats, 15-minute rest, the fee, the schedule, the Canvas table). Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy for details the entry page does not publish. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
+- Prefer the official entry page (via ARENA FACTS) for current mechanics (random-draw seats, 15-minute rest, the fee, the schedule, the Canvas table). Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy for details the entry page does not publish. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
 
 **Answer pattern — “Is Arena live / can I play?”**
 Yes, at the official site, not here. Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Give that registration date as posted, with no time or timezone. The official entry page (https://arena.normies.art/world/enter) publishes the game window: Monday 20:00 CET to Saturday 20:00 CET, and Game 1 starts Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST). Quote that clock only from ARENA FACTS, with the source. Official design is public (this post and the entry page). A Normie that is entered and in line has no record until it plays a round. CredHub does not host the map and cannot enter anyone: point people to https://arena.normies.art. Arena is not the Pixel Market. Not “enter from CredHub.” Not play from here.
 
 **Answer pattern — “If my agent dies is the NFT gone?”**
-Fallen agents rest 15 minutes, keep their PX and go back in line for their next life, free (official entry page). The NFT never leaves your wallet. Not an NFT burn.
+Fallen agents rest 15 minutes at the Hive, keep their PX and go back in line for their next life, free (official entry page). The NFT never leaves your wallet. Not an NFT burn.
 
 **Answer pattern — “Will my two Normies team?”**
 They can group if same wallet or related wallet history. Not guaranteed. Not automatic. Zulo does not form the team.

@@ -97,11 +97,11 @@ describe("tables match the official sources", () => {
 })
 
 describe("mechanics match the official entry page", () => {
-  it("seats are FIFO, rest is 15 minutes, every opted-in Normie plays, NFT stays put, agents cannot be steered", () => {
+  it("seats are a random draw, rest is 15 minutes at the Hive, every opted-in Normie plays, NFT stays put, agents cannot be steered", () => {
     const entry = ARENA_ENTRY.join("\n")
-    assert.match(entry, /first come, first served from the line \(FIFO\), not a random draw/)
-    assert.match(entry, /When one falls, the next in line walks in, so every Normie opted in plays/)
-    assert.match(entry, /Fallen agents rest 15 minutes, keep their PX/)
+    assert.match(entry, /The game starts with 200 Normies drawn at random from everyone in line/)
+    assert.match(entry, /When one falls, another is drawn at random to walk in, so every Normie opted in plays/)
+    assert.match(entry, /Fallen agents rest 15 minutes at the Hive, keep their PX/)
     assert.match(entry, /go back in line for their next life, free/)
     assert.match(entry, /Opt in any time before Monday 20:00 CET; during a game, it's for next week/)
     assert.match(entry, /the NFT never leaves your wallet/)
@@ -109,8 +109,7 @@ describe("mechanics match the official entry page", () => {
     assert.match(entry, /8 agents per wallet/)
     assert.match(entry, /200 Normies play at once/)
     assert.match(entry, /ERC-8004/)
-    assert.doesNotMatch(entry, /drawn at random|8 hours|8-hour|walks in at dawn/i)
-    assert.doesNotMatch(entry, /(?<!not a )random draw/i)
+    assert.doesNotMatch(entry, /first come|first-come|FIFO|next in line|8 hours|8-hour|walks in at dawn/i)
   })
   it("the game window includes the official CET hours and the Guam clock", () => {
     assert.equal(ARENA_GAME_WINDOW, "Monday 20:00 CET to Saturday 20:00 CET")
@@ -147,8 +146,9 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
     assert.match(rules, /Arena is not the Pixel Market/)
     assert.match(rules, /NCH does not handle opt-in and cannot enter, register or steer anyone/)
     assert.match(b, /Each game runs Monday 20:00 CET to Saturday 20:00 CET\. Game 1 starts Mon Nov 16, 20:00 CET \(Tue Nov 17, 5 AM ChST\)/)
-    assert.match(b, /first come, first served from the line \(FIFO\), not a random draw/)
-    assert.match(b, /Fallen agents rest 15 minutes, keep their PX/)
+    assert.match(b, /The game starts with 200 Normies drawn at random from everyone in line/)
+    assert.match(b, /When one falls, another is drawn at random to walk in, so every Normie opted in plays/)
+    assert.match(b, /Fallen agents rest 15 minutes at the Hive, keep their PX/)
     assert.match(b, /a head start, not a guarantee/)
     assert.match(b, /A head start is not a guarantee/)
     assert.ok(b.includes(ARENA_ENTER_SOURCE))
@@ -157,8 +157,7 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
     const facts = b.split("Rules for these facts:")[0]
     assert.doesNotMatch(facts, NEVER)
     assert.doesNotMatch(facts, /OpenSea|Pixel Market/)
-    assert.doesNotMatch(b, /drawn at random|8 hours|8-hour|walks in at dawn/i)
-    assert.doesNotMatch(b, /(?<!not a )random draw/i)
+    assert.doesNotMatch(b, /first come|first-come|FIFO|next in line|8 hours|8-hour|walks in at dawn/i)
   })
   it("a line for one Normie", () => {
     const line = arenaLineFor("Cat", 12)!
@@ -215,8 +214,7 @@ describe("copy lock on arena canon", () => {
     assert.doesNotMatch(corpus, /OpenSea/)
     assert.doesNotMatch(corpus, /Pixel Market/)
     assert.doesNotMatch(corpus, /Legendary/)
-    assert.doesNotMatch(corpus, /walks in at dawn|8 hours|8-hour|drawn at random/i)
-    assert.doesNotMatch(corpus, /(?<!not a )random draw/i)
+    assert.doesNotMatch(corpus, /walks in at dawn|8 hours|8-hour|first come|first-come|FIFO|next in line/i)
     // Build the earlier planned-date needles without writing those words as a literal in this test.
     const month = "Nov"
     const earlier = [`${month}ember 15`, `${month} 15`]
