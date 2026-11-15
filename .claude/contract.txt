@@ -1,6 +1,7 @@
-# Pulse PR-3b scope: fix the ERC-8004 registry read (agentURI does not exist; use tokenURI) and leftover wording.
-# Source: PR #181 findings (docs/zulo/pulse-trust-fixes-spec.md, PR-3).
-# One active contract on main; this list is for PR-3b only. Replace it before the next PR.
+# Scope for two PRs, built one after the other:
+#   PR-3b: fix the ERC-8004 registry read (agentURI does not exist; use tokenURI) and leftover wording (PR #181 findings).
+#   PR-4: Arena is live (arena.normies.art, official /arena/* API): official status, Arena record adapter, Ask Zulo facts.
+# One active contract on main; this list is for PR-3b and PR-4 only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
 # The scope check reads this file from main (the PR base), never from the PR head.
@@ -26,3 +27,18 @@ docs/zulo/pulse-trust-fixes-spec.md
 AGENTS.md
 README.md
 package.json
+
+# PR-4 (Arena)
+lib/official-status*.ts
+lib/official-contracts*.ts
+lib/arena-canon*.ts
+lib/canon-drift*.ts
+lib/record-card/**
+app/record/**
+app/api/zulo/record-card/**
+lib/agent-recommendations/knowledge/**
+lib/agent-recommendations/collectionMath*.ts
+lib/zulo/answer-log.test.ts
+docs/zulo/record-card-spec.md
+docs/zulo/strategy.md
+docs/zulo/agent-trading-readiness.md
