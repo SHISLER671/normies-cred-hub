@@ -471,7 +471,7 @@ describe("composed Ask prompt", () => {
       assert.match(prompt, /CredHub does not host the map/)
       assert.match(prompt, /Not enter-from-CredHub/)
       assert.match(prompt, /Not play from here/)
-      assert.match(prompt, /rest 15 minutes, keep their PX and go back in line/)
+      assert.match(prompt, /rest 15 minutes at the Hive, keep their PX and go back in line/)
       assert.match(prompt, /NFT never leaves your wallet/)
       assert.match(prompt, /Not an NFT burn/)
       assert.match(prompt, /can group if same wallet or related wallet history/)

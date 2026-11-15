@@ -54,7 +54,7 @@ describe("known-wrong variants never come back", () => {
     ["burn fodder into a Normie", /burn fodder into/i],
     // 2026-11-10 (Arena Canvas rank): the top band has a neutral label, so it is never confused with the NormiesLegendaryCanvas award.
     ["the top Arena Canvas rank called Legendary Canvas", /Legendary Canvas rank|rank:\s*"?Legendary Canvas|name:\s*"Legendary Canvas"/i],
-    ["Arena seats described as a random draw", /drawn at random|(?<!not a )random draw/i],
+    ["Arena seats described as first come, first served or FIFO", /\bFIFO\b|first[\s-]*come[\s,]*first[\s-]*served|not a random draw|next in line|first 200 in line/i],
     ["fallen Normies said to rest 8 hours", /rests? 8 hours|8-hour rest|walks in at dawn/i],
   ]
   for (const [what, re] of banned) {

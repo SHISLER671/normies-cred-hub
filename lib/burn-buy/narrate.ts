@@ -194,10 +194,10 @@ const ARENA_NOTES = [
   `Canvas head start is in the table on this page (per the official Arena entry page, ${ARENA_ENTER_SOURCE}; a head start, not a guarantee). ${ARENA_GEAR_LINE}.`,
   `Type stats from normiesART's Arena article (Oct 23, 2026; closed-beta data, may change): ${ARENA_TYPES.map((t) => `${t.type} ${t.health} health`).join(", ")}; each type has its own speed, damage and skill.`,
   "A head start is not a guarantee. Nobody can honestly tell you how many Normies to keep or what Level wins.",
-  "Fallen agents rest 15 minutes, keep their PX and go back in line for their next life, free. Death is not a burn: the NFT never leaves your wallet. A burn is permanent.",
+  "Fallen agents rest 15 minutes at the Hive, keep their PX and go back in line for their next life, free. Death is not a burn: the NFT never leaves your wallet. A burn is permanent.",
   "Official trailer (\"They play. You watch.\"): each agent decides for itself, using a decision model. You can't steer it once it walks in, so your choice is which Normies you own and keep.",
   "The trailer shows a boss, The Maw (\"No Normie can face it alone\"), but gives no numbers.",
-  `${ARENA_REGISTRATION_LINE}. ${ARENA_GAME_WINDOW_LINE}. ${ARENA_ENTRY[0]}; ${ARENA_ENTRY[3].charAt(0).toLowerCase()}${ARENA_ENTRY[3].slice(1)} (per the official Arena entry page, ${ARENA_ENTER_SOURCE}).`,
+  `${ARENA_REGISTRATION_LINE}. ${ARENA_GAME_WINDOW_LINE}. ${ARENA_ENTRY[0]}; ${ARENA_ENTRY[3].charAt(0).toLowerCase()}${ARENA_ENTRY[3].slice(1)}; ${ARENA_ENTRY[4].charAt(0).toLowerCase()}${ARENA_ENTRY[4].slice(1)} (per the official Arena entry page, ${ARENA_ENTER_SOURCE}).`,
   `${ARENA_FEE_LINE} (official entry page).`,
 ]
 
