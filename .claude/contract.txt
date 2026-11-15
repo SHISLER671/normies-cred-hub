@@ -42,3 +42,10 @@ lib/zulo/answer-log.test.ts
 docs/zulo/record-card-spec.md
 docs/zulo/strategy.md
 docs/zulo/agent-trading-readiness.md
+
+# PR-4: copy folded in from #184
+app/burn/page.tsx
+lib/burn-buy/narrate*.ts
+lib/normies-canon.ts
+lib/agent-recommendations/normiesKnowledge.ts
+lib/chat-ratings/load.ts
