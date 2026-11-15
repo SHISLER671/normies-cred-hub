@@ -1,8 +1,4 @@
-# Scope for the official Arena entry-page rest and line update:
-# a fallen Normie rests 15 minutes (not 8 hours), keeps its PX and goes back
-# in line for its next life, free; when one falls the next in line walks in,
-# so every Normie opted in plays; opt in any time before Monday 20:00 CET,
-# and during a game it counts for next week.
+# Scope: metadata hardening from the 2026-11-16 audit at b14958a (Claude). Replaces the Arena FAQ contract (#195/#196, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -11,21 +7,17 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-lib/arena-canon.ts
-lib/arena-canon.test.ts
-lib/canon-drift.test.ts
-lib/official-status.ts
-lib/official-status.test.ts
-lib/burn-buy/narrate.ts
-lib/burn-buy/narrate.test.ts
+lib/fetch-with-timeout.ts
+lib/fetch-with-timeout.test.ts
+app/api/normies/[...path]/route.ts
+lib/normies-proxy.ts
+lib/normies-proxy.test.ts
+lib/normie-traits.ts
+lib/normie-traits.test.ts
+lib/types.ts
+lib/agent-recommendations/buildContext.ts
+lib/agent-recommendations/metadataAttrs.ts
+lib/agent-recommendations/metadataAttrs.test.ts
 lib/agent-recommendations/composePrompt.ts
 lib/agent-recommendations/ask-facts.test.ts
-lib/agent-recommendations/knowledge/collab-rails-and-ask-patterns.md
-lib/agent-recommendations/loadKnowledge.ts
-lib/agent-recommendations/normiesKnowledge.ts
-
-# 2026-11-16 fix-forward for #194 (Claude): record card says "Entered (line position N; first seats are drawn at random)".
-lib/record-card/arena.ts
-lib/record-card/arena.test.ts
-app/record/[tokenId]/page.tsx
-docs/zulo/record-card-spec.md
+package.json
