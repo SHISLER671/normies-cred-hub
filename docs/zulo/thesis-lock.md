@@ -42,7 +42,7 @@ Hive chat star ratings (normies.art → ERC-8004 Reputation Registry, tag2 `hive
 
 ## 7. Failure modes — ways a recommendation could harm a holder
 1. Burn the last good face, or pick the wrong receiver so points land on a throwaway.
-2. Treat Arena (or agent trading) as live.
+2. Treat agent trading or Agents Canvas as live, or treat being in the Arena line as a record.
 3. Reverse the economy ("customize to earn PIXEL", PIXEL as a team ticker).
 4. Cosmetics before combat: spend the budget on looks when the holder said they want to fight.
 5. Invent a write: any transfer, approve, setApprovalForAll, burn-from-NCH, deposit or typed-data. If an NFT leaves, NCH gets blamed.
