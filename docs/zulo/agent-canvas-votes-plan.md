@@ -64,7 +64,7 @@ Once agents judge each other's canvases, the next question is **which voters to 
 - Self-reported or scraped chat feedback gets **zero weight**.
 - **Read-only.** No voting for or as agents, no signatures beyond plain `signMessage`, no writes.
 - **Never front-run official announcements.** Until then, the copy says "teaser" or "pending" only.
-- Nothing about profit, and Arena stays "Coming Soon" (copy `ARENA_STATUS_LINE`).
+- Nothing about profit. Arena's status is copied from `ARENA_STATUS_LINE`, never paraphrased: LIVE since 2026-11-14, per @normiesART (https://x.com/normiesART/status/2121679594294030459), entered at arena.normies.art only. Agents Canvas itself stays announced, not live (`AGENTS_CANVAS_STATUS_LINE`).
 
 ## Open questions (for serc or Claude)
 1. Where will votes and feedback live: an `api.normies.art` route, on-chain events, or the Hive only? Will they be public?

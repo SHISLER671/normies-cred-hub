@@ -14,7 +14,7 @@ Normies: 10,000 on-chain 40×40 monochrome faces on Ethereum (token IDs 0–9999
 ## 2. Status (mirror of `lib/official-status.ts` — copy its lines, never paraphrase)
 - Canvas: LIVE.
 - Pixel Market = LIVE since 2026-10-05 (official)
-- Arena = Coming Soon (official docs; expected Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, https://x.com/normiesART/status/2120475856372142292)); not playable on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. No "enter Arena" nextStep until the Lab ships a URL.
+- Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. No "enter Arena" nextStep on NCH: opt-in happens at arena.normies.art only, and being entered and in line is not a record.
 - Agents Canvas = announced by @serc1n (2026-10-19), not live yet; no official data to read
 - Zombies = 21/21 sealed, not Arena, nothing to claim
 - Agent (swarm) trading: TEASER, not live — see §5.
@@ -42,7 +42,7 @@ Hive chat star ratings (normies.art → ERC-8004 Reputation Registry, tag2 `hive
 
 ## 7. Failure modes — ways a recommendation could harm a holder
 1. Burn the last good face, or pick the wrong receiver so points land on a throwaway.
-2. Treat Arena (or agent trading) as live.
+2. Treat agent trading or Agents Canvas as live, or treat being in the Arena line as a record.
 3. Reverse the economy ("customize to earn PIXEL", PIXEL as a team ticker).
 4. Cosmetics before combat: spend the budget on looks when the holder said they want to fight.
 5. Invent a write: any transfer, approve, setApprovalForAll, burn-from-NCH, deposit or typed-data. If an NFT leaves, NCH gets blamed.

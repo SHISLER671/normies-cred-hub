@@ -4,7 +4,7 @@ import {
   PulseAccordion,
   PulseAccordionItem,
 } from "@/components/pulse-accordion"
-import { ARENA_LAUNCH_SOURCE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
+import { ARENA_LAUNCH_SOURCE, ARENA_LIVE_SOURCE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
 
 /** "COMING SOON" → "Coming soon": the official tag word, in sentence case. */
 function sentence(tag: string): string {
@@ -31,14 +31,15 @@ export function HomeFuturePlans() {
                 title="Arena record"
                 subtitle={
                   SURFACE_TAGS.arena === "LIVE"
-                    ? "Arena has launched"
+                    ? "Arena is live"
                     : `${sentence(SURFACE_TAGS.arena)}, expected ${OFFICIAL_STATUS.arena.expected}`
                 }
               >
                 <p className="card-body" style={{ margin: 0 }}>
-                  Every record card already has an Arena slot. It fills from official Arena data only, the day that data
-                  exists: matches, wins, losses. No guesses, no screenshots.{" "}
-                  <a href={ARENA_LAUNCH_SOURCE} target="_blank" rel="noopener noreferrer">
+                  {SURFACE_TAGS.arena === "LIVE"
+                    ? "Every record card reads official Arena data: whether the Normie is entered and in line, then rounds played and wins once it has played. Being in line is not a record. No guesses, no screenshots. "
+                    : "Every record card already has an Arena slot. It fills from official Arena data only, the day that data exists. No guesses, no screenshots. "}
+                  <a href={SURFACE_TAGS.arena === "LIVE" ? ARENA_LIVE_SOURCE : ARENA_LAUNCH_SOURCE} target="_blank" rel="noopener noreferrer">
                     source
                   </a>
                 </p>
