@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { BASE_TRAIT_TYPES, loadNormieTraits, pickBaseTraits, traitType, traitsFromMetadata, traitsSourceLabel } from "./normie-traits"
+import { BASE_TRAIT_TYPES, loadNormieTraits, NORMIES_JSON_MAX_BYTES, pickBaseTraits, serverNormiesJsonWith, traitType, traitsFromMetadata, traitsSourceLabel } from "./normie-traits"
 
 // Captured from api.normies.art on 2026-10-20 (image and animation_url shortened). Zombie #2: /metadata says Zombie,
 // /traits still has the pre-zombie Human traits, /normie/2/zombie says isZombie: true.
@@ -90,5 +90,28 @@ describe("Normie traits come from the official /metadata", () => {
       { trait_type: "Eyes", value: "Big Shades" },
     ])
     assert.equal(traitsFromMetadata({ attributes: [{ trait_type: "Eyes", value: "Big Shades" }] }), null, "no Type: not usable")
+  })
+})
+
+// Audit 2026-11-16 (Claude): the server read times out on a stalled body and caps the size; both read as null.
+describe("serverNormiesJsonWith: deadline covers the body, size is capped", () => {
+  const fetchOf = (res: () => Response) => (async () => res()) as unknown as typeof fetch
+  it("returns parsed JSON for a normal response", async () => {
+    const get = serverNormiesJsonWith(1_000, fetchOf(() => new Response(JSON.stringify(META_2), { status: 200 })))
+    assert.deepEqual(await get("/normie/2/metadata"), META_2)
+  })
+  it("a body that stalls after the headers reads as null within the timeout", async () => {
+    const stalled = new ReadableStream<Uint8Array>({ pull: () => new Promise<void>(() => {}) })
+    const get = serverNormiesJsonWith(50, fetchOf(() => new Response(stalled, { status: 200 })))
+    assert.equal(await get("/normie/2/metadata"), null)
+  })
+  it("a body over the cap reads as null", async () => {
+    const huge = JSON.stringify({ name: "x", pad: "y".repeat(NORMIES_JSON_MAX_BYTES + 10) })
+    const get = serverNormiesJsonWith(1_000, fetchOf(() => new Response(huge, { status: 200 })))
+    assert.equal(await get("/normie/2/metadata"), null)
+  })
+  it("a non-ok response reads as null", async () => {
+    const get = serverNormiesJsonWith(1_000, fetchOf(() => new Response("nope", { status: 500 })))
+    assert.equal(await get("/normie/2/metadata"), null)
   })
 })
