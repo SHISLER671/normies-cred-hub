@@ -41,7 +41,9 @@ export const ARENA_ENTRY = [
   "Entry is at the official Arena site (arena.normies.art); CredHub has no opt-in and cannot enter anyone",
   "Up to 8 agents per wallet; 200 Normies play at once and the rest wait in line",
   "Seats fill first come, first served from the line (FIFO), not a random draw",
-  "Fallen agents rest 8 hours, keep their PX and come back; the NFT never leaves your wallet",
+  "When one falls, the next in line walks in, so every Normie opted in plays",
+  "Fallen agents rest 15 minutes, keep their PX and go back in line for their next life, free; the NFT never leaves your wallet",
+  "Opt in any time before Monday 20:00 CET; during a game, it's for next week",
   "You can't steer an agent once it walks in",
 ] as const
 
@@ -239,7 +241,7 @@ export function arenaFactsBlock(): string {
     (t) => `- ${t.type}: ${t.health} health · damage dealt ${t.damageDealt} · damage taken from monsters ${t.damageTakenFromMonsters} · speed ${t.speed} · ${t.skill}`,
   ).join("\n")
   return `=== ARENA FACTS (mechanics, fee, schedule and Canvas table: ${ENTER_SRC}, ${ARENA_ENTER_SOURCE}; type stats: ${TYPE_SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
-- Status: Arena is live (status line above). Opt-in opens each Saturday 20:00 CET; being entered and in line is not a record, and a Normie has a record only after it plays a round.
+- Status: Arena is live (status line above). Opt in any time before Monday 20:00 CET; during a game, it's for next week. Being entered and in line is not a record, and a Normie has a record only after it plays a round.
 - Where to enter: the official Arena site (${ARENA_SITE}). NCH does not handle opt-in and cannot enter anyone.
 - ${ARENA_GAME_WINDOW_LINE}.
 ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}

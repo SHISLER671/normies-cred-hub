@@ -55,7 +55,7 @@ describe("known-wrong variants never come back", () => {
     // 2026-11-10 (Arena Canvas rank): the top band has a neutral label, so it is never confused with the NormiesLegendaryCanvas award.
     ["the top Arena Canvas rank called Legendary Canvas", /Legendary Canvas rank|rank:\s*"?Legendary Canvas|name:\s*"Legendary Canvas"/i],
     ["Arena seats described as a random draw", /drawn at random|(?<!not a )random draw/i],
-    ["fallen Normies said to rest a quarter of an hour", /rests? 15 minutes|15-minute rest|walks in at dawn/i],
+    ["fallen Normies said to rest 8 hours", /rests? 8 hours|8-hour rest|walks in at dawn/i],
   ]
   for (const [what, re] of banned) {
     it(what, () => assert.deepEqual(offenders(re), []))

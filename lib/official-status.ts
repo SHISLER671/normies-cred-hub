@@ -54,7 +54,7 @@ export const OFFICIAL_STATUS = {
     liveSourcePostedAt: "2026-11-14T19:00:00Z",
     sources: [
       `@normiesART, 2026-11-14 19:00 UTC (${ARENA_LIVE_SOURCE}): "Normies Arena is live now", linking arena.normies.art`,
-      `Official Arena entry page (${ARENA_ENTER_SOURCE}): opt-in opens Saturday 20:00 CET; games run Monday 20:00 CET to Saturday 20:00 CET`,
+      `Official Arena entry page (${ARENA_ENTER_SOURCE}): opt in any time before Monday 20:00 CET (during a game, it's for next week); games run Monday 20:00 CET to Saturday 20:00 CET`,
       `Official API (${ARENA_API_STATUS}): indexed, with Normies in the line and round 1 upcoming (read at block 26416887)`,
       `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts)`,
       `@normiesART, Nov 11, 2026 (${ARENA_LAUNCH_SOURCE}): "launching on Monday. Registration starts on Saturday."`,

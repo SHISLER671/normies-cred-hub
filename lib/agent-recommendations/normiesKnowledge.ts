@@ -117,7 +117,7 @@ export const NORMIES_KNOWLEDGE = {
       description:
         "Autonomous agents on a 640×640 pixel continent. No human players. No script. (From @serc1n X posts, 2026-09-18; not in the docs, may change.)",
       mechanics:
-        "Official entry page (https://arena.normies.art/world/enter): seats fill first come, first served (FIFO); fallen agents rest 8 hours and keep their PX; the NFT never leaves your wallet; you can't steer an agent once it walks in. Remaining colour from @serc1n X posts (2026-09-18), not in the docs, may change: type / level / on-chain history matter. Five camps. Six-minute days.",
+        "Official entry page (https://arena.normies.art/world/enter): seats fill first come, first served (FIFO); when one falls, the next in line walks in, so every Normie opted in plays; fallen agents rest 15 minutes, keep their PX and go back in line for their next life, free; opt in any time before Monday 20:00 CET (during a game, it's for next week); the NFT never leaves your wallet; you can't steer an agent once it walks in. Remaining colour from @serc1n X posts (2026-09-18), not in the docs, may change: type / level / on-chain history matter. Five camps. Six-minute days.",
       risk: "Arena is live at the official Arena site only (arena.normies.art). CredHub does not handle entry or opt-in and cannot enter anyone. Being entered and in line is not a record. Do not invent any other enter URL.",
     },
     pixelMarket: {
