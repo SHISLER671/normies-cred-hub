@@ -7,7 +7,7 @@ import { chatRatingsLine } from "@/lib/chat-ratings/format"
 import { recordCardLine } from "@/lib/record-card/ask-line"
 import { siteOrigin } from "@/lib/site-origin"
 import { buildPulseSummary, derivePulseGaps } from "@/lib/erc8257/context"
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { fetchJsonWithLimits, fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { isAddress } from "viem"
 
 import {
@@ -31,6 +31,7 @@ import { parseNormieTokenIdsFromText } from "./parseTokenIds"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
 import { loadNormieTraits, serverNormiesJsonWith, traitsFromMetadata } from "@/lib/normie-traits"
+import { attrNumber, attrString, cleanPromptText, cleanTraitRecord, traitsFromAttributes } from "./metadataAttrs"
 import type {
   CredHubPulseData,
   MentionedNormieSnapshot,
@@ -135,7 +136,10 @@ type RarityPayload = {
   attributes?: Array<{ trait_type?: string; value?: string | number }>
 }
 
-/** Full NFT metadata from /normie/:id/metadata (includes Pixel Count, Level, AP). */
+/** Canvas numbers in the metadata attributes: read separately, never copied into the trait map. */
+const CANVAS_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set(["Level", "Pixel Count", "Action Points", "Customized"])
+
+/** Full NFT metadata from /normie/:id/metadata (includes Pixel Count, Level, AP). Outside data: shape not guaranteed. */
 type MetadataPayload = {
   name?: string
   attributes?: Array<{
@@ -143,32 +147,6 @@ type MetadataPayload = {
     value?: string | number
     display_type?: string
   }>
-}
-
-function attrNumber(
-  attrs: MetadataPayload["attributes"] | undefined,
-  name: string,
-): number | undefined {
-  if (!attrs) return undefined
-  for (const a of attrs) {
-    if (a.trait_type !== name) continue
-    const n = typeof a.value === "number" ? a.value : Number(a.value)
-    if (Number.isFinite(n)) return n
-  }
-  return undefined
-}
-
-function attrString(
-  attrs: MetadataPayload["attributes"] | undefined,
-  name: string,
-): string | undefined {
-  if (!attrs) return undefined
-  for (const a of attrs) {
-    if (a.trait_type !== name) continue
-    if (a.value === undefined || a.value === null) return undefined
-    return String(a.value)
-  }
-  return undefined
 }
 
 /** Fetch metadata + traits + rarity for one mentioned token (for dual-eval grounding). */
@@ -205,26 +183,12 @@ async function fetchMentionedNormieSnapshot(
     const baseTraits =
       traitsFromMetadata(metadata) ??
       (await loadNormieTraits(tokenId, (path) => (path.endsWith("/metadata") ? Promise.resolve(null) : read8(path))))
-    const traitRecord = {
-      ...traitsToRecord(baseTraits ?? traits),
-    }
-    // Fill from metadata attributes when traits empty
-    if (Object.keys(traitRecord).length === 0 && metadata?.attributes) {
-      for (const attr of metadata.attributes) {
-        if (!attr.trait_type || attr.value === undefined || attr.value === null)
-          continue
-        // Skip canvas numeric attrs from trait map (stored separately)
-        if (
-          attr.trait_type === "Level" ||
-          attr.trait_type === "Pixel Count" ||
-          attr.trait_type === "Action Points" ||
-          attr.trait_type === "Customized"
-        ) {
-          continue
-        }
-        traitRecord[attr.trait_type] = attr.value
-      }
-    }
+    const baseRecord = traitsToRecord(baseTraits ?? traits)
+    // Fill from metadata attributes when the base traits are empty, skipping the canvas numbers (stored separately).
+    // Outside data: malformed entries and prototype keys are dropped, and text is cleaned before it reaches the prompt.
+    const traitRecord = cleanTraitRecord(
+      Object.keys(baseRecord).length > 0 ? baseRecord : traitsFromAttributes(metadata?.attributes, CANVAS_ATTRIBUTE_NAMES),
+    )
 
     const pixelCount =
       attrNumber(metadata?.attributes, "Pixel Count") ??
@@ -259,7 +223,7 @@ async function fetchMentionedNormieSnapshot(
     return {
       tokenId,
       fetchOk: true,
-      name: metadata?.name || rarityData?.name || `Normie #${tokenId}`,
+      name: cleanPromptText(metadata?.name) || cleanPromptText(rarityData?.name) || `Normie #${tokenId}`,
       traits: traitRecord,
       pixelCount,
       level,
@@ -302,11 +266,11 @@ type OpportunityInput = {
   pulse?: CredHubPulseData | null
 }
 
+/** GET JSON from an outside API. The timeout covers the body too and the body is capped (audit 2026-11-16). Never throws. */
 async function fetchJsonSafe<T>(url: string, timeoutMs = 8_000): Promise<T | null> {
   try {
-    const res = await fetchWithTimeout(url, {}, timeoutMs)
-    if (!res.ok) return null
-    return (await res.json()) as T
+    const res = await fetchJsonWithLimits(url, {}, { timeoutMs })
+    return res.ok ? (res.data as T) : null
   } catch {
     return null
   }
@@ -337,15 +301,12 @@ async function fetchPixelCount(tokenId: number): Promise<number | undefined> {
   }
 }
 
+/** Trait map from a traits payload: malformed entries and prototype keys dropped, text cleaned for the prompt (metadataAttrs.ts). */
 function traitsToRecord(traits: TraitsPayload | null): Record<string, string | number> {
-  const out: Record<string, string | number> = {}
-  if (!traits?.attributes) return out
-  for (const attr of traits.attributes) {
-    if (!attr.trait_type || attr.value === undefined || attr.value === null) continue
-    out[attr.trait_type] = attr.value
-  }
-  return out
+  return cleanTraitRecord(traitsFromAttributes(traits?.attributes, NO_SKIP))
 }
+
+const NO_SKIP: ReadonlySet<string> = new Set()
 
 function parseTokenIds(raw: Array<number | string> | undefined): number[] {
   if (!raw?.length) return []
@@ -923,11 +884,12 @@ export async function buildZuloContext(
       id: tokenId,
       name: speakerOnly
         ? `Zulo · Normie #${ZULO_IDENTITY.tokenId} (speaker identity — not visitor subject)`
-        : rarityData?.name ||
-          agentInfo?.name ||
-          agentInfo?.traits?.name ||
-          focusMention?.name ||
-          `Normie #${tokenId}`,
+        : cleanPromptText(
+            rarityData?.name ||
+              agentInfo?.name ||
+              agentInfo?.traits?.name ||
+              focusMention?.name,
+          ) || `Normie #${tokenId}`,
       traits: speakerOnly ? {} : traitRecord,
       owner: speakerOnly ? undefined : ownerAddress,
       ownerMatchesUser: speakerOnly ? false : ownerMatchesUser,

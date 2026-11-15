@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { resolveUpstream } from "./normies-proxy"
+import { isMetadataUpstream, MAX_METADATA_ATTRIBUTES, resolveUpstream, trimMetadata } from "./normies-proxy"
 
 const B = "https://api.normies.art"
 
@@ -34,5 +34,47 @@ test("everything else is refused: traversal, encoded queries, other upstream pat
     ["history", "normie", "1", "versions"],
   ]) {
     assert.equal(resolveUpstream(segs), null, segs.join("/"))
+  }
+})
+
+// Audit 2026-11-16 (Claude): /metadata reaches the browser as name + attributes only.
+test("/metadata is trimmed to name and well-formed attributes; image and animation_url never pass", () => {
+  const out = trimMetadata({
+    name: "Normie #2",
+    description: "x",
+    image: "data:image/svg+xml;base64,PHN2Zz4=",
+    animation_url: "data:text/html;base64,PHNjcmlwdD4=",
+    external_url: "https://example.com",
+    attributes: [
+      { trait_type: "Type", value: "Zombie" },
+      { display_type: "number", trait_type: "Level", value: 1 },
+      null,
+      { trait_type: "Bad", value: { nested: true } },
+      { trait_type: "NaN", value: Number.NaN },
+      { value: "no type" },
+    ],
+  })
+  assert.deepEqual(out, {
+    name: "Normie #2",
+    attributes: [
+      { trait_type: "Type", value: "Zombie" },
+      { trait_type: "Level", value: 1, display_type: "number" },
+    ],
+  })
+  assert.equal(JSON.stringify(out).includes("data:"), false)
+})
+
+test("trimMetadata never throws on junk and caps the attribute count", () => {
+  for (const junk of [null, undefined, "x", 5, [], { attributes: "Type" }, { name: 7 }]) {
+    assert.deepEqual(trimMetadata(junk), { attributes: [] })
+  }
+  const many = { attributes: Array.from({ length: 500 }, (_, i) => ({ trait_type: `T${i}`, value: i })) }
+  assert.equal(trimMetadata(many).attributes.length, MAX_METADATA_ATTRIBUTES)
+})
+
+test("only the /metadata upstream is trimmed", () => {
+  assert.equal(isMetadataUpstream(resolveUpstream(["7141", "metadata"])!), true)
+  for (const segs of [["7141", "traits"], ["7141", "owner"], ["7141", "agent"], ["agents", "binding", "7141"]]) {
+    assert.equal(isMetadataUpstream(resolveUpstream(segs)!), false, segs.join("/"))
   }
 })

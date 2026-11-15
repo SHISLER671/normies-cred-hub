@@ -14,11 +14,15 @@ export interface NormieTraits {
   attributes: NormieTrait[]
 }
 
+/**
+ * A Normie's metadata as the app's /api/normies proxy returns it: name and attributes only (lib/normies-proxy.ts
+ * trimMetadata). The upstream image and animation_url are dropped there; Normie images come from normieImageUrl().
+ */
 export interface NormieMetadata {
-  name: string
+  name?: string
   attributes: NormieTrait[]
-  image: string
-  animation_url?: string
+  /** Only ever the fixed normieImageUrl() fallback set in lib/api/normies.ts, never upstream metadata. */
+  image?: string
 }
 
 export interface NormieOwner {

@@ -1,19 +1,20 @@
 import { NORMIES_API_BASE } from "@/constants/contracts"
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
-import { MAX_BATCH_BYTES, MAX_BATCH_IDS, resolveUpstream, UPSTREAM_TIMEOUT_MS } from "@/lib/normies-proxy"
+import { fetchJsonWithLimits } from "@/lib/fetch-with-timeout"
+import { isMetadataUpstream, MAX_BATCH_BYTES, MAX_BATCH_IDS, resolveUpstream, trimMetadata, UPSTREAM_TIMEOUT_MS } from "@/lib/normies-proxy"
 import { enforceDualRateLimit } from "@/lib/middleware/rateLimit"
 import { type NextRequest, NextResponse } from "next/server"
 
 async function proxyJson(upstream: string, init: RequestInit | undefined, cacheSeconds: number): Promise<NextResponse> {
   try {
-    const res = await fetchWithTimeout(
+    // One deadline for headers and body, and a byte cap (audit 2026-11-16).
+    const res = await fetchJsonWithLimits(
       upstream,
       {
         ...init,
         headers: { Accept: "application/json", ...(init?.headers ?? {}) },
         next: { revalidate: cacheSeconds },
-      },
-      UPSTREAM_TIMEOUT_MS,
+      } as RequestInit,
+      { timeoutMs: UPSTREAM_TIMEOUT_MS },
     )
 
     if (!res.ok) {
@@ -25,7 +26,7 @@ async function proxyJson(upstream: string, init: RequestInit | undefined, cacheS
       )
     }
 
-    const data = await res.json()
+    const data = isMetadataUpstream(upstream) ? trimMetadata(res.data) : res.data
     return NextResponse.json(data, {
       headers: {
         "Cache-Control": `public, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds * 2}`,

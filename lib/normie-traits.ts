@@ -9,7 +9,7 @@
 // /metadata also carries a base64 SVG image and animation: those are never kept, only the 8 base attributes.
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { fetchJsonWithLimits } from "@/lib/fetch-with-timeout"
 import type { NormieTrait, NormieTraits } from "@/lib/types"
 
 /** The 8 traits fixed at mint, in the official order. Canvas numbers (Level, Pixel Count, AP, ...) are not base traits. */
@@ -92,17 +92,22 @@ export async function loadNormieTraits(
   return traitsFromTraitsEndpoint(await getJson(`/normie/${tokenId}/traits`).catch(() => null))
 }
 
-/** Server read of api.normies.art JSON. Never throws. The response (≈5 KB with the image) is cached by Next, not by us. */
-export function serverNormiesJsonWith(timeoutMs: number): NormiesJsonGetter {
+/** Byte cap for one /metadata or /traits read (≈5 KB today, with the image). */
+export const NORMIES_JSON_MAX_BYTES = 256 * 1024
+
+/**
+ * Server read of api.normies.art JSON. Never throws. The response (≈5 KB with the image) is cached by Next, not by us.
+ * The timeout covers the body too, and the body is capped (audit 2026-11-16); either failure reads as null.
+ */
+export function serverNormiesJsonWith(timeoutMs: number, fetchImpl: typeof fetch = fetch): NormiesJsonGetter {
   return async (path) => {
     try {
-      const res = await fetchWithTimeout(
+      const res = await fetchJsonWithLimits(
         `${NORMIES_API_BASE}${path}`,
         { headers: { Accept: "application/json" }, next: { revalidate: 300 } } as RequestInit,
-        timeoutMs,
+        { timeoutMs, maxBytes: NORMIES_JSON_MAX_BYTES, fetchImpl },
       )
-      if (!res.ok) return null
-      return await res.json()
+      return res.ok ? res.data : null
     } catch {
       return null
     }
