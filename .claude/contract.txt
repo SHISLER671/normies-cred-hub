@@ -1,7 +1,9 @@
-# Scope for two PRs, built one after the other:
-#   PR-3b: fix the ERC-8004 registry read (agentURI does not exist; use tokenURI) and leftover wording (PR #181 findings).
-#   PR-4: Arena is live (arena.normies.art, official /arena/* API): official status, Arena record adapter, Ask Zulo facts.
-# One active contract on main; this list is for PR-3b and PR-4 only. Replace it before the next PR.
+# Scope for the official Arena entry-page rest and line update:
+# a fallen Normie rests 15 minutes (not 8 hours), keeps its PX and goes back
+# in line for its next life, free; when one falls the next in line walks in,
+# so every Normie opted in plays; opt in any time before Monday 20:00 CET,
+# and during a game it counts for next week.
+# One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
 # The scope check reads this file from main (the PR base), never from the PR head.
@@ -9,53 +11,15 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-constants/contracts.ts
-constants/*.test.ts
-hooks/use-erc8004.ts
-components/erc8004-card.tsx
-lib/api/agent-pulse*.ts
-lib/api/*.test.ts
-lib/agent-card*.ts
-lib/agent-recommendations/loadKnowledge.ts
-lib/agent-recommendations/knowledge/protocols-deep-dive.md
-lib/agent-recommendations/buildContext.ts
-lib/agent-recommendations/composePrompt*.ts
+lib/arena-canon.ts
+lib/arena-canon.test.ts
+lib/canon-drift.test.ts
+lib/official-status.ts
+lib/official-status.test.ts
+lib/burn-buy/narrate.ts
+lib/burn-buy/narrate.test.ts
+lib/agent-recommendations/composePrompt.ts
 lib/agent-recommendations/ask-facts.test.ts
-lib/agent-recommendations/ask-v2.test.ts
-lib/*.test.ts
-docs/zulo/pulse-trust-fixes-spec.md
-AGENTS.md
-README.md
-package.json
-
-# PR-4 (Arena)
-lib/official-status*.ts
-lib/official-contracts*.ts
-lib/arena-canon*.ts
-lib/canon-drift*.ts
-lib/record-card/**
-app/record/**
-app/api/zulo/record-card/**
-lib/agent-recommendations/knowledge/**
-lib/agent-recommendations/collectionMath*.ts
-lib/zulo/answer-log.test.ts
-docs/zulo/record-card-spec.md
-docs/zulo/strategy.md
-docs/zulo/agent-trading-readiness.md
-
-# PR-4: copy folded in from #184
-app/burn/page.tsx
-lib/burn-buy/narrate*.ts
-lib/normies-canon.ts
+lib/agent-recommendations/knowledge/collab-rails-and-ask-patterns.md
+lib/agent-recommendations/loadKnowledge.ts
 lib/agent-recommendations/normiesKnowledge.ts
-lib/chat-ratings/load.ts
-
-# PR-5: Arena-live cleanup of stale "coming soon" copy (Ryan approved thesis-lock.md status line only; Normies-only thesis unchanged)
-docs/zulo/thesis-lock.md
-docs/zulo/agent-canvas-votes-plan.md
-components/evolution-track.tsx
-components/home-future-plans.tsx
-lib/agent-recommendations/selfAwareness.ts
-lib/agent-recommendations/operatorTandem.ts
-lib/agent-recommendations/*.test.ts
-components/*.test.tsx
