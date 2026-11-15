@@ -23,3 +23,9 @@ lib/agent-recommendations/ask-facts.test.ts
 lib/agent-recommendations/knowledge/collab-rails-and-ask-patterns.md
 lib/agent-recommendations/loadKnowledge.ts
 lib/agent-recommendations/normiesKnowledge.ts
+
+# 2026-11-16 fix-forward for #194 (Claude): record card says "Entered (line position N; first seats are drawn at random)".
+lib/record-card/arena.ts
+lib/record-card/arena.test.ts
+app/record/[tokenId]/page.tsx
+docs/zulo/record-card-spec.md
