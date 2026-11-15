@@ -213,24 +213,39 @@ describe("getAgentPulse: popularity is a separate badge, never a level", () => {
   const QUIET: Usage = { pulseCalls: 2, conditionedPaths: 0, earned: false, lookbackDays: 14, readable: true }
   const UNREADABLE: Usage = { pulseCalls: 0, conditionedPaths: 0, earned: false, lookbackDays: 14, readable: false }
 
+  const REGISTRATION_URL = "https://api.normies.art/agents/metadata/7141"
+  const CARD_URL = "https://api.normies.art/agents/agent-card/7141"
+  const publicDns = async () => [{ address: "93.184.216.34", family: 4 }]
+
   /**
-   * `checks` trust checks pass: canvas activity and clean ownership always; the agent card from 3; ERC-8004 registration at 4
-   * (the registry's ownerOf is answered by the stub, so no real chain read happens).
+   * `checks` trust checks pass, with every read stubbed (no real chain, API or DNS):
+   *   2: not an agent. Canvas activity and clean ownership only.
+   *   3: a registered agent with a published card and clean ownership, but an untouched canvas.
+   *   4: all four.
    */
   async function pulse(checks: 2 | 3 | 4, usage: Usage | "throws") {
     const { getAgentPulse } = await import("./agent-pulse")
+    const { DEFAULT_AGENT_CARD_DEPS } = await import("@/lib/agent-card")
+    const { encodeAbiParameters } = await import("viem")
     const realFetch = globalThis.fetch
     globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
       if (url.endsWith("/normie/7141/owner")) return json({ tokenId: "7141", owner: OWNER })
-      if (url.endsWith("/normie/7141/canvas/info")) return json({ actionPoints: 12, level: 2, customized: true, delegate: ZERO, delegateSetBy: ZERO })
-      // An agent id that isn't a number never reaches the registry, but the card fields still count.
-      if (checks === 3 && url.endsWith("/agents/info/7141")) return json({ agentId: "pending", name: "Zulo", tagline: "hi" })
-      if (checks === 4 && url.endsWith("/agents/info/7141")) return json({ agentId: "32626", name: "Zulo", tagline: "hi" })
-      // The Identity Registry read (JSON-RPC eth_call): answer with an owner address, which is enough to count as registered.
-      if (checks === 4 && init?.method === "POST" && typeof init.body === "string" && init.body.includes("eth_call")) {
-        return json({ jsonrpc: "2.0", id: JSON.parse(init.body).id, result: "0x" + OWNER.slice(2).padStart(64, "0") })
+      if (url.endsWith("/normie/7141/canvas/info")) {
+        const painted = checks !== 3
+        return json({ actionPoints: painted ? 12 : 0, level: painted ? 2 : 0, customized: painted, delegate: ZERO, delegateSetBy: ZERO })
+      }
+      if (checks >= 3 && url.endsWith("/agents/info/7141")) return json({ agentId: "32626", name: "Zulo", tagline: "hi" })
+      if (checks >= 3 && url === REGISTRATION_URL) return json({ name: "Zulo", services: [{ name: "A2A", endpoint: CARD_URL }] })
+      if (checks >= 3 && url === CARD_URL) return json({ name: "Zulo", description: "Normie #7141" })
+      // The Identity Registry reads (JSON-RPC eth_call): ownerOf answers an address, agentURI answers the registration URL.
+      if (checks >= 3 && init?.method === "POST" && typeof init.body === "string" && init.body.includes("eth_call")) {
+        const call = JSON.parse(init.body) as { id: number; params: [{ data: string }] }
+        const data = call.params[0].data
+        if (data.startsWith("0x6352211e")) return json({ jsonrpc: "2.0", id: call.id, result: "0x" + OWNER.slice(2).padStart(64, "0") })
+        if (data.startsWith("0xc87b56dd")) return json({ jsonrpc: "2.0", id: call.id, result: encodeAbiParameters([{ type: "string" }], [REGISTRATION_URL]) })
+        return json({ jsonrpc: "2.0", id: call.id, error: { code: 3, message: "execution reverted" } })
       }
       if (url.includes("api.normies.art")) return json({ error: "not found" }, 404)
       throw new Error(`unexpected fetch in test: ${url}`)
@@ -238,6 +253,7 @@ describe("getAgentPulse: popularity is a separate badge, never a level", () => {
     try {
       const result = await getAgentPulse(7141, {
         readUsage: async () => { if (usage === "throws") throw new Error("counters down"); return usage },
+        agentCardDeps: { ...DEFAULT_AGENT_CARD_DEPS, lookup: publicDns },
         ownershipDeps: {
           readChainOwner: async () => OWNER,
           readIndexRow: async () => ({ owner: OWNER, owner_since: new Date(NOW.getTime() - 40 * 86_400_000).toISOString() }),
@@ -306,8 +322,166 @@ describe("getAgentPulse: popularity is a separate badge, never a level", () => {
 
   it("the response only gains fields: every earlier field is still there", async () => {
     const p = await pulse(2, HIGH)
-    for (const key of ["token_id", "agent_id", "pulse_level", "max_level", "status", "breakdown", "next_signal", "note", "popularity", "ownership_check", "trending", "pulse_scale"]) {
+    for (const key of ["token_id", "agent_id", "pulse_level", "max_level", "status", "breakdown", "next_signal", "note", "popularity", "ownership_check", "trending", "pulse_scale", "agent_card"]) {
       assert.ok(key in p, key)
+    }
+  })
+})
+
+describe("getAgentPulse: \"Has active agent card\" comes from reading the card", () => {
+  const OWNER = "0xfafd8fb6b4e43ace0e365553f1b9242384591031"
+  const ZERO = "0x" + "0".repeat(40)
+  const NOW = new Date("2026-11-14T00:00:00.000Z")
+  const CARD = "Has active agent card"
+  const publicDns = async () => [{ address: "93.184.216.34", family: 4 }]
+
+  type Scenario = {
+    /** A different agent id per scenario, so the 5-minute registry cache never leaks between tests. */
+    agentId: number
+    agentName?: string
+    /** What agentURI answers. "revert" = the registry read fails. */
+    agentURI?: string | "revert"
+    registration?: { status?: number; body?: unknown } | "down"
+    card?: { status?: number; body?: unknown; raw?: string } | "down"
+  }
+
+  async function pulse(sc: Scenario) {
+    const { getAgentPulse } = await import("./agent-pulse")
+    const { DEFAULT_AGENT_CARD_DEPS } = await import("@/lib/agent-card")
+    const { encodeAbiParameters } = await import("viem")
+    const regUrl = sc.agentURI && sc.agentURI !== "revert" ? sc.agentURI : `https://api.normies.art/agents/metadata/${sc.agentId}`
+    const cardUrl = `https://api.normies.art/agents/agent-card/${sc.agentId}`
+    const requested: string[] = []
+    const realFetch = globalThis.fetch
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+      const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
+      if (url.endsWith("/normie/7141/owner")) return json({ tokenId: "7141", owner: OWNER })
+      if (url.endsWith("/normie/7141/canvas/info")) return json({ actionPoints: 12, level: 2, customized: true, delegate: ZERO, delegateSetBy: ZERO })
+      if (url.endsWith("/agents/info/7141")) return json({ agentId: String(sc.agentId), name: sc.agentName ?? "Zulo", tagline: "hi", systemPrompt: "x", greeting: "gm" })
+      if (init?.method === "POST" && typeof init.body === "string" && init.body.includes("eth_call")) {
+        const call = JSON.parse(init.body) as { id: number; params: [{ data: string }] }
+        if (call.params[0].data.startsWith("0x6352211e")) return json({ jsonrpc: "2.0", id: call.id, result: "0x" + OWNER.slice(2).padStart(64, "0") })
+        // Like the real registry: there is no agentURI(uint256) getter (selector 0x78396cb3), only tokenURI (0xc87b56dd).
+        const isTokenURI = call.params[0].data.startsWith("0xc87b56dd")
+        if (!isTokenURI || sc.agentURI === "revert") return json({ jsonrpc: "2.0", id: call.id, error: { code: 3, message: "execution reverted" } })
+        return json({ jsonrpc: "2.0", id: call.id, result: encodeAbiParameters([{ type: "string" }], [regUrl]) })
+      }
+      if (url === regUrl || url === cardUrl) {
+        requested.push(url)
+        const part = url === regUrl ? sc.registration : sc.card
+        if (part === "down") throw new Error("connection refused")
+        if (url === regUrl) return json(part?.body ?? { name: "Zulo", services: [{ name: "A2A", endpoint: cardUrl }] }, part?.status ?? 200)
+        const c = sc.card as Exclude<Scenario["card"], "down">
+        if (c?.raw !== undefined) return new Response(c.raw, { status: c.status ?? 200 })
+        return json(c?.body ?? { name: "Zulo" }, c?.status ?? 200)
+      }
+      if (url.includes("api.normies.art")) return json({ error: "not found" }, 404)
+      requested.push(url)
+      throw new Error(`unexpected fetch in test: ${url}`)
+    }) as typeof fetch
+    try {
+      const result = await getAgentPulse(7141, {
+        readUsage: async () => ({ pulseCalls: 0, conditionedPaths: 0, earned: false, lookbackDays: 14, readable: true }),
+        agentCardDeps: { ...DEFAULT_AGENT_CARD_DEPS, lookup: publicDns },
+        ownershipDeps: {
+          readChainOwner: async () => OWNER,
+          readIndexRow: async () => ({ owner: OWNER, owner_since: new Date(NOW.getTime() - 40 * 86_400_000).toISOString() }),
+          readDelegateXyz: async () => ({ entries: [], failedVaults: [], checked: { v1: true, v2: true } }),
+          now: () => NOW,
+        },
+      })
+      assert.ok(result.ok)
+      return { p: result.data, requested }
+    } finally {
+      globalThis.fetch = realFetch
+    }
+  }
+
+  it("pass: the card answers 200 with this agent's name; level 4, with the card's hash", async () => {
+    const { p } = await pulse({ agentId: 50001 })
+    assert.equal(p.pulse_level, 4)
+    assert.ok(p.breakdown.includes(CARD))
+    assert.equal(p.agent_card?.checked, true)
+    assert.equal(p.agent_card?.passed, true)
+    assert.match(p.agent_card?.card_hash ?? "", /^[0-9a-f]{64}$/)
+    assert.equal(p.agent_card?.reason, undefined)
+    assert.ok(!Number.isNaN(Date.parse(p.agent_card?.as_of ?? "")))
+  })
+
+  it("the old rule is gone: a name, tagline and prompts in the API record are not enough without the card", async () => {
+    const { p } = await pulse({ agentId: 50002, card: { status: 404, body: { error: "not found" } } })
+    assert.equal(p.breakdown.includes(CARD), false)
+    assert.equal(p.pulse_level, 3)
+    assert.equal(p.agent_card?.passed, false)
+    assert.match(p.next_signal ?? "", /Has active agent card/)
+  })
+
+  it("name mismatch: the card was read but names someone else; not granted", async () => {
+    const { p } = await pulse({ agentId: 50003, card: { body: { name: "Somebody Else" } } })
+    assert.equal(p.breakdown.includes(CARD), false)
+    assert.deepEqual({ checked: p.agent_card?.checked, passed: p.agent_card?.passed, reason: p.agent_card?.reason }, { checked: true, passed: false, reason: "card_name_mismatch" })
+    assert.match(p.agent_card?.card_hash ?? "", /^[0-9a-f]{64}$/)
+  })
+
+  it("non-allowlisted host: the registration file is elsewhere, so nothing is requested and it is not granted", async () => {
+    const { p, requested } = await pulse({ agentId: 50004, agentURI: "https://evil.example/agents/metadata/1" })
+    assert.equal(p.breakdown.includes(CARD), false)
+    assert.deepEqual({ checked: p.agent_card?.checked, passed: p.agent_card?.passed, hash: p.agent_card?.card_hash, reason: p.agent_card?.reason }, { checked: false, passed: false, hash: null, reason: "card_host_not_allowed" })
+    assert.deepEqual(requested, [])
+  })
+
+  it("fetch failure: card_unreadable, not granted, and the next check reads again and can pass", async () => {
+    const failed = await pulse({ agentId: 50005, card: "down" })
+    assert.equal(failed.p.breakdown.includes(CARD), false)
+    assert.deepEqual({ checked: failed.p.agent_card?.checked, passed: failed.p.agent_card?.passed, hash: failed.p.agent_card?.card_hash, reason: failed.p.agent_card?.reason }, { checked: false, passed: false, hash: null, reason: "card_unreadable" })
+    const again = await pulse({ agentId: 50005 })
+    assert.ok(again.p.breakdown.includes(CARD))
+    assert.equal(again.requested.length, 2)
+  })
+
+  it("the registration URI is read with tokenURI, the getter the registry really has", async () => {
+    // The stub above reverts on anything but ownerOf and tokenURI, as mainnet does. A pass proves which one was called.
+    const { p } = await pulse({ agentId: 50008 })
+    assert.equal(p.agent_card?.passed, true)
+    const src = (await import("node:fs")).readFileSync("lib/api/agent-pulse.ts", "utf8")
+    assert.match(src, /functionName: "tokenURI"/)
+    assert.doesNotMatch(src, /functionName: "agentURI"/)
+  })
+
+  it("the registry's agentURI read failing is card_unreadable (not \"no card\"), and is not cached either", async () => {
+    const failed = await pulse({ agentId: 50006, agentURI: "revert" })
+    assert.ok(failed.p.breakdown.includes("ERC-8004 registered"), "ownerOf still answered")
+    assert.equal(failed.p.agent_card?.reason, "card_unreadable")
+    assert.deepEqual(failed.requested, [])
+    const again = await pulse({ agentId: 50006 })
+    assert.equal(again.p.agent_card?.passed, true)
+  })
+
+  it("a definite answer is reused for a while: the second check makes no card requests", async () => {
+    const first = await pulse({ agentId: 50007 })
+    const second = await pulse({ agentId: 50007 })
+    assert.equal(first.requested.length, 2)
+    assert.equal(second.requested.length, 0)
+    assert.deepEqual(second.p.agent_card, first.p.agent_card)
+  })
+
+  it("not an agent: no card check is attempted and the reason says so", async () => {
+    const { getAgentPulse } = await import("./agent-pulse")
+    const realFetch = globalThis.fetch
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input)
+      const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
+      if (url.endsWith("/normie/7141/owner")) return json({ tokenId: "7141", owner: OWNER })
+      if (url.includes("api.normies.art")) return json({ error: "not found" }, 404)
+      throw new Error(`unexpected fetch in test: ${url}`)
+    }) as typeof fetch
+    try {
+      const r = await getAgentPulse(7141, { readUsage: async () => ({ pulseCalls: 0, conditionedPaths: 0, earned: false, lookbackDays: 14, readable: true }), ownershipDeps: { readChainOwner: async () => OWNER, readIndexRow: async () => null, readDelegateXyz: async () => ({ entries: [], failedVaults: [], checked: { v1: true, v2: true } }), now: () => NOW } })
+      assert.ok(r.ok)
+      assert.deepEqual({ checked: r.data.agent_card?.checked, passed: r.data.agent_card?.passed, reason: r.data.agent_card?.reason }, { checked: false, passed: false, reason: "not_registered" })
+    } finally {
+      globalThis.fetch = realFetch
     }
   })
 })

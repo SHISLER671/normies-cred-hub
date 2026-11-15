@@ -107,6 +107,17 @@ describe("Trending on NCH on the card: a separate badge, never a level", () => {
   })
 })
 
+describe("agent card evidence on the card", () => {
+  const FOUR = [GATE_REGISTERED, "Has active agent card", "Canvas activity detected", GATE_CLEAN_OWNERSHIP]
+  it("carries the Pulse's agent_card as it is; null when the Pulse didn't send one", async () => {
+    const agent_card = { checked: true, passed: true, card_hash: "ab".repeat(32), as_of: NOW }
+    const c = buildRecordCard(await inputs({ pulse: { pulse_level: 4, max_level: 4, status: "Strong", breakdown: FOUR, agent_card } }))
+    assert.deepEqual(c.pulse.agent_card, agent_card)
+    assert.equal(buildRecordCard(await inputs()).pulse.agent_card, null)
+    assert.equal(buildRecordCard(await inputs({ pulse: null })).pulse.agent_card, null)
+  })
+})
+
 describe("buildRecordCard", () => {
   it("builds Zulo's card from real API shapes, every live field verified with its source", async () => {
     const c = buildRecordCard(await inputs())

@@ -2,6 +2,7 @@ import { ERC8004, IDENTITY_REGISTRY_READ_ABI, NORMIES_API_BASE } from "@/constan
 import { getChatRatings, type ChatRatingsSummary } from "@/lib/chat-ratings/load"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
 import { getTokenUsageSignal, type TokenUsageSignal } from "@/lib/instrumentation/pulse-paths"
+import { checkAgentCardCached, type AgentCardCheck, type AgentCardDeps } from "@/lib/agent-card"
 import type { OwnershipCheck } from "@/lib/ownership-check"
 import { loadOwnershipCheck, type OwnershipDeps } from "@/lib/ownership-check-load"
 import type { AgentInfo, CanvasDiff, CanvasInfo, NormieOwner } from "@/lib/types"
@@ -29,7 +30,7 @@ export const TRUST_SIGNALS = [
 ] as const
 
 export const NOTE =
-  'Levels 1–4 are the four trust checks: ERC-8004 registration, an active agent card, Canvas activity and clean ownership & delegation. Popularity is separate and never changes the level: "Trending on NCH" shows when enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.'
+  'Levels 1–4 are the four trust checks: ERC-8004 registration, a published agent card, Canvas activity and clean ownership & delegation. Popularity is separate and never changes the level: "Trending on NCH" shows when enough different people checked this agent recently. The raw popularity counts are shown so anyone can check them.'
 
 const STATUS_BY_LEVEL: Record<number, string> = {
   0: "Dormant",
@@ -80,6 +81,11 @@ export type AgentPulseResponse = {
    * `breakdown`. `reasons` says what failed or couldn't be read; a display-only reason can sit next to passed: true.
    */
   ownership_check?: OwnershipCheck
+  /**
+   * The evidence behind "Has active agent card" (lib/agent-card.ts). `passed` is exactly whether that check is in
+   * `breakdown`. It means the agent's card is published and names this agent, not that the agent is online.
+   */
+  agent_card?: AgentCardCheck
 }
 
 export type AgentPulseResult =
@@ -107,21 +113,39 @@ async function readNormies<T>(path: string): Promise<Read<T>> {
   }
 }
 
+/**
+ * The registry is an ERC-721: an agent's registration URI is read with tokenURI(agentId). It has no agentURI() getter;
+ * that call reverts (checked on mainnet 2026-11-14, agent #32626), so the URI was never actually read before PR-3 and
+ * "registered" rested on ownerOf alone. "agentURI" is the name the registry's events and ERC-8004 use for the same value.
+ */
+const REGISTRY_TOKEN_URI_ABI = [
+  { type: "function", name: "tokenURI", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ name: "", type: "string" }] },
+] as const
+
+/** What the Identity Registry says about one agent. Read once per Pulse check and shared by checks 1 and 2. */
+type Registration = {
+  registered: boolean
+  /** The agent's registration URI (tokenURI(agentId)): where its registration file is. Null when empty or when the read failed. */
+  agentURI: string | null
+  /** False when the URI read itself failed: "no URI" is then unknown, not a fact. */
+  uriReadable: boolean
+}
+
 /** Registration rarely changes: keep a successful on-chain answer for 5 minutes per server instance. */
 const REGISTRATION_TTL_MS = 5 * 60_000
-const registrationCache = new Map<number, { at: number; registered: boolean }>()
+const registrationCache = new Map<number, { at: number; value: Registration }>()
 
-async function isErc8004Registered(agentId: number): Promise<boolean> {
+async function readRegistration(agentId: number): Promise<Registration> {
   const hit = registrationCache.get(agentId)
-  if (hit && Date.now() - hit.at < REGISTRATION_TTL_MS) return hit.registered
+  if (hit && Date.now() - hit.at < REGISTRATION_TTL_MS) return hit.value
   const registry = ERC8004.IDENTITY_REGISTRY as `0x${string}`
   const args = [BigInt(agentId)] as const
 
   const [agentURIResult, ownerResult] = await Promise.allSettled([
     publicClient.readContract({
       address: registry,
-      abi: IDENTITY_REGISTRY_READ_ABI,
-      functionName: "agentURI",
+      abi: REGISTRY_TOKEN_URI_ABI,
+      functionName: "tokenURI",
       args,
     }),
     publicClient.readContract({
@@ -137,13 +161,18 @@ async function isErc8004Registered(agentId: number): Promise<boolean> {
   const registeredOwner =
     ownerResult.status === "fulfilled" ? (ownerResult.value as string) : null
 
-  const registered = !!(agentURI || registeredOwner)
-  // Cache only a real answer: when both reads failed, "not registered" may just mean "couldn't read".
-  if (agentURIResult.status === "fulfilled" || ownerResult.status === "fulfilled") {
-    if (registrationCache.size > 5_000) registrationCache.clear()
-    registrationCache.set(agentId, { at: Date.now(), registered })
+  const value: Registration = {
+    registered: !!(agentURI || registeredOwner),
+    agentURI: agentURI || null,
+    uriReadable: agentURIResult.status === "fulfilled",
   }
-  return registered
+  // Cache only a complete answer. When the URI read failed, "no URI" may just mean "couldn't read", and the agent
+  // card check (which needs the URI) must be able to try again on the next call.
+  if (agentURIResult.status === "fulfilled") {
+    if (registrationCache.size > 5_000) registrationCache.clear()
+    registrationCache.set(agentId, { at: Date.now(), value })
+  }
+  return value
 }
 
 /**
@@ -168,6 +197,8 @@ export type AgentPulseOptions = {
   chatRatings?: boolean
   /** Test seam: the on-chain owner, owner index and delegate.xyz reads behind the ownership check. */
   ownershipDeps?: OwnershipDeps
+  /** Test seam: the fetch, DNS lookup and host allowlist behind the agent card check. */
+  agentCardDeps?: AgentCardDeps
   /** Test seam: the popularity counters read. */
   readUsage?: (tokenId: number) => Promise<TokenUsageSignal>
 }
@@ -197,16 +228,23 @@ export async function getAgentPulse(
   const agentId = agent?.agentId ? Number.parseInt(String(agent.agentId), 10) : null
   const breakdown: string[] = []
 
-  if (agentId && Number.isFinite(agentId) && (await isErc8004Registered(agentId))) {
+  // One registry read feeds both checks: "registered", and the agentURI the agent card check starts from.
+  const registration = agentId && Number.isFinite(agentId) ? await readRegistration(agentId) : null
+  if (registration?.registered) {
     breakdown.push("ERC-8004 registered")
   }
 
-  const hasActiveAgentCard = !!(
-    agent?.agentId &&
-    agent.name &&
-    (agent.tagline || agent.systemPrompt || agent.greeting)
+  // The card is actually read (lib/agent-card.ts): published and naming this agent. Not a claim that the agent is online.
+  const agentCard = await checkAgentCardCached(
+    {
+      agentURI: registration?.agentURI ?? null,
+      // No agent at all is a fact ("not registered"), not a failed read.
+      uriReadable: registration ? registration.uriReadable : true,
+      agentName: agent?.name ?? null,
+    },
+    options.agentCardDeps,
   )
-  if (hasActiveAgentCard) {
+  if (agentCard.passed) {
     breakdown.push("Has active agent card")
   }
 
@@ -269,6 +307,7 @@ export async function getAgentPulse(
       ...assembled,
       popularity,
       trending: popularity?.popular ?? false,
+      agent_card: agentCard,
       ownership_check: ownershipCheck,
       ...(chatRatings !== undefined ? { chat_ratings: chatRatings } : {}),
     },

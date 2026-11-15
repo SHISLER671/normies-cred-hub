@@ -22,7 +22,7 @@ export const PULSE_BEATS: readonly PulseBeat[] = [
   {
     signal: "Has active agent card",
     label: "Agent card",
-    meaning: "Has a public agent card: name, tagline, prompts.",
+    meaning: "Agent card published: its public card was read and names this agent. It doesn't show that the agent answers messages.",
     gate: false,
   },
   {
