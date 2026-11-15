@@ -42,7 +42,7 @@ export type RecordCard = {
     pixels_locked: Field<number>
     pixels_free: Field<number>
     /**
-     * Arena Canvas rank: a name for the Level band, per normiesART's Arena article (lib/normies-canon.ts). A label, never a
+     * Arena Canvas rank: a name for the Level band, per the official Arena entry page (lib/normies-canon.ts). A label, never a
      * score: `counts_toward_rank` is always false. Optional so older cached cards type-check.
      */
     arena_canvas_rank?: ArenaCanvasRankField
@@ -129,6 +129,7 @@ export type ArenaCanvasRankField = Field<string> & {
 }
 
 export type ArenaRecord = {
+  /** Arena rounds played (the official API's `roundsPlayed`). */
   matches: Field<number>
   wins: Field<number>
   losses: Field<number>
@@ -136,9 +137,23 @@ export type ArenaRecord = {
   last_match_at: Field<string>
 }
 
+/** Whether the Normie is entered in Arena and where it is in the line. Being in line is not a record. */
+export type ArenaEntry = {
+  entered: Field<boolean>
+  in_line: Field<boolean>
+  /** Place in the line. Pending when not in line or when the official data gives none. */
+  line_position: Field<number>
+}
+
 export type ArenaSector = {
-  status: "not_live" | "source_pending" | "unranked" | "ranked"
+  /**
+   * not_live: Arena's official status isn't LIVE. source_pending: the official data couldn't be read. not_entered: never
+   * opted in. entered: in the line, no round played yet (no record). unranked: has played, below the ranking minimum.
+   */
+  status: "not_live" | "source_pending" | "not_entered" | "entered" | "unranked" | "ranked"
   status_text: string
+  /** Optional so older cached cards still type-check. */
+  entry?: ArenaEntry
   record: ArenaRecord
   rank: { ranked: false; score: null; reason: string } | { ranked: true; score: number; reason: null }
 }

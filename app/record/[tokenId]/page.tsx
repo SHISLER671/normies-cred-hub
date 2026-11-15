@@ -13,7 +13,8 @@ import { parseTokenId } from "@/lib/api/agent-pulse"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { loadRecordCard } from "@/lib/record-card/load"
 import { typeDisplay } from "@/lib/record-card/build"
-import { ARENA_ARTICLE, ARENA_MAY_CHANGE, arenaCardFacts } from "@/lib/arena-canon"
+import { ARENA_ARTICLE, ARENA_ENTER_SOURCE, ARENA_MAY_CHANGE, arenaCardFacts } from "@/lib/arena-canon"
+import { ARENA_SITE } from "@/lib/official-status"
 import type { Field } from "@/lib/record-card/types"
 import { recordCardUrl } from "@/lib/record-card/ask-line"
 import { siteOrigin } from "@/lib/site-origin"
@@ -98,9 +99,9 @@ export default async function RecordCardPage({ params }: Params) {
   const arena = sectors.arena
   const canvas = sectors.canvas
   const canvasRank = identity.arena_canvas_rank ?? null
-  // Arena article facts for this Normie's type and Level (Ryan, 2026-11-11). Shown under the record, never as one.
+  // Official type and head-start facts for this Normie's type and Level. Shown under the record, never as one.
   // Current type only: a Zombie minted Human must never show Human stats, so an unknown type shows no type line.
-  const articleFacts = arenaCardFacts(identity.type?.value ?? null, identity.level.value)
+  const arenaFacts = arenaCardFacts(identity.type?.value ?? null, identity.level.value)
   const asOf = new Date(card.generated_at).toUTCString().replace(" GMT", " UTC")
 
   return (
@@ -185,26 +186,38 @@ export default async function RecordCardPage({ params }: Params) {
           <Eyebrow n="03"><span id="rc-arena">Arena record</span></Eyebrow>
           <p className="rc-lead">{arena.status_text}.</p>
           <StatGrid>
-            <Stat label="Matches" value={show(arena.record.matches)} note={note(arena.record.matches)} />
+            {arena.entry && (
+              <Stat
+                label="In Arena"
+                value={arena.entry.entered.value === null ? "—" : arena.entry.entered.value ? (arena.entry.in_line.value ? "Entered, in line" : "Entered") : "Not entered"}
+                note={arena.entry.line_position.value !== null ? `Place ${arena.entry.line_position.value} in line. ${note(arena.entry.line_position)}` : note(arena.entry.entered)}
+              />
+            )}
+            <Stat label="Rounds played" value={show(arena.record.matches)} note={note(arena.record.matches)} />
             <Stat label="Wins" value={show(arena.record.wins)} note={note(arena.record.wins)} />
             <Stat label="Losses" value={show(arena.record.losses)} note={note(arena.record.losses)} />
             <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
           </StatGrid>
           <p className="caption">
-            Filled from official Arena data only, the day it exists. No teaser numbers. Ranked only after 10 verified matches
-            against 5 different opponents over 14 days.
+            Official Arena data only (api.normies.art). Being in line is not a record, and nothing here is a guess. Ranked
+            only after 10 verified rounds against 5 different opponents over 14 days. To enter, go to{" "}
+            <a href={ARENA_SITE} target="_blank" rel="noopener noreferrer">arena.normies.art</a>; NCH can&apos;t enter anyone.
           </p>
-          {(articleFacts.type || articleFacts.headStart) && (
+          {(arenaFacts.type || arenaFacts.headStart) && (
             <>
               <StatGrid>
-                {articleFacts.type && <Stat label="Type in Arena" value={articleFacts.type.value} note={articleFacts.type.note} />}
-                {articleFacts.headStart && (
-                  <Stat label="Head start" value={articleFacts.headStart.value} note={articleFacts.headStart.note} />
+                {arenaFacts.type && <Stat label="Type in Arena" value={arenaFacts.type.value} note={arenaFacts.type.note} />}
+                {arenaFacts.headStart && (
+                  <Stat label="Head start" value={arenaFacts.headStart.value} note={arenaFacts.headStart.note} />
                 )}
               </StatGrid>
               <p className="caption">
-                From <a href={ARENA_ARTICLE.url} target="_blank" rel="noopener noreferrer">normiesART&apos;s Arena article</a>{" "}
-                ({ARENA_ARTICLE.publishedText}), not a record. {ARENA_MAY_CHANGE}. A head start, not a guarantee.
+                Head start from{" "}
+                <a href={ARENA_ENTER_SOURCE} target="_blank" rel="noopener noreferrer">the official Arena entry page</a>
+                {arenaFacts.type ? (
+                  <>. Type stats from <a href={ARENA_ARTICLE.url} target="_blank" rel="noopener noreferrer">normiesART&apos;s Arena article</a> ({ARENA_ARTICLE.publishedText})</>
+                ) : null}
+                {". Not a record. "}{ARENA_MAY_CHANGE}. A head start, not a guarantee.
               </p>
             </>
           )}

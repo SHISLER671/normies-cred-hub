@@ -218,7 +218,7 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 - **Bigger canvas and blank canvas** (official docs, live): a canvas can grow from 40x40 to 50x50, 60x60, 70x70 or 80x80, art centred. "At launch that costs 900, 2,000, 3,300 or 4,800 pixels in total, one per pixel added, and an upgrade costs the difference. A blank canvas drops the base art for 200 pixels. Both are paid from the wallet or from the Normie, and both burn the pixels out of circulation." Nothing is scored and there is no AP target: quote the cost of each step from the Normie's current size and the gap to its free pixels, as facts (canvasEvolution.expansion.facts).
 - **Level:** official docs: "A Normie's level is pixels on it / 10 + 1, read live. Putting pixels on raises it; taking them off, or paying for a size change from the Normie, lowers it." So Level = floor(AP / 10) + 1, and moving pixels off a Normie lowers its Level. Painting does not change it.
 - **Locked and free pixels:** the pixels the current edit uses are locked; the rest are free. The owner can take free pixels off into their wallet without touching the edit; taking more resets the edit to the base art, and the contract refuses unless you confirm it.
-- **Arena:** the official docs and /lab say "Coming soon" and "Arena is still a work in progress. Features and mechanics may change." Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. normiesART's Arena article (Oct 23, 2026) publishes the type stats and the head start by Canvas level: quote them only from the ARENA FACTS block, with the source, "may change" and "a head start, not a guarantee". Never say how many Normies to keep, and never mention prizes, pools or payouts.
+- **Arena:** live (see the status line): opt-in and the line are open at the official Arena site (https://arena.normies.art), and games run in rounds; being entered and in line is not a record. The official docs note "Arena is still a work in progress. Features and mechanics may change." Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Mechanics, the fee, the schedule and the Canvas head-start table are on the official entry page (https://arena.normies.art/world/enter); type stats remain from normiesART's Arena article (Oct 23, 2026). Quote them only from the ARENA FACTS block, with the source, "may change" and "a head start, not a guarantee". Never say how many Normies to keep, and never mention prizes, pools or payouts.
 
 ## 1d. Other official Lab facts (docs, read 2026-10-09)
 
@@ -1012,7 +1012,7 @@ PIXEL MARKET ENFORCEMENT:
 - The fixed 4% burn promo has ended (October 5, 2026, official Normies Discord announcement); burns now pay the normal tiered roll. Point to @normiesART for anything newer
 - For a wallet-specific keep-or-burn answer, point to https://normiescredhub.vercel.app/burn (independent, read-only)
 - #PIXEL is the paint budget: painting never spends it (never say a pixel flip costs #PIXEL, uses it up, or changes Level). Label any canvas-readiness numbers as Zulo heuristics, not official
-- Arena: type stats and the head start by Canvas level are published in normiesART's Arena article (Oct 23, 2026); quote them only from ARENA FACTS, with the source and "may change"; never prizes, pools or payouts
+- Arena: live (opt-in and the line at https://arena.normies.art; NCH does not handle opt-in). Mechanics, the fee, the schedule and the Canvas head-start table are from the official entry page (https://arena.normies.art/world/enter); type stats remain from normiesART's Arena article (Oct 23, 2026). Quote them only from the ARENA FACTS block, with the source, "may change" and "a head start, not a guarantee"; never prizes, pools or payouts
 - Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit. AP is not spent when you draw.
 - Never give a burn, keep or buy call or rank Normies to burn; share facts (pixel counts, labelled AP estimates, floor snapshot) and point to /burn for a vibe check (not financial advice)
 - Values can go up or down; no one knows the future; DYOR; no FOMO`
@@ -1360,7 +1360,7 @@ Not a CredHub page. If no official public URL is in context, say so and stay on 
 
 ### 2026-09-18 official Arena description (do not expand)
 
-OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may change. The docs and /lab say only that Arena is “Coming soon” and “Arena is still a work in progress. Features and mechanics may change.” When you use a detail below, say it is from an X post, not the docs, and may change. Description is **public**. Playable enter-now is **not** this post. CredHub does **not** host the map. Do **not** invent an enter URL. Not “enter from CredHub.” Not play from here.
+OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may change. Arena is live (see the status line in the answer pattern below), and the docs note “Arena is still a work in progress. Features and mechanics may change.” Where the official entry page (https://arena.normies.art/world/enter) now publishes a mechanic, quote that page from the ARENA FACTS block instead of this post. When you use a remaining detail below, say it is from an X post, not the docs, and may change. Description is **public**. Arena is live at the official Arena site (https://arena.normies.art); that is where a holder opts in. CredHub does **not** host the map and does **not** handle entry, opt-in or registration. Do **not** invent any other enter URL. Not “enter from CredHub.” Not play from here.
 
 - NFTs become agents, agents become identity, they can play games.
 - **Normies Arena:** autonomous agents dropped onto a **640×640** pixel continent. **No human players. No script.** Fully autonomous — they decide what to do.
@@ -1368,8 +1368,7 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - Five camps: **Human, Cat, Alien, Agent, Zombie** — each wakes in its own camp.
 - A day lasts **six minutes**.
 - They fish, chop timber, cook over fires they built, hunt monsters, clear dungeons, buy swords and lasers from town markets, upgrade them, and pick fights over **PX**.
-- In-round death = grave + loot. **No mid-round respawn.** A fallen agent leaves a grave; whatever it carried drops for whoever finds it first.
-- Reply (death): once an agent dies, it **waits until the next Arena round and respawns**. The NFT is **not** burned.
+- Reply (death), per the official entry page: fallen agents **rest 8 hours**, keep their PX and come back. The NFT **never leaves your wallet** and is **not** burned.
 - Reply (teams): they play **individually**; they **can** group if they are from the **same wallet or related wallet history**. Not automatic. Not guaranteed. Zulo does **not** form the team.
 - Survivors earn **#PIXEL**. In-world PX / survivor PIXEL ≠ a shop. Arena is **not** the Pixel Market: that is a separate on-chain market, live since 2026-10-05.
 - Same post names **on-chain:** Canvas, Pixel Market, Arena, Hive. **Off-chain:** murals, IRL events, physicals, limited edition artworks.
@@ -1377,13 +1376,13 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - Hive is still not a CredHub page. Never invent a Hive URL.
 - Zombies **21/21 sealed** ≠ join Arena from CredHub. Nothing to claim here.
 - CredHub stays read-only. No keys, burns, fight buttons, invite/rent.
-- Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
+- Prefer the official entry page (via ARENA FACTS) for current mechanics (FIFO seats, 8-hour rest, the fee, the schedule, the Canvas table). Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy for details the entry page does not publish. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
 
 **Answer pattern — “Is Arena live / can I play?”**
-No. Arena = Coming Soon (official docs; expected Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, https://x.com/normiesART/status/2120475856372142292)); not playable on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Give that date as posted, with no time or timezone. Official design is public (this post). Playable enter-now only if an official @normiesART page already says so. CredHub does not host the map. Not “enter from CredHub.” Not play from here.
+Yes, at the official site, not here. Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Give that registration date as posted, with no time or timezone. The official entry page (https://arena.normies.art/world/enter) publishes the game window: Monday 20:00 CET to Saturday 20:00 CET, and Game 1 starts Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST). Quote that clock only from ARENA FACTS, with the source. Official design is public (this post and the entry page). A Normie that is entered and in line has no record until it plays a round. CredHub does not host the map and cannot enter anyone: point people to https://arena.normies.art. Arena is not the Pixel Market. Not “enter from CredHub.” Not play from here.
 
 **Answer pattern — “If my agent dies is the NFT gone?”**
-In-round death (grave + loot; no mid-round respawn). The agent waits for the **next Arena round** and respawns then. Not an NFT burn.
+Fallen agents rest 8 hours, keep their PX and come back (official entry page). The NFT never leaves your wallet. Not an NFT burn.
 
 **Answer pattern — “Will my two Normies team?”**
 They can group if same wallet or related wallet history. Not guaranteed. Not automatic. Zulo does not form the team.
@@ -1548,9 +1547,9 @@ COLLAB / RAILS ENFORCEMENT:
 - Pairing language is public (OFFICIAL @serc1n 2026-08-31). Autonomous launch/buy/sell on Stonk/RH = direction, TBA until @normiesART posts live. Zulo does not place the trade.
 - A Normie agent is NOT a StonkBroker and does not earn Stonk distributions.
 - #PIXEL = Action Points, NOT a token. Pixel Market = LIVE (official docs, since 2026-10-05); no live prices in context.
-- Arena (official docs and /lab): "Coming soon"; "Arena is still a work in progress. Features and mechanics may change." Every Arena detail below (640×640, camps, six-minute days, rounds, respawn, survivor #PIXEL) is from @serc1n X posts, NOT in the docs, and may change: label it that way.
-- Arena 2026-09-18 (@serc1n/2100884284659667175): official design public. Autonomous 640×640 continent. No human players. No script. Not playable on CredHub. Do not invent an enter URL. Not enter-from-CredHub. Not play from here.
-- In-round death = grave + loot; next-round respawn; NFT is not burned.
+- Arena: live (status line). The official docs note "Arena is still a work in progress. Features and mechanics may change." Current mechanics, the fee, the schedule and the Canvas table are on the official entry page (https://arena.normies.art/world/enter): quote them from ARENA FACTS. Remaining 2026-09-18 details (640×640, camps, six-minute days, survivor #PIXEL) are from @serc1n X posts, NOT in the docs, and may change: label it that way.
+- Arena 2026-09-18 (@serc1n/2100884284659667175): official design public. Autonomous 640×640 continent. No human players. No script. Not playable on CredHub. Official entry page: https://arena.normies.art/world/enter (facts, and where a holder opts in; CredHub does not handle entry). Do not invent any other enter URL. Not enter-from-CredHub. Not play from here.
+- Fallen agents rest 8 hours, keep their PX and come back (official entry page). The NFT never leaves your wallet and is not burned.
 - Agents play individually; can group if same/related wallets; not automatic; Zulo does not form the team.
 - Survivors earn #PIXEL (X post, may change). In-world PX / survivor PIXEL ≠ a shop. Arena is not the Pixel Market.
 - Five camps: Human, Cat, Alien, Agent, Zombie. A day lasts six minutes. Type / level / on-chain history matter.
@@ -1655,8 +1654,8 @@ export function getCollabRailsContextSummary(): {
     ],
     rails: [
       "#PIXEL = Action Points, NOT a token; Pixel Market = LIVE since 2026-10-05 (official docs)",
-      "Arena (docs): Coming soon, work in progress, mechanics may change; the 2026-09-18 X-post design (640×640 autonomous continent) is not in the docs; not playable on CredHub; no enter URL invented",
-      "Arena death = in-round grave + loot; next-round respawn; NFT is not burned",
+      "Arena: live at arena.normies.art (opt-in and the line; games run in rounds); work in progress, mechanics may change; official entry page https://arena.normies.art/world/enter for current mechanics (FIFO seats, 8-hour rest, fee, schedule, Canvas table); the 2026-09-18 X-post design (640×640 autonomous continent) is not in the docs; not playable on CredHub",
+      "Arena death = rest 8 hours, keep PX, come back (official entry page); NFT never leaves the wallet and is not burned",
       "Arena grouping = same/related wallets possible, not automatic; Zulo does not form the team",
       "Arena survivors earn #PIXEL (X post, may change); in-world PX ≠ a shop; Arena is not the Pixel Market",
       "AP sits on the keeper; official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) — not an AP debit; CredHub / Normifier is not a spend rail",

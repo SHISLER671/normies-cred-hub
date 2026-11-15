@@ -12,7 +12,7 @@ export function recordCardUrl(tokenId: number, origin: string): string {
 }
 
 /**
- * e.g. "Record card: https://…/record/1217 — Passes the trust gate: registered on-chain, clean ownership · Arena record: pending (Arena not open yet)".
+ * e.g. "Record card: https://…/record/1217 — Passes the trust gate: registered on-chain, clean ownership · Arena record: official data only, on the card (entered and in line is not a record)".
  * `arenaStatus` is injectable for tests; it defaults to lib/official-status.ts. With the Normie's Level (official API), the
  * line also names its Arena Canvas rank: the rank name only, never the next rank or what it takes to reach one.
  */
@@ -25,11 +25,11 @@ export function recordCardLine(
 ): string {
   const gate = pulseGate(breakdown)
   const arena = isArenaOpen(arenaStatus)
-    ? "Arena record: official data only, see the card"
-    : "Arena record: pending (Arena not open yet)"
+    ? "Arena record: official data only, on the card (entered and in line is not a record)"
+    : "Arena record: pending (Arena not live)"
   const rank = rankForLevel(level)
   const canvasRank = rank && typeof level === "number"
-    ? ` · Arena Canvas rank: ${rank.name} (from Level ${Math.floor(level)}, official API; rank names per normiesART's Arena article, ${ARENA_CANVAS_RANKS_SOURCE.publishedText}, ${ARENA_CANVAS_RANKS_SOURCE.url}; Arena is Coming Soon and game data may change; a label, not a score)`
+    ? ` · Arena Canvas rank: ${rank.name} (from Level ${Math.floor(level)}, official API; rank names per the official Arena entry page, ${ARENA_CANVAS_RANKS_SOURCE.url}; figures may change; a label, not a score)`
     : ""
   return `Record card: ${recordCardUrl(tokenId, origin)} — ${gate.text} · ${arena}${canvasRank}`
 }

@@ -54,6 +54,8 @@ describe("known-wrong variants never come back", () => {
     ["burn fodder into a Normie", /burn fodder into/i],
     // 2026-11-10 (Arena Canvas rank): the top band has a neutral label, so it is never confused with the NormiesLegendaryCanvas award.
     ["the top Arena Canvas rank called Legendary Canvas", /Legendary Canvas rank|rank:\s*"?Legendary Canvas|name:\s*"Legendary Canvas"/i],
+    ["Arena seats described as a random draw", /drawn at random|(?<!not a )random draw/i],
+    ["fallen Normies said to rest a quarter of an hour", /rests? 15 minutes|15-minute rest|walks in at dawn/i],
   ]
   for (const [what, re] of banned) {
     it(what, () => assert.deepEqual(offenders(re), []))
@@ -114,7 +116,7 @@ describe("the copies agree with the canon", () => {
     assert.equal(canvasUpgradeCost(80, 50), null)
   })
 
-  it("Arena Canvas ranks match normiesART's Arena article (Oct 23, 2026), and use the same Level as everything else", () => {
+  it("Arena Canvas ranks match the official entry-page bands, and use the same Level as everything else", () => {
     assert.deepEqual(
       ARENA_CANVAS_RANKS.map((r) => `${r.name}@${r.fromLevel}`),
       ["Blank@1", "Sketched@2", "Inked@10", "Painted@25", "Gilded@50", "Masterwork@100", "Level 150+ (top Arena rank)@150"],

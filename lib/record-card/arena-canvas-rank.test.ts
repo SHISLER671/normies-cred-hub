@@ -76,21 +76,21 @@ describe("rankForLevel / nextRankLevel boundaries", () => {
   })
 })
 
-describe("the rank table matches normiesART's Arena article (drift)", () => {
+describe("the rank table matches the official Arena entry page (drift)", () => {
   it("names and start Levels", () => {
     assert.deepEqual(
       ARENA_CANVAS_RANKS.map((r) => [r.name, r.fromLevel]),
       [["Blank", 1], ["Sketched", 2], ["Inked", 10], ["Painted", 25], ["Gilded", 50], ["Masterwork", 100], [TOP, 150]],
     )
   })
-  it("source is the official article", () => {
-    assert.equal(ARENA_CANVAS_RANKS_SOURCE.url, "https://x.com/normiesART/status/2113323053304238383")
-    assert.equal(ARENA_CANVAS_RANKS_SOURCE.published, "2026-10-23")
+  it("source is the official Arena entry page", () => {
+    assert.equal(ARENA_CANVAS_RANKS_SOURCE.url, "https://arena.normies.art/world/enter")
+    assert.equal(ARENA_CANVAS_RANKS_SOURCE.published, "official-entry-page")
   })
   it("note copy is exact", () => {
     assert.equal(
       arenaCanvasRankNote(50),
-      "From Level 50 (official API). Rank names per normiesART's Arena article (Oct 23, 2026). Arena is Coming Soon and the article says game data may change. A label, not a score; it does not count toward any rank here.",
+      "From Level 50 (official API). Rank names per the official Arena entry page. Figures may change. A label, not a score; it does not count toward any rank here.",
     )
   })
 })
@@ -140,7 +140,7 @@ describe("record card JSON", () => {
 describe("Ask's record-card line", () => {
   it("names the rank with its source, never the next rank", () => {
     const line = recordCardLine(7141, [GATE_REGISTERED, GATE_CLEAN_OWNERSHIP], ORIGIN, "COMING_SOON", 14)
-    assert.match(line, /Arena Canvas rank: Inked \(from Level 14, official API; rank names per normiesART's Arena article, Oct 23, 2026/)
+    assert.match(line, /Arena Canvas rank: Inked \(from Level 14, official API; rank names per the official Arena entry page/)
     assert.ok(line.includes(ARENA_CANVAS_RANKS_SOURCE.url))
     assert.match(line, /a label, not a score/)
     assert.doesNotMatch(line, /next|Level 25/i)
@@ -173,8 +173,8 @@ function newCopy(): string[] {
 }
 
 describe("lock: new copy stays a label", () => {
-  // Ryan, 2026-11-11: "head start", "boost" and the planned Nov 15 date are allowed when sourced (Claude's #162), so they
-  // are no longer banned here. Prizes, pools, ETH, buy/burn prompts and "Legendary Canvas" still are.
+  // Ryan, 2026-11-11: "head start" and "boost" are allowed when sourced (PR #162), so they
+  // are no longer banned here. Prizes, pools, ETH, buy/burn prompts and the award-contract name still are.
   const banned: Array<[string, RegExp]> = [
     ["laser", /laser/i],
     ["sword", /sword/i],
@@ -237,6 +237,9 @@ describe("where the rank shows", () => {
     assert.match(burn, /<li>Not financial advice<\/li>/)
     assert.match(burn, /nextArenaCanvasRankText\(level\) \?\? arenaCanvasTopRankText\(level\)/)
     assert.match(burn, /Rank names per <a href=\{ARENA_CANVAS_RANKS_SOURCE\.url\}/)
+    assert.match(burn, /function ArenaHeadStartTable/)
+    assert.match(burn, /the official Arena entry page/)
+    assert.match(burn, /A head start, not a guarantee/)
   })
   it("the record card page shows the rank and its source link", () => {
     const rec = read("app/record/[tokenId]/page.tsx")

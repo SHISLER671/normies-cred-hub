@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { loadArenaSector, type ArenaSource } from "./arena"
+import { loadArenaSector, type ArenaSnapshot, type ArenaSource } from "./arena"
 import { buildRecordCard, GATE_CLEAN_OWNERSHIP, GATE_REGISTERED, pulseGate, typeDisplay, type RecordCardInputs } from "./build"
 
 const NOW = "2026-10-18T10:00:00.000Z"
@@ -181,9 +181,14 @@ describe("buildRecordCard", () => {
 })
 
 describe("Arena plug-in", () => {
+  const snapshot = (over: Partial<ArenaSnapshot> = {}): ArenaSnapshot => ({
+    entered: true, in_line: false, position: null, needs_funds: false, rounds_played: 4, wins: 3, last_round: 4, any_round_started: true, block: 26500000, ...over,
+  })
+  const ref = (id: number) => `GET /arena/normie/${id}`
+
   it("never calls a source while Arena is not live", async () => {
     let called = false
-    const src: ArenaSource = { ref: "test", kind: "official_api", load: async () => { called = true; return null } }
+    const src: ArenaSource = { ref, kind: "official_api", load: async () => { called = true; return snapshot() } }
     const s = await loadArenaSector(1, NOW, { status: "COMING_SOON", sources: [src] })
     assert.equal(called, false)
     assert.equal(s.status, "not_live")
@@ -192,24 +197,21 @@ describe("Arena plug-in", () => {
   it("live Arena with no wired source stays pending", async () => {
     const s = await loadArenaSector(1, NOW, { status: "LIVE", sources: [] })
     assert.equal(s.status, "source_pending")
-    assert.equal(s.record.wins.label, "pending")
+    assert.equal(s.record.matches.label, "pending")
   })
 
   it("live Arena with a source fills verified counts, still unranked", async () => {
-    const src: ArenaSource = {
-      ref: "GET /arena/normie/{id}",
-      kind: "official_api",
-      load: async () => ({ matches: 4, wins: 3, losses: 1, pixels_net: 20, last_match_at: "2026-11-20T00:00:00Z" }),
-    }
+    const src: ArenaSource = { ref, kind: "official_api", load: async () => snapshot() }
     const s = await loadArenaSector(1, NOW, { status: "LIVE", sources: [src] })
     assert.equal(s.status, "unranked")
+    assert.equal(s.record.matches.value, 4)
     assert.equal(s.record.wins.value, 3)
     assert.equal(s.record.wins.label, "verified")
     assert.equal(s.rank.ranked, false)
   })
 
   it("a failing source shows unavailable, never numbers", async () => {
-    const src: ArenaSource = { ref: "x", kind: "onchain", load: async () => { throw new Error("rpc") } }
+    const src: ArenaSource = { ref, kind: "onchain", load: async () => { throw new Error("rpc") } }
     const s = await loadArenaSector(1, NOW, { status: "LIVE", sources: [src] })
     assert.equal(s.status, "source_pending")
     assert.equal(s.record.matches.value, null)

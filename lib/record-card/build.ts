@@ -89,7 +89,7 @@ export function arenaCanvasRankField(tokenId: number, level: number | null, asOf
   return {
     value: rank ? rank.name : null,
     label: rank ? "verified" : "unavailable",
-    source: { kind: "nch_computed", ref: `Level from GET /normie/${tokenId}/canvas/info; rank names per normiesART's Arena article` },
+    source: { kind: "nch_computed", ref: `Level from GET /normie/${tokenId}/canvas/info; rank names per the official Arena entry page` },
     as_of: asOf,
     counts_toward_rank: false,
     from_level: rank && level !== null ? Math.floor(level) : null,
@@ -117,7 +117,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
     card_status_text = "Not an awakened agent, so no record card yet"
   } else if (i.arena.status === "not_live") {
     card_status = "arena_not_live"
-    card_status_text = "Arena isn't live yet, so there's no record. Identity and trust are live below."
+    card_status_text = "Arena isn't live, so there's no record. Identity and trust are live below."
   } else if (i.arena.status === "source_pending") {
     card_status = "arena_source_pending"
     card_status_text = i.arena.status_text

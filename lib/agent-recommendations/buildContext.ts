@@ -433,7 +433,7 @@ function generateOpportunities(input: OpportunityInput): string[] {
     `Community tools: Multisend (${ECOSYSTEM_LINKS.multisend}), Normifier (${ECOSYSTEM_LINKS.normifier}), API (${ECOSYSTEM_LINKS.api}).`,
   )
   opportunities.push(
-    "Official Arena design (2026-09-18): autonomous agents on a 640×640 continent — not playable on CredHub. Prepare by understanding Canvas and agent identity now.",
+    "Arena is live at the official Arena site (arena.normies.art), not on CredHub: autonomous agents on a 640×640 continent (2026-09-18 design). NCH can't enter anyone; an awakened Normie's record card shows, from official data, whether it is entered.",
   )
 
   return opportunities

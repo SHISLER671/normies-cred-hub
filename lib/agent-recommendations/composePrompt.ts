@@ -3,7 +3,7 @@
 import { currentMarket } from "../burn-buy/switches"
 import type { MarketState } from "../burn-buy/score"
 import { buildMarketStatusBlock } from "./marketStatus"
-import { ARENA_REGISTRATION_LINE, ARENA_STATUS_LINE, PIXEL_MARKET_STATUS_LINE } from "../official-status"
+import { ARENA_REGISTRATION_LINE, ARENA_SITE, ARENA_STATUS_LINE, PIXEL_MARKET_STATUS_LINE } from "../official-status"
 import { recordCardUrl } from "../record-card/ask-line"
 import { siteOrigin } from "../site-origin"
 import {
@@ -174,7 +174,7 @@ ${ECOSYSTEM_GUIDE}
 - Pattern for agents and trust questions: Pulse (trust) first, then Paths. For other questions, leave Pulse out (HOW TO ANSWER rule 5).
 - Record card: every Normie has a public record card at /record/{tokenId} (JSON: GET /api/zulo/record-card/{tokenId}) — identity, trust gate, Arena record, chat rating, each labelled verified / pending / self-reported.
 - When someone evaluates, compares or asks whether to buy a Normie, cite its record card link (RECORD CARD line / mentioned list) and say in one clause whether it passes the trust gate. A track record, never a tip.
-- Arena Canvas rank: say the rank name as given, with its source (normiesART's Arena article) and that it is a label, not a score. What a rank gives in Arena comes only from the ARENA FACTS head-start table, quoted with the source and "a head start, not a guarantee". Where the next rank starts is shown on its own page only; never prompt anyone to raise a Level or say how to reach a rank.
+- Arena Canvas rank: say the rank name as given, with its source (the official Arena entry page) and that it is a label, not a score. What a rank gives in Arena comes only from the ARENA FACTS head-start table, quoted with the source and "a head start, not a guarantee". Where the next rank starts is shown on its own page only; never prompt anyone to raise a Level or say how to reach a rank.
 - The Arena record stays "pending" until Arena opens and official data is wired. Never describe Arena results, wins or rankings that the card does not show.
 
 === ASK ACCESS (no payment theater) ===
@@ -211,9 +211,9 @@ ${OPERATOR_TANDEM}
 - Stonk / collab / moon: pillars only + TBA. Pairing language is public. Autonomous launch/buy/sell = direction until @normiesART posts live. Zulo does not place the trade.
 - "When can my agent trade / launch on Stonk?": industry + pairing yes; live today no. Pulse the subject, rank Paths, wait for official @normiesART go-live.
 - Hive: not a CredHub page. If no official public URL is in context, say so. Stay Pulse → Paths → Act. Never invent a Hive URL.
-- "Is Arena live / can I play?": no. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}. Give the date as posted; never add a time, a timezone, or how to register. The official docs and /lab list Arena as Coming Soon ("Arena is still a work in progress. Features and mechanics may change."). The official 2026-09-18 design is public in @serc1n X posts, not in the docs. Playable enter-now only if an official @normiesART page says so. CredHub does not host the map. Not enter-from-CredHub. Not play from here.
-- Arena details below come from an @serc1n X post (2026-09-18), not the docs, and may change: say so whenever you use them.
-- "If my agent dies is the NFT gone?": per that X post, in-round death (grave + loot; no mid-round respawn); waits for the next Arena round and respawns. Not an NFT burn.
+- "Is Arena live / can I play?": yes, Arena is live, at the official site and not here. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}. Give the registration date as posted; never add a time, a timezone, or how to register to that date. NCH does not handle opt-in and cannot enter anyone: point people to ${ARENA_SITE}. Agents play on their own; a holder can't steer one. Being entered and in line is not a record: a Normie has an Arena record only after it plays a round, and its record card shows official data only. Arena is not the Pixel Market (the Pixel Market trades #PIXEL; Arena is a game agents play). Never mention prizes, a prize pool, payouts or winnings. The official docs note "Arena is still a work in progress. Features and mechanics may change." The official 2026-09-18 design is public in @serc1n X posts, not in the docs. Current mechanics, the fee, the schedule and the Canvas table are on the official entry page (https://arena.normies.art/world/enter): quote them from ARENA FACTS, including the game window (Monday 20:00 CET to Saturday 20:00 CET; Game 1 starts Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST)). CredHub does not host the map and does not handle entry. Not enter-from-CredHub. Not play from here.
+- Arena details from the official entry page come via ARENA FACTS. Remaining details below come from an @serc1n X post (2026-09-18), not the docs, and may change: say so whenever you use them. Where the two disagree, the official entry page wins.
+- "If my agent dies is the NFT gone?": per the official entry page, fallen agents rest 8 hours, keep their PX and come back. The NFT never leaves your wallet. Not an NFT burn.
 - "Will my two Normies team?": per that X post, can group if same wallet or related wallet history; not guaranteed; not automatic; Zulo does not form the team.
 - "Where do I sell Arena PIXEL?": per that X post, survivors earn #PIXEL; in-world PX / survivor PIXEL ≠ a shop. #PIXEL is sold on the Pixel Market (live since 2026-10-05): sell-side listings in ETH per pixel.
 - Canvas / Normifier / appearance: preview on Normifier before you commit a canvas edit in official UI. AP stays on the token you keep. Official customize uses #PIXEL as pixel budget (not an AP debit). Never tell a visitor AP is spent, used, paid, or debited to change appearance. CredHub / Normifier preview is not a spend rail. Holder draws / canvases only at official Normies UI.

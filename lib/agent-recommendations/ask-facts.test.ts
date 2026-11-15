@@ -150,8 +150,9 @@ describe("collab / rails knowledge", () => {
     assert.match(block, /No script/)
     assert.match(block, /Human, Cat, Alien, Agent, Zombie/)
     assert.match(block, /six minutes/)
-    assert.match(block, /next Arena round and respawns/)
-    assert.match(block, /NFT is \*\*not\*\* burned/)
+    assert.match(block, /rest 8 hours/)
+    assert.match(block, /NFT \*\*never leaves your wallet\*\*/)
+    assert.match(block, /is \*\*not\*\* burned/)
     assert.match(block, /same wallet or related wallet history/)
     assert.match(block, /Zulo does \*\*not\*\* form the team/)
     assert.match(block, /Survivors earn \*\*#PIXEL\*\*/)
@@ -457,7 +458,7 @@ describe("composed Ask prompt", () => {
     assert.match(prompt, /Never invent a Hive URL/)
   })
 
-  it("answers Arena 2026-09-18 asks as official design, not playable on CredHub", () => {
+  it("answers Arena asks as live at the official site, never playable or entered on CredHub", () => {
     const questions = [
       "Is Arena live / can I play?",
       "If my agent dies is the NFT gone?",
@@ -470,16 +471,22 @@ describe("composed Ask prompt", () => {
       assert.match(prompt, /CredHub does not host the map/)
       assert.match(prompt, /Not enter-from-CredHub/)
       assert.match(prompt, /Not play from here/)
-      assert.match(prompt, /next Arena round and respawns/)
+      assert.match(prompt, /rest 8 hours, keep their PX and come back/)
+      assert.match(prompt, /NFT never leaves your wallet/)
       assert.match(prompt, /Not an NFT burn/)
       assert.match(prompt, /can group if same wallet or related wallet history/)
       assert.match(prompt, /Zulo does not form the team/)
       assert.match(prompt, /survivors earn #PIXEL/i)
       assert.match(prompt, /in-world PX \/ survivor PIXEL ≠ a shop/)
-      // Arena is "Coming soon" in the official docs; every mechanic comes from an X post and is labelled that way.
-      assert.match(prompt, /official docs and \/lab list Arena as Coming Soon/)
+      // Arena is live (2026-11-14), entered at the official site and never here; older X-post mechanics stay labelled.
+      assert.match(prompt, /"Is Arena live \/ can I play\?": yes, Arena is live, at the official site and not here\. Arena = LIVE since 2026-11-14/)
+      assert.match(prompt, /NCH does not handle opt-in and cannot enter anyone: point people to https:\/\/arena\.normies\.art\./)
+      assert.match(prompt, /Being entered and in line is not a record/)
+      assert.doesNotMatch(prompt, /Arena is still Coming Soon|list Arena as Coming Soon|Arena = Coming Soon/)
       assert.match(prompt, /Arena is still a work in progress\. Features and mechanics may change\./)
-      assert.match(prompt, /Arena details below come from an @serc1n X post \(2026-09-18\), not the docs, and may change/)
+      assert.match(prompt, /Remaining details below come from an @serc1n X post \(2026-09-18\), not the docs, and may change/)
+      assert.match(prompt, /official entry page/)
+      assert.match(prompt, /Mon Nov 16, 20:00 CET \(Tue Nov 17, 5 AM ChST\)/)
       assert.doesNotMatch(prompt, /Pixel Market not opened by the 2026-09-18 post/)
       assert.match(prompt, /640×640/)
       assert.match(prompt, /No human players/)
@@ -752,8 +759,8 @@ describe("Ask: painting, Level, Canvas and Arena stay inside the official facts 
     assert.match(prompt, /taking them off, or paying for a size change from the Normie, lowers it/)
     assert.doesNotMatch(prompt, /sources differ/i)
   })
-  it("Arena: only what is official; the article's tables only from ARENA FACTS, never prizes (Ryan, 2026-11-11)", () => {
-    assert.match(prompt, /quote them only from the ARENA FACTS block, with the source/)
+  it("Arena: only what is official; tables only from ARENA FACTS, never prizes", () => {
+    assert.match(prompt, /quote them only from the ARENA FACTS block, with the source/i)
     assert.match(prompt, /never mention prizes, pools or payouts/)
     assert.doesNotMatch(prompt, /combat rules are NOT published/)
   })

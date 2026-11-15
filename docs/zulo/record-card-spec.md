@@ -4,9 +4,9 @@ Drafted 2026-10-18 (ChST) by GrokBot; score model folded in by Claude the same d
 
 Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` (the verified scoreboard; "Phase 1: Arena record card"), `docs/zulo/thesis-lock.md` §5–§7, `lib/official-status.ts`.
 
-Arena status (copied from `lib/official-status.ts`, never paraphrased): **Arena = Coming Soon (official docs; expected Monday, November 16, 2026 (planned, per normiesART's Nov 11 post, https://x.com/normiesART/status/2120475856372142292)); not playable on CredHub.** Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration.
+Arena status (copied from `lib/official-status.ts`, never paraphrased): **Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub.** Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration.
 
-So every Arena field below is **pending: Arena not live**. There is no Arena route in `https://api.normies.art/llms.txt` (checked 2026-10-18) and no Arena contract in `lib/official-contracts.ts`. No endpoint in this file is invented. Anything not yet available is marked `pending` or `proposed`.
+Arena went live on launch weekend (2026-11-14) and its official data is public: `GET /arena/normie/{id}`, `GET /arena/status` and `GET /arena/rounds` on api.normies.art, backed by the NormiesArenaStorage contract (now in `lib/official-contracts.ts`). The card reads that data (§3.2). Being entered and in line is not a record: Arena fields stay `pending` until a Normie has played a round, and anything the official data doesn't give stays `pending` with a reason. No endpoint in this file is invented.
 
 ---
 
@@ -45,7 +45,7 @@ The card is a **track record, never a tip.** DYOR appears on every ranked view.
 Every field carries one plain-word label:
 
 - **`verified`**: the source is `onchain` or `official_api`, or it is `nch_computed` where every input is verified. Only verified fields can count toward rank.
-  Exception — Arena Canvas rank: verified by Ryan's call, Nov 11, 2026 (the Level is from the official API); rank names per normiesART's Arena article (Oct 23, 2026), may change.
+  Exception — Arena Canvas rank: verified by Ryan's call, Nov 11, 2026 (the Level is from the official API); rank names per the official Arena entry page (https://arena.normies.art/world/enter), may change.
 - **`self-reported`**: the source is `self_reported`. Always shown with the words "Self-reported" and the date. Weight 0.
 - **`chat-rating`**: the source is `chat_rating`. Shown only in the "Chat rating" panel. Weight 0 for rank. It **never** changes `pulse_level` (AGENTS.md, thesis lock §6). The data is on-chain, but it measures how good the chats were, not how well the agent performed, so it is never mixed into the record.
 - **`pending`**: no official source exists yet. Value is `null`, and `pending_reason` says why (for example `"Arena not live"`).
@@ -61,9 +61,10 @@ Exactly one, checked in this order:
 | --- | --- | --- |
 | `not_awakened` | No ERC-8004 binding for the token | "Not an awakened agent, so no record card" |
 | `burned` | The token is burned (`/history/burned/{tokenId}` returns a record) | "Burned. Record frozen at burn." |
-| `arena_not_live` | `OFFICIAL_STATUS.arena.status !== "LIVE"` | "Arena isn't live yet, so there's no record" (identity and context still show) |
+| `arena_not_live` | `OFFICIAL_STATUS.arena.status !== "LIVE"` (not the case since 2026-11-14; kept so the card fails closed if the status ever changes) | "Arena isn't live, so there's no record" (identity and context still show) |
+| `arena_source_pending` | Arena is live but the official Arena data couldn't be read (404, a failed or malformed read) | "Arena data is unavailable right now" |
 | `stale` | The record's `as_of` is past its stale limit (§5) | "Record out of date, refreshing" |
-| `unranked` | Arena is live, but the minimum sample (§4) isn't met | "Building a record: X of N verified matches" |
+| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, entered and in line, or building a record | "Not entered in Arena" / "Entered and in line, place N. No Arena round has started yet, so there's no record" / "Building a record: X rounds played" |
 | `ranked` | Arena is live, the sample is met, and every ranked input is `verified` and fresh | "Verified record" |
 
 Today every awakened Normie's card is `arena_not_live`.
@@ -97,12 +98,27 @@ type Field<T> = {
 | `level` | `number` | official_api: `GET /normie/{id}/canvas/info` → `level` | verified | UI label "Level" |
 | `pixels_attached` | `number` | official_api: `/normie/{id}/canvas/info` → `actionPoints` (same as `/canvas/token/{id}/pixels` `attached`) | verified | UI label "Pixels on this Normie (action points)". Never a bare "AP" |
 | `pixels_locked` / `pixels_free` | `number` | official_api: `/normie/{id}/canvas/info` → `lockedPixels`, `freePixels` | verified | |
-| `arena_canvas_rank` | `string` + `counts_toward_rank: false`, `from_level`, `source_url`, `source_published`, `note` | nch_computed: Level (`/normie/{id}/canvas/info`) → rank names per normiesART's Arena article (Oct 23, 2026; `lib/normies-canon.ts`) | verified (unavailable without a Level) | UI label "Arena Canvas rank". Name only; top band shown as "Level 150+ (top Arena rank)". A label, not a score: never counts toward a rank or Pulse. Not on the share image. The next rank's Level is shown on /burn only |
+| `arena_canvas_rank` | `string` + `counts_toward_rank: false`, `from_level`, `source_url`, `source_published`, `note` | nch_computed: Level (`/normie/{id}/canvas/info`) → rank names per the official Arena entry page (`lib/normies-canon.ts`) | verified (unavailable without a Level) | UI label "Arena Canvas rank". Name only; top band shown as "Level 150+ (top Arena rank)". A label, not a score: never counts toward a rank or Pulse. Not on the share image. The next rank's Level is shown on /burn only |
 | `image_url` | `string` | official_api: `/normie/{id}/image.svg` | verified | |
 
-### 3.2 Arena record (pending: Arena not live)
+### 3.2 Arena record (official data since 2026-11-14)
 
-Field names are **proposed**. They get renamed to match the official Arena docs on launch day. `docs/zulo/strategy.md` Phase 1 lists "rounds, survival, PIXEL earned, duels won", and the brief for this spec lists wins, losses and pixels stolen. Both sets are kept here until the official vocabulary is known (see open questions).
+**Built (PR-4, Claude):** `lib/record-card/arena.ts` reads `GET /arena/normie/{id}` (and `GET /arena/status` to know whether any round has started). Real responses are pinned in `lib/record-card/fixtures/`. What the card shows today:
+
+| Card field | Official field | Label |
+| --- | --- | --- |
+| `sectors.arena.entry.entered` | `inLine`, `roundsPlayed` | verified |
+| `sectors.arena.entry.in_line` | `inLine` | verified |
+| `sectors.arena.entry.line_position` | `position` | verified while in line, else pending |
+| `sectors.arena.record.matches` | `roundsPlayed` (rounds, shown as "Rounds played") | pending until a round is played, then verified |
+| `sectors.arena.record.wins` | `wins` | pending until a round is played, then verified |
+| `sectors.arena.record.losses` | none | pending: the official data doesn't publish losses |
+| `sectors.arena.record.pixels_net` | none used | pending: NCH doesn't show Arena #PIXEL amounts (the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
+| `sectors.arena.record.last_match_at` | `lastRound` is a round number, not a time | pending |
+
+Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (in line, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds, 5 opponents and 14 days; the official data has no opponent list yet, so nothing is ranked.
+
+The table below is the original pre-launch proposal, kept for the fields not built yet. Field names there are **proposed**. `docs/zulo/strategy.md` Phase 1 lists "rounds, survival, PIXEL earned, duels won", and the brief for this spec lists wins, losses and pixels stolen. Both sets are kept here until the official vocabulary is known (see open questions).
 
 | Field | Type | Planned source | Label today |
 | --- | --- | --- | --- |
@@ -182,7 +198,7 @@ There is no Overall rank across sectors. A Normie can be ranked in Arena and unr
 
 ## 6. Example card (EXAMPLE DATA)
 
-Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026-10-18. The record is `pending` because Arena isn't live. `chat_rating` values are placeholders, not a real read.
+Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026-10-18. The Arena part of this example predates launch (it shows the fail-closed `arena_not_live` shape); the live shape is in §3.2 and `lib/record-card/fixtures/`. `chat_rating` values are placeholders, not a real read.
 
 ```json
 {
@@ -226,7 +242,7 @@ Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026
 
 - **No trading signals, tips, copy buttons or "buy a Normie to profit" framing.** Agent trading is a TEASER (thesis lock §5). A trading record is Phase 2 and needs its own spec once official agent-wallet docs or an API exist.
 - **Read-only.** No writes of any kind. The only signature allowed anywhere in NCH is a plain `signMessage` for wallet linkage. No transfers, approvals, deposits or typed-data. The card never links to a funding flow.
-- **Arena is not live until an official URL plus docs or an API exist** and `lib/official-status.ts` is flipped. Until then, no "enter Arena" step and no Arena numbers, not even from teasers.
+- **Arena is live (2026-11-14) and `lib/official-status.ts` says so.** NCH still has no "enter Arena" step: opt-in happens at arena.normies.art only. Arena numbers come from the official data only, never from teasers, and never as prizes, pools, payouts or winnings.
 - **No Pulse changes in this spec.** Decided (Ryan, 2026-10-18): a *verified* Arena record **may** later move Pulse, but only as proof of real, verified activity (e.g. a "verified Arena activity" signal), never by win count. That change gets its own PR. Self-reported and chat-rating data never move Pulse.
 - **No chat-ratings changes** (owned by Claude this week). No edits to `public/.well-known/ai-tool/*.json` (manifest hashes are pinned on-chain). When the card ships, it adds response fields in code only.
 - **Built 2026-10-18 (Claude):** `lib/record-card/` (types, pure `build.ts`, server `load.ts`), `GET /api/zulo/record-card/{tokenId}` (JSON) and the page `/record/{tokenId}`. Identity, context, Pulse trust gate and chat rating are live; the Arena sector is pending. **Launch day:** add one `ArenaSource` adapter for the official data in `lib/record-card/arena.ts` (`ARENA_SOURCES`) and flip `lib/official-status.ts`; nothing else changes. Ranking (minimum sample, Wilson bound) lands with that adapter. ERC-8257 / Pulse fields stay a later step.
