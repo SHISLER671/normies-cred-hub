@@ -96,14 +96,14 @@ Intended as **per-chain singletons** (L2 or Mainnet):
 
 | Registry | Role |
 |----------|------|
-| **Identity** | Binds each agent to an **ERC-721** (`agentId`) with URIStorage; `agentURI` → registration file (services, endpoints, optional `supportedTrust`) |
+| **Identity** | Binds each agent to an **ERC-721** (`agentId`) with URIStorage; `tokenURI(agentId)` (the agent's registration URI) → registration file (services, endpoints, optional `supportedTrust`) |
 | **Reputation** | Client feedback: signed fixed-point values; optional off-chain feedback URI/hash; x402-oriented `proofOfPayment` patterns in draft |
 | **Validation** | Request/response validation records: `requestURI`/hash; response score 0–100; optional response URI/hash for evidence (stake re-execution, zkML, TEE oracles) |
 
 ### Technical Details
 
 - **Agent ID:** ERC-721 token id owned by a controller address.
-- **Metadata:** `agentURI` resolves to structured JSON (services, A2A/MCP endpoints, trust models).
+- **Metadata:** the agent's registration URI (`tokenURI`) resolves to structured JSON (services, A2A/MCP endpoints, trust models).
 - **Discovery:** On-chain registration + indexers/subgraphs over chain data and IPFS-hosted files (e.g. community scanners — not mandated by the EIP).
 - **Payments:** Orthogonal to identity; draft documents interoperability with x402 (`x402Support`, payment proofs in feedback).
 
@@ -123,7 +123,7 @@ Intended as **per-chain singletons** (L2 or Mainnet):
 Code anchors:
 
 - `constants/contracts.ts` — `ZULO`, `ERC8004`, read-only ABIs  
-- `hooks/use-erc8004.ts` — `agentURI` / `ownerOf` reads  
+- `hooks/use-erc8004.ts` — `tokenURI` / `ownerOf` reads  
 - Manifest: `GET /api/zulo/manifest` advertises `agent.type: "ERC-8004"`
 
 **Posture:** App is **read-only** on-chain for identity (no transfer/approve write paths in contract constants). Signing for users is limited to safe patterns (e.g. plain messages where used); payment signing when live must follow payment-security doctrine.
@@ -379,10 +379,11 @@ import {
 
 const client = createPublicClient({ chain: mainnet, transport: http() })
 
-const agentURI = await client.readContract({
+// The agent's registration URI. The registry is an ERC-721: the getter is tokenURI (it has no agentURI function).
+const registrationURI = await client.readContract({
   address: ERC8004.IDENTITY_REGISTRY,
   abi: IDENTITY_REGISTRY_READ_ABI,
-  functionName: "agentURI",
+  functionName: "tokenURI",
   args: [BigInt(ZULO.agentId)], // 32626
 })
 
@@ -448,7 +449,7 @@ if (!gate.ok) {
 | Capability | Protocol / surface | Zulo reality |
 |------------|-------------------|--------------|
 | **Tool #53 Cred Pulse** | ERC-8257 + Normie predicate | Live gated tool; NFT access, not AP payment |
-| **Agent identity** | ERC-8004 #32626 | On-chain agentURI/owner reads; `32626.eth` |
+| **Agent identity** | ERC-8004 #32626 | On-chain registration URI (tokenURI) and owner reads; `32626.eth` |
 | **Concierge / strategy A2A** | Manifest + AP tips | Free `/ask` today; 1–2 AP when rails live |
 | **HTTP payment gate** | App 402 + future x402 | Scaffold in `verifyPayment`; status `planned` |
 | **Trust signals** | ERC-8004 + Ethos + AgentCheck (#13) | Aggregated in CredHub dashboard |
