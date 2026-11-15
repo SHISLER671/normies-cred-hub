@@ -260,6 +260,56 @@ describe("Arena is LIVE (per @normiesART's 2026-11-14 post; sources in lib/offic
   })
 })
 
+describe("PR-5: the last pre-launch Arena copy matches the official status", () => {
+  const read = (f: string) => fs.readFileSync(f, "utf8")
+  it("thesis-lock carries the status line and the registration line word for word, citing the live post", () => {
+    const lock = read("docs/zulo/thesis-lock.md")
+    assert.ok(lock.includes(`- ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}.`))
+    assert.ok(lock.includes(ARENA_LIVE_SOURCE))
+    assert.doesNotMatch(lock, /Arena = Coming Soon/)
+    assert.match(lock, /No "enter Arena" nextStep on NCH: opt-in happens at arena\.normies\.art only/)
+  })
+  it("the Agents Canvas plan no longer says Arena stays Coming Soon, and keeps Agents Canvas not live", () => {
+    const plan = read("docs/zulo/agent-canvas-votes-plan.md")
+    assert.doesNotMatch(plan, /Arena stays "Coming Soon"/)
+    assert.ok(plan.includes(ARENA_LIVE_SOURCE))
+    assert.match(plan, /Agents Canvas itself stays announced, not live/)
+    assert.equal(OFFICIAL_STATUS.agentsCanvas.status, "ANNOUNCED")
+  })
+  it("no current doc in docs/zulo still calls Arena Coming Soon or not live", () => {
+    const stale = /\bArena\s*(?:=|:|is|stays)\s*(?:still\s+)?["“]?\**\s*(?:Coming Soon|not live|not open)\b/i
+    const hits: string[] = []
+    for (const f of walk("docs/zulo").filter((x) => !x.includes("/archive/"))) {
+      read(f).split("\n").forEach((line, i) => { if (stale.test(line)) hits.push(`${f}:${i + 1}: ${line.trim().slice(0, 120)}`) })
+    }
+    assert.deepEqual(hits, [])
+  })
+  it("Zulo's self-awareness and operator blocks point at the entry page and say NCH can't enter anyone", () => {
+    const self = buildSelfAwarenessPromptBlock()
+    assert.ok(self.includes(`${ARENA_STATUS_LINE}; its mechanics, fee and schedule are on the official entry page`))
+    assert.match(self, /I can't enter anyone, and being entered and in line is not a record/)
+    assert.doesNotMatch(self, /X posts, not the docs/)
+    const tandem = buildOperatorTandemPromptBlock()
+    assert.ok(tandem.includes(`${ARENA_STATUS_LINE}; its current mechanics are on the official entry page, and CredHub can't enter anyone.`))
+    for (const block of [self, tandem]) {
+      assert.ok(block.includes(AGENTS_CANVAS_STATUS_LINE), "Agents Canvas stays announced, not live")
+      assert.doesNotMatch(block.replace(/Never[^.]*\./g, ""), /prize|prize pool|payout|winnings/i)
+    }
+  })
+  it("the growth track and the homepage say Arena is live with the live post as source, and trading stays not launched", () => {
+    const track = read("components/evolution-track.tsx")
+    assert.match(track, /Live; the record card reads official Arena data\. Being entered and in line is not a record/)
+    assert.match(track, /href=\{ARENA_LIVE_SOURCE\}/)
+    assert.equal((track.match(/once it is connected/g) ?? []).length, 1, "only the Agents Canvas branch still waits for a connection")
+    assert.match(track, /Not launched; needs an official record of trades/)
+    const home = read("components/home-future-plans.tsx")
+    assert.match(home, /"Arena is live"/)
+    assert.match(home, /SURFACE_TAGS\.arena === "LIVE" \? ARENA_LIVE_SOURCE : ARENA_LAUNCH_SOURCE/)
+    assert.match(home, /title="Trading record" subtitle="Not launched"/)
+    for (const src of [track, home]) assert.doesNotMatch(src, /prize|payout|winnings|pixelsWon/i)
+  })
+})
+
 describe("surface tags fail closed", () => {
   it("Arena shows LIVE only for an explicit LIVE status, never as the fallback", () => {
     const src = fs.readFileSync("lib/official-status.ts", "utf8")

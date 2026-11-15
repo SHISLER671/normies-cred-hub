@@ -1,5 +1,5 @@
 import { Chip, Eyebrow, StepLabel } from "@/components/brand"
-import { AGENTS_CANVAS_STATUS_LINE, ARENA_LAUNCH_SOURCE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
+import { AGENTS_CANVAS_STATUS_LINE, ARENA_LAUNCH_SOURCE, ARENA_LIVE_SOURCE, OFFICIAL_STATUS, SURFACE_TAGS } from "@/lib/official-status"
 import { PULSE_MAX_LEVEL } from "@/lib/pulse/beats"
 import { isAgentsCanvasLive } from "@/lib/record-card/canvas"
 
@@ -71,7 +71,14 @@ export function EvolutionTrack({
                 <span>Arena</span>
                 <span className="ev-sector-status">
                   {arenaOpen
-                    ? "Launched; the record fills from official data once it is connected"
+                    ? (
+                      <>
+                        Live; the record card reads official Arena data. Being entered and in line is not a record{" "}
+                        <a href={ARENA_LIVE_SOURCE} target="_blank" rel="noopener noreferrer" className="ev-link">
+                          source
+                        </a>
+                      </>
+                    )
                     : (
                       <>
                         {sentence(SURFACE_TAGS.arena)}, expected {OFFICIAL_STATUS.arena.expected}{" "}
