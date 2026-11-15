@@ -50,7 +50,7 @@ export const PROMPT_TEXT_MAX = 64
 
 // C0 and C1 control characters (newline, tab, escape …) plus the Unicode line and paragraph separators.
 // eslint-disable-next-line no-control-regex
-const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f  ]/g
+const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g
 
 /**
  * Outside text made safe to place in the prompt: control characters and newlines become spaces, runs of spaces
