@@ -14,6 +14,7 @@ import { PIXEL_CURRENCY_MD } from "./knowledge/pixel-currency"
 import {
   AGENTS_CANVAS_STATUS_LINE,
   ARENA_API_STATUS,
+  ARENA_LIVE_SOURCE,
   ARENA_ENTER_SOURCE,
   ARENA_REGISTRATION_LINE,
   ARENA_SITE,
@@ -214,18 +215,23 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
   })
 })
 
-describe("Arena is LIVE (Ryan's decision, launch weekend; sources in lib/official-status.ts)", () => {
+describe("Arena is LIVE (per @normiesART's 2026-11-14 post; sources in lib/official-status.ts)", () => {
   it("the status line says live, since when, where to enter, and that CredHub is not where", () => {
     assert.equal(
       ARENA_STATUS_LINE,
-      "Arena = LIVE since 2026-11-14 (official: opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub",
+      'Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub',
     )
     assert.equal(isArenaOfficiallyLive(), true)
     assert.equal(SURFACE_TAGS.arena, "LIVE")
   })
-  it("every source is named: the entry page, the official API, the verified contract and the launch post", () => {
+  it("every source is named: the official live post first, then the entry page, the official API, the verified contract and the launch-plan post", () => {
     // Exact text, built from the same constants the module exports (no substring search on URLs).
+    assert.equal(ARENA_LIVE_SOURCE, "https://x.com/normiesART/status/2121679594294030459")
+    assert.equal(OFFICIAL_STATUS.arena.liveSource, ARENA_LIVE_SOURCE)
+    assert.equal(OFFICIAL_STATUS.arena.liveSourcePostedAt, "2026-11-14T19:00:00Z")
+    // The live post comes first: it is what the LIVE status rests on.
     assert.deepEqual([...OFFICIAL_STATUS.arena.sources], [
+      `@normiesART, 2026-11-14 19:00 UTC (${ARENA_LIVE_SOURCE}): "Normies Arena is live now", linking arena.normies.art`,
       `Official Arena entry page (${ARENA_ENTER_SOURCE}): opt-in opens Saturday 20:00 CET; games run Monday 20:00 CET to Saturday 20:00 CET`,
       `Official API (${ARENA_API_STATUS}): indexed, with Normies in the line and round 1 upcoming (read at block 26416887)`,
       `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts)`,

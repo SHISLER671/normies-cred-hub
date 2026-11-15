@@ -32,7 +32,7 @@ The **Normie record card**: one read-only card per awakened Normie with its veri
 | Phase | Ships | Gate to start |
 | --- | --- | --- |
 | Now | Chat ratings in Pulse (done); delegated hot wallets count as holders; log Zulo's answers so his own hit rate can be graded; verified vs self-reported labels everywhere | — |
-| 1 | Arena record card: rounds, survival, PIXEL earned, duels won, from official data | Met 2026-11-14: Arena is live at arena.normies.art with official data (`/arena/*` on api.normies.art). The card reads it; a Normie that is entered and in line has no record until it plays a round. Game 1 starts Mon Nov 16, 20:00 CET |
+| 1 | Arena record card: rounds, survival, PIXEL earned, duels won, from official data | Met 2026-11-14: Arena is live (@normiesART, https://x.com/normiesART/status/2121679594294030459) at arena.normies.art with official data (`/arena/*` on api.normies.art). The card reads it; a Normie that is entered and in line has no record until it plays a round. Game 1 starts Mon Nov 16, 20:00 CET |
 | 2 | Verified trading record: agent-wallet trades only, risk-adjusted, 30-day minimum window | Official agent-wallet + trading docs or API |
 | 3 | Record card as the standard: on listings, called by outside agents, offered to the Normies Lab | 3 months of clean records + Normies team interest |
 

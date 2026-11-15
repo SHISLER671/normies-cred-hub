@@ -11,6 +11,12 @@ export const OFFICIAL_STATUS_AS_OF = "2026-11-14"
 /** Arena launch source: @normiesART, Nov 11, 2026 ("launching on Monday. Registration starts on Saturday."). */
 export const ARENA_LAUNCH_SOURCE = "https://x.com/normiesART/status/2120475856372142292"
 
+/**
+ * The official post that says Arena is live: @normiesART, 2026-11-14 19:00 UTC, "Normies Arena is live now", linking
+ * arena.normies.art. This is the source for the LIVE status (URL and wording supplied by Ryan).
+ */
+export const ARENA_LIVE_SOURCE = "https://x.com/normiesART/status/2121679594294030459"
+
 /** Official Arena entry page. Source for mechanics, fee, schedule and the Canvas table, and where a holder opts in. */
 export const ARENA_ENTER_SOURCE = "https://arena.normies.art/world/enter"
 
@@ -34,14 +40,20 @@ export const OFFICIAL_STATUS = {
   },
   arena: {
     /**
-     * LIVE (Ryan, launch weekend): the official Arena is open for opt-in and its official data is public. What is live is
+     * LIVE, per @normiesART's 2026-11-14 post "Normies Arena is live now" (ARENA_LIVE_SOURCE). The official Arena is open
+     * for opt-in and its official data is public. What is live is
      * entering and the line. Games run in rounds; Game 1 starts Mon Nov 16, 20:00 CET, so a Normie can be entered and in
      * line with no record yet.
      */
     status: "LIVE",
     /** The Saturday opt-in opened (20:00 CET), per the official entry page's schedule. */
     since: "2026-11-14",
+    /** The official "live" post (see ARENA_LIVE_SOURCE). */
+    liveSource: ARENA_LIVE_SOURCE,
+    /** UTC, as given with the post. */
+    liveSourcePostedAt: "2026-11-14T19:00:00Z",
     sources: [
+      `@normiesART, 2026-11-14 19:00 UTC (${ARENA_LIVE_SOURCE}): "Normies Arena is live now", linking arena.normies.art`,
       `Official Arena entry page (${ARENA_ENTER_SOURCE}): opt-in opens Saturday 20:00 CET; games run Monday 20:00 CET to Saturday 20:00 CET`,
       `Official API (${ARENA_API_STATUS}): indexed, with Normies in the line and round 1 upcoming (read at block 26416887)`,
       `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts)`,
@@ -82,7 +94,7 @@ export type OfficialSurfaceStatus = "LIVE" | "COMING SOON" | "ALL CLAIMED"
 
 /** Canonical sentences. Copy these, never paraphrase a status. */
 export const PIXEL_MARKET_STATUS_LINE = `Pixel Market = LIVE since ${OFFICIAL_STATUS.pixelMarket.since} (official)`
-export const ARENA_STATUS_LINE = `Arena = LIVE since ${OFFICIAL_STATUS.arena.since} (official: opt-in and the line are open at ${ARENA_ENTER_SOURCE}; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at ${ARENA_SITE}, never on CredHub`
+export const ARENA_STATUS_LINE = `Arena = LIVE since ${OFFICIAL_STATUS.arena.since} (official: @normiesART, "Normies Arena is live now", ${ARENA_LIVE_SOURCE}; opt-in and the line are open at ${ARENA_ENTER_SOURCE}; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at ${ARENA_SITE}, never on CredHub`
 /**
  * Copy next to ARENA_STATUS_LINE wherever Arena's status is stated. Date only, as posted: no time or timezone claim.
  * Unchanged since before launch (docs/zulo/thesis-lock.md carries it word for word); every statement in it still holds.
