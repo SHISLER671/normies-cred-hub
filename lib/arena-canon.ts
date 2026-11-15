@@ -3,12 +3,12 @@
 // article (X Article, posted Oct 22, 2026 17:34 UTC / Oct 23 ChST). Pure, no I/O.
 //
 // Never prizes, pools, payouts, winnings, rewards or earnings (AGENTS.md "Numbers yes, promises never").
-// Arena stays Coming Soon until it is live: the status lives in lib/official-status.ts. Every table is
+// Arena's status (LIVE) lives in lib/official-status.ts, never here. Every table is
 // labelled "may change". The official page's top Canvas band is shown with NCH's neutral label so it is
 // never confused with the NormiesLegendaryCanvas award.
 
 import { ARENA_CANVAS_RANKS, rankForLevel } from "./normies-canon"
-import { ARENA_ENTER_SOURCE, ARENA_LAUNCH_SOURCE } from "./official-status"
+import { ARENA_ENTER_SOURCE, ARENA_SITE } from "./official-status"
 
 export { ARENA_ENTER_SOURCE }
 
@@ -19,17 +19,17 @@ export const ARENA_ARTICLE = {
   checkedAt: "2026-11-11",
 } as const
 
-/** Planned launch date, per normiesART's Nov 11 post (ARENA_LAUNCH_SOURCE). A plan, not a status: see ARENA_STATUS_LINE. */
+/** Game 1's start day, as planned in normiesART's Nov 11 post (ARENA_LAUNCH_SOURCE). The status is ARENA_STATUS_LINE. */
 export const ARENA_PLANNED_LAUNCH = "2026-11-16"
 
 const TYPE_SRC = `normiesART's Arena article, ${ARENA_ARTICLE.publishedText}`
 const ENTER_SRC = "the official Arena entry page"
 
-export const ARENA_MAY_CHANGE = "Arena is Coming Soon; figures are per the official entry page and may change"
+export const ARENA_MAY_CHANGE = "Figures are per the official entry page and may change"
 
 /**
  * Each game runs Monday 20:00 CET to Saturday 20:00 CET. Game 1 start, with the Guam clock beside it.
- * The "Monday, November 16, 2026 (planned)" launch line stays in official-status; this is the clock time.
+ * This is the clock time from the official entry page; the status itself is in official-status.
  */
 export const ARENA_GAME_WINDOW = "Monday 20:00 CET to Saturday 20:00 CET"
 export const ARENA_GAME_START_CHST = "Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST)"
@@ -38,7 +38,7 @@ export const ARENA_GAME_WINDOW_LINE = `Each game runs ${ARENA_GAME_WINDOW}. Game
 /** Who can enter and how a week works (official entry page). */
 export const ARENA_ENTRY = [
   "To enter, a Normie must be registered as an on-chain agent (ERC-8004), i.e. awakened",
-  "Entry is at the official Arena gate; CredHub has no registration",
+  "Entry is at the official Arena site (arena.normies.art); CredHub has no opt-in and cannot enter anyone",
   "Up to 8 agents per wallet; 200 Normies play at once and the rest wait in line",
   "Seats fill first come, first served from the line (FIFO), not a random draw",
   "Fallen agents rest 8 hours, keep their PX and come back; the NFT never leaves your wallet",
@@ -239,7 +239,8 @@ export function arenaFactsBlock(): string {
     (t) => `- ${t.type}: ${t.health} health · damage dealt ${t.damageDealt} · damage taken from monsters ${t.damageTakenFromMonsters} · speed ${t.speed} · ${t.skill}`,
   ).join("\n")
   return `=== ARENA FACTS (mechanics, fee, schedule and Canvas table: ${ENTER_SRC}, ${ARENA_ENTER_SOURCE}; type stats: ${TYPE_SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
-- Planned launch: Monday, November 16, 2026 (a plan, per normiesART's Nov 11 post, ${ARENA_LAUNCH_SOURCE}). Until it is live, Arena is Coming Soon (status line above).
+- Status: Arena is live (status line above). Opt-in opens each Saturday 20:00 CET; being entered and in line is not a record, and a Normie has a record only after it plays a round.
+- Where to enter: the official Arena site (${ARENA_SITE}). NCH does not handle opt-in and cannot enter anyone.
 - ${ARENA_GAME_WINDOW_LINE}.
 ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}
 - Fee: ${ARENA_FEE_LINE}.
@@ -248,6 +249,8 @@ ${types}
 Head start by Canvas level (Level = floor(#PIXEL attached ÷ 10) + 1; Levels 150 and up share the top head start). ${ARENA_GEAR_LINE}. Official published rows:
 ${arenaHeadStartTableText()}
 Rules for these facts:
+- Arena is not the Pixel Market: the Pixel Market trades #PIXEL; Arena is a game agents play. Don't mix the two.
+- NCH does not handle opt-in and cannot enter, register or steer anyone. For anything about entering, point to the official Arena site.
 - Quote them with the source and "may change". A head start is not a guarantee.
 - Never mention prizes, a prize pool, payouts, rewards, winnings, odds or what a Normie could earn, and never convert #PIXEL to ETH or dollars. If asked, say NCH doesn't cover rewards and link the official entry page.
 - Never tell anyone to buy #PIXEL, level up or attach pixels to get ahead. Facts only; it is the holder's call.`

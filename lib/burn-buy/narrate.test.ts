@@ -255,7 +255,8 @@ describe("goals", () => {
 
   it("ARENA notes carry the official status and the docs' Level rule", () => {
     const notes = buildPageModel(result({}), "arena").goalNotes.join(" ")
-    assert.match(notes, /COMING SOON/)
+    assert.match(notes, /Arena is LIVE at the official Arena site \(https:\/\/arena\.normies\.art\), not here: this page cannot enter you into anything/)
+    assert.doesNotMatch(notes, /COMING SOON/)
     assert.match(notes, /every 10 pixels on a Normie is one level/)
     assert.match(notes, /Level = floor\(pixels on it ÷ 10\) \+ 1/)
     assert.doesNotMatch(notes, /permanent trait/)

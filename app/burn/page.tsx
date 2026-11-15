@@ -372,7 +372,7 @@ function NextCanvasRank({ level }: { level: number | null }) {
   if (!text) return null
   return (
     <p className="burn-small">
-      {text}. Rank names per <a href={ARENA_CANVAS_RANKS_SOURCE.url} target="_blank" rel="noopener noreferrer">the official Arena entry page</a>; Arena is Coming Soon and figures may change.
+      {text}. Rank names per <a href={ARENA_CANVAS_RANKS_SOURCE.url} target="_blank" rel="noopener noreferrer">the official Arena entry page</a>; figures may change.
     </p>
   )
 }

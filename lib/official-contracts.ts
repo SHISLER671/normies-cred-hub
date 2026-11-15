@@ -30,6 +30,9 @@ const LIST: Array<[string, string, string]> = [
   ["0xA331bD22C90D1DA096934Db8bc6b69F0e1491E26", "NormiesZombieStorage", "Zombie art storage"],
   ["0xfA55f6592522dA74224a67c7D3Fd1DF759c628e8", "NormiesLegendaryCanvas", "Legendary canvases"],
   ["0xde152AfB7db5373F34876E1499fbD893A82dD336", "Adapter8004", "Awakening (ERC-8004 agent identities)"],
+  // Added 2026-11-14. Not on the docs list yet: verified on Etherscan as NormiesArenaStorage, deployed by the same address as
+  // NormiesPixelMarket, NormiesCanvasV2 and NormiesRendererV6, and named as `storage` by the official API (/arena/status).
+  ["0x980d97e7b77cd204707daeda6c9e51fbcae84e1e", "NormiesArenaStorage", "Arena balances, line, rounds and results (read-only for NCH)"],
   ["0x00000000000000447e69651d841bD8D104Bed493", "delegate.xyz V2", "Delegation registry (not Normies-run, used by it)"],
   ["0x00000000000076A84feF008CDAbe6409d2FE638B", "delegate.xyz V1", "Delegation registry (not Normies-run, used by it)"],
   ["0xAF8e9BDcF6463EA1f50f8f70ECF13d85a092a1Aa", "Pixel treasury", "Treasury named by the canvas contract (api.normies.art /canvas/status)"],

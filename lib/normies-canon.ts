@@ -60,7 +60,7 @@ export function tierLabels(): string[] {
 /**
  * Arena Canvas ranks: a name for a Level band, per the official Arena entry page (names first published in
  * normiesART's Arena article, Oct 23, 2026, and now on the official page). Rank names and start Levels only.
- * Arena is Coming Soon and figures may change. The top band is shown with a neutral label so it is never
+ * Figures may change. The top band is shown with a neutral label so it is never
  * confused with the NormiesLegendaryCanvas award. NCH shows the rank as a label: it never counts toward any
  * NCH rank or Pulse.
  */
@@ -103,7 +103,7 @@ export function nextRankLevel(level: number | null | undefined): number | null {
 
 /** The note shown with a rank (record card page and JSON). */
 export function arenaCanvasRankNote(level: number): string {
-  return `From Level ${Math.floor(level)} (official API). Rank names per the official Arena entry page. Arena is Coming Soon and figures may change. A label, not a score; it does not count toward any rank here.`
+  return `From Level ${Math.floor(level)} (official API). Rank names per the official Arena entry page. Figures may change. A label, not a score; it does not count toward any rank here.`
 }
 
 /** /burn only: a plain fact, e.g. "Next Arena Canvas rank at Level 25". Null at the top band (see arenaCanvasTopRankText). */

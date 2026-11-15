@@ -90,7 +90,7 @@ describe("the rank table matches the official Arena entry page (drift)", () => {
   it("note copy is exact", () => {
     assert.equal(
       arenaCanvasRankNote(50),
-      "From Level 50 (official API). Rank names per the official Arena entry page. Arena is Coming Soon and figures may change. A label, not a score; it does not count toward any rank here.",
+      "From Level 50 (official API). Rank names per the official Arena entry page. Figures may change. A label, not a score; it does not count toward any rank here.",
     )
   })
 })

@@ -14,6 +14,7 @@ import { etherscanAddress, shortenAddress } from "@/lib/format"
 import { loadRecordCard } from "@/lib/record-card/load"
 import { typeDisplay } from "@/lib/record-card/build"
 import { ARENA_ARTICLE, ARENA_ENTER_SOURCE, ARENA_MAY_CHANGE, arenaCardFacts } from "@/lib/arena-canon"
+import { ARENA_SITE } from "@/lib/official-status"
 import type { Field } from "@/lib/record-card/types"
 import { recordCardUrl } from "@/lib/record-card/ask-line"
 import { siteOrigin } from "@/lib/site-origin"
@@ -185,14 +186,22 @@ export default async function RecordCardPage({ params }: Params) {
           <Eyebrow n="03"><span id="rc-arena">Arena record</span></Eyebrow>
           <p className="rc-lead">{arena.status_text}.</p>
           <StatGrid>
-            <Stat label="Matches" value={show(arena.record.matches)} note={note(arena.record.matches)} />
+            {arena.entry && (
+              <Stat
+                label="In Arena"
+                value={arena.entry.entered.value === null ? "—" : arena.entry.entered.value ? (arena.entry.in_line.value ? "Entered, in line" : "Entered") : "Not entered"}
+                note={arena.entry.line_position.value !== null ? `Place ${arena.entry.line_position.value} in line. ${note(arena.entry.line_position)}` : note(arena.entry.entered)}
+              />
+            )}
+            <Stat label="Rounds played" value={show(arena.record.matches)} note={note(arena.record.matches)} />
             <Stat label="Wins" value={show(arena.record.wins)} note={note(arena.record.wins)} />
             <Stat label="Losses" value={show(arena.record.losses)} note={note(arena.record.losses)} />
             <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
           </StatGrid>
           <p className="caption">
-            Filled from official Arena data only, the day it exists. No teaser numbers. Ranked only after 10 verified matches
-            against 5 different opponents over 14 days.
+            Official Arena data only (api.normies.art). Being in line is not a record, and nothing here is a guess. Ranked
+            only after 10 verified rounds against 5 different opponents over 14 days. To enter, go to{" "}
+            <a href={ARENA_SITE} target="_blank" rel="noopener noreferrer">arena.normies.art</a>; NCH can&apos;t enter anyone.
           </p>
           {(arenaFacts.type || arenaFacts.headStart) && (
             <>

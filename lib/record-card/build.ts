@@ -117,7 +117,7 @@ export function buildRecordCard(i: RecordCardInputs): RecordCard {
     card_status_text = "Not an awakened agent, so no record card yet"
   } else if (i.arena.status === "not_live") {
     card_status = "arena_not_live"
-    card_status_text = "Arena isn't live yet, so there's no record. Identity and trust are live below."
+    card_status_text = "Arena isn't live, so there's no record. Identity and trust are live below."
   } else if (i.arena.status === "source_pending") {
     card_status = "arena_source_pending"
     card_status_text = i.arena.status_text

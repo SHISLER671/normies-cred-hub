@@ -15,7 +15,10 @@ import {
   AGENTS_CANVAS_STATUS_LINE,
   ARENA_ENTER_SOURCE,
   ARENA_REGISTRATION_LINE,
+  ARENA_SITE,
   ARENA_STATUS_LINE,
+  ARENA_STORAGE_CONTRACT,
+  isArenaOfficiallyLive,
   OFFICIAL_STATUS,
   PIXEL_MARKET_STATUS_LINE,
   SURFACE_TAGS,
@@ -47,20 +50,23 @@ const CONTRADICTIONS: Array<{ re: RegExp; why: string }> = [
   { re: /Pixel Market\s*(?:=|:|is|stays)\s*\**\s*(?:Coming Soon|not live|planned)/i, why: "Pixel Market is LIVE" },
   { re: /PIXEL MARKET[^\n]{0,40}\bnot live\b/i, why: "Pixel Market is LIVE" },
   { re: /PIXEL MARKET[^\n]{0,10}\(announced \/ (?:technical )?WIP/i, why: "Pixel Market is LIVE" },
-  { re: /\bArena\s*(?:=|:|is)\s*\**\s*(?:LIVE|open now|playable)\b/i, why: "Arena is Coming Soon" },
+  // Arena went LIVE on launch weekend (2026-11-14). The old "Coming Soon" wording is now the regression.
+  { re: /\bArena\s*(?:=|:|is|stays)\s*(?:still\s+)?\**\s*(?:Coming Soon|not live|not open|not playable)\b/i, why: "Arena is LIVE" },
+  { re: /\bArena\b[^\n]{0,40}\bplayable on CredHub\b(?<!not playable on CredHub)/i, why: "Arena is entered at the official site, never on CredHub" },
   { re: /\bAgents Canvas\s*(?:=|:|is)\s*\**\s*(?:LIVE|open now)\b/i, why: "Agents Canvas is announced, not live" },
   { re: /Zombies[^\n]{0,20}\b(?!21\/21)\d{1,2}\/21\b/i, why: "Zombies are 21/21 sealed" },
   { re: /\bspent\b[^\n]{0,30}\bper pixel\b|\bpainting (?:spends|costs|uses up)\b/i, why: "Painting never spends PIXEL / action points" },
 ]
 
 describe("official status: one source of truth", () => {
-  it("states the confirmed 2026-10-18 statuses", () => {
+  it("states the confirmed statuses", () => {
     assert.equal(OFFICIAL_STATUS.pixelMarket.status, "LIVE")
     assert.equal(OFFICIAL_STATUS.pixelMarket.since, "2026-10-05")
-    assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
+    assert.equal(OFFICIAL_STATUS.arena.status, "LIVE")
+    assert.equal(OFFICIAL_STATUS.arena.since, "2026-11-14")
     assert.equal(OFFICIAL_STATUS.zombies.claimed, 21)
     assert.equal(OFFICIAL_STATUS.zombies.total, 21)
-    assert.deepEqual(SURFACE_TAGS, { pixelMarket: "LIVE", arena: "COMING SOON", zombies: "ALL CLAIMED" })
+    assert.deepEqual(SURFACE_TAGS, { pixelMarket: "LIVE", arena: "LIVE", zombies: "ALL CLAIMED" })
     assert.equal(OFFICIAL_STATUS.agentsCanvas.status, "ANNOUNCED")
     assert.match(AGENTS_CANVAS_STATUS_LINE, /not live/)
   })
@@ -116,7 +122,7 @@ describe("official status: one source of truth", () => {
 
 describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => {
   const SOURCE = "https://x.com/serc1n/status/2119787233632719147"
-  it("states the date and the source, and keeps Arena Coming Soon", () => {
+  it("states the date and the source, word for word as before launch", () => {
     assert.equal(OFFICIAL_STATUS.arena.registration.week1Opens, "2026-11-14")
     assert.equal(OFFICIAL_STATUS.arena.registration.source, SOURCE)
     // Exact prefix (date, author, source URL, as-of), not a substring search for the URL.
@@ -133,13 +139,9 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     assert.equal(OFFICIAL_STATUS.arena.enterPage, ARENA_ENTER_SOURCE)
     assert.equal(OFFICIAL_STATUS.arena.expected, "Monday, November 16, 2026 (planned, per normiesART's Nov 11 post)")
     assert.doesNotMatch(OFFICIAL_STATUS.arena.expected, /http/i)
-    assert.match(ARENA_STATUS_LINE, /expected Monday, November 16, 2026 \(planned, per normiesART's Nov 11 post, https:\/\/x\.com\/normiesART\/status\/2120475856372142292\)/)
-    assert.equal(OFFICIAL_STATUS.arena.status, "COMING_SOON")
-    assert.equal(SURFACE_TAGS.arena, "COMING SOON")
   })
-  it("on-page expected copy has no URL; the status line still carries the source", () => {
+  it("on-page expected copy has no URL", () => {
     assert.doesNotMatch(OFFICIAL_STATUS.arena.expected, /http/i)
-    assert.ok(ARENA_STATUS_LINE.includes(OFFICIAL_STATUS.arena.source))
   })
   it("no time, timezone, prize or earnings claim in the line", () => {
     assert.doesNotMatch(ARENA_REGISTRATION_LINE, /\b(UTC|GMT|ChST|PST|EST|[AP]M)\b|\d{1,2}:\d{2}/)
@@ -168,7 +170,7 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
       assert.ok(src.includes(ARENA_REGISTRATION_LINE) || src.includes("${ARENA_REGISTRATION_LINE}"), f)
     }
   })
-  it("Ask's prompt answers 'Is Arena live?' with no plus the registration date", () => {
+  it("Ask's prompt answers 'Is Arena live?' with yes, at the official site, plus the status and registration lines", () => {
     const ctx = {
       user: { walletAddress: "" },
       normie: { id: 7141, name: "Zulo", traits: {}, agent: { id: 32626, name: "Zulo", status: "awakened" } },
@@ -180,22 +182,27 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
       },
     }
     const prompt = composeZuloPrompt(ctx as never, "Is Arena live?")
-    assert.ok(prompt.includes(`"Is Arena live / can I play?": no. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}.`))
+    assert.ok(prompt.includes(`"Is Arena live / can I play?": yes, Arena is live, at the official site and not here. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}.`))
+    assert.ok(prompt.includes(`NCH does not handle opt-in and cannot enter anyone: point people to ${ARENA_SITE}.`))
+    assert.ok(prompt.includes("Being entered and in line is not a record"))
+    assert.ok(prompt.includes("Arena is not the Pixel Market"))
+    assert.ok(prompt.includes("Never mention prizes, a prize pool, payouts or winnings."))
   })
-  it("no surface says Arena is live, open or that registration is open now; Nov 16 only as the planned launch", () => {
-    // User-facing code, prompts, knowledge and public files. docs/zulo is checked only for dates: its record-card spec
-    // describes future states ("Arena is live, but the sample isn't met").
+  it("no surface says registration is open now or that Arena can be entered or played on CredHub; Nov 16 only as the plan or Game 1's clock", () => {
+    // User-facing code, prompts, knowledge and public files. docs/zulo is checked only for dates.
     const surfaces = [...walk("lib"), ...walk("app"), ...walk("components"), ...walk("public"), "README.md", "AGENTS.md"]
     const docs = walk("docs/zulo").filter((f) => !f.includes("/archive/"))
-    const live = /\bArena\s*(?:=|:|is|now)\s*\**\s*(?:LIVE|open|playable)\b|registration is (?:now )?open\b/i
-    // The earlier planned date is banned outright, even when worded as a plan. Nov 16 may appear only as a plan.
+    // Arena is live at the official site. What stays banned: a claim that sign-up is open right now (it opens on a
+    // schedule), and any claim that NCH is where you enter or play.
+    const claims = /registration is (?:now )?open\b|\b(?:enter|play|opt in to|register for) (?:the )?Arena (?:here|on CredHub|on NCH|from CredHub|from NCH|from this page)\b/i
+    // The earlier planned date is banned outright, even when worded as a plan. Nov 16 may appear only as the plan or as
+    // Game 1's official clock ("Nov 16, 20:00 CET").
     // walk() already skips *.test.* files, so historical test comments are not scanned.
     const nov15 = /\bNov(?:ember)?\.? 15(?:th)?\b|2026-11-15/
-    // Official Game 1 clock (entry page) may use "Nov 16, 20:00 CET". Any other Nov 16 must still be a plan.
     const nov16 = /\bNov(?:ember)?\.? 16(?:th)?\b(?!, 2026 \(planned|, 2026 \(a plan|, 20:00 CET)/i
     const dates = new RegExp(`${nov15.source}|${nov16.source}`, "i")
     const hits: string[] = []
-    for (const [files, re] of [[surfaces, new RegExp(`${live.source}|${dates.source}`, "i")], [docs, dates]] as const) {
+    for (const [files, re] of [[surfaces, new RegExp(`${claims.source}|${dates.source}`, "i")], [docs, dates]] as const) {
       for (const f of files) {
         fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
           if (re.test(line)) hits.push(`${f}:${i + 1}: ${line.trim().slice(0, 140)}`)
@@ -206,12 +213,50 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
   })
 })
 
+describe("Arena is LIVE (Ryan's decision, launch weekend; sources in lib/official-status.ts)", () => {
+  it("the status line says live, since when, where to enter, and that CredHub is not where", () => {
+    assert.equal(
+      ARENA_STATUS_LINE,
+      "Arena = LIVE since 2026-11-14 (official: opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub",
+    )
+    assert.equal(isArenaOfficiallyLive(), true)
+    assert.equal(SURFACE_TAGS.arena, "LIVE")
+  })
+  it("every source is named: the entry page, the official API, the verified contract and the launch post", () => {
+    const sources = OFFICIAL_STATUS.arena.sources.join("\n")
+    assert.ok(sources.includes(ARENA_ENTER_SOURCE))
+    assert.ok(sources.includes("https://api.normies.art/arena/status"))
+    assert.ok(sources.includes(ARENA_STORAGE_CONTRACT))
+    assert.ok(sources.includes(OFFICIAL_STATUS.arena.source))
+    assert.equal(OFFICIAL_STATUS.arena.site, ARENA_SITE)
+    assert.equal(ARENA_SITE, "https://arena.normies.art")
+  })
+  it("no prize, pool, payout, winnings or earnings claim in the status line or its sources", () => {
+    for (const text of [ARENA_STATUS_LINE, ...OFFICIAL_STATUS.arena.sources]) {
+      assert.doesNotMatch(text, /prize|pool\b|payout|winnings|earn|reward|\bbet\b/i, text.slice(0, 60))
+    }
+  })
+  it("the pinned official response agrees: indexed, the same storage contract, round 1 upcoming and Normies in line", () => {
+    const status = JSON.parse(fs.readFileSync("lib/record-card/fixtures/arena-status.json", "utf8"))
+    assert.equal(status.indexed, true)
+    assert.equal(status.storage, ARENA_STORAGE_CONTRACT)
+    assert.equal(status.upcoming[0].round, 1)
+    assert.ok(Number(status.line.waiting) > 0)
+  })
+  it("the homepage and the track read the tag from the module, so they show LIVE with no edit", () => {
+    assert.match(fs.readFileSync("app/page.tsx", "utf8"), /name: "Arena", status: SURFACE_TAGS\.arena/)
+    assert.match(fs.readFileSync("components/evolution-track.tsx", "utf8"), /SURFACE_TAGS\.arena === "LIVE"/)
+  })
+})
+
 describe("surface tags fail closed", () => {
   it("Arena shows LIVE only for an explicit LIVE status, never as the fallback", () => {
     const src = fs.readFileSync("lib/official-status.ts", "utf8")
     assert.match(src, /arena: \(String\(OFFICIAL_STATUS\.arena\.status\) === "LIVE" \? "LIVE" : "COMING SOON"\)/)
     assert.doesNotMatch(src, /: "COMING SOON" : "LIVE"\)/)
-    assert.equal(SURFACE_TAGS.arena, "COMING SOON")
+    assert.equal(SURFACE_TAGS.arena, "LIVE")
+    // The fallback word is still COMING SOON: a status that is not exactly "LIVE" never shows as live.
+    assert.match(src, /=== "LIVE" \? "LIVE" : "COMING SOON"/)
   })
 })
 

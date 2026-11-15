@@ -458,7 +458,7 @@ describe("composed Ask prompt", () => {
     assert.match(prompt, /Never invent a Hive URL/)
   })
 
-  it("answers Arena 2026-09-18 asks as official design, not playable on CredHub", () => {
+  it("answers Arena asks as live at the official site, never playable or entered on CredHub", () => {
     const questions = [
       "Is Arena live / can I play?",
       "If my agent dies is the NFT gone?",
@@ -478,8 +478,11 @@ describe("composed Ask prompt", () => {
       assert.match(prompt, /Zulo does not form the team/)
       assert.match(prompt, /survivors earn #PIXEL/i)
       assert.match(prompt, /in-world PX \/ survivor PIXEL ≠ a shop/)
-      // Arena is "Coming soon" in the official docs; every mechanic comes from an X post and is labelled that way.
-      assert.match(prompt, /official docs and \/lab list Arena as Coming Soon/)
+      // Arena is live (2026-11-14), entered at the official site and never here; older X-post mechanics stay labelled.
+      assert.match(prompt, /"Is Arena live \/ can I play\?": yes, Arena is live, at the official site and not here\. Arena = LIVE since 2026-11-14/)
+      assert.match(prompt, /NCH does not handle opt-in and cannot enter anyone: point people to https:\/\/arena\.normies\.art\./)
+      assert.match(prompt, /Being entered and in line is not a record/)
+      assert.doesNotMatch(prompt, /Arena is still Coming Soon|list Arena as Coming Soon|Arena = Coming Soon/)
       assert.match(prompt, /Arena is still a work in progress\. Features and mechanics may change\./)
       assert.match(prompt, /Remaining details below come from an @serc1n X post \(2026-09-18\), not the docs, and may change/)
       assert.match(prompt, /official entry page/)

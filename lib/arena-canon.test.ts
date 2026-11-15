@@ -137,7 +137,12 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
     assert.match(b, /mechanics, fee, schedule and Canvas table: the official Arena entry page, https:\/\/arena\.normies\.art\/world\/enter/)
     assert.match(b, /type stats: normiesART's Arena article, Oct 23, 2026/)
     assert.equal(ARENA_PLANNED_LAUNCH, "2026-11-16")
-    assert.match(b, /Planned launch: Monday, November 16, 2026 \(a plan, per normiesART's Nov 11 post, https:\/\/x\.com\/normiesART\/status\/2120475856372142292\)/)
+    assert.match(b, /- Status: Arena is live \(status line above\)\. Opt-in opens each Saturday 20:00 CET; being entered and in line is not a record/)
+    assert.match(b, /- Where to enter: the official Arena site \(https:\/\/arena\.normies\.art\)\. NCH does not handle opt-in and cannot enter anyone\./)
+    assert.doesNotMatch(b, /Coming Soon|Planned launch/)
+    const rules = b.split("Rules for these facts:")[1]
+    assert.match(rules, /Arena is not the Pixel Market/)
+    assert.match(rules, /NCH does not handle opt-in and cannot enter, register or steer anyone/)
     assert.match(b, /Each game runs Monday 20:00 CET to Saturday 20:00 CET\. Game 1 starts Mon Nov 16, 20:00 CET \(Tue Nov 17, 5 AM ChST\)/)
     assert.match(b, /first come, first served from the line \(FIFO\), not a random draw/)
     assert.match(b, /Fallen agents rest 8 hours, keep their PX/)
@@ -145,9 +150,6 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
     assert.match(b, /A head start is not a guarantee/)
     assert.ok(b.includes(ARENA_ENTER_SOURCE))
     assert.ok(b.includes(ARENA_MAY_CHANGE))
-    for (const line of b.split("\n")) {
-      if (/November 16|2026-11-16/.test(line) && /Planned launch/.test(line)) assert.doesNotMatch(line, /Oct 23|Arena article/)
-    }
     assert.match(b, /Never mention prizes, a prize pool, payouts/)
     const facts = b.split("Rules for these facts:")[0]
     assert.doesNotMatch(facts, NEVER)

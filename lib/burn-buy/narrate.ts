@@ -7,7 +7,7 @@ import type { JevVerdict } from "./jev"
 import { BOOSTS, BRACKETS, boostFor, type CliffSide, bracketMultiplier, walletScore, type MarketState, type YieldMode } from "./score"
 import { delegateKinds, idSummary, type BurnBuyResult, type DelegatedToken } from "./service"
 import { ARENA_ENTER_SOURCE, ARENA_ENTRY, ARENA_FEE_LINE, ARENA_GAME_WINDOW_LINE, ARENA_GEAR_LINE, ARENA_TYPES } from "../arena-canon"
-import { ARENA_REGISTRATION_LINE, SURFACE_TAGS } from "../official-status"
+import { ARENA_REGISTRATION_LINE, ARENA_SITE, SURFACE_TAGS } from "../official-status"
 
 export type PageState = "no-wallet" | "empty" | "delegate-only" | "holds"
 
@@ -188,7 +188,7 @@ export function describeMove(m: Move, yieldMode: YieldMode = "promo"): MoveLine 
 }
 
 const ARENA_NOTES = [
-  `Arena is not open from this page, and this page cannot enter you into anything. The official Lab overview lists Arena as ${SURFACE_TAGS.arena}.`,
+  `Arena is ${SURFACE_TAGS.arena} at the official Arena site (${ARENA_SITE}), not here: this page cannot enter you into anything or opt in for you.`,
   "Official design (@serc1n, Sep 18): autonomous agents on a 640×640 continent, no human players. Five camps: Human, Cat, Alien, Agent, Zombie. Type, Level and on-chain history matter.",
   "Level: every 10 pixels on a Normie is one level, read live (official docs): Level = floor(pixels on it ÷ 10) + 1. Putting pixels on raises it; taking them off, or paying for a bigger canvas from the Normie, lowers it. Burning another Normie into one you keep adds AP to it, so it can raise its Level.",
   `Canvas head start is in the table on this page (per the official Arena entry page, ${ARENA_ENTER_SOURCE}; a head start, not a guarantee). ${ARENA_GEAR_LINE}.`,
