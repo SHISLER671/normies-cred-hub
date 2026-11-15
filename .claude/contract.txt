@@ -49,3 +49,13 @@ lib/burn-buy/narrate*.ts
 lib/normies-canon.ts
 lib/agent-recommendations/normiesKnowledge.ts
 lib/chat-ratings/load.ts
+
+# PR-5: Arena-live cleanup of stale "coming soon" copy (Ryan approved thesis-lock.md status line only; Normies-only thesis unchanged)
+docs/zulo/thesis-lock.md
+docs/zulo/agent-canvas-votes-plan.md
+components/evolution-track.tsx
+components/home-future-plans.tsx
+lib/agent-recommendations/selfAwareness.ts
+lib/agent-recommendations/operatorTandem.ts
+lib/agent-recommendations/*.test.ts
+components/*.test.tsx
