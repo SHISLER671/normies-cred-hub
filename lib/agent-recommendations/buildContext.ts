@@ -383,7 +383,7 @@ function generateOpportunities(input: OpportunityInput): string[] {
     )
     if (pulse.pulseLevel <= 2) {
       opportunities.push(
-        "PULSE strategy: low level — prioritize identity (ERC-8004), active agent card, and clean ownership before heavy Canvas risk.",
+        "PULSE strategy: low level — prioritize identity (ERC-8004), a published agent card, and clean ownership before heavy Canvas risk.",
       )
     } else if (pulse.pulseLevel >= 4) {
       opportunities.push(

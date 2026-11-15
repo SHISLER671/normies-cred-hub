@@ -78,11 +78,14 @@ export const ERC721_ENUMERABLE_ABI = [
 
 /** Minimal read-only ABI fragments for ERC-8004 registries. */
 export const IDENTITY_REGISTRY_READ_ABI = [
+  // The registry is an ERC-721 with URI storage: an agent's registration URI is read with tokenURI(agentId).
+  // It has no agentURI(uint256) getter (that call reverts on mainnet, checked 2026-11-14 for agent #32626), even though
+  // ERC-8004 and the registry's own events call the value "agentURI".
   {
     type: "function",
-    name: "agentURI",
+    name: "tokenURI",
     stateMutability: "view",
-    inputs: [{ name: "agentId", type: "uint256" }],
+    inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [{ name: "", type: "string" }],
   },
   {

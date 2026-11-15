@@ -89,7 +89,7 @@ type Field<T> = {
 | Field | Type | Source (kind: ref) | Label today | Notes |
 | --- | --- | --- | --- | --- |
 | `token_id` | `number` (0–9999) | input, validated by `parseTokenId` (`lib/api/agent-pulse.ts`) | verified | |
-| `agent_id` | `number` | official_api: `GET /agents/binding/{tokenId}` → `binding.agentId`; cross-check onchain: ERC-8004 Identity `ownerOf(agentId)` / `agentURI(agentId)` (as `isErc8004Registered` does) | verified | The binding follows the NFT, and there is no unbind |
+| `agent_id` | `number` | official_api: `GET /agents/binding/{tokenId}` → `binding.agentId`; cross-check onchain: ERC-8004 Identity `ownerOf(agentId)` / `tokenURI(agentId)` (as `isErc8004Registered` does) | verified | The binding follows the NFT, and there is no unbind |
 | `awakened_at` | `string` (ISO) | official_api: `/agents/binding/{tokenId}` → `binding.timestamp`, `blockNumber`, `txHash` | verified | |
 | `agent_name` | `string` | official_api: `GET /agents/identity/{tokenId}` → `name` | verified | |
 | `mint_type` | `"Human" \| "Cat" \| "Alien" \| "Agent"` | official_api: `/agents/identity/{tokenId}` → `type` (fallback `/normie/{id}/traits` Type; both hold the mint traits) | verified | What it was minted as. Mint type "Agent" is **not** the same as awakened (failure mode 6). A Zombie keeps its mint type here |
