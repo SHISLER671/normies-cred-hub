@@ -13,6 +13,7 @@ import { COLLAB_RAILS_MD, DUAL_EVAL_AND_PIXEL_MARKET_MD } from "./agent-recommen
 import { PIXEL_CURRENCY_MD } from "./knowledge/pixel-currency"
 import {
   AGENTS_CANVAS_STATUS_LINE,
+  ARENA_API_STATUS,
   ARENA_ENTER_SOURCE,
   ARENA_REGISTRATION_LINE,
   ARENA_SITE,
@@ -223,11 +224,15 @@ describe("Arena is LIVE (Ryan's decision, launch weekend; sources in lib/officia
     assert.equal(SURFACE_TAGS.arena, "LIVE")
   })
   it("every source is named: the entry page, the official API, the verified contract and the launch post", () => {
-    const sources = OFFICIAL_STATUS.arena.sources.join("\n")
-    assert.ok(sources.includes(ARENA_ENTER_SOURCE))
-    assert.ok(sources.includes("https://api.normies.art/arena/status"))
-    assert.ok(sources.includes(ARENA_STORAGE_CONTRACT))
-    assert.ok(sources.includes(OFFICIAL_STATUS.arena.source))
+    // Exact text, built from the same constants the module exports (no substring search on URLs).
+    assert.deepEqual([...OFFICIAL_STATUS.arena.sources], [
+      `Official Arena entry page (${ARENA_ENTER_SOURCE}): opt-in opens Saturday 20:00 CET; games run Monday 20:00 CET to Saturday 20:00 CET`,
+      `Official API (${ARENA_API_STATUS}): indexed, with Normies in the line and round 1 upcoming (read at block 26416887)`,
+      `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts)`,
+      `@normiesART, Nov 11, 2026 (${OFFICIAL_STATUS.arena.source}): "launching on Monday. Registration starts on Saturday."`,
+    ])
+    assert.equal(new URL(ARENA_API_STATUS).hostname, "api.normies.art")
+    assert.equal(new URL(ARENA_API_STATUS).pathname, "/arena/status")
     assert.equal(OFFICIAL_STATUS.arena.site, ARENA_SITE)
     assert.equal(ARENA_SITE, "https://arena.normies.art")
   })
