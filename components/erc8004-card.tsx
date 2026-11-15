@@ -10,9 +10,9 @@ import { useErc8004 } from "@/hooks/use-erc8004"
 import { Boxes, CircleCheck, Clock, ExternalLink } from "lucide-react"
 
 export function Erc8004Card({ agentId, isMyAgent = false }: { agentId: number; isMyAgent?: boolean }) {
-  const { agentURI, registeredOwner, isLoading, isError, verified } = useErc8004(agentId)
+  const { registrationURI, registeredOwner, isLoading, isError, verified } = useErc8004(agentId)
 
-  const isRegistered = verified && (agentURI || registeredOwner)
+  const isRegistered = verified && (registrationURI || registeredOwner)
 
   return (
     <Card className="flex h-full flex-col">

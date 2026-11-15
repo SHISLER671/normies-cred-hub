@@ -113,14 +113,8 @@ async function readNormies<T>(path: string): Promise<Read<T>> {
   }
 }
 
-/**
- * The registry is an ERC-721: an agent's registration URI is read with tokenURI(agentId). It has no agentURI() getter;
- * that call reverts (checked on mainnet 2026-11-14, agent #32626), so the URI was never actually read before PR-3 and
- * "registered" rested on ownerOf alone. "agentURI" is the name the registry's events and ERC-8004 use for the same value.
- */
-const REGISTRY_TOKEN_URI_ABI = [
-  { type: "function", name: "tokenURI", stateMutability: "view", inputs: [{ name: "tokenId", type: "uint256" }], outputs: [{ name: "", type: "string" }] },
-] as const
+// The registration URI is read with tokenURI(agentId): the registry has no agentURI() getter (see IDENTITY_REGISTRY_READ_ABI).
+// Before PR-3 the code called agentURI, which always reverted, so "registered" rested on ownerOf alone.
 
 /** What the Identity Registry says about one agent. Read once per Pulse check and shared by checks 1 and 2. */
 type Registration = {
@@ -144,7 +138,7 @@ async function readRegistration(agentId: number): Promise<Registration> {
   const [agentURIResult, ownerResult] = await Promise.allSettled([
     publicClient.readContract({
       address: registry,
-      abi: REGISTRY_TOKEN_URI_ABI,
+      abi: IDENTITY_REGISTRY_READ_ABI,
       functionName: "tokenURI",
       args,
     }),

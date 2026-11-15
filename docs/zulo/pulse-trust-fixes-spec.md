@@ -1,6 +1,6 @@
 # Pulse trust fixes: level 4, Trending badge, agent card (spec, docs only)
 
-Drafted 2026-11-14 (ChST) by Claude from the NCH planning doc and a read of main at 232b1a5. **Status: PR-1 Done (merged 2026-11-14, #176; backfill done by hand). PR-2 Done (merged 2026-11-14, #179). PR-3 In progress.** Three small PRs, one branch each, all targeting main.
+Drafted 2026-11-14 (ChST) by Claude from the NCH planning doc and a read of main at 232b1a5. **Status: PR-1 Done (merged 2026-11-14, #176; backfill done by hand). PR-2 Done (merged 2026-11-14, #179). PR-3 Done (merged 2026-11-14, #181). PR-3b (registry read uses `tokenURI`; wording) In progress.** Three small PRs, one branch each, all targeting main.
 
 Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` ("The Pulse gate"), `docs/zulo/thesis-lock.md`, `lib/api/agent-pulse.ts`, `lib/instrumentation/pulse-paths.ts`, `lib/delegations.ts`.
 
@@ -86,7 +86,7 @@ Today it passes when the Normies API record has an agent ID, a name, and one of 
 
 New rule:
 
-- Read `agentURI(agentId)` on the Identity Registry (already read in `isErc8004Registered`; reuse it, don't read twice).
+- Read the agent's registration URI with `tokenURI(agentId)` on the Identity Registry (the registry has no `agentURI()` getter; that call reverts). It is read once in `readRegistration` and shared with the registration check; don't read it twice.
 - Fetch the registration file and take the services entry named A2A.
 - Fetch that endpoint only if it passes `assertPublicHttpsUrl` (`lib/security/ssrf.ts`) and its host is on an allowlist (start with `api.normies.art` only). Use `fetchWithTimeout` and the route's existing rate limit.
 - Pass when it returns 200 with JSON whose `name` matches the Normie's agent name. Store a hash of the card and add it to the response as `agent_card: { checked, passed, card_hash, as_of }`.
