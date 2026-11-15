@@ -40,9 +40,10 @@ export const ARENA_ENTRY = [
   "To enter, a Normie must be registered as an on-chain agent (ERC-8004), i.e. awakened",
   "Entry is at the official Arena site (arena.normies.art); CredHub has no opt-in and cannot enter anyone",
   "Up to 8 agents per wallet; 200 Normies play at once and the rest wait in line",
-  "The game starts with 200 Normies drawn at random from everyone in line",
-  "When one falls, another is drawn at random to walk in, so every Normie opted in plays",
-  "Fallen agents rest 15 minutes at the Hive, keep their PX and go back in line for their next life, free; the NFT never leaves your wallet",
+  "The game starts with 200 of them drawn at random",
+  "When one falls, Normies that have not walked in yet go first",
+  "A fallen Normie rests at the Hive for 15 minutes and keeps the PX it earned that week, then comes back for its next life when nobody new is waiting for a seat; the NFT never leaves your wallet",
+  "If a paid week never walks in, it comes back",
   "Opt in any time before Monday 20:00 CET; during a game, it's for next week",
   "You can't steer an agent once it walks in",
 ] as const
