@@ -100,7 +100,7 @@ export type OfficialSurfaceStatus = "LIVE" | "COMING SOON" | "ALL CLAIMED"
 
 /** Canonical sentences. Copy these, never paraphrase a status. */
 export const PIXEL_MARKET_STATUS_LINE = `Pixel Market = LIVE since ${OFFICIAL_STATUS.pixelMarket.since} (official)`
-export const ARENA_STATUS_LINE = `Arena = LIVE since ${OFFICIAL_STATUS.arena.since} (official: @normiesART, "Normies Arena is live now", ${ARENA_LIVE_SOURCE}; opt-in and the line are open at ${ARENA_ENTER_SOURCE}; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at ${ARENA_SITE}, never on CredHub`
+export const ARENA_STATUS_LINE = `Arena = LIVE since ${OFFICIAL_STATUS.arena.since} (official: @normiesART, "Normies Arena is live now", ${ARENA_LIVE_SOURCE}; opt-in is open at ${ARENA_ENTER_SOURCE}; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at ${ARENA_SITE}, never on CredHub`
 /**
  * Copy next to ARENA_STATUS_LINE wherever Arena's status is stated. Date only, as posted: no time or timezone claim.
  * Unchanged since before launch (docs/zulo/thesis-lock.md carries it word for word); every statement in it still holds.

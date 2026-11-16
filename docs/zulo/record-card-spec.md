@@ -4,7 +4,7 @@ Drafted 2026-10-18 (ChST) by GrokBot; score model folded in by Claude the same d
 
 Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` (the verified scoreboard; "Phase 1: Arena record card"), `docs/zulo/thesis-lock.md` §5–§7, `lib/official-status.ts`.
 
-Arena status (copied from `lib/official-status.ts`, never paraphrased): **Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub.** Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration.
+Arena status (copied from `lib/official-status.ts`, never paraphrased): **Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in is open at https://arena.normies.art/world/enter; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub.** Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration.
 
 Arena went live on launch weekend (2026-11-14) and its official data is public: `GET /arena/normie/{id}`, `GET /arena/status` and `GET /arena/rounds` on api.normies.art, backed by the NormiesArenaStorage contract (in `lib/official-contracts.ts`; Normies were migrated to a new storage contract at block 26421529, and the old one is listed as retired). The card reads that data (§3.2). Being entered is not a record: Arena fields stay `pending` until a Normie has played a round, and anything the official data doesn't give stays `pending` with a reason. No endpoint in this file is invented.
 
@@ -64,7 +64,7 @@ Exactly one, checked in this order:
 | `arena_not_live` | `OFFICIAL_STATUS.arena.status !== "LIVE"` (not the case since 2026-11-14; kept so the card fails closed if the status ever changes) | "Arena isn't live, so there's no record" (identity and context still show) |
 | `arena_source_pending` | Arena is live but the official Arena data couldn't be read (404, a failed or malformed read) | "Arena data is unavailable right now" |
 | `stale` | The record's `as_of` is past its stale limit (§5) | "Record out of date, refreshing" |
-| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, registered or entered, or building a record | "Not entered in Arena" / "Registered. It hasn't played a round yet, so there's no record" / "Building a record: X rounds played" |
+| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, registered or entered, or building a record | "Not entered in Arena" / "Registered. It hasn't played a round yet, so there's no record" / "Building a record: X rounds played" / "Playing Round N now: X rounds counted so far" (while the round it last played is open per `GET /arena/status`; wins is then labelled `round in progress`) |
 | `ranked` | Arena is live, the sample is met, and every ranked input is `verified` and fresh | "Verified record" |
 
 Today every awakened Normie's card is `arena_not_live`.
@@ -76,7 +76,7 @@ Types are TypeScript-style. Each value is wrapped as:
 ```ts
 type Field<T> = {
   value: T | null
-  label: "verified" | "self-reported" | "chat-rating" | "pending" | "unavailable"
+  label: "verified" | "self-reported" | "chat-rating" | "pending" | "unavailable" | "round in progress"
   source: { kind: SourceKind; ref: string }   // ref = contract+function, API path, or formula id
   as_of: string                               // ISO-8601 UTC, when NCH read it
   source_block?: number                       // when the source gives a block

@@ -81,6 +81,7 @@ function show<T>(f: Field<T>, fmt: (v: T) => React.ReactNode = (v) => String(v))
 function note<T>(f: Field<T>): string | undefined {
   if (f.label === "pending") return `Pending: ${f.pending_reason ?? "no official source yet"}`
   if (f.label === "unavailable") return "Couldn't read this right now"
+  if (f.label === "round in progress") return "Round in progress: this count can still change"
   return undefined
 }
 

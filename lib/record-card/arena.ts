@@ -11,6 +11,8 @@
 //   - No #PIXEL amounts: the API reports pixels won, charged and refunded, but NCH doesn't show or net them (AGENTS.md
 //     "Numbers yes, promises never"; nothing about prizes, pools, payouts or winnings).
 //   - If Arena's status in lib/official-status.ts is ever not LIVE, nothing is called and every field is pending.
+//   - While the round a Normie last played is still open (GET /arena/status), the card says "Playing Round N now" and wins
+//     is labelled "round in progress". /arena/status is read once per card; its prize and pool fields are never read.
 // The API's field names come from live responses: fixtures/arena-normie-7141.json is the 2026-11-17 shape,
 // fixtures/arena-normie-7141-v1.json and arena-normie-4242-not-entered.json the launch-weekend shape (now refused).
 
@@ -46,6 +48,8 @@ export type ArenaSnapshot = {
   last_round: number | null
   /** Whether any Arena round has started yet. Null when that couldn't be read. */
   any_round_started: boolean | null
+  /** The current round from `GET /arena/status`, when it could be read strictly. Null = unknown. Optional for other sources. */
+  live_round?: ArenaLiveRound | null
   /** Block the source's answer was indexed at, when given. */
   block: number | null
 }
@@ -107,6 +111,31 @@ export function parseArenaNormie(raw: unknown, tokenId: number): Omit<ArenaSnaps
   }
 }
 
+/** The current round, as `GET /arena/status` reports it. */
+export type ArenaLiveRound = {
+  /** `currentRound`. */
+  current: number
+  /** `round.round` equals `currentRound`, `round.started` is true and `round.ended` is false. */
+  open: boolean
+}
+
+/**
+ * From `GET /arena/status`: the current round and whether it is open. Strict: `currentRound` must be a whole number, and
+ * `round.round` (whole number), `round.started` and `round.ended` (booleans) and `round.status` (string) must have those
+ * types, or the answer is unknown (null). Reads only those fields: the response's prize and pool fields are never read.
+ */
+export function parseArenaLiveRound(raw: unknown): ArenaLiveRound | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
+  const r = raw as { currentRound?: unknown; round?: unknown }
+  const current = wholeNumber(r.currentRound)
+  if (current === null) return null
+  if (!r.round || typeof r.round !== "object" || Array.isArray(r.round)) return null
+  const round = r.round as { round?: unknown; started?: unknown; ended?: unknown; status?: unknown }
+  const number = wholeNumber(round.round)
+  if (number === null || typeof round.started !== "boolean" || typeof round.ended !== "boolean" || typeof round.status !== "string") return null
+  return { current, open: number === current && round.started && !round.ended }
+}
+
 /** From `GET /arena/status`: has any round started? Null when the answer can't be read. */
 export function parseAnyRoundStarted(raw: unknown): boolean | null {
   if (!raw || typeof raw !== "object") return null
@@ -146,18 +175,17 @@ export function officialArenaSource(get: (path: string) => Promise<{ status: num
       if (normie.status !== 200) throw new ArenaSourceError("unavailable")
       const parsed = parseArenaNormie(normie.body, tokenId)
       if (!parsed) throw new ArenaSourceError("unavailable")
-      // Only needed to word "no rounds yet": a failure here leaves it unknown, it doesn't fail the card.
-      let anyRoundStarted: boolean | null = null
-      if (parsed.rounds_played > 0) anyRoundStarted = true
-      else {
-        try {
-          const status = await get("/arena/status")
-          anyRoundStarted = status.status === 200 ? parseAnyRoundStarted(status.body) : null
-        } catch {
-          anyRoundStarted = null
-        }
+      // One /arena/status read per card, for the "no rounds yet" wording and the open round. A failure leaves both
+      // unknown; it never fails the card.
+      let statusBody: unknown = null
+      try {
+        const status = await get("/arena/status")
+        statusBody = status.status === 200 ? status.body : null
+      } catch {
+        statusBody = null
       }
-      return { ...parsed, any_round_started: anyRoundStarted }
+      const anyRoundStarted = parsed.rounds_played > 0 ? true : parseAnyRoundStarted(statusBody)
+      return { ...parsed, any_round_started: anyRoundStarted, live_round: parseArenaLiveRound(statusBody) }
     },
   }
 }
@@ -273,13 +301,18 @@ export async function loadArenaSector(
     }
   }
 
+  // The round this Normie last played is the current round and it hasn't ended: its counts can still change.
+  const live = snap.live_round ?? null
+  const playingRound = live && live.open && snap.last_round === live.current ? live.current : null
+  const roundsText = `${snap.rounds_played} ${snap.rounds_played === 1 ? "round" : "rounds"}`
+  const wins = v(snap.wins, "wins")
   return {
     status: "unranked",
-    status_text: `Building a record: ${snap.rounds_played} ${snap.rounds_played === 1 ? "round" : "rounds"} played`,
+    status_text: playingRound !== null ? `Playing Round ${playingRound} now: ${roundsText} counted so far` : `Building a record: ${roundsText} played`,
     entry,
     record: {
       matches: v(snap.rounds_played, "roundsPlayed"),
-      wins: v(snap.wins, "wins"),
+      wins: playingRound !== null ? { ...wins, label: "round in progress" as const } : wins,
       losses: pendingField("the official data doesn't publish losses", asOf, ref),
       pixels_net: pendingField("NCH doesn't show Arena #PIXEL amounts", asOf, ref),
       last_match_at: pendingField("the official data gives the last round's number, not its time", asOf, ref),
