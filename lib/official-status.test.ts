@@ -235,7 +235,7 @@ describe("Arena is LIVE (per @normiesART's 2026-11-14 post; sources in lib/offic
       `@normiesART, 2026-11-14 19:00 UTC (${ARENA_LIVE_SOURCE}): "Normies Arena is live now", linking arena.normies.art`,
       `Official Arena entry page (${ARENA_ENTER_SOURCE}): opt in any time before Monday 20:00 CET (during a game, it's for next week); games run Monday 20:00 CET to Saturday 20:00 CET`,
       `Official API (${ARENA_API_STATUS}): indexed, with Normies in the line and round 1 upcoming (read at block 26416887)`,
-      `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts; Normies were migrated into it from ${ARENA_STORAGE_CONTRACT_V1} on 2026-11-15, and round 1 started on it on 2026-11-16 19:00 UTC)`,
+      `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts; Normies were migrated into it from ${ARENA_STORAGE_CONTRACT_V1} at block 26421529, and round 1 started on it at block 26429543)`,
       `@normiesART, Nov 11, 2026 (${OFFICIAL_STATUS.arena.source}): "launching on Monday. Registration starts on Saturday."`,
     ])
     assert.equal(new URL(ARENA_API_STATUS).hostname, "api.normies.art")
@@ -248,7 +248,7 @@ describe("Arena is LIVE (per @normiesART's 2026-11-14 post; sources in lib/offic
       assert.doesNotMatch(text, /prize|pool\b|payout|winnings|earn|reward|\bbet\b/i, text.slice(0, 60))
     }
   })
-  it("the pinned official response (launch weekend, before the 2026-11-15 migration) names the retired storage contract", () => {
+  it("the pinned official response (launch weekend, before the launch-weekend migration (block 26421529)) names the retired storage contract", () => {
     const status = JSON.parse(fs.readFileSync("lib/record-card/fixtures/arena-status.json", "utf8"))
     assert.equal(status.indexed, true)
     assert.equal(status.storage, ARENA_STORAGE_CONTRACT_V1)

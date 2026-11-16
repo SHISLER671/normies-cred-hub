@@ -1,5 +1,5 @@
 // Arena sector of the record card, against real official API responses pinned in lib/record-card/fixtures/:
-// arena-normie-7141.json is the live shape read on 2026-11-17 (after the 2026-11-15 contract migration; owner redacted);
+// arena-normie-7141.json is the live shape read on 2026-11-17 (after the launch-weekend contract migration (block 26421529); owner redacted);
 // arena-normie-7141-v1.json and arena-normie-4242-not-entered.json are the launch-weekend shape, now refused.
 // Cases built by spreading ZULO with changed fields are synthetic and say so.
 import assert from "node:assert/strict"

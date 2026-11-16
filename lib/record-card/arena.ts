@@ -4,7 +4,7 @@
 // and turns it into the Arena part of the card. Rules:
 //   - Official data only. Anything the API doesn't give is `pending` with a reason, never zero and never guessed.
 //   - Being entered is not a record. Until a Normie has played a round the card says it is entered, with no record.
-//   - Since the 2026-11-15 contract migration the API gives no line, queue position or needs-funds flag. Those fields are
+//   - Since the launch-weekend contract migration (block 26421529) the API gives no line, queue position or needs-funds flag. Those fields are
 //     pending ("not in official data"), never inferred from `state` or `inCurrentRound`.
 //   - Ranking stays off until the minimum sample is met (ARENA_RANK_MINIMUM), and that needs data the API doesn't publish yet.
 //   - No #PIXEL amounts: the API reports pixels won, charged and refunded, but NCH doesn't show or net them (AGENTS.md
@@ -30,11 +30,11 @@ const TIMEOUT_MS = 8_000
 export type ArenaSnapshot = {
   /** Has played a round, or is in the current round. */
   entered: boolean
-  /** Not in the official data since the 2026-11-15 migration: always null now. */
+  /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
   in_line: boolean | null
-  /** Not in the official data since the 2026-11-15 migration: always null now. */
+  /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
   position: number | null
-  /** Not in the official data since the 2026-11-15 migration: always null now. */
+  /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
   needs_funds: boolean | null
   rounds_played: number
   wins: number
@@ -67,11 +67,11 @@ const wholeNumber = (v: unknown): number | null => {
   return Number.isInteger(n) && n >= 0 ? n : null
 }
 
-/** Reason shown for fields the official data stopped publishing at the 2026-11-15 contract migration. */
+/** Reason shown for fields the official data stopped publishing at the launch-weekend contract migration (block 26421529). */
 export const NOT_IN_OFFICIAL_DATA = "not in official data"
 
 /**
- * Parse `GET /arena/normie/{id}` (shape live since the 2026-11-15 migration). Strict: the token id must match, roundsPlayed
+ * Parse `GET /arena/normie/{id}` (shape live since the launch-weekend migration (block 26421529)). Strict: the token id must match, roundsPlayed
  * and wins must be whole numbers with wins <= roundsPlayed, lastRound a whole number (or null before any round), and
  * registered and inCurrentRound booleans. Anything else, including the old launch-weekend shape, is refused (null).
  * Fields NCH doesn't show (level, balance, pixelsWon, pixelsCharged, pixelsRefunded, deposited, withdrawn) are not read.

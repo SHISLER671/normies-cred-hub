@@ -27,12 +27,12 @@ export const ARENA_SITE = "https://arena.normies.art"
 export const ARENA_API_STATUS = "https://api.normies.art/arena/status"
 
 /**
- * NormiesArenaStorage (verified on Etherscan; listed in lib/official-contracts.ts). Since 2026-11-15 (block 26421529) this is
- * the contract Normies were migrated into; round 1 started on it on 2026-11-16 19:00 UTC (block 26429543).
+ * NormiesArenaStorage (verified on Etherscan; listed in lib/official-contracts.ts). Since the launch-weekend migration
+ * (block 26421529) this is the contract Normies were migrated into; round 1 started on it at block 26429543.
  */
 export const ARENA_STORAGE_CONTRACT = "0x235403069c8516369eb36d29bb1a498a469ab9f0"
 
-/** The launch-weekend Arena storage, retired at the 2026-11-15 migration. The pinned /arena/status fixture predates it. */
+/** The launch-weekend Arena storage, retired at the launch-weekend migration (block 26421529). The pinned /arena/status fixture predates it. */
 export const ARENA_STORAGE_CONTRACT_V1 = "0x980d97e7b77cd204707daeda6c9e51fbcae84e1e"
 
 export const OFFICIAL_STATUS = {
@@ -62,7 +62,7 @@ export const OFFICIAL_STATUS = {
       `@normiesART, 2026-11-14 19:00 UTC (${ARENA_LIVE_SOURCE}): "Normies Arena is live now", linking arena.normies.art`,
       `Official Arena entry page (${ARENA_ENTER_SOURCE}): opt in any time before Monday 20:00 CET (during a game, it's for next week); games run Monday 20:00 CET to Saturday 20:00 CET`,
       `Official API (${ARENA_API_STATUS}): indexed, with Normies in the line and round 1 upcoming (read at block 26416887)`,
-      `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts; Normies were migrated into it from ${ARENA_STORAGE_CONTRACT_V1} on 2026-11-15, and round 1 started on it on 2026-11-16 19:00 UTC)`,
+      `NormiesArenaStorage ${ARENA_STORAGE_CONTRACT} (verified contract, same deployer as the Pixel Market and Canvas contracts; Normies were migrated into it from ${ARENA_STORAGE_CONTRACT_V1} at block 26421529, and round 1 started on it at block 26429543)`,
       `@normiesART, Nov 11, 2026 (${ARENA_LAUNCH_SOURCE}): "launching on Monday. Registration starts on Saturday."`,
     ],
     /** The launch plan as posted on Nov 11. Kept for surfaces that show the plan whenever the status is anything but LIVE. */
