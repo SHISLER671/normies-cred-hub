@@ -1,4 +1,4 @@
-# Scope: metadata hardening from the 2026-11-16 audit at b14958a (Claude). Replaces the Arena FAQ contract (#195/#196, merged).
+# Scope: Arena reads the post-migration API shape and the new storage contract (Claude, 2026-11-17). Replaces the metadata hardening contract (#197/#198, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -7,17 +7,12 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-lib/fetch-with-timeout.ts
-lib/fetch-with-timeout.test.ts
-app/api/normies/[...path]/route.ts
-lib/normies-proxy.ts
-lib/normies-proxy.test.ts
-lib/normie-traits.ts
-lib/normie-traits.test.ts
-lib/types.ts
-lib/agent-recommendations/buildContext.ts
-lib/agent-recommendations/metadataAttrs.ts
-lib/agent-recommendations/metadataAttrs.test.ts
-lib/agent-recommendations/composePrompt.ts
-lib/agent-recommendations/ask-facts.test.ts
-package.json
+lib/record-card/arena.ts
+lib/record-card/arena.test.ts
+lib/record-card/fixtures/arena-normie-7141.json
+lib/record-card/fixtures/arena-normie-7141-v1.json
+lib/official-status.ts
+lib/official-status.test.ts
+lib/official-contracts.ts
+lib/official-contracts.test.ts
+docs/zulo/record-card-spec.md
