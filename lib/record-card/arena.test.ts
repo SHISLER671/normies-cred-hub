@@ -29,6 +29,8 @@ const STATUS = fixture("arena-status") as Record<string, unknown>
 const NOT_ENTERED = { ...ZULO, tokenId: "4242", state: "unregistered", registered: false, agentId: null, skins: 0, roundsPlayed: 0, lastRound: null, wins: 0, inCurrentRound: false }
 /** Synthetic: in the current round but no round counted yet. */
 const ENTERED_NOT_PLAYED = { ...ZULO, roundsPlayed: 0, lastRound: null, wins: 0 }
+/** Synthetic: registered, waiting for a seat, never played. */
+const REGISTERED_WAITING = { ...ZULO, roundsPlayed: 0, lastRound: null, wins: 0, inCurrentRound: false }
 
 type Reply = { status: number; body: unknown } | "throws"
 /** A stub of the official API: answers per path and records what was asked. */
@@ -69,7 +71,7 @@ describe("live data: Zulo after the migration", () => {
     assert.equal(sector.status_text, "Building a record: 1 round played")
     assert.deepEqual(asked, ["/arena/normie/7141"], "no status read is needed once rounds are played")
     assert.deepEqual({ v: sector.entry?.entered.value, l: sector.entry?.entered.label }, { v: true, l: "verified" })
-    assert.equal(sector.entry?.entered.source.ref, "GET /arena/normie/7141 → roundsPlayed, inCurrentRound")
+    assert.equal(sector.entry?.entered.source.ref, "GET /arena/normie/7141 → registered, roundsPlayed, inCurrentRound")
     assert.equal(sector.entry?.entered.source_block, 26421529)
     for (const f of [sector.entry?.in_line, sector.entry?.line_position]) {
       assert.equal(f?.value, null)
@@ -104,11 +106,22 @@ describe("live data: Zulo after the migration", () => {
   })
 })
 
-describe("entered but no round counted yet (synthetic)", () => {
-  it("in the current round with zero rounds played: entered, no record, no line position", async () => {
+describe("registered or entered but no round counted yet (synthetic)", () => {
+  it("registered and waiting for a seat (not in the current round, zero rounds): Registered, not 'Not entered'", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(REGISTERED_WAITING), "/arena/status": "throws" })
+    assert.equal(sector.status, "entered")
+    assert.equal(sector.status_text, "Registered. It hasn't played a round yet, so there's no record")
+    assert.deepEqual({ v: sector.entry?.entered.value, l: sector.entry?.entered.label }, { v: true, l: "verified" })
+    for (const f of Object.values(sector.record)) assert.equal(f.pending_reason, "no rounds played yet")
+  })
+  it("in the current round with zero rounds played and not registered: Entered", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...ENTERED_NOT_PLAYED, registered: false }), "/arena/status": "throws" })
+    assert.equal(sector.status_text, "Entered. It hasn't played a round yet, so there's no record")
+  })
+  it("in the current round with zero rounds played: no record, no line position", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok(ENTERED_NOT_PLAYED), "/arena/status": "throws" })
     assert.equal(sector.status, "entered")
-    assert.equal(sector.status_text, "Entered. It hasn't played a round yet, so there's no record")
+    assert.equal(sector.status_text, "Registered. It hasn't played a round yet, so there's no record")
     assert.equal(sector.entry?.line_position.pending_reason, NOT_IN_OFFICIAL_DATA)
     for (const [name, f] of Object.entries(sector.record)) assert.equal(f.pending_reason, "no rounds played yet", name)
     assert.doesNotMatch(JSON.stringify(sector), /line position|in line|place \d/i)
@@ -181,8 +194,9 @@ describe("fetch failure", () => {
 
 describe("parsers", () => {
   it("parseArenaNormie reads the live response; line, position and needs-funds are null, never inferred", () => {
-    assert.deepEqual(parseArenaNormie(ZULO, 7141), { entered: true, in_line: null, position: null, needs_funds: null, rounds_played: 1, wins: 0, last_round: 1, block: 26421529 })
-    assert.deepEqual(parseArenaNormie(NOT_ENTERED, 4242), { entered: false, in_line: null, position: null, needs_funds: null, rounds_played: 0, wins: 0, last_round: null, block: 26421529 })
+    assert.deepEqual(parseArenaNormie(ZULO, 7141), { entered: true, registered: true, in_line: null, position: null, needs_funds: null, rounds_played: 1, wins: 0, last_round: 1, block: 26421529 })
+    assert.deepEqual(parseArenaNormie(NOT_ENTERED, 4242), { entered: false, registered: false, in_line: null, position: null, needs_funds: null, rounds_played: 0, wins: 0, last_round: null, block: 26421529 })
+    assert.equal(parseArenaNormie(REGISTERED_WAITING, 7141)?.entered, true)
   })
   it("whole numbers may be strings or numbers", () => {
     assert.equal(parseArenaNormie({ ...ZULO, roundsPlayed: "3", wins: 2, lastRound: "4" }, 7141)?.rounds_played, 3)

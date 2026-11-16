@@ -3,7 +3,8 @@
 // Arena is LIVE (lib/official-status.ts) and its official data is public at api.normies.art/arena/*. This file reads that data
 // and turns it into the Arena part of the card. Rules:
 //   - Official data only. Anything the API doesn't give is `pending` with a reason, never zero and never guessed.
-//   - Being entered is not a record. Until a Normie has played a round the card says it is entered, with no record.
+//   - Being registered or entered is not a record. Until a Normie has played a round the card says "Registered" (when the
+//     official data says so) or "Entered", with no record.
 //   - Since the launch-weekend contract migration (block 26421529) the API gives no line, queue position or needs-funds flag. Those fields are
 //     pending ("not in official data"), never inferred from `state` or `inCurrentRound`.
 //   - Ranking stays off until the minimum sample is met (ARENA_RANK_MINIMUM), and that needs data the API doesn't publish yet.
@@ -28,8 +29,10 @@ const TIMEOUT_MS = 8_000
 
 /** One Normie's Arena state, as the official source reports it. Counts only; no #PIXEL amounts. */
 export type ArenaSnapshot = {
-  /** Has played a round, or is in the current round. */
+  /** Registered, has played a round, or is in the current round. */
   entered: boolean
+  /** The official data's `registered` flag (the game guide: only registered Normies play a free round). Optional for other sources. */
+  registered?: boolean
   /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
   in_line: boolean | null
   /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
@@ -91,7 +94,8 @@ export function parseArenaNormie(raw: unknown, tokenId: number): Omit<ArenaSnaps
     if (lastRound === null) return null
   }
   return {
-    entered: rounds > 0 || r.inCurrentRound,
+    entered: r.registered || rounds > 0 || r.inCurrentRound,
+    registered: r.registered,
     in_line: null,
     position: null,
     needs_funds: null,
@@ -238,7 +242,7 @@ export async function loadArenaSector(
     ...(snap.block !== null ? { source_block: snap.block } : {}),
   })
   const entry: ArenaEntry = {
-    entered: v(snap.entered, "roundsPlayed, inCurrentRound"),
+    entered: v(snap.entered, "registered, roundsPlayed, inCurrentRound"),
     in_line: pendingField(NOT_IN_OFFICIAL_DATA, asOf, ref),
     line_position: pendingField(NOT_IN_OFFICIAL_DATA, asOf, ref),
   }
@@ -260,7 +264,7 @@ export async function loadArenaSector(
         : "It hasn't played a round yet, so there's no record"
     return {
       status: "entered",
-      status_text: `Entered. ${rounds}`,
+      status_text: `${snap.registered ? "Registered" : "Entered"}. ${rounds}`,
       entry,
       record: pendingArenaRecord("no rounds played yet", asOf, ref),
       rank: NOT_RANKED,

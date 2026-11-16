@@ -64,7 +64,7 @@ Exactly one, checked in this order:
 | `arena_not_live` | `OFFICIAL_STATUS.arena.status !== "LIVE"` (not the case since 2026-11-14; kept so the card fails closed if the status ever changes) | "Arena isn't live, so there's no record" (identity and context still show) |
 | `arena_source_pending` | Arena is live but the official Arena data couldn't be read (404, a failed or malformed read) | "Arena data is unavailable right now" |
 | `stale` | The record's `as_of` is past its stale limit (§5) | "Record out of date, refreshing" |
-| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, entered, or building a record | "Not entered in Arena" / "Entered. No Arena round has started yet, so there's no record" / "Building a record: X rounds played" |
+| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, registered or entered, or building a record | "Not entered in Arena" / "Registered. It hasn't played a round yet, so there's no record" / "Building a record: X rounds played" |
 | `ranked` | Arena is live, the sample is met, and every ranked input is `verified` and fresh | "Verified record" |
 
 Today every awakened Normie's card is `arena_not_live`.
@@ -107,7 +107,7 @@ type Field<T> = {
 
 | Card field | Official field | Label |
 | --- | --- | --- |
-| `sectors.arena.entry.entered` | `roundsPlayed` > 0 or `inCurrentRound` | verified |
+| `sectors.arena.entry.entered` | `registered`, or `roundsPlayed` > 0, or `inCurrentRound` | verified |
 | `sectors.arena.entry.in_line` | none since the launch-weekend migration (block 26421529) | pending ("not in official data") |
 | `sectors.arena.entry.line_position` | none since the launch-weekend migration (block 26421529) | pending ("not in official data") |
 | `sectors.arena.record.matches` | `roundsPlayed` (rounds, shown as "Rounds played") | pending until a round is played, then verified |
