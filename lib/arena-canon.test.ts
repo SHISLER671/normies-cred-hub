@@ -26,6 +26,10 @@ import {
   headStartBandLabel,
   headStartRowLabel,
   pixelsAttachedText,
+  ARENA_GUIDE,
+  ARENA_GUIDE_CHECKED,
+  ARENA_GUIDE_SOURCE,
+  arenaWatchUrl,
 } from "./arena-canon"
 import { ARENA_CANVAS_RANKS } from "./normies-canon"
 
@@ -96,27 +100,49 @@ describe("tables match the official sources", () => {
   })
 })
 
-describe("mechanics match the official entry page", () => {
-  it("first 200 drawn at random, refills go to Normies that have not walked in yet, 15-minute Hive rest, unused paid week comes back, NFT stays put, no steering", () => {
+describe("mechanics match the official Arena guide and entry page (checked 2026-11-17)", () => {
+  it("guide: 200 on the map from a random draw, refills to Normies that haven't walked in, 15-minute rest back into the draw, who plays, the Hive's Normies, no steering; entry page: paid week comes back, opt-in timing", () => {
     const entry = ARENA_ENTRY.join("\n")
-    assert.match(entry, /The game starts with 200 of them drawn at random/)
-    assert.match(entry, /When one falls, Normies that have not walked in yet go first/)
-    assert.match(entry, /rests at the Hive for 15 minutes and keeps the PX it earned that week/)
-    assert.match(entry, /comes back for its next life when nobody new is waiting for a seat/)
+    assert.match(entry, /200 Normies are on the map at once; the game opens with a random draw of 200/)
+    assert.match(entry, /When one falls, a Normie that hasn't walked in yet takes its seat first/)
+    assert.match(entry, /A fallen Normie rests 15 minutes at the Hive and keeps its PX, then goes back into the draw and walks in again at random when a seat frees up and nobody new is waiting/)
+    assert.match(entry, /Every registered Normie plays a free round; in a paid round, every Normie whose Arena balance covers the entry plays; up to 8 per wallet/)
+    assert.match(entry, /The Hive's own Normies fill empty space on the map; a round player always gets a seat before them/)
     assert.match(entry, /If a paid week never walks in, it comes back/)
-    assert.doesNotMatch(entry, /another is drawn at random|so every Normie opted in plays|go back in line/i)
+    assert.doesNotMatch(entry, /another is drawn at random|so every Normie opted in plays|go back in line|rest wait in line/i)
     assert.match(entry, /Opt in any time before Monday 20:00 CET; during a game, it's for next week/)
     assert.match(entry, /the NFT never leaves your wallet/)
-    assert.match(entry, /can't steer an agent once it walks in/)
-    assert.match(entry, /8 agents per wallet/)
-    assert.match(entry, /200 Normies play at once/)
+    assert.match(entry, /Nobody steers a Normie; each one decides for itself/)
     assert.match(entry, /ERC-8004/)
-    assert.doesNotMatch(entry, /first come|first-come|FIFO|next in line|8 hours|8-hour|walks in at dawn/i)
+    assert.doesNotMatch(entry, /first come|first-come|FIFO|next in line|8 hours|8-hour|walks in at dawn|prize|pool\b|payout/i)
+    // narrate.ts reads indexes 3 and 4.
+    assert.match(ARENA_ENTRY[3], /^200 Normies are on the map/)
+    assert.match(ARENA_ENTRY[4], /^When one falls/)
+  })
+  it("guide lines: level formula (not a record), gear levels, power ladder, death, ranking rule, decisions, watch link; no prizes", () => {
+    const g = ARENA_GUIDE.join("\n")
+    assert.equal(ARENA_GUIDE_SOURCE, "https://arena.normies.art/world/guide")
+    assert.equal(ARENA_GUIDE_CHECKED, "2026-11-17")
+    assert.match(g, /Canvas level = #PIXEL attached ÷ 10 \+ 1; it sets a Normie's starting health and gear, and it is not an Arena record/)
+    assert.match(g, /swords at 3, 10, 35 and 100; armour at 5, 25 and 75; boots at 15 and 50; tonics at 20, 60 and 120; only the level-150 top band starts with the laser/)
+    assert.match(g, /Zombie > Agent > Alien > Cat > Human \(health 175 \/ 150 \/ 130 \/ 115 \/ 100\)/)
+    assert.match(g, /empty purse, keeping its story, reputation, friends and grudges/)
+    assert.match(g, /spending, losing a duel or dying never lowers it/)
+    assert.match(g, /Levanto Sage/)
+    assert.match(g, /arena\.normies\.art\/world\/pixel\?follow=<id>/)
+    assert.doesNotMatch(g, /prize|pool\b|payout|winnings|reward|earn #PIXEL|Legendary/i)
+    assert.equal(arenaWatchUrl(7141), "https://arena.normies.art/world/pixel?follow=7141")
+  })
+  it("the guide's numbers still match NCH's tables: type health and power order, and its head-start rows", () => {
+    assert.deepEqual(ARENA_TYPES.map((t) => [t.type, t.health]), [["Zombie", 175], ["Agent", 150], ["Alien", 130], ["Cat", 115], ["Human", 100]])
+    const guideHealth: Array<[number, string]> = [[2, "+8%"], [10, "+28%"], [35, "+43%"], [60, "+49%"], [100, "+55%"], [150, "+60%"]]
+    for (const [level, health] of guideHealth) assert.equal(ARENA_HEAD_START_ROWS.find((r) => r.fromLevel === level)?.health, health, `level ${level}`)
+    assert.equal(ARENA_HEAD_START_ROWS.find((r) => r.extra === "Laser")?.fromLevel, 150)
   })
   it("the game window includes the official CET hours and the Guam clock", () => {
     assert.equal(ARENA_GAME_WINDOW, "Monday 20:00 CET to Saturday 20:00 CET")
     assert.equal(ARENA_GAME_START_CHST, "Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST)")
-    assert.equal(ARENA_GAME_WINDOW_LINE, `Each game runs ${ARENA_GAME_WINDOW}. Game 1 starts ${ARENA_GAME_START_CHST}`)
+    assert.equal(ARENA_GAME_WINDOW_LINE, `Each game runs ${ARENA_GAME_WINDOW}. Game 1 started ${ARENA_GAME_START_CHST}`)
   })
 })
 
@@ -124,7 +150,7 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
   it("fee line", () => {
     assert.equal(
       ARENA_FEE_LINE,
-      "The first 2 weeks in the Arena are free for every Normie; after that, 1 #PIXEL per agent per week (only for a Normie that gets a seat; those still in line are not charged)",
+      "The first 2 weeks in the Arena are free for every Normie; after that, a week of play costs 1 #PIXEL per Normie, however often it falls",
     )
     assert.doesNotMatch(ARENA_FEE_LINE, NEVER)
   })
@@ -138,19 +164,21 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
   })
   it("the Ask block states official-page facts and forbids the rest", () => {
     const b = arenaFactsBlock()
-    assert.match(b, /mechanics, fee, schedule and Canvas table: the official Arena entry page, https:\/\/arena\.normies\.art\/world\/enter/)
+    assert.match(b, /seats, rest, who plays and the guide lines: the official Arena guide, https:\/\/arena\.normies\.art\/world\/guide; fee, schedule and Canvas table: the official Arena entry page, https:\/\/arena\.normies\.art\/world\/enter/)
+    assert.match(b, /From the official Arena guide \(https:\/\/arena\.normies\.art\/world\/guide, checked 2026-11-17; may change\):/)
+    assert.match(b, /- Canvas level = #PIXEL attached ÷ 10 \+ 1; it sets a Normie's starting health and gear, and it is not an Arena record\./)
     assert.match(b, /type stats: normiesART's Arena article, Oct 23, 2026/)
     assert.equal(ARENA_PLANNED_LAUNCH, "2026-11-16")
-    assert.match(b, /- Status: Arena is live \(status line above\)\. Opt in any time before Monday 20:00 CET; during a game, it's for next week\. Being entered and in line is not a record/)
+    assert.match(b, /- Status: Arena is live \(status line above\)\. Opt in any time before Monday 20:00 CET; during a game, it's for next week\. Being registered is not a record: a Normie has a record only after it plays a round/)
     assert.match(b, /- Where to enter: the official Arena site \(https:\/\/arena\.normies\.art\)\. NCH does not handle opt-in and cannot enter anyone\./)
     assert.doesNotMatch(b, /Coming Soon|Planned launch/)
     const rules = b.split("Rules for these facts:")[1]
     assert.match(rules, /Arena is not the Pixel Market/)
     assert.match(rules, /NCH does not handle opt-in and cannot enter, register or steer anyone/)
-    assert.match(b, /Each game runs Monday 20:00 CET to Saturday 20:00 CET\. Game 1 starts Mon Nov 16, 20:00 CET \(Tue Nov 17, 5 AM ChST\)/)
-    assert.match(b, /The game starts with 200 of them drawn at random/)
-    assert.match(b, /When one falls, Normies that have not walked in yet go first/)
-    assert.match(b, /rests at the Hive for 15 minutes and keeps the PX it earned that week/)
+    assert.match(b, /Each game runs Monday 20:00 CET to Saturday 20:00 CET\. Game 1 started Mon Nov 16, 20:00 CET \(Tue Nov 17, 5 AM ChST\)/)
+    assert.match(b, /200 Normies are on the map at once; the game opens with a random draw of 200/)
+    assert.match(b, /When one falls, a Normie that hasn't walked in yet takes its seat first/)
+    assert.match(b, /A fallen Normie rests 15 minutes at the Hive and keeps its PX/)
     assert.match(b, /If a paid week never walks in, it comes back/)
     assert.doesNotMatch(b, /another is drawn at random|so every Normie opted in plays/i)
     assert.match(b, /a head start, not a guarantee/)

@@ -52,7 +52,7 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - They fish, chop timber, cook over fires they built, hunt monsters, clear dungeons, buy swords and lasers from town markets, upgrade them, and pick fights over **PX**.
 - Reply (death), per the official entry page: a fallen Normie **rests at the Hive for 15 minutes** and keeps the PX it earned that week, then comes back for its next life when nobody new is waiting for a seat. The NFT **never leaves your wallet** and is **not** burned.
 - Reply (teams): they play **individually**; they **can** group if they are from the **same wallet or related wallet history**. Not automatic. Not guaranteed. Zulo does **not** form the team.
-- Survivors earn **#PIXEL**. In-world PX / survivor PIXEL ≠ a shop. Arena is **not** the Pixel Market: that is a separate on-chain market, live since 2026-10-05.
+- Arena **PX** is the game's own currency (official Arena guide); it isn't #PIXEL. Arena is **not** the Pixel Market: that is a separate on-chain market, live since 2026-10-05.
 - Same post names **on-chain:** Canvas, Pixel Market, Arena, Hive. **Off-chain:** murals, IRL events, physicals, limited edition artworks.
 - The Pixel Market is **live** (official docs, since 2026-10-05); its rules are in the Dual Evaluation block.
 - Hive is still not a CredHub page. Never invent a Hive URL.
@@ -61,16 +61,19 @@ OFFICIAL @serc1n X posts (2026-09-18), **not** in the official docs, and it may 
 - Prefer the official entry page (via ARENA FACTS) for current mechanics (random-draw seats, 15-minute rest, the fee, the schedule, the Canvas table). Prefer this 2026-09-18 description over older deck-building / commit-reveal Arena copy for details the entry page does not publish. Do not invent combat formulas, dungeon names, team-chat, rent/invite, or winner-NFT floors.
 
 **Answer pattern — “Is Arena live / can I play?”**
-Yes, at the official site, not here. Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Give that registration date as posted, with no time or timezone. The official entry page (https://arena.normies.art/world/enter) publishes the game window: Monday 20:00 CET to Saturday 20:00 CET, and Game 1 starts Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST). Quote that clock only from ARENA FACTS, with the source. Official design is public (this post and the entry page). A Normie that is entered and in line has no record until it plays a round. CredHub does not host the map and cannot enter anyone: point people to https://arena.normies.art. Arena is not the Pixel Market. Not “enter from CredHub.” Not play from here.
+Yes, at the official site, not here. Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub. Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration. Give that registration date as posted, with no time or timezone. The official entry page (https://arena.normies.art/world/enter) publishes the game window: Monday 20:00 CET to Saturday 20:00 CET, and Game 1 started Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST). Quote that clock only from ARENA FACTS, with the source. Official design is public (this post and the entry page). A Normie that is registered, but has no round played yet, has no record. CredHub does not host the map and cannot enter anyone: point people to https://arena.normies.art. Arena is not the Pixel Market. Not “enter from CredHub.” Not play from here.
 
 **Answer pattern — “If my agent dies is the NFT gone?”**
 A fallen Normie rests at the Hive for 15 minutes and keeps the PX it earned that week, then comes back for its next life when nobody new is waiting for a seat (official entry page FAQ). The NFT never leaves your wallet. Not an NFT burn.
+
+**Answer pattern — “How is my Normie doing in the Arena?”**
+Point to its NCH record card (official Arena data only: registered, rounds played, wins) and the official watch link, arena.normies.art/world/pixel?follow=<id> (official Arena guide). Never guess its PX, rank or standing.
 
 **Answer pattern — “Will my two Normies team?”**
 They can group if same wallet or related wallet history. Not guaranteed. Not automatic. Zulo does not form the team.
 
 **Answer pattern — “Where do I sell Arena PIXEL?”**
-Survivors earn #PIXEL (per that X post; Arena is still a work in progress and may change). In-world PX / survivor PIXEL ≠ a shop. #PIXEL is sold on the Pixel Market (live): sell-side listings in ETH per pixel.
+Arena PX is the game's own currency (official Arena guide); it isn't #PIXEL. #PIXEL is sold on the Pixel Market (live): sell-side listings in ETH per pixel.
 
 Sources: https://x.com/serc1n/status/2100884284659667175 · https://x.com/serc1n/status/2100905337645633893 · https://x.com/serc1n/status/2100885283017302309
 
@@ -133,7 +136,7 @@ Zulo may say **“I hold #7141.”** Never assign #7141 to the visitor unless Ac
 
 - Yacht Club Anchor Points ≠ Normies PIXEL / Action Points. Different burn, different ledger, different spend. Chandlery pts are not AP and not a Zulo paycheck.
 - Yacht 6551 TBA / Purser key ≠ live Zulo / Normie spend rail. x402 still not enabled. Human approval still required for any Zulo transfer. Do not run their standing orders from CredHub.
-- Yacht Club marina / Agent Islands / Trade Wind Quay ≠ official Hive, Pixel Market, or Arena. The official Pixel Market is on normies.art (live). Arena 2026-09-18 design is public; playable enter still gated / not from CredHub. Hive still link-only-after-@normiesART.
+- Yacht Club marina / Agent Islands / Trade Wind Quay ≠ official Hive, Pixel Market, or Arena. The official Pixel Market is on normies.art (live). Arena is live at arena.normies.art; entry is there, never from CredHub. Hive still link-only-after-@normiesART.
 - Brokers’ Atoll ≠ StonkBrokers. Same word family, different project. Club says it sells nothing there and takes no fee.
 - Warm replies from Serc (“see you on the boat”, trying NYC) are community acknowledgment, not an official pairing post. Do not write “official Normies Yacht Club” until @normiesART or @serc1n names it as product.
 

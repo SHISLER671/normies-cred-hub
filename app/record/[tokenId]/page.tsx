@@ -189,8 +189,8 @@ export default async function RecordCardPage({ params }: Params) {
             {arena.entry && (
               <Stat
                 label="In Arena"
-                value={arena.entry.entered.value === null ? "—" : arena.entry.entered.value ? (arena.entry.in_line.value ? "Entered, in line" : "Entered") : "Not entered"}
-                note={arena.entry.line_position.value !== null ? `Line position ${arena.entry.line_position.value}; first seats are drawn at random. ${note(arena.entry.line_position)}` : note(arena.entry.entered)}
+                value={arena.entry.entered.value === null ? "—" : arena.entry.entered.value ? "Entered" : "Not entered"}
+                note={note(arena.entry.entered)}
               />
             )}
             <Stat label="Rounds played" value={show(arena.record.matches)} note={note(arena.record.matches)} />
@@ -199,7 +199,12 @@ export default async function RecordCardPage({ params }: Params) {
             <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
           </StatGrid>
           <p className="caption">
-            Official Arena data only (api.normies.art). Being in line is not a record, and nothing here is a guess. Ranked
+            {arena.watch_url && (
+              <>
+                <a href={arena.watch_url} target="_blank" rel="noopener noreferrer">Watch live</a> on the official Arena map.{" "}
+              </>
+            )}
+            Official Arena data only (api.normies.art). Being registered is not a record, and nothing here is a guess. Ranked
             only after 10 verified rounds against 5 different opponents over 14 days. To enter, go to{" "}
             <a href={ARENA_SITE} target="_blank" rel="noopener noreferrer">arena.normies.art</a>; NCH can&apos;t enter anyone.
           </p>

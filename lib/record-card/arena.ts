@@ -16,6 +16,7 @@
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { arenaWatchUrl } from "@/lib/arena-canon"
 import { OFFICIAL_STATUS } from "@/lib/official-status"
 
 import type { ArenaEntry, ArenaRecord, ArenaSector, Field } from "./types"
@@ -268,6 +269,7 @@ export async function loadArenaSector(
       entry,
       record: pendingArenaRecord("no rounds played yet", asOf, ref),
       rank: NOT_RANKED,
+      watch_url: arenaWatchUrl(tokenId),
     }
   }
 
@@ -283,5 +285,6 @@ export async function loadArenaSector(
       last_match_at: pendingField("the official data gives the last round's number, not its time", asOf, ref),
     },
     rank: NOT_RANKED,
+    watch_url: arenaWatchUrl(tokenId),
   }
 }

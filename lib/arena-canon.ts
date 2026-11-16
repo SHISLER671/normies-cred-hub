@@ -1,6 +1,8 @@
-// Arena canon. Mechanics, the fee, the schedule and the Canvas head-start table come from the official
-// Arena entry page (https://arena.normies.art/world/enter). Type stats still come from normiesART's Arena
-// article (X Article, posted Oct 22, 2026 17:34 UTC / Oct 23 ChST). Pure, no I/O.
+// Arena canon. Seats, rest, who plays, the Hive's Normies, decisions, death, the ranking rule, type health and power,
+// and the Canvas level formula and gear levels come from the official Arena guide (https://arena.normies.art/world/guide,
+// checked 2026-11-17). The fee, the schedule, opt-in timing and the full Canvas head-start table come from the official
+// Arena entry page (https://arena.normies.art/world/enter). Type damage, speed figures and skills still come from
+// normiesART's Arena article (X Article, posted Oct 22, 2026 17:34 UTC / Oct 23 ChST). Pure, no I/O.
 //
 // Never prizes, pools, payouts, winnings, rewards or earnings (AGENTS.md "Numbers yes, promises never").
 // Arena's status (LIVE) lives in lib/official-status.ts, never here. Every table is
@@ -11,6 +13,10 @@ import { ARENA_CANVAS_RANKS, rankForLevel } from "./normies-canon"
 import { ARENA_ENTER_SOURCE, ARENA_SITE } from "./official-status"
 
 export { ARENA_ENTER_SOURCE }
+
+/** The official Arena game guide. Checked 2026-11-17. */
+export const ARENA_GUIDE_SOURCE = "https://arena.normies.art/world/guide"
+export const ARENA_GUIDE_CHECKED = "2026-11-17"
 
 export const ARENA_ARTICLE = {
   url: "https://x.com/normiesART/status/2113323053304238383",
@@ -24,6 +30,7 @@ export const ARENA_PLANNED_LAUNCH = "2026-11-16"
 
 const TYPE_SRC = `normiesART's Arena article, ${ARENA_ARTICLE.publishedText}`
 const ENTER_SRC = "the official Arena entry page"
+const GUIDE_SRC = "the official Arena guide"
 
 export const ARENA_MAY_CHANGE = "Figures are per the official entry page and may change"
 
@@ -33,19 +40,23 @@ export const ARENA_MAY_CHANGE = "Figures are per the official entry page and may
  */
 export const ARENA_GAME_WINDOW = "Monday 20:00 CET to Saturday 20:00 CET"
 export const ARENA_GAME_START_CHST = "Mon Nov 16, 20:00 CET (Tue Nov 17, 5 AM ChST)"
-export const ARENA_GAME_WINDOW_LINE = `Each game runs ${ARENA_GAME_WINDOW}. Game 1 starts ${ARENA_GAME_START_CHST}`
+export const ARENA_GAME_WINDOW_LINE = `Each game runs ${ARENA_GAME_WINDOW}. Game 1 started ${ARENA_GAME_START_CHST}`
 
-/** Who can enter and how a week works (official entry page). */
+/**
+ * Who plays and how a week works: the official Arena guide for seats, rest, who plays, the Hive's Normies and steering;
+ * the official entry page for opt-in timing and paid weeks. Indexes 3 and 4 are read by lib/burn-buy/narrate.ts.
+ */
 export const ARENA_ENTRY = [
   "To enter, a Normie must be registered as an on-chain agent (ERC-8004), i.e. awakened",
   "Entry is at the official Arena site (arena.normies.art); CredHub has no opt-in and cannot enter anyone",
-  "Up to 8 agents per wallet; 200 Normies play at once and the rest wait in line",
-  "The game starts with 200 of them drawn at random",
-  "When one falls, Normies that have not walked in yet go first",
-  "A fallen Normie rests at the Hive for 15 minutes and keeps the PX it earned that week, then comes back for its next life when nobody new is waiting for a seat; the NFT never leaves your wallet",
+  "Every registered Normie plays a free round; in a paid round, every Normie whose Arena balance covers the entry plays; up to 8 per wallet",
+  "200 Normies are on the map at once; the game opens with a random draw of 200",
+  "When one falls, a Normie that hasn't walked in yet takes its seat first",
+  "A fallen Normie rests 15 minutes at the Hive and keeps its PX, then goes back into the draw and walks in again at random when a seat frees up and nobody new is waiting; the NFT never leaves your wallet",
+  "The Hive's own Normies fill empty space on the map; a round player always gets a seat before them",
   "If a paid week never walks in, it comes back",
   "Opt in any time before Monday 20:00 CET; during a game, it's for next week",
-  "You can't steer an agent once it walks in",
+  "Nobody steers a Normie; each one decides for itself",
 ] as const
 
 /**
@@ -53,9 +64,28 @@ export const ARENA_ENTRY = [
  * and nothing about where the fees go: NCH never talks about prizes, pools or payouts.
  */
 export const ARENA_FEE_LINE =
-  "The first 2 weeks in the Arena are free for every Normie; after that, 1 #PIXEL per agent per week (only for a Normie that gets a seat; those still in line are not charged)"
+  "The first 2 weeks in the Arena are free for every Normie; after that, a week of play costs 1 #PIXEL per Normie, however often it falls"
 
 export const ARENA_GEAR_LINE = "Gear unlocks at milestones (Sword, Armour, Boots, Tonics)"
+
+/**
+ * Short facts from the official Arena guide (ARENA_GUIDE_SOURCE), each "may change". Canvas level sets a starting head
+ * start; it is never an Arena record. No prizes, pools or payouts are copied from the guide.
+ */
+export const ARENA_GUIDE = [
+  "Canvas level = #PIXEL attached ÷ 10 + 1; it sets a Normie's starting health and gear, and it is not an Arena record",
+  "Gear by Canvas level: swords at 3, 10, 35 and 100; armour at 5, 25 and 75; boots at 15 and 50; tonics at 20, 60 and 120; only the level-150 top band starts with the laser",
+  "Types are a hard power ladder: Zombie > Agent > Alien > Cat > Human (health 175 / 150 / 130 / 115 / 100)",
+  "Death: the next life starts back at the Hive with its Canvas head start and an empty purse, keeping its story, reputation, friends and grudges, lessons and lifetime PX",
+  "The round's ranking counts the PX a Normie earned this round; spending, losing a duel or dying never lowers it",
+  "Decisions: a Normie asks the Levanto Sage what to do next; its own agent playbook reads its persona and on-chain history; the game's own formula is only the last resort",
+  "Watch a Normie live: arena.normies.art/world/pixel?follow=<id>",
+] as const
+
+/** Watch link for one Normie (official Arena guide format). */
+export function arenaWatchUrl(tokenId: number): string {
+  return `${ARENA_SITE}/world/pixel?follow=${tokenId}`
+}
 
 export type ArenaType = "Zombie" | "Agent" | "Alien" | "Cat" | "Human"
 
@@ -241,12 +271,14 @@ export function arenaFactsBlock(): string {
   const types = ARENA_TYPES.map(
     (t) => `- ${t.type}: ${t.health} health · damage dealt ${t.damageDealt} · damage taken from monsters ${t.damageTakenFromMonsters} · speed ${t.speed} · ${t.skill}`,
   ).join("\n")
-  return `=== ARENA FACTS (mechanics, fee, schedule and Canvas table: ${ENTER_SRC}, ${ARENA_ENTER_SOURCE}; type stats: ${TYPE_SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
-- Status: Arena is live (status line above). Opt in any time before Monday 20:00 CET; during a game, it's for next week. Being entered and in line is not a record, and a Normie has a record only after it plays a round.
+  return `=== ARENA FACTS (seats, rest, who plays and the guide lines: ${GUIDE_SRC}, ${ARENA_GUIDE_SOURCE}; fee, schedule and Canvas table: ${ENTER_SRC}, ${ARENA_ENTER_SOURCE}; type stats: ${TYPE_SRC}, ${ARENA_ARTICLE.url}; ${ARENA_MAY_CHANGE}) ===
+- Status: Arena is live (status line above). Opt in any time before Monday 20:00 CET; during a game, it's for next week. Being registered is not a record: a Normie has a record only after it plays a round.
 - Where to enter: the official Arena site (${ARENA_SITE}). NCH does not handle opt-in and cannot enter anyone.
 - ${ARENA_GAME_WINDOW_LINE}.
 ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}
 - Fee: ${ARENA_FEE_LINE}.
+From ${GUIDE_SRC} (${ARENA_GUIDE_SOURCE}, checked ${ARENA_GUIDE_CHECKED}; may change):
+${ARENA_GUIDE.map((g) => `- ${g}.`).join("\n")}
 Type stats (speed compared with a Human; per ${TYPE_SRC}, closed-beta data, may change):
 ${types}
 Head start by Canvas level (Level = floor(#PIXEL attached ÷ 10) + 1; Levels 150 and up share the top head start). ${ARENA_GEAR_LINE}. Official published rows:

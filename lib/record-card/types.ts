@@ -137,7 +137,7 @@ export type ArenaRecord = {
   last_match_at: Field<string>
 }
 
-/** Whether the Normie is entered in Arena and where it is in the line. Being in line is not a record. */
+/** Whether the Normie is registered or entered in Arena. Being registered is not a record. The official data no longer gives a line or position. */
 export type ArenaEntry = {
   entered: Field<boolean>
   in_line: Field<boolean>
@@ -148,7 +148,8 @@ export type ArenaEntry = {
 export type ArenaSector = {
   /**
    * not_live: Arena's official status isn't LIVE. source_pending: the official data couldn't be read. not_entered: never
-   * opted in. entered: in the line, no round played yet (no record). unranked: has played, below the ranking minimum.
+   * opted in. entered: registered or in the current round, no round played yet (no record). unranked: has played,
+   * below the ranking minimum.
    */
   status: "not_live" | "source_pending" | "not_entered" | "entered" | "unranked" | "ranked"
   status_text: string
@@ -156,6 +157,8 @@ export type ArenaSector = {
   entry?: ArenaEntry
   record: ArenaRecord
   rank: { ranked: false; score: null; reason: string } | { ranked: true; score: number; reason: null }
+  /** Official watch link (arena.normies.art/world/pixel?follow=<id>, per the official Arena guide), once a Normie is entered. */
+  watch_url?: string
 }
 
 /** Agents Canvas: canvases created, pieces painted, and votes between agents. Votes count only from gated agents. */

@@ -37,7 +37,7 @@ export function HomeFuturePlans() {
               >
                 <p className="card-body" style={{ margin: 0 }}>
                   {SURFACE_TAGS.arena === "LIVE"
-                    ? "Every record card reads official Arena data: whether the Normie is entered and in line, then rounds played and wins once it has played. Being in line is not a record. No guesses, no screenshots. "
+                    ? "Every record card reads official Arena data: whether the Normie is registered, then rounds played and wins once it has played. Being registered is not a record. No guesses, no screenshots. "
                     : "Every record card already has an Arena slot. It fills from official Arena data only, the day that data exists. No guesses, no screenshots. "}
                   <a href={SURFACE_TAGS.arena === "LIVE" ? ARENA_LIVE_SOURCE : ARENA_LAUNCH_SOURCE} target="_blank" rel="noopener noreferrer">
                     source

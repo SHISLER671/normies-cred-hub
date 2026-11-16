@@ -73,7 +73,7 @@ export function EvolutionTrack({
                   {arenaOpen
                     ? (
                       <>
-                        Live; the record card reads official Arena data. Being entered and in line is not a record{" "}
+                        Live; the record card reads official Arena data. Being registered is not a record{" "}
                         <a href={ARENA_LIVE_SOURCE} target="_blank" rel="noopener noreferrer" className="ev-link">
                           source
                         </a>

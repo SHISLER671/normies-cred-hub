@@ -48,8 +48,8 @@ export const OFFICIAL_STATUS = {
     /**
      * LIVE, per @normiesART's 2026-11-14 post "Normies Arena is live now" (ARENA_LIVE_SOURCE). The official Arena is open
      * for opt-in and its official data is public. What is live is
-     * entering and the line. Games run in rounds; Game 1 starts Mon Nov 16, 20:00 CET, so a Normie can be entered and in
-     * line with no record yet.
+     * entering and the line. Games run in rounds; Game 1 started Mon Nov 16, 20:00 CET, and a Normie that is registered but
+     * hasn't played a round has no record yet.
      */
     status: "LIVE",
     /** The Saturday opt-in opened (20:00 CET), per the official entry page's schedule. */
@@ -100,7 +100,7 @@ export type OfficialSurfaceStatus = "LIVE" | "COMING SOON" | "ALL CLAIMED"
 
 /** Canonical sentences. Copy these, never paraphrase a status. */
 export const PIXEL_MARKET_STATUS_LINE = `Pixel Market = LIVE since ${OFFICIAL_STATUS.pixelMarket.since} (official)`
-export const ARENA_STATUS_LINE = `Arena = LIVE since ${OFFICIAL_STATUS.arena.since} (official: @normiesART, "Normies Arena is live now", ${ARENA_LIVE_SOURCE}; opt-in and the line are open at ${ARENA_ENTER_SOURCE}; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at ${ARENA_SITE}, never on CredHub`
+export const ARENA_STATUS_LINE = `Arena = LIVE since ${OFFICIAL_STATUS.arena.since} (official: @normiesART, "Normies Arena is live now", ${ARENA_LIVE_SOURCE}; opt-in and the line are open at ${ARENA_ENTER_SOURCE}; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at ${ARENA_SITE}, never on CredHub`
 /**
  * Copy next to ARENA_STATUS_LINE wherever Arena's status is stated. Date only, as posted: no time or timezone claim.
  * Unchanged since before launch (docs/zulo/thesis-lock.md carries it word for word); every statement in it still holds.
