@@ -187,7 +187,7 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     const prompt = composeZuloPrompt(ctx as never, "Is Arena live?")
     assert.ok(prompt.includes(`"Is Arena live / can I play?": yes, Arena is live, at the official site and not here. ${ARENA_STATUS_LINE}. ${ARENA_REGISTRATION_LINE}.`))
     assert.ok(prompt.includes(`NCH does not handle opt-in and cannot enter anyone: point people to ${ARENA_SITE}.`))
-    assert.ok(prompt.includes("Being entered and in line is not a record"))
+    assert.ok(prompt.includes("Being registered is not a record"))
     assert.ok(prompt.includes("Arena is not the Pixel Market"))
     assert.ok(prompt.includes("Never mention prizes, a prize pool, payouts or winnings."))
   })
@@ -220,7 +220,7 @@ describe("Arena is LIVE (per @normiesART's 2026-11-14 post; sources in lib/offic
   it("the status line says live, since when, where to enter, and that CredHub is not where", () => {
     assert.equal(
       ARENA_STATUS_LINE,
-      'Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub',
+      'Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub',
     )
     assert.equal(isArenaOfficiallyLive(), true)
     assert.equal(SURFACE_TAGS.arena, "LIVE")
@@ -289,7 +289,7 @@ describe("PR-5: the last pre-launch Arena copy matches the official status", () 
   it("Zulo's self-awareness and operator blocks point at the entry page and say NCH can't enter anyone", () => {
     const self = buildSelfAwarenessPromptBlock()
     assert.ok(self.includes(`${ARENA_STATUS_LINE}; its mechanics, fee and schedule are on the official entry page`))
-    assert.match(self, /I can't enter anyone, and being entered and in line is not a record/)
+    assert.match(self, /I can't enter anyone, and being registered is not a record/)
     assert.doesNotMatch(self, /X posts, not the docs/)
     const tandem = buildOperatorTandemPromptBlock()
     assert.ok(tandem.includes(`${ARENA_STATUS_LINE}; its current mechanics are on the official entry page, and CredHub can't enter anyone.`))
@@ -300,7 +300,7 @@ describe("PR-5: the last pre-launch Arena copy matches the official status", () 
   })
   it("the growth track and the homepage say Arena is live with the live post as source, and trading stays not launched", () => {
     const track = read("components/evolution-track.tsx")
-    assert.match(track, /Live; the record card reads official Arena data\. Being entered and in line is not a record/)
+    assert.match(track, /Live; the record card reads official Arena data\. Being registered is not a record/)
     assert.match(track, /href=\{ARENA_LIVE_SOURCE\}/)
     assert.equal((track.match(/once it is connected/g) ?? []).length, 1, "only the Agents Canvas branch still waits for a connection")
     assert.match(track, /Not launched; needs an official record of trades/)

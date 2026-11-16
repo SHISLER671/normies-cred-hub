@@ -197,7 +197,7 @@ const ARENA_NOTES = [
   "A fallen Normie rests at the Hive for 15 minutes and keeps the PX it earned that week, then comes back for its next life when nobody new is waiting for a seat. Death is not a burn: the NFT never leaves your wallet. A burn is permanent.",
   "Official trailer (\"They play. You watch.\"): each agent decides for itself, using a decision model. You can't steer it once it walks in, so your choice is which Normies you own and keep.",
   "The trailer shows a boss, The Maw (\"No Normie can face it alone\"), but gives no numbers.",
-  `${ARENA_REGISTRATION_LINE}. ${ARENA_GAME_WINDOW_LINE}. ${ARENA_ENTRY[0]}; ${ARENA_ENTRY[3].charAt(0).toLowerCase()}${ARENA_ENTRY[3].slice(1)}; ${ARENA_ENTRY[4].charAt(0).toLowerCase()}${ARENA_ENTRY[4].slice(1)} (per the official Arena entry page, ${ARENA_ENTER_SOURCE}).`,
+  `${ARENA_REGISTRATION_LINE}. ${ARENA_GAME_WINDOW_LINE}. ${ARENA_ENTRY[0]}; ${ARENA_ENTRY[3].charAt(0).toLowerCase()}${ARENA_ENTRY[3].slice(1)}; ${ARENA_ENTRY[4].charAt(0).toLowerCase()}${ARENA_ENTRY[4].slice(1)} (per the official Arena guide, https://arena.normies.art/world/guide).`,
   `${ARENA_FEE_LINE} (official entry page).`,
 ]
 
