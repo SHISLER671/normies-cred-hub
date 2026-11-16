@@ -3,12 +3,16 @@
 // Arena is LIVE (lib/official-status.ts) and its official data is public at api.normies.art/arena/*. This file reads that data
 // and turns it into the Arena part of the card. Rules:
 //   - Official data only. Anything the API doesn't give is `pending` with a reason, never zero and never guessed.
-//   - Being in the line is not a record. Until a Normie has played a round the card says "Entered (line position N; first seats are drawn at random)".
+//   - Being registered or entered is not a record. Until a Normie has played a round the card says "Registered" (when the
+//     official data says so) or "Entered", with no record.
+//   - Since the launch-weekend contract migration (block 26421529) the API gives no line, queue position or needs-funds flag. Those fields are
+//     pending ("not in official data"), never inferred from `state` or `inCurrentRound`.
 //   - Ranking stays off until the minimum sample is met (ARENA_RANK_MINIMUM), and that needs data the API doesn't publish yet.
 //   - No #PIXEL amounts: the API reports pixels won, charged and refunded, but NCH doesn't show or net them (AGENTS.md
 //     "Numbers yes, promises never"; nothing about prizes, pools, payouts or winnings).
 //   - If Arena's status in lib/official-status.ts is ever not LIVE, nothing is called and every field is pending.
-// The API's field names were read from live responses on launch weekend; lib/record-card/fixtures/ pins them.
+// The API's field names come from live responses: fixtures/arena-normie-7141.json is the 2026-11-17 shape,
+// fixtures/arena-normie-7141-v1.json and arena-normie-4242-not-entered.json the launch-weekend shape (now refused).
 
 import { NORMIES_API_BASE } from "@/constants/contracts"
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
@@ -25,13 +29,16 @@ const TIMEOUT_MS = 8_000
 
 /** One Normie's Arena state, as the official source reports it. Counts only; no #PIXEL amounts. */
 export type ArenaSnapshot = {
-  /** In the line now, or has played. False = never opted in (or left the line without playing). */
+  /** Registered, has played a round, or is in the current round. */
   entered: boolean
-  in_line: boolean
-  /** Place in the line, when the source gives one. */
+  /** The official data's `registered` flag (the game guide: only registered Normies play a free round). Optional for other sources. */
+  registered?: boolean
+  /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
+  in_line: boolean | null
+  /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
   position: number | null
-  /** The source says this entry needs funds before it can be admitted. */
-  needs_funds: boolean
+  /** Not in the official data since the launch-weekend migration (block 26421529): always null now. */
+  needs_funds: boolean | null
   rounds_played: number
   wins: number
   /** Number of the last round played, or null. */
@@ -63,27 +70,35 @@ const wholeNumber = (v: unknown): number | null => {
   return Number.isInteger(n) && n >= 0 ? n : null
 }
 
+/** Reason shown for fields the official data stopped publishing at the launch-weekend contract migration (block 26421529). */
+export const NOT_IN_OFFICIAL_DATA = "not in official data"
+
 /**
- * Parse `GET /arena/normie/{id}`. Strict: the token id must match and every field used must have the expected type, or
- * the answer is refused (null) rather than half-read. Null fields the API itself sends (ticket, position, lastRound) are fine.
+ * Parse `GET /arena/normie/{id}` (shape live since the launch-weekend migration (block 26421529)). Strict: the token id must match, roundsPlayed
+ * and wins must be whole numbers with wins <= roundsPlayed, lastRound a whole number (or null before any round), and
+ * registered and inCurrentRound booleans. Anything else, including the old launch-weekend shape, is refused (null).
+ * Fields NCH doesn't show (level, balance, pixelsWon, pixelsCharged, pixelsRefunded, deposited, withdrawn) are not read.
  */
 export function parseArenaNormie(raw: unknown, tokenId: number): Omit<ArenaSnapshot, "any_round_started"> | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
   const r = raw as Record<string, unknown>
   if (wholeNumber(r.tokenId) !== tokenId) return null
-  if (typeof r.inLine !== "boolean" || typeof r.active !== "boolean" || typeof r.needsFunds !== "boolean") return null
+  if (typeof r.registered !== "boolean" || typeof r.inCurrentRound !== "boolean") return null
   const rounds = wholeNumber(r.roundsPlayed)
   const wins = wholeNumber(r.wins)
   if (rounds === null || wins === null || wins > rounds) return null
-  const ticket = r.ticket === null ? null : wholeNumber(r.ticket)
-  if (r.ticket !== null && ticket === null) return null
-  const position = r.position === null || r.position === undefined ? null : wholeNumber(r.position)
-  const lastRound = r.lastRound === null || r.lastRound === undefined ? null : wholeNumber(r.lastRound)
+  // lastRound is a whole number once a Normie has played; null is accepted only for one that never has.
+  let lastRound: number | null = null
+  if (!(r.lastRound === null && rounds === 0)) {
+    lastRound = wholeNumber(r.lastRound)
+    if (lastRound === null) return null
+  }
   return {
-    entered: r.inLine || rounds > 0,
-    in_line: r.inLine,
-    position: r.inLine ? position : null,
-    needs_funds: r.needsFunds,
+    entered: r.registered || rounds > 0 || r.inCurrentRound,
+    registered: r.registered,
+    in_line: null,
+    position: null,
+    needs_funds: null,
     rounds_played: rounds,
     wins,
     last_round: lastRound,
@@ -227,9 +242,9 @@ export async function loadArenaSector(
     ...(snap.block !== null ? { source_block: snap.block } : {}),
   })
   const entry: ArenaEntry = {
-    entered: v(snap.entered, "inLine, roundsPlayed"),
-    in_line: v(snap.in_line, "inLine"),
-    line_position: snap.in_line && snap.position !== null ? v(snap.position, "position") : pendingField(snap.in_line ? "the official data gives no place in line" : "not in line", asOf, ref),
+    entered: v(snap.entered, "registered, roundsPlayed, inCurrentRound"),
+    in_line: pendingField(NOT_IN_OFFICIAL_DATA, asOf, ref),
+    line_position: pendingField(NOT_IN_OFFICIAL_DATA, asOf, ref),
   }
 
   if (!snap.entered) {
@@ -243,18 +258,13 @@ export async function loadArenaSector(
   }
 
   if (snap.rounds_played === 0) {
-    const where =
-      snap.position !== null
-        ? `Entered (line position ${snap.position}; first seats are drawn at random)`
-        : "Entered (first seats are drawn at random)"
-    const funds = snap.needs_funds ? " The official data says this entry needs funds before it can be admitted." : ""
     const rounds =
       snap.any_round_started === false
         ? "No Arena round has started yet, so there's no record"
         : "It hasn't played a round yet, so there's no record"
     return {
       status: "entered",
-      status_text: `${where}. ${rounds}.${funds}`.replace(/\.$/, ""),
+      status_text: `${snap.registered ? "Registered" : "Entered"}. ${rounds}`,
       entry,
       record: pendingArenaRecord("no rounds played yet", asOf, ref),
       rank: NOT_RANKED,
@@ -263,7 +273,7 @@ export async function loadArenaSector(
 
   return {
     status: "unranked",
-    status_text: `Building a record: ${snap.rounds_played} ${snap.rounds_played === 1 ? "round" : "rounds"} played${snap.in_line ? ", and back in line" : ""}`,
+    status_text: `Building a record: ${snap.rounds_played} ${snap.rounds_played === 1 ? "round" : "rounds"} played`,
     entry,
     record: {
       matches: v(snap.rounds_played, "roundsPlayed"),

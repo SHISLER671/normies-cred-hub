@@ -6,7 +6,7 @@ Read with: `AGENTS.md` (rules), `docs/zulo/strategy.md` (the verified scoreboard
 
 Arena status (copied from `lib/official-status.ts`, never paraphrased): **Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 starts Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub.** Arena Week 1 registration date: Saturday, November 14, 2026 (per @serc1n, https://x.com/serc1n/status/2119787233632719147, as of the 2026-11-09 post); per the same post it is a fully autonomous agent game. Registration opening isn't the Arena launch. CredHub doesn't handle registration.
 
-Arena went live on launch weekend (2026-11-14) and its official data is public: `GET /arena/normie/{id}`, `GET /arena/status` and `GET /arena/rounds` on api.normies.art, backed by the NormiesArenaStorage contract (now in `lib/official-contracts.ts`). The card reads that data (§3.2). Being entered and in line is not a record: Arena fields stay `pending` until a Normie has played a round, and anything the official data doesn't give stays `pending` with a reason. No endpoint in this file is invented.
+Arena went live on launch weekend (2026-11-14) and its official data is public: `GET /arena/normie/{id}`, `GET /arena/status` and `GET /arena/rounds` on api.normies.art, backed by the NormiesArenaStorage contract (in `lib/official-contracts.ts`; Normies were migrated to a new storage contract at block 26421529, and the old one is listed as retired). The card reads that data (§3.2). Being entered is not a record: Arena fields stay `pending` until a Normie has played a round, and anything the official data doesn't give stays `pending` with a reason. No endpoint in this file is invented.
 
 ---
 
@@ -64,7 +64,7 @@ Exactly one, checked in this order:
 | `arena_not_live` | `OFFICIAL_STATUS.arena.status !== "LIVE"` (not the case since 2026-11-14; kept so the card fails closed if the status ever changes) | "Arena isn't live, so there's no record" (identity and context still show) |
 | `arena_source_pending` | Arena is live but the official Arena data couldn't be read (404, a failed or malformed read) | "Arena data is unavailable right now" |
 | `stale` | The record's `as_of` is past its stale limit (§5) | "Record out of date, refreshing" |
-| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, entered and in line, or building a record | "Not entered in Arena" / "Entered (line position N; first seats are drawn at random). No Arena round has started yet, so there's no record" / "Building a record: X rounds played" |
+| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, registered or entered, or building a record | "Not entered in Arena" / "Registered. It hasn't played a round yet, so there's no record" / "Building a record: X rounds played" |
 | `ranked` | Arena is live, the sample is met, and every ranked input is `verified` and fresh | "Verified record" |
 
 Today every awakened Normie's card is `arena_not_live`.
@@ -107,16 +107,16 @@ type Field<T> = {
 
 | Card field | Official field | Label |
 | --- | --- | --- |
-| `sectors.arena.entry.entered` | `inLine`, `roundsPlayed` | verified |
-| `sectors.arena.entry.in_line` | `inLine` | verified |
-| `sectors.arena.entry.line_position` | `position` | verified while in line, else pending |
+| `sectors.arena.entry.entered` | `registered`, or `roundsPlayed` > 0, or `inCurrentRound` | verified |
+| `sectors.arena.entry.in_line` | none since the launch-weekend migration (block 26421529) | pending ("not in official data") |
+| `sectors.arena.entry.line_position` | none since the launch-weekend migration (block 26421529) | pending ("not in official data") |
 | `sectors.arena.record.matches` | `roundsPlayed` (rounds, shown as "Rounds played") | pending until a round is played, then verified |
 | `sectors.arena.record.wins` | `wins` | pending until a round is played, then verified |
 | `sectors.arena.record.losses` | none | pending: the official data doesn't publish losses |
 | `sectors.arena.record.pixels_net` | none used | pending: NCH doesn't show Arena #PIXEL amounts (the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
 | `sectors.arena.record.last_match_at` | `lastRound` is a round number, not a time | pending |
 
-Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (in line, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds, 5 opponents and 14 days; the official data has no opponent list yet, so nothing is ranked.
+Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (entered, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds, 5 opponents and 14 days; the official data has no opponent list yet, so nothing is ranked.
 
 The table below is the original pre-launch proposal, kept for the fields not built yet. Field names there are **proposed**. `docs/zulo/strategy.md` Phase 1 lists "rounds, survival, PIXEL earned, duels won", and the brief for this spec lists wins, losses and pixels stolen. Both sets are kept here until the official vocabulary is known (see open questions).
 
