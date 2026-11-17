@@ -1,4 +1,4 @@
-# Scope: Arena 'Playing Round N now' + 'opt-in is open' wording (Claude, 2026-11-17). Replaces the Arena guide sync contract (#201/#202, merged).
+# Scope: read the whole Arena API politely, from the official llms.txt (Claude, 2026-11-17). Replaces the round-in-progress contract (#203/#204, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -9,13 +9,15 @@
 
 app/record/[tokenId]/page.tsx
 docs/zulo/record-card-spec.md
-docs/zulo/thesis-lock.md
-lib/agent-recommendations/knowledge/collab-rails-and-ask-patterns.md
-lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md
-lib/agent-recommendations/loadKnowledge.ts
-lib/official-status.test.ts
-lib/official-status.ts
+lib/arena-api.test.ts
+lib/arena-api.ts
+lib/arena-canon.test.ts
+lib/arena-canon.ts
+lib/fetch-with-timeout.test.ts
+lib/fetch-with-timeout.ts
+lib/official-contracts.test.ts
+lib/official-contracts.ts
 lib/record-card/arena.test.ts
 lib/record-card/arena.ts
-lib/record-card/fixtures/arena-status-round1-open.json
 lib/record-card/types.ts
+package.json
