@@ -74,6 +74,9 @@ describe("live data: Zulo after the migration", () => {
     assert.equal(sector.status, "unranked")
     assert.equal(sector.status_text, "Building a record: 1 round played")
     assert.equal(sector.watch_url, "https://arena.normies.art/world/pixel?follow=7141", "official watch link (Arena guide)")
+    assert.deepEqual({ v: sector.entry?.state?.value, ref: sector.entry?.state?.source.ref }, { v: "Active: plays every free round, and paid rounds while topped up", ref: "GET /arena/normie/7141 → state" })
+    assert.deepEqual({ v: sector.entry?.agent_id?.value, l: sector.entry?.agent_id?.label }, { v: 32626, l: "verified" })
+    assert.deepEqual({ v: sector.entry?.skins?.value, l: sector.entry?.skins?.label }, { v: 1, l: "verified" })
     assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status"], "one status read per card; here it fails and the card still builds")
     assert.deepEqual({ v: sector.entry?.entered.value, l: sector.entry?.entered.label }, { v: true, l: "verified" })
     assert.equal(sector.entry?.entered.source.ref, "GET /arena/normie/7141 → registered, roundsPlayed, inCurrentRound")
@@ -178,7 +181,7 @@ describe("registered or entered but no round counted yet (synthetic)", () => {
   it("registered and waiting for a seat (not in the current round, zero rounds): Registered, not 'Not entered'", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok(REGISTERED_WAITING), "/arena/status": "throws" })
     assert.equal(sector.status, "entered")
-    assert.equal(sector.status_text, "Registered. It hasn't played a round yet, so there's no record")
+    assert.equal(sector.status_text, "Registered. It plays from Round 1. It hasn't played a round yet, so there's no record")
     assert.equal(sector.watch_url, "https://arena.normies.art/world/pixel?follow=7141")
     assert.deepEqual({ v: sector.entry?.entered.value, l: sector.entry?.entered.label }, { v: true, l: "verified" })
     for (const f of Object.values(sector.record)) assert.equal(f.pending_reason, "no rounds played yet")
@@ -187,10 +190,14 @@ describe("registered or entered but no round counted yet (synthetic)", () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...ENTERED_NOT_PLAYED, registered: false }), "/arena/status": "throws" })
     assert.equal(sector.status_text, "Entered. It hasn't played a round yet, so there's no record")
   })
+  it("registered while round 1 was open (registeredRound 1): plays from Round 2, per llms.txt", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...REGISTERED_WAITING, registeredRound: 1 }), "/arena/status": ok(STATUS_OPEN) })
+    assert.equal(sector.status_text, "Registered. It plays from Round 2. It hasn't played a round yet, so there's no record")
+  })
   it("in the current round with zero rounds played: no record, no line position", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok(ENTERED_NOT_PLAYED), "/arena/status": "throws" })
     assert.equal(sector.status, "entered")
-    assert.equal(sector.status_text, "Registered. It hasn't played a round yet, so there's no record")
+    assert.equal(sector.status_text, "Registered. It plays from Round 1. It hasn't played a round yet, so there's no record")
     assert.equal(sector.entry?.line_position.pending_reason, NOT_IN_OFFICIAL_DATA)
     for (const [name, f] of Object.entries(sector.record)) assert.equal(f.pending_reason, "no rounds played yet", name)
     assert.doesNotMatch(JSON.stringify(sector), /line position|in line|place \d/i)
@@ -264,8 +271,8 @@ describe("fetch failure", () => {
 
 describe("parsers", () => {
   it("parseArenaNormie reads the live response; line, position and needs-funds are null, never inferred", () => {
-    assert.deepEqual(parseArenaNormie(ZULO, 7141), { entered: true, registered: true, in_line: null, position: null, needs_funds: null, rounds_played: 1, wins: 0, last_round: 1, block: 26421529 })
-    assert.deepEqual(parseArenaNormie(NOT_ENTERED, 4242), { entered: false, registered: false, in_line: null, position: null, needs_funds: null, rounds_played: 0, wins: 0, last_round: null, block: 26421529 })
+    assert.deepEqual(parseArenaNormie(ZULO, 7141), { entered: true, registered: true, in_line: null, position: null, needs_funds: null, rounds_played: 1, wins: 0, last_round: 1, block: 26421529, state: "active", registered_round: 0, agent_id: 32626, skins: 1 })
+    assert.deepEqual(parseArenaNormie(NOT_ENTERED, 4242), { entered: false, registered: false, in_line: null, position: null, needs_funds: null, rounds_played: 0, wins: 0, last_round: null, block: 26421529, state: "unregistered", registered_round: 0, agent_id: null, skins: 0 })
     assert.equal(parseArenaNormie(REGISTERED_WAITING, 7141)?.entered, true)
   })
   it("whole numbers may be strings or numbers", () => {
@@ -280,6 +287,12 @@ describe("parsers", () => {
   it("wins greater than rounds played is refused", () => {
     assert.equal(parseArenaNormie({ ...ZULO, roundsPlayed: 1, wins: 2 }, 7141), null)
   })
+  it("state, registeredRound, agentId and skins: read when well-typed, unknown (null) otherwise, never failing the parse", () => {
+    const odd = parseArenaNormie({ ...ZULO, state: "sleeping", registeredRound: "soon", agentId: { id: 1 }, skins: -2 }, 7141)
+    assert.ok(odd)
+    assert.deepEqual([odd.state, odd.registered_round, odd.agent_id, odd.skins], [null, null, null, null])
+    for (const state of ["unregistered", "active", "short", "cleared"]) assert.equal(parseArenaNormie({ ...ZULO, state }, 7141)?.state, state)
+  })
   it("burned=true parses like any other answer (the flag isn't used)", () => {
     assert.deepEqual(parseArenaNormie({ ...ZULO, burned: true }, 7141), parseArenaNormie(ZULO, 7141))
   })
@@ -292,12 +305,13 @@ describe("parsers", () => {
 })
 
 describe("the card and the wiring", () => {
-  it("one official adapter is registered, reading the official API with a time limit", () => {
+  it("one official adapter is registered, reading through the polite Arena client (lib/arena-api.ts)", () => {
     assert.equal(ARENA_SOURCES.length, 1)
     assert.equal(ARENA_SOURCES[0].kind, "official_api")
     assert.equal(ARENA_SOURCES[0].ref(7141), "GET /arena/normie/7141")
     const src = readFileSync("lib/record-card/arena.ts", "utf8")
-    assert.match(src, /fetchWithTimeout\(`\$\{NORMIES_API_BASE\}\$\{path\}`/)
+    assert.match(src, /const r = await arenaGet\(path\)/)
+    assert.doesNotMatch(src, /fetchWithTimeout|fetch\(/, "no direct fetch: every read goes through the polite client")
     assert.doesNotMatch(src, /method: "(POST|PUT|PATCH|DELETE)"|writeContract|sendTransaction|signTypedData/)
   })
   it("while Arena is not LIVE nothing is called", async () => {

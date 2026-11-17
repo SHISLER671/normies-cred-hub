@@ -194,6 +194,9 @@ export default async function RecordCardPage({ params }: Params) {
                 note={note(arena.entry.entered)}
               />
             )}
+            {arena.entry?.state && <Stat label="Arena state" value={show(arena.entry.state)} note={note(arena.entry.state)} />}
+            {arena.entry?.agent_id && <Stat label="Arena agent" value={show(arena.entry.agent_id, (id) => `#${id}`)} note={note(arena.entry.agent_id)} />}
+            {arena.entry?.skins && <Stat label="Skins" value={show(arena.entry.skins)} note={note(arena.entry.skins)} />}
             <Stat label="Rounds played" value={show(arena.record.matches)} note={note(arena.record.matches)} />
             <Stat label="Wins" value={show(arena.record.wins)} note={note(arena.record.wins)} />
             <Stat label="Losses" value={show(arena.record.losses)} note={note(arena.record.losses)} />

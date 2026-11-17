@@ -30,6 +30,8 @@ import {
   ARENA_GUIDE_CHECKED,
   ARENA_GUIDE_SOURCE,
   arenaWatchUrl,
+  ARENA_API_DOCS_SOURCE,
+  ARENA_API_FACTS,
 } from "./arena-canon"
 import { ARENA_CANVAS_RANKS } from "./normies-canon"
 
@@ -132,6 +134,17 @@ describe("mechanics match the official Arena guide and entry page (checked 2026-
     assert.match(g, /arena\.normies\.art\/world\/pixel\?follow=<id>/)
     assert.doesNotMatch(g, /prize|pool\b|payout|winnings|reward|earn #PIXEL|Legendary/i)
     assert.equal(arenaWatchUrl(7141), "https://arena.normies.art/world/pixel?follow=7141")
+  })
+  it("official API facts: states, next-round rule, round statuses, and why NCH shows no PX or standing; no money", () => {
+    const f = ARENA_API_FACTS.join("\n")
+    assert.equal(ARENA_API_DOCS_SOURCE, "https://api.normies.art/llms.txt")
+    assert.match(f, /not registered; active \(plays every free round, and paid rounds while topped up\); short \(sat out a paid round; plays free rounds until topped up\); cleared \(burned and out of the game\)/)
+    assert.match(f, /registered while a round is open plays from the next round/)
+    assert.match(f, /upcoming, open, ended or cancelled/)
+    assert.match(f, /kept by the Arena app, not the official API, so NCH can't show them/)
+    assert.doesNotMatch(f, /prize|pool\b|payout|refund|winnings|balance|\d+ #PIXEL/i)
+    const b = arenaFactsBlock()
+    assert.match(b, /From the official API docs \(https:\/\/api\.normies\.art\/llms\.txt, read 2026-11-17; may change\):/)
   })
   it("the guide's numbers still match NCH's tables: type health and power order, and its head-start rows", () => {
     assert.deepEqual(ARENA_TYPES.map((t) => [t.type, t.health]), [["Zombie", 175], ["Agent", 150], ["Alien", 130], ["Cat", 115], ["Human", 100]])
