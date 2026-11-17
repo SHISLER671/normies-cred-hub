@@ -57,6 +57,12 @@ describe("fetchJsonWithLimits", () => {
     assert.deepEqual(r, { ok: false, status: 404, data: null })
   })
 
+  it("a non-ok response passes on its Retry-After header, for polite backoff", async () => {
+    const { impl } = stub(new Response("slow down", { status: 429, headers: { "retry-after": "120" } }))
+    const r = await fetchJsonWithLimits(URL_, {}, { fetchImpl: impl })
+    assert.deepEqual(r, { ok: false, status: 429, data: null, retryAfter: "120" })
+  })
+
   it("refuses a declared content-length over the cap before reading", async () => {
     const { impl } = stub(new Response("{}", { status: 200, headers: { "content-length": "5000" } }))
     await assert.rejects(fetchJsonWithLimits(URL_, {}, { fetchImpl: impl, maxBytes: 1000 }), ResponseTooLargeError)

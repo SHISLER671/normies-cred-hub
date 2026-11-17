@@ -82,6 +82,17 @@ export const ARENA_GUIDE = [
   "Watch a Normie live: arena.normies.art/world/pixel?follow=<id>",
 ] as const
 
+/** The official API docs (Arena section), read 2026-11-17. */
+export const ARENA_API_DOCS_SOURCE = "https://api.normies.art/llms.txt"
+
+/** Facts from the official API docs' Arena section. No pools, prizes or amounts are copied. */
+export const ARENA_API_FACTS = [
+  "A Normie's Arena state is one of: not registered; active (plays every free round, and paid rounds while topped up); short (sat out a paid round; plays free rounds until topped up); cleared (burned and out of the game)",
+  "A Normie registered while a round is open plays from the next round; a round's players are fixed when it starts",
+  "A round is upcoming, open, ended or cancelled",
+  "Scores inside a round (PX and standing) are kept by the Arena app, not the official API, so NCH can't show them; the watch link shows the Normie live",
+] as const
+
 /** Watch link for one Normie (official Arena guide format). */
 export function arenaWatchUrl(tokenId: number): string {
   return `${ARENA_SITE}/world/pixel?follow=${tokenId}`
@@ -279,6 +290,8 @@ ${ARENA_ENTRY.map((e) => `- ${e}.`).join("\n")}
 - Fee: ${ARENA_FEE_LINE}.
 From ${GUIDE_SRC} (${ARENA_GUIDE_SOURCE}, checked ${ARENA_GUIDE_CHECKED}; may change):
 ${ARENA_GUIDE.map((g) => `- ${g}.`).join("\n")}
+From the official API docs (${ARENA_API_DOCS_SOURCE}, read 2026-11-17; may change):
+${ARENA_API_FACTS.map((g) => `- ${g}.`).join("\n")}
 Type stats (speed compared with a Human; per ${TYPE_SRC}, closed-beta data, may change):
 ${types}
 Head start by Canvas level (Level = floor(#PIXEL attached ÷ 10) + 1; Levels 150 and up share the top head start). ${ARENA_GEAR_LINE}. Official published rows:

@@ -146,6 +146,12 @@ export type ArenaEntry = {
   in_line: Field<boolean>
   /** Place in the line. Pending when not in line or when the official data gives none. */
   line_position: Field<number>
+  /** Official Arena state in plain words (active, short, cleared, not registered). */
+  state?: Field<string>
+  /** ERC-8004 agent this Normie is linked to in the Arena (official `agentId`). */
+  agent_id?: Field<number>
+  /** Skins bought for this Normie: a count, never an amount. */
+  skins?: Field<number>
 }
 
 export type ArenaSector = {

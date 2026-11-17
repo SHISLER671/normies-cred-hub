@@ -16,8 +16,7 @@
 // The API's field names come from live responses: fixtures/arena-normie-7141.json is the 2026-11-17 shape,
 // fixtures/arena-normie-7141-v1.json and arena-normie-4242-not-entered.json the launch-weekend shape (now refused).
 
-import { NORMIES_API_BASE } from "@/constants/contracts"
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout"
+import { arenaGet } from "@/lib/arena-api"
 import { arenaWatchUrl } from "@/lib/arena-canon"
 import { OFFICIAL_STATUS } from "@/lib/official-status"
 
@@ -52,6 +51,25 @@ export type ArenaSnapshot = {
   live_round?: ArenaLiveRound | null
   /** Block the source's answer was indexed at, when given. */
   block: number | null
+  /** Official `state` (llms.txt): unregistered, active, short or cleared. Null when missing or unknown. Optional for other sources. */
+  state?: ArenaState | null
+  /** Official `registeredRound`: the latest round started when it registered (0 before round 1); it plays from the next one. */
+  registered_round?: number | null
+  /** Official `agentId`: the ERC-8004 agent this Normie is linked to in the Arena. */
+  agent_id?: number | null
+  /** Official `skins`: how many skins it has bought (a count, never an amount). */
+  skins?: number | null
+}
+
+export const ARENA_STATES = ["unregistered", "active", "short", "cleared"] as const
+export type ArenaState = (typeof ARENA_STATES)[number]
+
+/** Plain words for each official Normie state (api.normies.art/llms.txt, "## Arena", read 2026-11-17). No amounts. */
+export const ARENA_STATE_TEXT: Record<ArenaState, string> = {
+  unregistered: "Not registered",
+  active: "Active: plays every free round, and paid rounds while topped up",
+  short: "Short: sat out a paid round; plays free rounds until topped up",
+  cleared: "Cleared: burned and out of the game",
 }
 
 /** Why a source couldn't answer. "not_configured" = the official endpoint isn't there (404); anything else = "unavailable". */
@@ -83,6 +101,8 @@ export const NOT_IN_OFFICIAL_DATA = "not in official data"
  * and wins must be whole numbers with wins <= roundsPlayed, lastRound a whole number (or null before any round), and
  * registered and inCurrentRound booleans. Anything else, including the old launch-weekend shape, is refused (null).
  * Fields NCH doesn't show (level, balance, pixelsWon, pixelsCharged, pixelsRefunded, deposited, withdrawn) are not read.
+ * `state`, `registeredRound`, `agentId` and `skins` are read when they have the documented types; otherwise they're
+ * unknown (null) and the rest of the answer still stands.
  */
 export function parseArenaNormie(raw: unknown, tokenId: number): Omit<ArenaSnapshot, "any_round_started"> | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
@@ -108,6 +128,10 @@ export function parseArenaNormie(raw: unknown, tokenId: number): Omit<ArenaSnaps
     wins,
     last_round: lastRound,
     block: r.blockNumber === null || r.blockNumber === undefined ? null : wholeNumber(r.blockNumber),
+    state: typeof r.state === "string" && (ARENA_STATES as readonly string[]).includes(r.state) ? (r.state as ArenaState) : null,
+    registered_round: wholeNumber(r.registeredRound),
+    agent_id: wholeNumber(r.agentId),
+    skins: wholeNumber(r.skins),
   }
 }
 
@@ -146,16 +170,15 @@ export function parseAnyRoundStarted(raw: unknown): boolean | null {
   return (started ?? 0) > 0 || (current ?? 0) > 0
 }
 
+/**
+ * Reads through the polite Arena client (lib/arena-api.ts): allowlisted path, shared 60 s cache, time limit, size cap and
+ * backoff. A network error, a pause or a bad body throws, which the adapter reports as "couldn't read".
+ */
 async function getJson(path: string): Promise<{ status: number; body: unknown }> {
-  // The path is built from a validated token id or is a fixed string; the host is the official API, never from input.
-  const res = await fetchWithTimeout(`${NORMIES_API_BASE}${path}`, { headers: { Accept: "application/json" }, next: { revalidate: 60 } }, TIMEOUT_MS)
-  let body: unknown = null
-  try {
-    body = await res.json()
-  } catch {
-    body = null
-  }
-  return { status: res.status, body }
+  const r = await arenaGet(path)
+  if (r.ok) return { status: r.status, body: r.data }
+  if (r.reason === "http") return { status: r.status, body: null }
+  throw new Error(`arena api ${r.reason}`)
 }
 
 /** The official API adapter. `get` is injectable for tests. */
@@ -274,6 +297,9 @@ export async function loadArenaSector(
     entered: v(snap.entered, "registered, roundsPlayed, inCurrentRound"),
     in_line: pendingField(NOT_IN_OFFICIAL_DATA, asOf, ref),
     line_position: pendingField(NOT_IN_OFFICIAL_DATA, asOf, ref),
+    ...(snap.state !== undefined ? { state: snap.state ? v(ARENA_STATE_TEXT[snap.state], "state") : pendingField<string>("the official data gave no known state", asOf, ref) } : {}),
+    ...(snap.agent_id !== undefined && snap.agent_id !== null ? { agent_id: v(snap.agent_id, "agentId") } : {}),
+    ...(snap.skins !== undefined && snap.skins !== null ? { skins: v(snap.skins, "skins") } : {}),
   }
 
   if (!snap.entered) {
@@ -291,9 +317,11 @@ export async function loadArenaSector(
       snap.any_round_started === false
         ? "No Arena round has started yet, so there's no record"
         : "It hasn't played a round yet, so there's no record"
+    // llms.txt: registeredRound is the latest round started when it registered; it plays from the next one.
+    const from = snap.registered && snap.registered_round !== undefined && snap.registered_round !== null ? ` It plays from Round ${snap.registered_round + 1}.` : ""
     return {
       status: "entered",
-      status_text: `${snap.registered ? "Registered" : "Entered"}. ${rounds}`,
+      status_text: `${snap.registered ? "Registered" : "Entered"}.${from} ${rounds}`,
       entry,
       record: pendingArenaRecord("no rounds played yet", asOf, ref),
       rank: NOT_RANKED,

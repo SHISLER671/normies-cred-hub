@@ -36,6 +36,13 @@ const LIST: Array<[string, string, string]> = [
   // Added 2026-11-17. Verified on Etherscan as NormiesArenaStorage, same deployer; Normies were migrated into it at the
   // launch-weekend migration (block 26421529) and round 1 started on it at Game 1's clock (block 26429543).
   ["0x235403069c8516369eb36d29bb1a498a469ab9f0", "NormiesArenaStorage", "Arena balances, registrations, rounds and results (read-only for NCH)"],
+  // Added 2026-11-17 from the official API docs' contract list (https://api.normies.art/llms.txt, "Pixel Market stack").
+  ["0x821D175F6b1B271bA3c62E63270157e6Ad48018B", "NormiesArena", "Runs Arena rounds (start, end, cancel)"],
+  ["0x5E7A4410375Ce710C04957aa9Ae33467ffD1f9d0", "NormiesArenaQueue", "Arena registering, top-ups and agent links"],
+  ["0x3F298B7b7d5300Aab34a22470b8d1d54b8b30A05", "NormiesArenaSkins", "Arena skin purchases (paid in #PIXEL)"],
+  ["0x6A80F157BFC981098132c344Ee4879f8E8CF1d22", "NormiesArena (retired)", "Launch-weekend Arena v2 rounds; history only"],
+  ["0xEAB672382b3d717F84352C0A63ae264C6A31b903", "NormiesArenaQueue (retired)", "Launch-weekend Arena v2 line and top-ups; history only"],
+  ["0xaF3060dBdb4E789163Babf4AFc3CE1ddAD82a0cB", "NormiesArenaSkins (retired)", "Launch-weekend Arena v2 skin purchases; history only"],
   ["0x00000000000000447e69651d841bD8D104Bed493", "delegate.xyz V2", "Delegation registry (not Normies-run, used by it)"],
   ["0x00000000000076A84feF008CDAbe6409d2FE638B", "delegate.xyz V1", "Delegation registry (not Normies-run, used by it)"],
   ["0xAF8e9BDcF6463EA1f50f8f70ECF13d85a092a1Aa", "Pixel treasury", "Treasury named by the canvas contract (api.normies.art /canvas/status)"],

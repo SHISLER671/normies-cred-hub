@@ -48,6 +48,8 @@ export interface LimitedJson {
   status: number
   /** Parsed body when ok; null otherwise (a non-ok body is never read). */
   data: unknown
+  /** The `Retry-After` header of a non-ok response, when the server sent one (for polite backoff). */
+  retryAfter?: string
 }
 
 /**
@@ -80,7 +82,8 @@ export async function fetchJsonWithLimits(
     const res = await Promise.race([fetchImpl(input, { ...init, signal: controller.signal }), deadline])
     if (!res.ok) {
       await res.body?.cancel().catch(() => {})
-      return { ok: false, status: res.status, data: null }
+      const retryAfter = res.headers.get("retry-after")
+      return retryAfter ? { ok: false, status: res.status, data: null, retryAfter } : { ok: false, status: res.status, data: null }
     }
     const declared = Number(res.headers.get("content-length") || 0)
     if (declared > maxBytes) {

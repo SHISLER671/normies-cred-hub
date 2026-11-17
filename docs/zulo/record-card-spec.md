@@ -64,7 +64,7 @@ Exactly one, checked in this order:
 | `arena_not_live` | `OFFICIAL_STATUS.arena.status !== "LIVE"` (not the case since 2026-11-14; kept so the card fails closed if the status ever changes) | "Arena isn't live, so there's no record" (identity and context still show) |
 | `arena_source_pending` | Arena is live but the official Arena data couldn't be read (404, a failed or malformed read) | "Arena data is unavailable right now" |
 | `stale` | The record's `as_of` is past its stale limit (§5) | "Record out of date, refreshing" |
-| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, registered or entered, or building a record | "Not entered in Arena" / "Registered. It hasn't played a round yet, so there's no record" / "Building a record: X rounds played" / "Playing Round N now: X rounds counted so far" (while the round it last played is open per `GET /arena/status`; wins is then labelled `round in progress`) |
+| `unranked` | Arena is live, but the minimum sample (§4) isn't met. The text comes from the Arena sector's own status: not entered, registered or entered, or building a record | "Not entered in Arena" / "Registered. It plays from Round N. It hasn't played a round yet, so there's no record" (N = `registeredRound` + 1) / "Building a record: X rounds played" / "Playing Round N now: X rounds counted so far" (while the round it last played is open per `GET /arena/status`; wins is then labelled `round in progress`) |
 | `ranked` | Arena is live, the sample is met, and every ranked input is `verified` and fresh | "Verified record" |
 
 Today every awakened Normie's card is `arena_not_live`.
@@ -115,6 +115,8 @@ type Field<T> = {
 | `sectors.arena.record.losses` | none | pending: the official data doesn't publish losses |
 | `sectors.arena.record.pixels_net` | none used | pending: NCH doesn't show Arena #PIXEL amounts (the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
 | `sectors.arena.record.last_match_at` | `lastRound` is a round number, not a time | pending |
+
+`sectors.arena.entry.state` (official `state` in plain words: active, short, cleared, not registered), `entry.agent_id` (official `agentId`) and `entry.skins` (a count): verified, from `GET /arena/normie/{id}`, when the official data gives them. Every Arena read goes through `lib/arena-api.ts` (allowlisted paths, a shared 60 s cache, backoff on 429/503 and on repeated failures).
 
 `sectors.arena.watch_url`: the official watch link (`arena.normies.art/world/pixel?follow=<id>`, per the official Arena guide), set once a Normie is entered or has played.
 
