@@ -120,6 +120,19 @@ type Field<T> = {
 
 `sectors.arena.profile_url`: the Normie's life page on the Arena site (`arena.normies.art/world/normie/<id>`), once entered. `sectors.arena.skin_image_url`: its Arena skin (`arena.normies.art/api/world/skin/png?id=<id>`, the Arena app's own image route, not in the API docs), only when the official API counts at least one skin; the viewer's browser loads it and the page hides it if it fails. The skin's price is never shown.
 
+`sectors.arena.round_history` (optional, added 2026-11-17, Claude; `lib/record-card/arena-rounds.ts`): the Normie's rounds from `GET /arena/normie/{id}/rounds`, read only for an entered Normie whose Arena state was read.
+
+| Field | Meaning |
+|---|---|
+| `status` | `ok` (rounds listed), `empty` (the official list has no rounds), `not_found` (404: no list for this Normie), `unavailable` (couldn't read it). The four are never merged |
+| `status_text` | The same in plain words |
+| `rounds[]` | Newest first, sorted by NCH by round number (the list's own order isn't trusted). Each: `round`, `state` (`in_progress`, `ended`, `cancelled`, `not_started`, `unreadable`), `played` (official `played`, null when unreadable), `text`, `date` (official `timestamp` as ISO-8601 UTC, or null) |
+| `totals` | Raw counts that add up to `listed`: `played` and `did_not_play` (finished rounds only), `in_progress`, `cancelled`, `not_started`, `unreadable`. Null when the list wasn't read |
+| `complete` | False when the official data had more rounds than NCH reads (at most `max_pages` = 2 pages, paged by `offset`) |
+| `source`, `as_of` | "Official Arena data (api.normies.art)", the route, and when NCH read it |
+
+Round texts: an open round is "Round in progress" (never an ending, never a win); a finished round is "Played" or "Did not play"; "Round cancelled" and "Not started yet" follow the official status. Any status other than `open`, `upcoming`, `ended` or `cancelled`, or a `played` that isn't true/false, is "Couldn't read this round". There is no per-round win: `payoutOrder`, `prize` and `refund` are never read and nothing is inferred from them; total wins still come only from `wins` on `GET /arena/normie/{id}`. No amounts (`charged`, `prize`, `refund`, `pool`) are read. If any page can't be read the whole block is `unavailable`, and the API route then answers `Cache-Control: no-store`. Seen in real data so far: one round, status `open` (fixture `arena-normie-7141-rounds.json`); `ended`, `cancelled`, `played: false` and a second page are covered by synthetic tests only.
+
 `sectors.arena.watch_url`: the official watch link (`arena.normies.art/world/pixel?follow=<id>`, per the official Arena guide), set once a Normie is entered or has played.
 
 Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (entered, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds, 5 opponents and 14 days; the official data has no opponent list yet, so nothing is ranked.
