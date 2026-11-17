@@ -1,4 +1,4 @@
-# Scope: Arena skin keeps its true proportions on the record card (Claude, 2026-11-17). Replaces the Arena profile/skin contract (#207/#208, merged).
+# Scope: Arena round history on the record card: read /arena/normie/{id}/rounds, show it on /record/{id} and as an additive API field; scrub wallet addresses and tx hashes from the Arena test fixtures (Claude, 2026-11-17). Replaces the Arena skin aspect contract (#209/#210).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -7,4 +7,17 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-components/arena-skin.tsx
+app/api/zulo/record-card/[tokenId]/route.ts
+app/record/[tokenId]/page.tsx
+components/arena-round-history.tsx
+docs/zulo/record-card-spec.md
+lib/record-card/arena-rounds.test.ts
+lib/record-card/arena-rounds.ts
+lib/record-card/arena.test.ts
+lib/record-card/arena.ts
+lib/record-card/build.test.ts
+lib/record-card/build.ts
+lib/record-card/fixtures/
+lib/record-card/load.ts
+lib/record-card/types.ts
+package.json
