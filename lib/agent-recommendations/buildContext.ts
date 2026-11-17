@@ -5,6 +5,7 @@ import { NORMIES_API_BASE } from "@/constants/contracts"
 import { getAgentPulse } from "@/lib/api/agent-pulse"
 import { chatRatingsLine } from "@/lib/chat-ratings/format"
 import { recordCardLine } from "@/lib/record-card/ask-line"
+import { loadArenaSector } from "@/lib/record-card/arena"
 import { siteOrigin } from "@/lib/site-origin"
 import { buildPulseSummary, derivePulseGaps } from "@/lib/erc8257/context"
 import { fetchJsonWithLimits, fetchWithTimeout } from "@/lib/fetch-with-timeout"
@@ -27,6 +28,7 @@ import {
 } from "./loadKnowledge"
 import { getPixelCurrencyContextSummary } from "@/lib/knowledge/pixel-currency"
 import { estimateBurnApFromPixels, levelFromActionPoints } from "./normiesKnowledge"
+import { loadAskArenaReads } from "./arenaFacts"
 import { parseNormieTokenIdsFromText } from "./parseTokenIds"
 import { buildStrategySnapshot } from "./strategy"
 import { analyzeTraitCombo } from "./traitAnalysis"
@@ -490,6 +492,7 @@ export async function buildZuloContext(
     zuloCanvasInfo,
     pixelCount,
     mentionedNormies,
+    arenaReads,
   ] = await Promise.all([
     isGeneralMode
       ? Promise.resolve(null)
@@ -524,6 +527,9 @@ export async function buildZuloContext(
     snapshotIds.length > 0
       ? Promise.all(snapshotIds.map((id) => fetchMentionedNormieSnapshot(id)))
       : Promise.resolve([] as MentionedNormieSnapshot[]),
+    // Official Arena data for the first Normies named in the question, from the record card's cached reader. In
+    // parallel with everything else and time-limited, so the context build is never slower for it.
+    loadAskArenaReads(mentionedTokenIds, { load: (id, asOf) => loadArenaSector(id, asOf) }),
   ])
 
   let pulse: CredHubPulseData | undefined
@@ -971,6 +977,7 @@ export async function buildZuloContext(
       currentTime: now,
       subjectScope,
       mentionedNormies,
+      ...(arenaReads.length > 0 ? { arenaReads } : {}),
       recentMarketTrends: buildMarketTrends(historyStats),
       nextSteps,
       rarityRank,

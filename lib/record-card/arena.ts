@@ -345,7 +345,7 @@ export async function loadArenaSector(
       rank: NOT_RANKED,
       watch_url: arenaWatchUrl(tokenId),
       ...arenaLinks(tokenId, snap),
-    ...roundHistory,
+      ...roundHistory,
     }
   }
 
