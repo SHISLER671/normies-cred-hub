@@ -1,4 +1,4 @@
-# Scope: read the whole Arena API politely, from the official llms.txt (Claude, 2026-11-17). Replaces the round-in-progress contract (#203/#204, merged).
+# Scope: Arena life-page link + skin image on the record card (Claude, 2026-11-17). Replaces the polite Arena API contract (#205/#206, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -8,16 +8,11 @@
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
 app/record/[tokenId]/page.tsx
+components/arena-skin.tsx
 docs/zulo/record-card-spec.md
-lib/arena-api.test.ts
-lib/arena-api.ts
 lib/arena-canon.test.ts
 lib/arena-canon.ts
-lib/fetch-with-timeout.test.ts
-lib/fetch-with-timeout.ts
-lib/official-contracts.test.ts
-lib/official-contracts.ts
 lib/record-card/arena.test.ts
 lib/record-card/arena.ts
 lib/record-card/types.ts
-package.json
+next.config.mjs
