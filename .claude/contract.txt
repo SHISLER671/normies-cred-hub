@@ -1,4 +1,4 @@
-# Scope: sync Arena canon + Ask Zulo to the official Arena guide (Claude, 2026-11-17). Replaces the Arena post-migration contract (#199/#200, merged).
+# Scope: Arena 'Playing Round N now' + 'opt-in is open' wording (Claude, 2026-11-17). Replaces the Arena guide sync contract (#201/#202, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -8,25 +8,14 @@
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
 app/record/[tokenId]/page.tsx
-components/evolution-track.tsx
-components/home-future-plans.tsx
 docs/zulo/record-card-spec.md
-docs/zulo/strategy.md
 docs/zulo/thesis-lock.md
-lib/agent-recommendations/ask-facts.test.ts
-lib/agent-recommendations/composePrompt.ts
 lib/agent-recommendations/knowledge/collab-rails-and-ask-patterns.md
 lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md
 lib/agent-recommendations/loadKnowledge.ts
-lib/agent-recommendations/normiesKnowledge.ts
-lib/agent-recommendations/selfAwareness.ts
-lib/arena-canon.test.ts
-lib/arena-canon.ts
-lib/burn-buy/narrate.test.ts
-lib/burn-buy/narrate.ts
 lib/official-status.test.ts
 lib/official-status.ts
 lib/record-card/arena.test.ts
 lib/record-card/arena.ts
-lib/record-card/ask-line.ts
+lib/record-card/fixtures/arena-status-round1-open.json
 lib/record-card/types.ts
