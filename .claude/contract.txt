@@ -1,4 +1,4 @@
-# Scope: Ask Zulo reads the Arena for a named Normie: its Arena state, status line, rounds played, wins and round list, from the record card's cached readers, with source and as-of time (Claude, 2026-11-17). Replaces the Arena round history contract (#211/#212, merged).
+# Scope: Arena wallet view: a wallet address or ENS name in, that wallet's Normies in the Arena out (state and status line, each linking to its record card), on a new /arena page with a rate-limited read-only API route (Claude, 2026-11-17). Replaces the Ask Zulo Arena contract (#214/#215).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -7,15 +7,8 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-docs/zulo/ask.md
-lib/agent-recommendations/arenaFacts.test.ts
-lib/agent-recommendations/arenaFacts.ts
-lib/agent-recommendations/ask-facts.test.ts
-lib/agent-recommendations/ask-v2.test.ts
-lib/agent-recommendations/buildContext.ts
-lib/agent-recommendations/composePrompt.ts
-lib/agent-recommendations/time-budget.test.ts
-lib/agent-recommendations/types.ts
-lib/canon-drift.test.ts
-lib/record-card/arena.ts
+app/api/arena-wallet/route.ts
+app/arena/page.tsx
+app/sitemap.ts
+lib/arena-wallet/
 package.json
