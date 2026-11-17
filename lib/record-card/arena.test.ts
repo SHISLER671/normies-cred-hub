@@ -102,11 +102,11 @@ describe("live data: Zulo after the migration", () => {
     for (const n of ["987654", "876543", "765432", "654321", "543210", "432109", "321098"]) assert.equal(json.includes(n), false, n)
     assert.doesNotMatch(json, /pixelsWon|pixelsCharged|pixelsRefunded|balance|deposited|withdrawn|"level"/)
   })
-  it("ranking is off until 10 rounds, 5 opponents and 14 days: even 50 rounds stays unranked without opponent data", async () => {
-    assert.deepEqual(ARENA_RANK_MINIMUM, { rounds: 10, opponents: 5, days: 14 })
+  it("the one ranking minimum is 10 rounds and 14 days since the first round (no opponents rule); the card itself never ranks", async () => {
+    assert.deepEqual(ARENA_RANK_MINIMUM, { rounds: 10, days: 14 })
     const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...ZULO, roundsPlayed: 50, wins: 40, lastRound: 50 }) })
     assert.equal(sector.status, "unranked")
-    assert.deepEqual(sector.rank, { ranked: false, score: null, reason: "Ranking is off until 10 rounds, 5 opponents and 14 days of official results" })
+    assert.deepEqual(sector.rank, { ranked: false, score: null, reason: "Ranking is off until 10 rounds and 14 days since its first round, from official results" })
   })
   it("a burned Normie (synthetic burned=true) is read the same way: the parser doesn't use the flag and invents nothing from it", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...ZULO, burned: true }) })

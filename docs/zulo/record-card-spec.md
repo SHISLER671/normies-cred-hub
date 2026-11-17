@@ -135,7 +135,7 @@ Round texts: an open round is "Round in progress" (never an ending, never a win)
 
 `sectors.arena.watch_url`: the official watch link (`arena.normies.art/world/pixel?follow=<id>`, per the official Arena guide), set once a Normie is entered or has played.
 
-Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (entered, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds, 5 opponents and 14 days; the official data has no opponent list yet, so nothing is ranked.
+Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (entered, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds and 14 days since the Normie's first round (`ARENA_RANK_MINIMUM` in `lib/record-card/arena.ts`, the one minimum, also used by the Arena rank page; changed 2026-11-17, Ryan: the opponents rule was dropped because the official data has no opponent counts). The card itself never ranks; ranks are shown on `/arena/rank`.
 
 The table below is the original pre-launch proposal, kept for the fields not built yet. Field names there are **proposed**. `docs/zulo/strategy.md` Phase 1 lists "rounds, survival, PIXEL earned, duels won", and the brief for this spec lists wins, losses and pixels stolen. Both sets are kept here until the official vocabulary is known (see open questions).
 
@@ -182,6 +182,8 @@ No record field may come from `self_reported` or `chat_rating`. If the official 
 **Outside signals** (Ethos, AgentCheck in `lib/api/ethos.ts` and `lib/api/agentcheck.ts`) describe the owner's wallet, not the Normie's record. They stay out of the card in v1.
 
 ## 4. Arena sector rank: gate and minimum sample (proposed numbers, tune later)
+
+**Current rule (Ryan, 2026-11-17), which replaces items 2 to 4 and the score below:** the minimum is **10 rounds played and 14 days since the Normie's first round** (from its round history dates), both in `ARENA_RANK_MINIMUM` (`lib/record-card/arena.ts`), the only minimum in the code. There is no opponents rule: the official data has no opponent counts. Rank order, for Normies past the minimum and the Pulse gate: **win rate (wins ÷ rounds played); ties go to more rounds played**; raw wins and rounds beside every rank. Not total wins first, since that rewards playing more paid rounds. Step 1 (`/arena/rank`, `lib/arena-rank/`) lists agents and applies the minimum but ranks nobody; the gate results come from a cron-filled table in step 2. The older proposal is kept below for history.
 
 A card gets an Arena sector rank only if **all** of these are true:
 
@@ -274,7 +276,7 @@ Identity and context are real reads of Zulo (#7141) from api.normies.art on 2026
 4. Can non-awakened Normies or Zombies fight? If they can, do they get a card? (Thesis lock open question 5.)
 5. Does the record reset when the token changes hands? (Proposed: no. Show `owner_since`.)
 6. ~~Should a verified Arena record ever move `pulse_level`?~~ Answered (Ryan, 2026-10-18): yes, only as proof of verified activity, never win count (§7).
-7. Are 10 matches, 5 opponents and 14 days the right minimums? Revisit after the first two weeks of real Arena data.
+7. Are 10 matches, 5 opponents and 14 days the right minimums? Revisit after the first two weeks of real Arena data. (Answered 2026-11-17: 10 rounds and 14 days since the first round; no opponents rule. See §4.)
 8. ~~Pulse gate: trust signals or a level number?~~ Decided (Ryan, 2026-10-18): trust signals (§4 item 0).
 9. Tools/utility sector: what is its verified source? ERC-8257 registrations are on-chain, but usage counts are measured by NCH itself. Needs its own spec before any rank.
 

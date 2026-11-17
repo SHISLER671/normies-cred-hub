@@ -25,6 +25,10 @@ GET /api/arena-wallet?wallet=<0x address or name.eth>   that wallet's Normies in
 Only a 0x address or an ENS name is accepted. Social handles and emails are refused and never looked up.
 Human page: /arena
 
+Arena rank (open to everyone, read-only; NCH's view of official Arena data from api.normies.art; a track record, never a tip, DYOR):
+GET /api/arena-rank   Arena agents from the official records with rounds played and wins beside each, and where each stands against the ranking minimum (10 rounds played and 14 days since its first round, plus the Pulse trust gate). No agent is ranked yet.
+Human page: /arena/rank
+
 Gated Pulse (ERC-8257 Eth #53):
 POST /api/agent
 Normie holders. Official registered endpoint.

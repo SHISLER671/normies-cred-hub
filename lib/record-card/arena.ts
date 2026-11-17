@@ -7,7 +7,8 @@
 //     official data says so) or "Entered", with no record.
 //   - Since the launch-weekend contract migration (block 26421529) the API gives no line, queue position or needs-funds flag. Those fields are
 //     pending ("not in official data"), never inferred from `state` or `inCurrentRound`.
-//   - Ranking stays off until the minimum sample is met (ARENA_RANK_MINIMUM), and that needs data the API doesn't publish yet.
+//   - Ranking stays off until the minimum sample is met (ARENA_RANK_MINIMUM: rounds played, and days since the first round).
+//     The card itself never ranks: ranks are shown on the Arena rank page (lib/arena-rank/), which imports the same minimum.
 //   - No #PIXEL amounts: the API reports pixels won, charged and refunded, but NCH doesn't show or net them (AGENTS.md
 //     "Numbers yes, promises never"; nothing about prizes, pools, payouts or winnings).
 //   - If Arena's status in lib/official-status.ts is ever not LIVE, nothing is called and every field is pending.
@@ -25,9 +26,13 @@ import { OFFICIAL_STATUS } from "@/lib/official-status"
 import { type ArenaRoundsRead, buildArenaRoundHistory, readArenaRounds } from "./arena-rounds"
 import type { ArenaEntry, ArenaRecord, ArenaRoundHistory, ArenaSector, Field } from "./types"
 
-/** Ranking is off until all three hold. Opponent counts aren't in the official API yet, so no Normie is ranked today. */
-export const ARENA_RANK_MINIMUM = { rounds: 10, opponents: 5, days: 14 } as const
-export const ARENA_RANK_OFF_REASON = `Ranking is off until ${ARENA_RANK_MINIMUM.rounds} rounds, ${ARENA_RANK_MINIMUM.opponents} opponents and ${ARENA_RANK_MINIMUM.days} days of official results`
+/**
+ * The one ranking minimum (Ryan, 2026-11-17), used by the record card and the Arena rank page: this many rounds played
+ * AND this many days since the Normie's first round. Both come from official data. The old "5 opponents" rule is gone:
+ * the official data has no opponent counts. Never define a second minimum anywhere.
+ */
+export const ARENA_RANK_MINIMUM = { rounds: 10, days: 14 } as const
+export const ARENA_RANK_OFF_REASON = `Ranking is off until ${ARENA_RANK_MINIMUM.rounds} rounds and ${ARENA_RANK_MINIMUM.days} days since its first round, from official results`
 
 export const ARENA_NORMIE_REF = (tokenId: number) => `GET /arena/normie/${tokenId}`
 const TIMEOUT_MS = 8_000
