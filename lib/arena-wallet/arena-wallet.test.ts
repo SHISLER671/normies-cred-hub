@@ -110,11 +110,12 @@ describe("parseArenaHolder is strict", () => {
     assert.deepEqual(parseArenaHolder(HOLDER, WALLET), {
       address: WALLET,
       counts: { registered: 1, active: 1, short: 0 },
+      countsMatch: true,
       normies: [{ tokenId: 7141, state: "active", registered: true, registeredRound: 0, roundsPlayed: 1, wins: 0, lastRound: 1 }],
     })
   })
   it("the real empty wallet: no Normies", () => {
-    assert.deepEqual(parseArenaHolder(EMPTY, EMPTY_WALLET), { address: EMPTY_WALLET, counts: { registered: 0, active: 0, short: 0 }, normies: [] })
+    assert.deepEqual(parseArenaHolder(EMPTY, EMPTY_WALLET), { address: EMPTY_WALLET, counts: { registered: 0, active: 0, short: 0 }, countsMatch: true, normies: [] })
   })
   it("the wallet asked for may be mixed case; the answer must be for that wallet", () => {
     assert.ok(parseArenaHolder({ ...EMPTY, address: "0x000000000000000000000000000000000000dead" }, "0x000000000000000000000000000000000000dEaD"))
@@ -131,12 +132,16 @@ describe("parseArenaHolder is strict", () => {
       assert.equal(parseArenaHolder(row(over), WALLET), null, JSON.stringify(over))
     }
   })
-  it("refuses a Normie listed twice, and counts that don't match the list", () => {
+  it("refuses a Normie listed twice", () => {
     assert.equal(parseArenaHolder({ ...HOLDER, registered: 2, active: 2, normies: [HOLDER.normies[0], HOLDER.normies[0]] }, WALLET), null)
-    assert.equal(parseArenaHolder({ ...HOLDER, registered: 2 }, WALLET), null)
-    assert.equal(parseArenaHolder({ ...HOLDER, active: 0 }, WALLET), null)
-    assert.equal(parseArenaHolder({ ...HOLDER, short: 1 }, WALLET), null)
-    assert.equal(parseArenaHolder({ ...EMPTY, registered: 1 }, EMPTY_WALLET), null)
+  })
+  it("counts that don't match the list are not refused: the list stands and the mismatch is flagged", () => {
+    for (const over of [{ registered: 2 }, { active: 0 }, { short: 1 }]) {
+      const parsed = parseArenaHolder({ ...HOLDER, ...over }, WALLET)
+      assert.equal(parsed?.countsMatch, false, JSON.stringify(over))
+      assert.deepEqual(parsed?.normies.map((n) => n.tokenId), [7141])
+    }
+    assert.equal(parseArenaHolder({ ...EMPTY, registered: 1 }, EMPTY_WALLET)?.countsMatch, false)
   })
   it("numbers may be whole numbers or digit strings; the list is sorted by Normie number", () => {
     const two = { ...HOLDER, registered: "2", active: "2", normies: [HOLDER.normies[0], { ...HOLDER.normies[0], tokenId: 42, roundsPlayed: "1", wins: "0", lastRound: "1" }] }
@@ -158,7 +163,7 @@ describe("five different answers, and only 'couldn't read' is uncached", () => {
   })
   it("empty wallet, real holder, bad address, name that doesn't resolve, ENS that couldn't be read", async () => {
     const r = await run()
-    assert.deepEqual(r.empty, { kind: "empty", wallet: { address: EMPTY_WALLET, ens: null }, as_of: NOW })
+    assert.deepEqual(r.empty, { kind: "empty", wallet: { address: EMPTY_WALLET, ens: null }, as_of: NOW, counts_match: true })
     assert.equal(r.holder.kind, "ok")
     assert.deepEqual(r.bad, { kind: "bad_input" })
     assert.deepEqual(r.noName, { kind: "ens_not_found" })
@@ -185,7 +190,7 @@ describe("five different answers, and only 'couldn't read' is uncached", () => {
     }
   })
   it("the Arena couldn't be read: also its own answer, also uncached, never 'empty'", async () => {
-    for (const reply of ["throws", { status: 500, body: null }, { status: 429, body: null }, ok({ normies: "nope" }), ok({ ...EMPTY, address: WALLET, registered: 3 })] as Reply[]) {
+    for (const reply of ["throws", { status: 500, body: null }, { status: 429, body: null }, ok({ normies: "nope" }), ok({ ...HOLDER, normies: [{ ...HOLDER.normies[0], state: "winning" }] })] as Reply[]) {
       const r = await loadArenaWallet(WALLET, deps({ [HOLDER_PATH]: reply, "/arena/status": ok(STATUS_OPEN) }).d)
       assert.deepEqual(r, { kind: "unavailable", what: "arena" })
       assert.equal(arenaWalletCacheControl(r), "no-store")
@@ -240,6 +245,44 @@ describe("the real holder's answer", () => {
     await loadArenaWallet(WALLET, s.d)
     assert.deepEqual(s.asked.sort(), [HOLDER_PATH, "/arena/status"].sort())
     for (const p of s.asked) assert.ok(resolveArenaPath(p), p)
+  })
+})
+
+describe("official totals that don't match the list", () => {
+  /** Synthetic: the real holder plus a second Normie that is short, with one total (active) that doesn't match. */
+  const SHORT_ROW = { ...HOLDER.normies[0], tokenId: "42", state: "short", stateCode: 2, roundsPlayed: 2, lastRound: 2, wins: 1 }
+  const two = (over: Record<string, unknown>) => ({ ...HOLDER, registered: 2, active: 1, short: 1, normies: [HOLDER.normies[0], SHORT_ROW], ...over })
+  it("matching totals with a short Normie: no caption", async () => {
+    const r = await loadArenaWallet(WALLET, deps({ ...arena, [HOLDER_PATH]: ok(two({})) }).d)
+    assert.ok(r.kind === "ok")
+    assert.equal(r.counts_match, true)
+    assert.deepEqual(r.counts, { listed: 2, registered: 2, active: 1, short: 1 })
+    assert.deepEqual(r.normies.map((n) => [n.token_id, n.state, n.state_text]), [
+      [42, "short", "Short: sat out a paid round; plays free rounds until topped up"],
+      [7141, "active", "Active: plays every free round, and paid rounds while topped up"],
+    ])
+    assert.ok(!("note" in arenaWalletResponse(r).body))
+  })
+  it("one mismatched total: the list is shown anyway, with the caption, and it is still a cached ok", async () => {
+    const r = await loadArenaWallet(WALLET, deps({ ...arena, [HOLDER_PATH]: ok(two({ active: 2 })) }).d)
+    assert.ok(r.kind === "ok")
+    assert.equal(r.counts_match, false)
+    assert.deepEqual(r.normies.map((n) => n.token_id), [42, 7141])
+    assert.deepEqual(r.counts, { listed: 2, registered: 2, active: 2, short: 1 }, "the official totals are shown as given")
+    const res = arenaWalletResponse(r)
+    assert.equal(res.status, 200)
+    assert.equal(res.body.counts_match, false)
+    assert.equal(res.body.note, "The official totals for this wallet don't match the list; showing the list.")
+    assert.match(res.cacheControl, /s-maxage=60/)
+  })
+  it("the other strict checks still refuse the response", async () => {
+    for (const bad of [two({ normies: [HOLDER.normies[0], { ...SHORT_ROW, tokenId: "7141" }] }), two({ normies: [HOLDER.normies[0], { ...SHORT_ROW, state: "paused" }] }), two({ normies: [HOLDER.normies[0], { ...SHORT_ROW, tokenId: 10000 }] })]) {
+      assert.deepEqual(await loadArenaWallet(WALLET, deps({ ...arena, [HOLDER_PATH]: ok(bad) }).d), { kind: "unavailable", what: "arena" })
+    }
+  })
+  it("the page shows the caption only on a mismatch", () => {
+    const page = readFileSync("app/arena/page.tsx", "utf8")
+    assert.ok(page.includes('{result.counts_match ? "" : ` ${ARENA_WALLET_COUNTS_NOTE}`}'))
   })
 })
 

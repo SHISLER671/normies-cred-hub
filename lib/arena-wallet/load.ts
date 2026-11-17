@@ -85,10 +85,10 @@ export async function loadArenaWallet(raw: string | null | undefined, deps: Aren
   if (holderRead.status !== 200) return { kind: "unavailable", what: "arena" }
   const holder = parseArenaHolder(holderRead.body, address)
   if (!holder) return { kind: "unavailable", what: "arena" }
-  if (holder.normies.length === 0) return { kind: "empty", wallet, as_of: asOf }
+  if (holder.normies.length === 0) return { kind: "empty", wallet, as_of: asOf, counts_match: holder.countsMatch }
 
   // A failed status read leaves the round unknown; it never fails the list.
   const statusBody = statusRead && statusRead.status === 200 ? statusRead.body : null
   const ctx: ArenaRoundContext = { live: parseArenaLiveRound(statusBody), anyRoundStarted: parseAnyRoundStarted(statusBody) }
-  return { kind: "ok", wallet, as_of: asOf, normies: arenaWalletRows(holder, ctx), counts: { listed: holder.normies.length, ...holder.counts } }
+  return { kind: "ok", wallet, as_of: asOf, normies: arenaWalletRows(holder, ctx), counts: { listed: holder.normies.length, ...holder.counts }, counts_match: holder.countsMatch }
 }

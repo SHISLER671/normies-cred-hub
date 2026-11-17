@@ -3,7 +3,7 @@ import { headers } from "next/headers"
 
 import { SiteFooter } from "@/components/site-footer"
 import { ZuloChromeHeader } from "@/components/zulo-chrome-header"
-import { ARENA_WALLET_SOURCE_LABEL, arenaWalletText, walletLabel, type ArenaWalletResult } from "@/lib/arena-wallet/core"
+import { ARENA_WALLET_COUNTS_NOTE, ARENA_WALLET_SOURCE_LABEL, arenaWalletText, walletLabel, type ArenaWalletResult } from "@/lib/arena-wallet/core"
 import { loadArenaWallet } from "@/lib/arena-wallet/load"
 import { ARENA_SITE, ARENA_STATUS_LINE } from "@/lib/official-status"
 import { checkRateLimitById, clientIdFromHeaders } from "@/lib/ratelimit"
@@ -78,6 +78,7 @@ export default async function ArenaWalletPage({ searchParams }: { searchParams: 
             <p className="burn-box burn-small" data-tag="Result">
               {label ? <><span className="mono">{label}</span>: </> : null}
               {arenaWalletText(result)}.
+              {result.kind === "empty" && !result.counts_match ? ` ${ARENA_WALLET_COUNTS_NOTE}` : ""}
               {known ? ` Source: ${ARENA_WALLET_SOURCE_LABEL}, as of ${utcTime(known.as_of)}.` : ""}
             </p>
           )}
@@ -103,7 +104,8 @@ export default async function ArenaWalletPage({ searchParams }: { searchParams: 
                 </tbody>
               </table>
               <p className="burn-small">
-                Raw counts: {result.counts.listed} listed · {result.counts.registered} registered · {result.counts.active} active · {result.counts.short} short.
+                Raw counts: {result.counts.listed} listed · official totals: {result.counts.registered} registered · {result.counts.active} active · {result.counts.short} short.
+                {result.counts_match ? "" : ` ${ARENA_WALLET_COUNTS_NOTE}`}{" "}
                 Each Normie links to its record card. Source: {ARENA_WALLET_SOURCE_LABEL}, as of {utcTime(result.as_of)}.
               </p>
             </div>

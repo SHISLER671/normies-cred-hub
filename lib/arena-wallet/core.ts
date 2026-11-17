@@ -18,6 +18,8 @@ import { ARENA_STATES, ARENA_STATE_TEXT, type ArenaLiveRound, type ArenaState } 
 export const ARENA_WALLET_SOURCE_LABEL = "Official Arena data (api.normies.art)"
 export const ARENA_WALLET_REF = "GET /arena/holder/{address}"
 export const ARENA_WALLET_EMPTY_TEXT = "No Normies from this wallet in the Arena"
+/** Shown when the API's own totals for the wallet differ from the list it gave. The list is still shown. */
+export const ARENA_WALLET_COUNTS_NOTE = "The official totals for this wallet don't match the list; showing the list."
 /** Shared cache for an answer that was read. "Couldn't read" is never cached. */
 export const ARENA_WALLET_CACHE_SECONDS = 60
 
@@ -61,8 +63,10 @@ export type HolderNormie = {
 export type ArenaHolder = {
   /** Lower-cased. */
   address: string
-  /** The API's own counts for this wallet. Checked against the list. */
+  /** The API's own counts for this wallet, as given. */
   counts: { registered: number; active: number; short: number }
+  /** Whether those counts match the list (rows registered, rows active, rows short). A mismatch is reported, not refused. */
+  countsMatch: boolean
   /** Sorted by Normie number. */
   normies: HolderNormie[]
 }
@@ -90,8 +94,8 @@ function parseHolderNormie(raw: unknown, address: string): HolderNormie | null {
  * Parse `GET /arena/holder/{address}`. Strict: `address` must be the wallet asked for; `registered`, `active` and `short`
  * must be whole numbers; `normies` must be a list whose rows each have a Normie number (0-9999), a known state, a
  * boolean `registered`, this wallet as `owner`, and whole-number rounds and wins (wins <= rounds). No Normie may appear
- * twice, and the three counts must match the list. Anything else is refused (null). `balance`, `pixelsWon` and every
- * other amount field are never read.
+ * twice. Anything else is refused (null). Counts that don't match the list are not refused: the list stands and
+ * `countsMatch` is false. `balance`, `pixelsWon` and every other amount field are never read.
  */
 export function parseArenaHolder(raw: unknown, address: string): ArenaHolder | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
@@ -111,11 +115,12 @@ export function parseArenaHolder(raw: unknown, address: string): ArenaHolder | n
     seen.add(n.tokenId)
     normies.push(n)
   }
-  if (normies.filter((n) => n.registered).length !== registered) return null
-  if (normies.filter((n) => n.state === "active").length !== active) return null
-  if (normies.filter((n) => n.state === "short").length !== short) return null
+  const countsMatch =
+    normies.filter((n) => n.registered).length === registered &&
+    normies.filter((n) => n.state === "active").length === active &&
+    normies.filter((n) => n.state === "short").length === short
   normies.sort((a, b) => a.tokenId - b.tokenId)
-  return { address: wanted, counts: { registered, active, short }, normies }
+  return { address: wanted, counts: { registered, active, short }, countsMatch, normies }
 }
 
 /** What `GET /arena/status` said, when it could be read. Both null = unknown. */
@@ -149,8 +154,17 @@ export type ArenaWalletResult =
   | { kind: "ens_not_found" }
   | { kind: "unavailable"; what: "ens" | "arena" }
   | { kind: "not_found"; wallet: Wallet; as_of: string }
-  | { kind: "empty"; wallet: Wallet; as_of: string }
-  | { kind: "ok"; wallet: Wallet; as_of: string; normies: ArenaWalletRow[]; counts: { listed: number; registered: number; active: number; short: number } }
+  | { kind: "empty"; wallet: Wallet; as_of: string; counts_match: boolean }
+  | {
+      kind: "ok"
+      wallet: Wallet
+      as_of: string
+      normies: ArenaWalletRow[]
+      /** `listed` is NCH's count of the rows; the other three are the API's own totals, as given. */
+      counts: { listed: number; registered: number; active: number; short: number }
+      /** False when the API's totals differ from the list. The list is shown either way. */
+      counts_match: boolean
+    }
 
 export function arenaWalletRows(holder: ArenaHolder, ctx: ArenaRoundContext): ArenaWalletRow[] {
   return holder.normies.map((n) => ({
@@ -209,8 +223,9 @@ export function arenaWalletResponse(result: ArenaWalletResult): { status: number
   if (result.kind === "unavailable") return { status, body: { ...base, could_not_read: result.what }, cacheControl }
   const wallet = { address: result.wallet.address, short: shortenAddress(result.wallet.address, 4), ens: result.wallet.ens }
   const source = { kind: "official_api", label: ARENA_WALLET_SOURCE_LABEL, ref: ARENA_WALLET_REF }
+  const note = result.kind !== "not_found" && !result.counts_match ? { counts_match: false, note: ARENA_WALLET_COUNTS_NOTE } : {}
   if (result.kind === "ok") {
-    return { status, body: { ...base, wallet, normies: result.normies, counts: result.counts, source, as_of: result.as_of }, cacheControl }
+    return { status, body: { ...base, wallet, normies: result.normies, counts: result.counts, ...note, source, as_of: result.as_of }, cacheControl }
   }
-  return { status, body: { ...base, wallet, normies: [], source, as_of: result.as_of }, cacheControl }
+  return { status, body: { ...base, wallet, normies: [], ...note, source, as_of: result.as_of }, cacheControl }
 }
