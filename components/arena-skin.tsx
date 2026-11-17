@@ -9,6 +9,7 @@ import { useState } from "react"
 export function ArenaSkin({ src, tokenId, profileUrl }: { src: string; tokenId: number; profileUrl?: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) return null
+  // The skin PNG isn't square (e.g. 40×43), so it fits inside the 96px box at its true proportions, never stretched.
   const img = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -19,7 +20,7 @@ export function ArenaSkin({ src, tokenId, profileUrl }: { src: string; tokenId: 
       loading="lazy"
       referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
-      style={{ imageRendering: "pixelated", width: 96, height: 96, display: "block" }}
+      style={{ imageRendering: "pixelated", width: 96, height: 96, objectFit: "contain", objectPosition: "left bottom", display: "block" }}
     />
   )
   return (
