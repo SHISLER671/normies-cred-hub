@@ -17,7 +17,7 @@
 // fixtures/arena-normie-7141-v1.json and arena-normie-4242-not-entered.json the launch-weekend shape (now refused).
 
 import { arenaGet } from "@/lib/arena-api"
-import { arenaWatchUrl } from "@/lib/arena-canon"
+import { arenaProfileUrl, arenaSkinImageUrl, arenaWatchUrl } from "@/lib/arena-canon"
 import { OFFICIAL_STATUS } from "@/lib/official-status"
 
 import type { ArenaEntry, ArenaRecord, ArenaSector, Field } from "./types"
@@ -216,6 +216,12 @@ export function officialArenaSource(get: (path: string) => Promise<{ status: num
 /** Registered official adapters. The first one is used. */
 export const ARENA_SOURCES: ArenaSource[] = [officialArenaSource()]
 
+/** Profile link for an entered Normie, and its skin image when the official API counts at least one skin. */
+function arenaLinks(tokenId: number, snap: ArenaSnapshot): { profile_url: string; skin_image_url?: string } {
+  const hasSkin = typeof snap.skins === "number" && snap.skins > 0
+  return hasSkin ? { profile_url: arenaProfileUrl(tokenId), skin_image_url: arenaSkinImageUrl(tokenId) } : { profile_url: arenaProfileUrl(tokenId) }
+}
+
 function pendingField<T>(reason: string, asOf: string, ref = "official Arena data (api.normies.art/arena)"): Field<T> {
   return { value: null, label: "pending", pending_reason: reason, source: { kind: "official_api", ref }, as_of: asOf }
 }
@@ -326,6 +332,7 @@ export async function loadArenaSector(
       record: pendingArenaRecord("no rounds played yet", asOf, ref),
       rank: NOT_RANKED,
       watch_url: arenaWatchUrl(tokenId),
+      ...arenaLinks(tokenId, snap),
     }
   }
 
@@ -347,5 +354,6 @@ export async function loadArenaSector(
     },
     rank: NOT_RANKED,
     watch_url: arenaWatchUrl(tokenId),
+    ...arenaLinks(tokenId, snap),
   }
 }

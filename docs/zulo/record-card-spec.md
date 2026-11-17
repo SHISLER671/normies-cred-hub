@@ -118,6 +118,8 @@ type Field<T> = {
 
 `sectors.arena.entry.state` (official `state` in plain words: active, short, cleared, not registered), `entry.agent_id` (official `agentId`) and `entry.skins` (a count): verified, from `GET /arena/normie/{id}`, when the official data gives them. Every Arena read goes through `lib/arena-api.ts` (allowlisted paths, a shared 60 s cache, backoff on 429/503 and on repeated failures).
 
+`sectors.arena.profile_url`: the Normie's life page on the Arena site (`arena.normies.art/world/normie/<id>`), once entered. `sectors.arena.skin_image_url`: its Arena skin (`arena.normies.art/api/world/skin/png?id=<id>`, the Arena app's own image route, not in the API docs), only when the official API counts at least one skin; the viewer's browser loads it and the page hides it if it fails. The skin's price is never shown.
+
 `sectors.arena.watch_url`: the official watch link (`arena.normies.art/world/pixel?follow=<id>`, per the official Arena guide), set once a Normie is entered or has played.
 
 Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (entered, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds, 5 opponents and 14 days; the official data has no opponent list yet, so nothing is ranked.

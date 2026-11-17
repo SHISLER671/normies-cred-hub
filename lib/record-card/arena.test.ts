@@ -74,6 +74,8 @@ describe("live data: Zulo after the migration", () => {
     assert.equal(sector.status, "unranked")
     assert.equal(sector.status_text, "Building a record: 1 round played")
     assert.equal(sector.watch_url, "https://arena.normies.art/world/pixel?follow=7141", "official watch link (Arena guide)")
+    assert.equal(sector.profile_url, "https://arena.normies.art/world/normie/7141", "its life page on the Arena site")
+    assert.equal(sector.skin_image_url, "https://arena.normies.art/api/world/skin/png?id=7141", "skins: 1 in the official data")
     assert.deepEqual({ v: sector.entry?.state?.value, ref: sector.entry?.state?.source.ref }, { v: "Active: plays every free round, and paid rounds while topped up", ref: "GET /arena/normie/7141 → state" })
     assert.deepEqual({ v: sector.entry?.agent_id?.value, l: sector.entry?.agent_id?.label }, { v: 32626, l: "verified" })
     assert.deepEqual({ v: sector.entry?.skins?.value, l: sector.entry?.skins?.label }, { v: 1, l: "verified" })
@@ -210,6 +212,8 @@ describe("Normie not entered (synthetic, live shape)", () => {
     assert.equal(sector.status, "not_entered")
     assert.equal(sector.status_text, "Not entered in Arena")
     assert.equal(sector.watch_url, undefined, "no watch link for a Normie that isn't in the Arena")
+    assert.equal(sector.profile_url, undefined)
+    assert.equal(sector.skin_image_url, undefined)
     assert.equal(sector.entry?.entered.value, false)
     assert.equal(sector.entry?.entered.label, "verified")
     assert.equal(sector.entry?.line_position.pending_reason, NOT_IN_OFFICIAL_DATA)
@@ -292,6 +296,13 @@ describe("parsers", () => {
     assert.ok(odd)
     assert.deepEqual([odd.state, odd.registered_round, odd.agent_id, odd.skins], [null, null, null, null])
     for (const state of ["unregistered", "active", "short", "cleared"]) assert.equal(parseArenaNormie({ ...ZULO, state }, 7141)?.state, state)
+  })
+  it("no skin picture unless the official data counts at least one skin; the profile link still shows", async () => {
+    for (const skins of [0, null, "x"]) {
+      const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...ZULO, skins }) })
+      assert.equal(sector.skin_image_url, undefined, String(skins))
+      assert.equal(sector.profile_url, "https://arena.normies.art/world/normie/7141")
+    }
   })
   it("burned=true parses like any other answer (the flag isn't used)", () => {
     assert.deepEqual(parseArenaNormie({ ...ZULO, burned: true }, 7141), parseArenaNormie(ZULO, 7141))

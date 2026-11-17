@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { PulseTrace } from "@/components/pulse-trace"
 import { RecordShare } from "@/components/record-share"
+import { ArenaSkin } from "@/components/arena-skin"
 import { publicClient } from "@/lib/viem-client"
 import { symphonyPath } from "@/lib/symphony/pin"
 import { popularityCountsText, pulseBeats, TRENDING_LABEL } from "@/lib/pulse/beats"
@@ -202,7 +203,14 @@ export default async function RecordCardPage({ params }: Params) {
             <Stat label="Losses" value={show(arena.record.losses)} note={note(arena.record.losses)} />
             <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
           </StatGrid>
+          {arena.skin_image_url && <ArenaSkin src={arena.skin_image_url} tokenId={card.token_id} profileUrl={arena.profile_url} />}
           <p className="caption">
+            {arena.profile_url && (
+              <>
+                <a href={arena.profile_url} target="_blank" rel="noopener noreferrer">Its life in the Arena</a> (story, standing, friends
+                and grudges).{" "}
+              </>
+            )}
             {arena.watch_url && (
               <>
                 <a href={arena.watch_url} target="_blank" rel="noopener noreferrer">Watch live</a> on the official Arena map.{" "}
