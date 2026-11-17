@@ -98,6 +98,19 @@ export function arenaWatchUrl(tokenId: number): string {
   return `${ARENA_SITE}/world/pixel?follow=${tokenId}`
 }
 
+/** A Normie's life page on the official Arena site (story, standing, friends and grudges). */
+export function arenaProfileUrl(tokenId: number): string {
+  return `${ARENA_SITE}/world/normie/${tokenId}`
+}
+
+/**
+ * A Normie's Arena skin image, as the official Arena site's own profile page loads it (an Arena app route, not in the
+ * official API docs). Shown only for a Normie the official API says has a skin; the viewer's browser loads it.
+ */
+export function arenaSkinImageUrl(tokenId: number): string {
+  return `${ARENA_SITE}/api/world/skin/png?id=${tokenId}`
+}
+
 export type ArenaType = "Zombie" | "Agent" | "Alien" | "Cat" | "Human"
 
 /** Type stats table (article: "Five types, five ways to play"). Speed is compared with a Human. */

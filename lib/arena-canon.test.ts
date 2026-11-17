@@ -32,6 +32,8 @@ import {
   arenaWatchUrl,
   ARENA_API_DOCS_SOURCE,
   ARENA_API_FACTS,
+  arenaProfileUrl,
+  arenaSkinImageUrl,
 } from "./arena-canon"
 import { ARENA_CANVAS_RANKS } from "./normies-canon"
 
@@ -134,6 +136,8 @@ describe("mechanics match the official Arena guide and entry page (checked 2026-
     assert.match(g, /arena\.normies\.art\/world\/pixel\?follow=<id>/)
     assert.doesNotMatch(g, /prize|pool\b|payout|winnings|reward|earn #PIXEL|Legendary/i)
     assert.equal(arenaWatchUrl(7141), "https://arena.normies.art/world/pixel?follow=7141")
+    assert.equal(arenaProfileUrl(7141), "https://arena.normies.art/world/normie/7141")
+    assert.equal(arenaSkinImageUrl(7141), "https://arena.normies.art/api/world/skin/png?id=7141")
   })
   it("official API facts: states, next-round rule, round statuses, and why NCH shows no PX or standing; no money", () => {
     const f = ARENA_API_FACTS.join("\n")

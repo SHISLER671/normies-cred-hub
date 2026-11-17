@@ -35,7 +35,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.walletconnect.com https://*.walletconnect.org",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://api.normies.art https://*.seadn.io https://*.walletconnect.com",
+      "img-src 'self' data: blob: https://api.normies.art https://arena.normies.art https://*.seadn.io https://*.walletconnect.com",
       "font-src 'self' data:",
       "connect-src 'self' https: wss:",
       "frame-ancestors 'none'",

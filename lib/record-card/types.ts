@@ -168,6 +168,10 @@ export type ArenaSector = {
   rank: { ranked: false; score: null; reason: string } | { ranked: true; score: number; reason: null }
   /** Official watch link (arena.normies.art/world/pixel?follow=<id>, per the official Arena guide), once a Normie is entered. */
   watch_url?: string
+  /** The Normie's life page on the official Arena site (arena.normies.art/world/normie/<id>), once it is entered. */
+  profile_url?: string
+  /** Its Arena skin image (arena.normies.art), only when the official API counts at least one skin. */
+  skin_image_url?: string
 }
 
 /** Agents Canvas: canvases created, pieces painted, and votes between agents. Votes count only from gated agents. */
