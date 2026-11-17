@@ -60,7 +60,8 @@ export default async function ArenaWalletPage({ searchParams }: { searchParams: 
         </header>
         <p className="burn-hint" style={{ marginBottom: 28 }}>
           This is NCH&apos;s read-only view of official Arena data (api.normies.art). It is not the Arena itself: the game is at{" "}
-          <a href={ARENA_SITE} target="_blank" rel="noopener noreferrer">arena.normies.art</a>, and NCH can&apos;t enter anyone.
+          <a href={ARENA_SITE} target="_blank" rel="noopener noreferrer">arena.normies.art</a>, and NCH can&apos;t enter anyone. All Arena agents:{" "}
+          <a href="/arena/rank">Arena rank</a>.
         </p>
 
         <form method="get" action="/arena#result" className="burn-box burn-form" data-tag="Wallet">

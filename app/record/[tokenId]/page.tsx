@@ -13,6 +13,7 @@ import { symphonyPath } from "@/lib/symphony/pin"
 import { popularityCountsText, pulseBeats, TRENDING_LABEL } from "@/lib/pulse/beats"
 import { parseTokenId } from "@/lib/api/agent-pulse"
 import { etherscanAddress, shortenAddress } from "@/lib/format"
+import { ARENA_RANK_MINIMUM } from "@/lib/record-card/arena"
 import { loadRecordCard } from "@/lib/record-card/load"
 import { typeDisplay } from "@/lib/record-card/build"
 import { ARENA_ARTICLE, ARENA_ENTER_SOURCE, ARENA_MAY_CHANGE, arenaCardFacts } from "@/lib/arena-canon"
@@ -225,7 +226,8 @@ export default async function RecordCardPage({ params }: Params) {
               </>
             )}
             Official Arena data only (api.normies.art). Being registered is not a record, and nothing here is a guess. Ranked
-            only after 10 verified rounds against 5 different opponents over 14 days. To enter, go to{" "}
+            only after {ARENA_RANK_MINIMUM.rounds} verified rounds and {ARENA_RANK_MINIMUM.days} days since its first round, and only past the
+            trust gate; see the <a href="/arena/rank">Arena rank page</a>. To enter, go to{" "}
             <a href={ARENA_SITE} target="_blank" rel="noopener noreferrer">arena.normies.art</a>; NCH can&apos;t enter anyone.
           </p>
           {(arenaFacts.type || arenaFacts.headStart) && (
