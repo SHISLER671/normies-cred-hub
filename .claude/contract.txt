@@ -1,4 +1,4 @@
-# Scope: Arena skill rank, step 1: a /arena/rank page and read-only API that list Arena agents from /arena/records with their raw counts and a minimum-rounds rule. No Pulse checks on a page view; the trust-gate source (cache or cron) is a later, separate contract (Claude, 2026-11-17). Replaces the Arena wallet view contract (#216/#217).
+# Scope: Arena skill rank, step 1: a /arena/rank page and read-only API that list Arena agents from /arena/records (top 100 by rounds played) with their raw counts, under one ranking minimum (10 rounds and 14 days since the first round) shared with the record card. No Pulse checks on a page view; the trust-gate cron and table are a later, separate contract (Claude, 2026-11-17). Replaces the Arena wallet view contract (#216/#217, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -10,7 +10,11 @@
 app/api/arena-rank/route.ts
 app/arena/page.tsx
 app/arena/rank/page.tsx
+app/record/[tokenId]/page.tsx
 app/sitemap.ts
+docs/zulo/record-card-spec.md
 lib/arena-rank/
+lib/record-card/arena.test.ts
+lib/record-card/arena.ts
 package.json
 public/llms.txt
