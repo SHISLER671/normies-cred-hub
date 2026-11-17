@@ -15,6 +15,7 @@ import {
   NOT_IN_OFFICIAL_DATA,
   officialArenaSource,
   parseAnyRoundStarted,
+  parseArenaLiveRound,
   parseArenaNormie,
 } from "./arena"
 import { buildRecordCard, type RecordCardInputs } from "./build"
@@ -25,6 +26,9 @@ const ZULO = fixture("arena-normie-7141") as Record<string, unknown>
 const ZULO_V1 = fixture("arena-normie-7141-v1") as Record<string, unknown>
 const NOT_ENTERED_V1 = fixture("arena-normie-4242-not-entered") as Record<string, unknown>
 const STATUS = fixture("arena-status") as Record<string, unknown>
+/** Live GET /arena/status, 2026-11-17 08:07 ChST, trimmed by Ryan to the round fields (its prize and pool fields left out). */
+const STATUS_OPEN = fixture("arena-status-round1-open") as Record<string, unknown>
+const withRound = (round: Record<string, unknown>) => ({ ...STATUS_OPEN, round: { ...(STATUS_OPEN.round as object), ...round } })
 /** Synthetic: a Normie that never registered, in the live shape. */
 const NOT_ENTERED = { ...ZULO, tokenId: "4242", state: "unregistered", registered: false, agentId: null, skins: 0, roundsPlayed: 0, lastRound: null, wins: 0, inCurrentRound: false }
 /** Synthetic: in the current round but no round counted yet. */
@@ -70,7 +74,7 @@ describe("live data: Zulo after the migration", () => {
     assert.equal(sector.status, "unranked")
     assert.equal(sector.status_text, "Building a record: 1 round played")
     assert.equal(sector.watch_url, "https://arena.normies.art/world/pixel?follow=7141", "official watch link (Arena guide)")
-    assert.deepEqual(asked, ["/arena/normie/7141"], "no status read is needed once rounds are played")
+    assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status"], "one status read per card; here it fails and the card still builds")
     assert.deepEqual({ v: sector.entry?.entered.value, l: sector.entry?.entered.label }, { v: true, l: "verified" })
     assert.equal(sector.entry?.entered.source.ref, "GET /arena/normie/7141 → registered, roundsPlayed, inCurrentRound")
     assert.equal(sector.entry?.entered.source_block, 26421529)
@@ -104,6 +108,69 @@ describe("live data: Zulo after the migration", () => {
     assert.equal(sector.status, "unranked")
     assert.equal(sector.record.matches.value, 1)
     assert.doesNotMatch(JSON.stringify(sector), /burn/i)
+  })
+})
+
+describe("the round in progress (GET /arena/status, read once per card)", () => {
+  it("open round that Zulo last played: 'Playing Round 1 now', wins shown but labelled round in progress", async () => {
+    const { sector, asked } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_OPEN) })
+    assert.equal(sector.status, "unranked")
+    assert.equal(sector.status_text, "Playing Round 1 now: 1 round counted so far")
+    assert.deepEqual({ v: sector.record.wins.value, l: sector.record.wins.label }, { v: 0, l: "round in progress" })
+    assert.deepEqual({ v: sector.record.matches.value, l: sector.record.matches.label }, { v: 1, l: "verified" })
+    assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status"], "exactly one status read")
+    assert.deepEqual(sector.rank, { ranked: false, score: null, reason: ARENA_RANK_OFF_REASON })
+  })
+  it("ended round: back to 'Building a record', wins verified", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(withRound({ ended: true, status: "ended" })) })
+    assert.equal(sector.status_text, "Building a record: 1 round played")
+    assert.equal(sector.record.wins.label, "verified")
+  })
+  it("an open round that isn't the one this Normie last played: 'Building a record'", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok({ ...withRound({ round: 2 }), currentRound: 2 }) })
+    assert.equal(sector.status_text, "Building a record: 1 round played")
+  })
+  it("status unavailable (throws or 500): 'Building a record', and the card still builds", async () => {
+    for (const reply of ["throws", { status: 500, body: { error: "boom" } }] as Reply[]) {
+      const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": reply })
+      assert.equal(sector.status, "unranked")
+      assert.equal(sector.status_text, "Building a record: 1 round played")
+      assert.equal(sector.record.wins.label, "verified")
+    }
+  })
+  it("malformed status is unknown, never a guess", async () => {
+    const bad: unknown[] = [
+      null,
+      [],
+      { ...STATUS_OPEN, currentRound: "one" },
+      { ...STATUS_OPEN, currentRound: 1.5 },
+      { ...STATUS_OPEN, round: null },
+      withRound({ round: "1x" }),
+      withRound({ started: "true" }),
+      withRound({ ended: 0 }),
+      withRound({ status: 1 }),
+      withRound({ ended: undefined }),
+    ]
+    for (const body of bad) {
+      assert.equal(parseArenaLiveRound(body), null, JSON.stringify(body))
+      const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(body) })
+      assert.equal(sector.status_text, "Building a record: 1 round played", JSON.stringify(body))
+    }
+  })
+  it("parseArenaLiveRound reads the live response", () => {
+    assert.deepEqual(parseArenaLiveRound(STATUS_OPEN), { current: 1, open: true })
+    assert.deepEqual(parseArenaLiveRound(withRound({ ended: true })), { current: 1, open: false })
+    assert.deepEqual(parseArenaLiveRound(withRound({ started: false })), { current: 1, open: false })
+  })
+  it("the status response's prize and pool fields are never read (they throw if touched)", async () => {
+    const body: Record<string, unknown> = JSON.parse(JSON.stringify(STATUS_OPEN))
+    const round = body.round as Record<string, unknown>
+    for (const [obj, key] of [[body, "prizes"], [body, "pool"], [body, "prizePool"], [round, "prizes"], [round, "pool"], [round, "sponsorship"], [round, "fees"]] as const) {
+      Object.defineProperty(obj, key, { enumerable: false, get() { throw new Error(`read ${key}`) } })
+    }
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(body) })
+    assert.equal(sector.status_text, "Playing Round 1 now: 1 round counted so far")
+    assert.doesNotMatch(JSON.stringify(sector), /prize|pool|payout|sponsor/i)
   })
 })
 

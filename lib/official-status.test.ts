@@ -220,7 +220,7 @@ describe("Arena is LIVE (per @normiesART's 2026-11-14 post; sources in lib/offic
   it("the status line says live, since when, where to enter, and that CredHub is not where", () => {
     assert.equal(
       ARENA_STATUS_LINE,
-      'Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in and the line are open at https://arena.normies.art/world/enter; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub',
+      'Arena = LIVE since 2026-11-14 (official: @normiesART, "Normies Arena is live now", https://x.com/normiesART/status/2121679594294030459; opt-in is open at https://arena.normies.art/world/enter; games run in rounds and Game 1 started Mon Nov 16, 20:00 CET); a fully autonomous agent game, entered at https://arena.normies.art, never on CredHub',
     )
     assert.equal(isArenaOfficiallyLive(), true)
     assert.equal(SURFACE_TAGS.arena, "LIVE")

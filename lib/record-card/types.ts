@@ -6,8 +6,11 @@ import type { OwnershipCheck } from "@/lib/ownership-check"
 
 export type SourceKind = "onchain" | "official_api" | "nch_computed" | "self_reported" | "chat_rating"
 
-/** Plain-word field labels. Only `verified` fields may ever count toward a rank. */
-export type FieldLabel = "verified" | "self-reported" | "chat-rating" | "pending" | "unavailable"
+/**
+ * Plain-word field labels. Only `verified` fields may ever count toward a rank. "round in progress": an official count
+ * from a round that hasn't ended, so it can still change.
+ */
+export type FieldLabel = "verified" | "self-reported" | "chat-rating" | "pending" | "unavailable" | "round in progress"
 
 export type Field<T> = {
   value: T | null
