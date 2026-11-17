@@ -23,7 +23,9 @@ export async function GET(
   }
 
   const card = await loadRecordCard(tokenId)
+  // A card whose Arena round list couldn't be read is never cached: the next request tries again.
+  const couldNotRead = card.sectors.arena.round_history?.status === "unavailable"
   return NextResponse.json(card, {
-    headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+    headers: { "Cache-Control": couldNotRead ? "no-store" : "public, s-maxage=300, stale-while-revalidate=600" },
   })
 }

@@ -172,6 +172,55 @@ export type ArenaSector = {
   profile_url?: string
   /** Its Arena skin image (arena.normies.art), only when the official API counts at least one skin. */
   skin_image_url?: string
+  /**
+   * Its rounds, newest first, from `GET /arena/normie/{id}/rounds`. Set only for an entered Normie whose Arena state was
+   * read. Optional so older cached cards still type-check.
+   */
+  round_history?: ArenaRoundHistory
+}
+
+/**
+ * One Arena round for one Normie, as the official data states it. No per-round win and no #PIXEL amounts.
+ * in_progress: the round is open, so nothing about it is final. ended: it finished; `played` says whether this Normie
+ * played. cancelled / not_started: the round's official status. unreadable: the status or `played` couldn't be read.
+ */
+export type ArenaRoundEntry = {
+  round: number
+  state: "in_progress" | "ended" | "cancelled" | "not_started" | "unreadable"
+  /** Official `played`. Null when the round couldn't be read. */
+  played: boolean | null
+  /** Plain words for the UI: "Round in progress", "Played", "Did not play", "Round cancelled", "Not started yet", "Couldn't read this round". */
+  text: string
+  /** The round's official `timestamp` as ISO-8601 UTC, or null when it isn't given. */
+  date: string | null
+}
+
+/** Raw counts of the rounds listed. They add up to `listed`. `played` and `did_not_play` count finished rounds only. */
+export type ArenaRoundTotals = {
+  listed: number
+  played: number
+  did_not_play: number
+  in_progress: number
+  cancelled: number
+  not_started: number
+  unreadable: number
+}
+
+export type ArenaRoundHistory = {
+  /** ok: rounds listed. empty: the official list has no rounds. not_found: no list for this Normie (404). unavailable: couldn't read it. */
+  status: "ok" | "empty" | "not_found" | "unavailable"
+  status_text: string
+  /** Newest first (sorted by NCH, by round number). */
+  rounds: ArenaRoundEntry[]
+  /** Null when the list wasn't read. */
+  totals: ArenaRoundTotals | null
+  /** False when the official data had more rounds than the pages NCH reads. Null when the list wasn't read. */
+  complete: boolean | null
+  /** The most pages NCH reads for one card. */
+  max_pages: number
+  source: { kind: "official_api"; ref: string; label: string }
+  /** ISO-8601 UTC, when NCH read it. */
+  as_of: string
 }
 
 /** Agents Canvas: canvases created, pieces painted, and votes between agents. Votes count only from gated agents. */

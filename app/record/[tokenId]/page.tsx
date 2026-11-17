@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { PulseTrace } from "@/components/pulse-trace"
 import { RecordShare } from "@/components/record-share"
+import { ArenaRoundHistoryList } from "@/components/arena-round-history"
 import { ArenaSkin } from "@/components/arena-skin"
 import { publicClient } from "@/lib/viem-client"
 import { symphonyPath } from "@/lib/symphony/pin"
@@ -203,6 +204,7 @@ export default async function RecordCardPage({ params }: Params) {
             <Stat label="Losses" value={show(arena.record.losses)} note={note(arena.record.losses)} />
             <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
           </StatGrid>
+          {arena.round_history && <ArenaRoundHistoryList history={arena.round_history} />}
           {arena.skin_image_url && <ArenaSkin src={arena.skin_image_url} tokenId={card.token_id} profileUrl={arena.profile_url} />}
           <p className="caption">
             {arena.profile_url && (

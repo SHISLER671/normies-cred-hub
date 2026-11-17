@@ -13,6 +13,8 @@
 //   - If Arena's status in lib/official-status.ts is ever not LIVE, nothing is called and every field is pending.
 //   - While the round a Normie last played is still open (GET /arena/status), the card says "Playing Round N now" and wins
 //     is labelled "round in progress". /arena/status is read once per card; its prize and pool fields are never read.
+//   - An entered Normie's round list (GET /arena/normie/{id}/rounds) is read by lib/record-card/arena-rounds.ts: which
+//     rounds it played and each round's status and date. No per-round win, and no amounts.
 // The API's field names come from live responses: fixtures/arena-normie-7141.json is the 2026-11-17 shape,
 // fixtures/arena-normie-7141-v1.json and arena-normie-4242-not-entered.json the launch-weekend shape (now refused).
 
@@ -20,7 +22,8 @@ import { arenaGet } from "@/lib/arena-api"
 import { arenaProfileUrl, arenaSkinImageUrl, arenaWatchUrl } from "@/lib/arena-canon"
 import { OFFICIAL_STATUS } from "@/lib/official-status"
 
-import type { ArenaEntry, ArenaRecord, ArenaSector, Field } from "./types"
+import { type ArenaRoundsRead, buildArenaRoundHistory, readArenaRounds } from "./arena-rounds"
+import type { ArenaEntry, ArenaRecord, ArenaRoundHistory, ArenaSector, Field } from "./types"
 
 /** Ranking is off until all three hold. Opponent counts aren't in the official API yet, so no Normie is ranked today. */
 export const ARENA_RANK_MINIMUM = { rounds: 10, opponents: 5, days: 14 } as const
@@ -86,6 +89,8 @@ export interface ArenaSource {
   ref: (tokenId: number) => string
   kind: "onchain" | "official_api"
   load(tokenId: number): Promise<ArenaSnapshot>
+  /** The Normie's round list (lib/record-card/arena-rounds.ts). A failed read is `{ kind: "unavailable" }`. Optional for other sources. */
+  loadRounds?(tokenId: number): Promise<ArenaRoundsRead>
 }
 
 const wholeNumber = (v: unknown): number | null => {
@@ -210,6 +215,7 @@ export function officialArenaSource(get: (path: string) => Promise<{ status: num
       const anyRoundStarted = parsed.rounds_played > 0 ? true : parseAnyRoundStarted(statusBody)
       return { ...parsed, any_round_started: anyRoundStarted, live_round: parseArenaLiveRound(statusBody) }
     },
+    loadRounds: (tokenId) => readArenaRounds(tokenId, get),
   }
 }
 
@@ -318,6 +324,12 @@ export async function loadArenaSector(
     }
   }
 
+  // One read of its round list, only for an entered Normie. A failed read is reported in the block itself; it never
+  // fails the sector, and it is never shown as an empty list.
+  const roundHistory: { round_history?: ArenaRoundHistory } = source.loadRounds
+    ? { round_history: buildArenaRoundHistory(tokenId, await source.loadRounds(tokenId).catch((): ArenaRoundsRead => ({ kind: "unavailable" })), asOf) }
+    : {}
+
   if (snap.rounds_played === 0) {
     const rounds =
       snap.any_round_started === false
@@ -333,6 +345,7 @@ export async function loadArenaSector(
       rank: NOT_RANKED,
       watch_url: arenaWatchUrl(tokenId),
       ...arenaLinks(tokenId, snap),
+    ...roundHistory,
     }
   }
 
@@ -355,5 +368,6 @@ export async function loadArenaSector(
     rank: NOT_RANKED,
     watch_url: arenaWatchUrl(tokenId),
     ...arenaLinks(tokenId, snap),
+    ...roundHistory,
   }
 }

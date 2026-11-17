@@ -79,7 +79,7 @@ describe("live data: Zulo after the migration", () => {
     assert.deepEqual({ v: sector.entry?.state?.value, ref: sector.entry?.state?.source.ref }, { v: "Active: plays every free round, and paid rounds while topped up", ref: "GET /arena/normie/7141 → state" })
     assert.deepEqual({ v: sector.entry?.agent_id?.value, l: sector.entry?.agent_id?.label }, { v: 32626, l: "verified" })
     assert.deepEqual({ v: sector.entry?.skins?.value, l: sector.entry?.skins?.label }, { v: 1, l: "verified" })
-    assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status"], "one status read per card; here it fails and the card still builds")
+    assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status", "/arena/normie/7141/rounds"], "one status read and one round-list read per card; here both fail and the card still builds")
     assert.deepEqual({ v: sector.entry?.entered.value, l: sector.entry?.entered.label }, { v: true, l: "verified" })
     assert.equal(sector.entry?.entered.source.ref, "GET /arena/normie/7141 → registered, roundsPlayed, inCurrentRound")
     assert.equal(sector.entry?.entered.source_block, 26421529)
@@ -123,7 +123,7 @@ describe("the round in progress (GET /arena/status, read once per card)", () => 
     assert.equal(sector.status_text, "Playing Round 1 now: 1 round counted so far")
     assert.deepEqual({ v: sector.record.wins.value, l: sector.record.wins.label }, { v: 0, l: "round in progress" })
     assert.deepEqual({ v: sector.record.matches.value, l: sector.record.matches.label }, { v: 1, l: "verified" })
-    assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status"], "exactly one status read")
+    assert.deepEqual(asked, ["/arena/normie/7141", "/arena/status", "/arena/normie/7141/rounds"], "exactly one status read, then the round list")
     assert.deepEqual(sector.rank, { ranked: false, score: null, reason: ARENA_RANK_OFF_REASON })
   })
   it("ended round: back to 'Building a record', wins verified", async () => {
@@ -339,7 +339,7 @@ describe("the card and the wiring", () => {
       binding: { agentId: "32626", timestamp: "1778887079", blockNumber: "25103790" },
       identity: { name: "Zulo", type: "Human" },
       canvas: { actionPoints: 12, level: 2 },
-      owner: { owner: "0xfafd8fb6b4e43ace0e365553f1b9242384591031" },
+      owner: { owner: "0x1111111111111111111111111111111111111111" },
       zombie: { info: { isZombie: false } },
       pulse: null,
       chatRatings: null,
