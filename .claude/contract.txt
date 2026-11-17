@@ -1,4 +1,4 @@
-# Scope: Arena life-page link + skin image on the record card (Claude, 2026-11-17). Replaces the polite Arena API contract (#205/#206, merged).
+# Scope: Arena skin keeps its true proportions on the record card (Claude, 2026-11-17). Replaces the Arena profile/skin contract (#207/#208, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -7,12 +7,4 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-app/record/[tokenId]/page.tsx
 components/arena-skin.tsx
-docs/zulo/record-card-spec.md
-lib/arena-canon.test.ts
-lib/arena-canon.ts
-lib/record-card/arena.test.ts
-lib/record-card/arena.ts
-lib/record-card/types.ts
-next.config.mjs
