@@ -88,7 +88,8 @@ export default async function ArenaRankPage() {
               </div>
               <div className="burn-box" data-tag="Building a record">
                 <p className="burn-small">
-                  {arenaRankCoverageText(result.coverage)}. Listed by rounds played, then Normie number: this order is not a rank.
+                  {arenaRankCoverageText(result.coverage)}.{" "}
+                  {result.coverage.rounds_differ ? "Listed by rounds played, then Normie number" : "Listed by Normie number"}: this order is not a rank.
                 </p>
                 <table className="burn-table">
                   <thead>

@@ -183,9 +183,35 @@ describe("today's real data: nobody is ranked, everyone reads 'not enough rounds
       assert.doesNotMatch(code, /agent-pulse|getAgentPulse|viem|publicClient|supabase|pulse_level|pulseLevel/i, file)
     }
   })
-  it("coverage: 100 rows with more to come reads 'the top 100 by rounds played'", () => {
-    assert.equal(arenaRankCoverageText({ rows_read: 100, complete: false }), "Covers the top 100 by rounds played; the official list has more")
-    assert.equal(arenaRankCoverageText({ rows_read: 5, complete: true }), "Covers all 5 Normies in the official records list")
+  it("coverage when every row read has the same rounds played (true today): no 'top 100' claim", async () => {
+    assert.equal(
+      arenaRankCoverageText({ rows_read: 100, complete: false, rounds_differ: false }),
+      "Covers 100 of the official list. Every Normie here has played the same number of rounds, so this order means nothing yet",
+    )
+    // The real rows all have 1 round: two pages of them (the second synthetic, same counts) read exactly that way.
+    const second = page(Array.from({ length: 5 }, (_, i) => row({ tokenId: 200 + i })), true)
+    const { result } = await load({ [P1]: ok(RECORDS), [`${P1}&offset=5`]: ok(second) })
+    assert.ok(result.kind === "ok")
+    assert.equal(result.coverage.rounds_differ, false)
+    const text = "Covers 10 of the official list. Every Normie here has played the same number of rounds, so this order means nothing yet"
+    assert.equal(arenaRankCoverageText(result.coverage), text)
+    assert.equal((arenaRankResponse(result).body.coverage as { text: string }).text, text, "the API's coverage.text is the same")
+    assert.doesNotMatch(text, /top/)
+  })
+  it("synthetic: 'top 100 by rounds played' only when the rows actually differ", async () => {
+    assert.equal(arenaRankCoverageText({ rows_read: 100, complete: false, rounds_differ: true }), "Covers the top 100 by rounds played; the official list has more")
+    const second = page([row({ tokenId: 200, roundsPlayed: 2, lastRound: 2 })], true)
+    const { result } = await load({ [P1]: ok(RECORDS), [`${P1}&offset=5`]: ok(second) })
+    assert.ok(result.kind === "ok")
+    assert.equal(result.coverage.rounds_differ, true)
+    const text = "Covers the top 6 by rounds played; the official list has more"
+    assert.equal(arenaRankCoverageText(result.coverage), text)
+    assert.equal((arenaRankResponse(result).body.coverage as { text: string }).text, text)
+    assert.equal(arenaRankCoverageText({ rows_read: 5, complete: true, rounds_differ: true }), "Covers all 5 Normies in the official records list")
+    assert.equal(
+      arenaRankCoverageText({ rows_read: 5, complete: true, rounds_differ: false }),
+      "Covers all 5 Normies in the official records list. Every Normie here has played the same number of rounds, so this order means nothing yet",
+    )
   })
 })
 
