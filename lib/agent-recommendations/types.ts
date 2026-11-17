@@ -1,6 +1,8 @@
 // lib/agent-recommendations/types.ts
 // Standalone Zulo agent recommendations plugin types.
 
+import type { AskArenaRead } from "./arenaFacts"
+
 /** How this Ask turn resolves the decision subject (not Zulo's voice). */
 export type SubjectScopeMode = "general" | "active_normie" | "mentioned_ids"
 
@@ -143,6 +145,11 @@ export interface ZuloRecommendationContext {
      * Prefer these numbers over linking out to rarity.normies.art alone.
      */
     mentionedNormies?: MentionedNormieSnapshot[]
+    /**
+     * Official Arena data for the first Normies named in the message (lib/agent-recommendations/arenaFacts.ts), from the
+     * record card's cached reader. `sector: null` = couldn't read right now.
+     */
+    arenaReads?: AskArenaRead[]
     /** Normies Cred Pulse (ERC-8257 Tool #53) for the focus Normie */
     pulse?: CredHubPulseData
     pulseSummary?: string

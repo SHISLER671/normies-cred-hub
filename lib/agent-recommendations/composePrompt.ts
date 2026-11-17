@@ -42,6 +42,7 @@ import { buildVisitorSafeTandemPromptBlock } from "./operatorTandem"
 import { buildSelfAwarenessPromptBlock } from "./selfAwareness"
 import { arenaFactsBlock, arenaLineFor } from "../arena-canon"
 import { formatCollectionMath } from "./collectionMath"
+import { ASK_ARENA_BLOCK_TITLE, ASK_ARENA_COULD_NOT_READ, askArenaBlock } from "./arenaFacts"
 import type { ZuloRecommendationContext } from "./types"
 
 const NORMIES_WISDOM = buildNormiesWisdomPrompt()
@@ -175,7 +176,7 @@ ${ECOSYSTEM_GUIDE}
 - Record card: every Normie has a public record card at /record/{tokenId} (JSON: GET /api/zulo/record-card/{tokenId}) — identity, trust gate, Arena record, chat rating, each labelled verified / pending / self-reported.
 - When someone evaluates, compares or asks whether to buy a Normie, cite its record card link (RECORD CARD line / mentioned list) and say in one clause whether it passes the trust gate. A track record, never a tip.
 - Arena Canvas rank: say the rank name as given, with its source (the official Arena entry page) and that it is a label, not a score. What a rank gives in Arena comes only from the ARENA FACTS head-start table, quoted with the source and "a head start, not a guarantee". Where the next rank starts is shown on its own page only; never prompt anyone to raise a Level or say how to reach a rank.
-- The Arena record stays "pending" until Arena opens and official data is wired. Never describe Arena results, wins or rankings that the card does not show.
+- Arena record: Arena is live and the record card shows official Arena data. When a question names a Normie, its Arena facts may be in the ARENA DATA FOR NAMED NORMIES block: state them with the source and as-of time. Never describe Arena results, wins or rankings that the card does not show.
 
 === ASK ACCESS (no payment theater) ===
 - Web /ask is free. No pay, tip, unlock, or x402 UI.
@@ -216,7 +217,7 @@ ${OPERATOR_TANDEM}
 - "If my agent dies is the NFT gone?": per the official entry page FAQ, a fallen Normie rests at the Hive for 15 minutes and keeps the PX it earned that week, then comes back for its next life when nobody new is waiting for a seat. The NFT never leaves your wallet. Not an NFT burn.
 - "Will my two Normies team?": per that X post, can group if same wallet or related wallet history; not guaranteed; not automatic; Zulo does not form the team.
 - "Where do I sell Arena PIXEL?": Arena PX is the game's own currency (official Arena guide); it isn't #PIXEL. #PIXEL is sold on the Pixel Market (live since 2026-10-05): sell-side listings in ETH per pixel.
-- "How is my Normie doing in the Arena?": point to its NCH record card (official Arena data only) and the official watch link, arena.normies.art/world/pixel?follow=<id>. Never guess its PX, rank or standing.
+- "How is my Normie doing in the Arena?": point to its NCH record card (official Arena data only) and the official watch link, arena.normies.art/world/pixel?follow=<id>. Never guess its PX, rank or standing. If the ARENA DATA FOR NAMED NORMIES block has that Normie, also state its facts from the block (status line copied, rounds played, wins, round list) with the source and as-of time; if the block says it could not be read, say "${ASK_ARENA_COULD_NOT_READ}".
 - Canvas / Normifier / appearance: preview on Normifier before you commit a canvas edit in official UI. AP stays on the token you keep. Official customize uses #PIXEL as pixel budget (not an AP debit). Never tell a visitor AP is spent, used, paid, or debited to change appearance. CredHub / Normifier preview is not a spend rail. Holder draws / canvases only at official Normies UI.
 - Where do I pay Zulo: no public pay-in. Do not list USDC / PIXEL / RH-agent coins as accepted.
 - Passive / StonkBroker / "make my AI NFT make money": correct the assumption — no automatic paycheck. Separate Normies vs Stonk vs Zulo. Earn rules (if any) = official/Serc, tiers TBA. WorkForPixels / #WillWork4PIXEL = labor/trust stance, not a live paycheck. If they insist: "I help you decide; I don't pay you for holding."
@@ -361,7 +362,7 @@ export const OUTSIDE_TEXT_RULE =
 /** Doctrine objects already in the system prompt, and noisy internals: kept out of the per-turn JSON. */
 const CONTEXT_JSON_SKIP = new Set([
   "pixelEconomy", "dualEvalAndPixelMarket", "collabRails", "paymentSecurity", "protocolsDeepDive", "protocols", "erc6551",
-  "agentTools", "persona", "resources", "currentTime", "pulseSummary", "subjectScope", "mentionedNormies", "floorSnapshot",
+  "agentTools", "persona", "resources", "currentTime", "pulseSummary", "subjectScope", "mentionedNormies", "arenaReads", "floorSnapshot",
   "marketState", "gachaRaffle", "canvasEvolution", "collectionMath", "history", "sessionHistory", "walletAddress",
 ])
 
@@ -733,6 +734,8 @@ Zulo's own Normie #${ZULO_IDENTITY.tokenId}: ${zuloAp} #PIXEL attached`)
         .filter((l): l is string => l !== null)
     : []
   add("ARENA LINE FOR MENTIONED NORMIES (from the official tables; quote with the source)", arenaLines.join("\n"), arenaLines.length > 0)
+  const arenaDataBlock = askArenaBlock(context.platformContext?.arenaReads ?? [], scope?.mentionedTokenIds ?? [], siteOrigin())
+  add(ASK_ARENA_BLOCK_TITLE, arenaDataBlock, arenaDataBlock.length > 0)
   add("FLOOR SNAPSHOT (live + Supabase history)", floorSnapshotBlock, !!fs)
   add("MARKET STATE (PIXEL MARKET Sentinel)", marketStateBlock, !!ms)
   add("GACHA & RAFFLE INTELLIGENCE", gachaBlock, !!gr)
