@@ -213,6 +213,12 @@ export default async function RecordCardPage({ params }: Params) {
                 and grudges).{" "}
               </>
             )}
+            {context.owner.label === "verified" && context.owner.value && (
+              <>
+                <a href={`/arena?wallet=${context.owner.value}`}>This wallet&apos;s Normies in the Arena</a> (
+                <span className="mono">{ownerEns ?? shortenAddress(context.owner.value, 4)}</span>).{" "}
+              </>
+            )}
             {arena.watch_url && (
               <>
                 <a href={arena.watch_url} target="_blank" rel="noopener noreferrer">Watch live</a> on the official Arena map.{" "}

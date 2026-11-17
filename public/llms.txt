@@ -20,6 +20,11 @@ Record card (read-only, every value labelled verified / pending / unavailable wi
 GET /api/zulo/record-card/{tokenId}
 Human page: /record/{tokenId}
 
+Arena wallet check (open to everyone, read-only; NCH's view of official Arena data from api.normies.art, not the Arena itself, which is at https://arena.normies.art):
+GET /api/arena-wallet?wallet=<0x address or name.eth>   that wallet's Normies in the Arena: each one's official state and status line, with its record card path
+Only a 0x address or an ENS name is accepted. Social handles and emails are refused and never looked up.
+Human page: /arena
+
 Gated Pulse (ERC-8257 Eth #53):
 POST /api/agent
 Normie holders. Official registered endpoint.
