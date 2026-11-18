@@ -1,4 +1,4 @@
-# Scope: bring the Arena code in line with the new money rule in AGENTS.md ("Numbers yes, advice never", #224): the current round's pool total as officially reported on the record card and in Ask Zulo, the doctrine and comments that cite the old rule, and the tests that ban money wording. No settled per-Normie prizes yet, nothing on the wallet check page (Claude, 2026-11-18). Replaces the live Arena feed contract (#222/#223, merged).
+# Scope: Ask Zulo's knowledge files follow the money rule in AGENTS.md ("Numbers yes, advice never"): the sentence "never mention prizes, pools or payouts" in loadKnowledge.ts and its knowledge file becomes the shared Arena money rule, and the record card's "Net pixels" stat is relabelled "Prize won" (pending note unchanged). No new figures (Claude, 2026-11-18). Replaces the Arena money rule contract (#225/#226, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -13,22 +13,8 @@ docs/zulo/record-card-spec.md
 lib/agent-recommendations/arenaFacts.test.ts
 lib/agent-recommendations/arenaFacts.ts
 lib/agent-recommendations/ask-facts.test.ts
-lib/agent-recommendations/composePrompt.ts
-lib/agent-recommendations/tierMath.ts
-lib/arena-api.ts
-lib/arena-canon.test.ts
-lib/arena-canon.ts
-lib/arena-live/arena-live.test.ts
-lib/arena-live/core.ts
-lib/arena-rank/arena-rank.test.ts
-lib/arena-wallet/arena-wallet.test.ts
-lib/canon-drift.test.ts
-lib/official-status.test.ts
-lib/record-card/arena-canvas-rank.test.ts
-lib/record-card/arena-rounds.test.ts
-lib/record-card/arena-rounds.ts
+lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md
+lib/agent-recommendations/loadKnowledge.ts
 lib/record-card/arena.test.ts
 lib/record-card/arena.ts
-lib/record-card/fixtures/
 lib/record-card/types.ts
-public/llms.txt
