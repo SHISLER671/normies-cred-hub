@@ -8,9 +8,12 @@ import { getCollabRailsContextSummary } from "./loadKnowledge"
 import { loadArenaSector, officialArenaSource } from "@/lib/record-card/arena"
 import type { ArenaSector } from "@/lib/record-card/types"
 
+import { buildArenaLive } from "@/lib/arena-live/core"
+
 import {
   ASK_ARENA_BLOCK_TITLE,
   ASK_ARENA_COULD_NOT_READ,
+  ASK_ARENA_LIVE_COULD_NOT_READ,
   ASK_ARENA_MAX_NORMIES,
   ASK_ARENA_MAX_ROUNDS,
   askArenaBlock,
@@ -238,5 +241,63 @@ describe("in the composed prompt", () => {
     assert.match(system, /Never describe Arena results, wins or rankings that the card does not show/)
     assert.ok(system.includes(ASK_ARENA_COULD_NOT_READ))
     assert.doesNotMatch(system, /stays "pending" until Arena opens/)
+  })
+})
+
+describe("the Arena site's live standing (real responses in lib/arena-live/fixtures/, read 2026-11-18)", () => {
+  const LIVE_RAW = {
+    standing: fixture("../../arena-live/fixtures/standing-7141"),
+    normie: fixture("../../arena-live/fixtures/normie-7141"),
+    week: fixture("../../arena-live/fixtures/arena-week"),
+  }
+  const withLive = async (raw = LIVE_RAW): Promise<ArenaSector> => ({ ...(await zuloSector()), live: buildArenaLive(7141, raw, NOW) })
+  /** Words Zulo must never get next to a live standing. */
+  const FORBIDDEN = /prize|pool|payout|refund|winnings|sponsor|\bETH\b|\bUSD\b|\$|worth|if it ended|projected|estimated|on track|will finish|NCH rank:|NCH ranks/i
+
+  it("is stated as 'the Arena currently reports #N of M, as of <time>; it can change until the round ends'", async () => {
+    const text = askArenaLines(read(7141, await withLive()), ORIGIN)
+    assert.ok(text.includes(`the Arena currently reports #280 of 748, as of ${NOW}; it can change until the round ends`))
+    assert.ok(text.includes("source: Arena site live data (arena.normies.art)"))
+    assert.match(text, /Arena score: 56452 Arena PX \(the game's own score\) · right now: Resting/)
+    assert.match(text, /kills: 93 · deaths: 91 · duels won: 73/)
+    assert.match(text, /round: Game 1 · phase as reported: live · ends 2026-11-21T19:00:00\.000Z \(UTC\) · 748 players/)
+  })
+  it("the official facts are still there, unchanged, beside it", async () => {
+    const text = askArenaLines(read(7141, await withLive()), ORIGIN)
+    assert.ok(text.includes('"Playing Round 1 now: 1 round counted so far"'))
+    assert.match(text, /rounds played: 1 · wins: 0/)
+  })
+  it("the block tells Zulo: never predict a finish, never set it beside a prize, never call it an NCH rank", async () => {
+    const block = askArenaBlock([read(7141, await withLive())], [7141], ORIGIN)
+    assert.match(block, /say it only as "the Arena currently reports #N of M, as of <time>; it can change until the round ends"/)
+    assert.match(block, /It is the Arena's own standing, never an NCH rank/)
+    assert.match(block, /Never say where a Normie will finish, never set it beside what a place might bring, and never turn its score into anything else/)
+  })
+  it("the facts carry no prize, pool, payout, projection or conversion wording, and none of the response's money figures", async () => {
+    const facts = askArenaLines(read(7141, await withLive()), ORIGIN)
+    assert.doesNotMatch(facts, FORBIDDEN)
+    assert.doesNotMatch(facts, /5241|2\.878|1821|\b200\b|\b75\b/, "worth, pool and winner-count figures never reach the prompt")
+    assert.doesNotMatch(facts, /Elus|Whiskerwood|Liar|Brave|Generous/, "no names, titles or story text from the Arena response")
+    assert.doesNotMatch(facts, /#PIXEL/)
+  })
+  it("the live rule is added only when a Normie has a live block", async () => {
+    assert.doesNotMatch(askArenaBlock([read(7141, await zuloSector())], [7141], ORIGIN), /Live standing:/)
+  })
+  it("live data that couldn't be read: Zulo says so and states no live rank; the official facts stand", async () => {
+    const sector = await withLive({ ...LIVE_RAW, week: null })
+    assert.equal(sector.live?.status, "unavailable")
+    const text = askArenaLines(read(7141, sector), ORIGIN)
+    assert.match(text, /live standing: COULD NOT READ right now/)
+    assert.ok(text.includes(ASK_ARENA_LIVE_COULD_NOT_READ))
+    assert.doesNotMatch(text, /currently reports|#280|56452|Arena PX/)
+    assert.match(text, /rounds played: 1 · wins: 0/)
+  })
+  it("in the composed prompt the live standing is in the per-turn facts only, never in the doctrine", async () => {
+    const reads = [read(7141, await withLive())]
+    const withReads = composeZuloMessages(context([7141], reads), "where is #7141 in the Arena right now?")
+    const without = composeZuloMessages(context([7141]), "where is #7141 in the Arena right now?")
+    assert.ok(withReads.user.includes("the Arena currently reports #280 of 748"))
+    assert.equal(withReads.system, without.system)
+    assert.doesNotMatch(withReads.user, /"live_rank"|"live_score_px"/, "the raw block is not dumped into the context JSON")
   })
 })

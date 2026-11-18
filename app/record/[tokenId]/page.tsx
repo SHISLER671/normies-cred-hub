@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header"
 import { PulseTrace } from "@/components/pulse-trace"
 import { RecordShare } from "@/components/record-share"
 import { ArenaRoundHistoryList } from "@/components/arena-round-history"
+import { LocalTime } from "@/components/arena-live"
 import { ArenaSkin } from "@/components/arena-skin"
 import { publicClient } from "@/lib/viem-client"
 import { symphonyPath } from "@/lib/symphony/pin"
@@ -206,6 +207,30 @@ export default async function RecordCardPage({ params }: Params) {
             <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
           </StatGrid>
           {arena.round_history && <ArenaRoundHistoryList history={arena.round_history} />}
+          {arena.live && (
+            <div style={{ marginTop: 20 }}>
+              <p className="rc-lead" style={{ marginBottom: 8 }}>
+                <strong>Live in the Arena.</strong>{" "}
+                {arena.live.status === "ok" ? `${arena.live.status_text}. It can change until the round ends.` : `${arena.live.status_text}.`}
+              </p>
+              {arena.live.status === "ok" && (
+                <StatGrid>
+                  <Stat label="Arena's live standing" value={arena.live.live_rank.text} note="As the Arena reports it. Not an NCH rank" />
+                  <Stat label="Arena score" value={arena.live.live_score_px.toLocaleString("en-US")} note="Arena PX, the game's own score. Not #PIXEL" />
+                  <Stat label="Right now" value={arena.live.where_text} note={arena.live.back_at ? <>Due back <LocalTime iso={arena.live.back_at} /></> : undefined} />
+                  <Stat label="Kills" value={arena.live.kills} />
+                  <Stat label="Deaths" value={arena.live.deaths} />
+                  <Stat label="Duels won" value={arena.live.duels_won} note="Wins against other agents, as the Arena counts them" />
+                  <Stat label="Round" value={`Game ${arena.live.round.game}`} note={`Phase, as reported: ${arena.live.round.phase}. ${arena.live.round.players} players`} />
+                  <Stat label="Round ends" value={<LocalTime iso={arena.live.round.ends_at} />} note="Shown in your local time" />
+                </StatGrid>
+              )}
+              <p className="caption">
+                {arena.live.status === "ok" ? `${arena.live.note} ` : ""}
+                Source: {arena.live.source.label}, as of {new Date(arena.live.as_of).toUTCString().replace(" GMT", " UTC")}.
+              </p>
+            </div>
+          )}
           {arena.skin_image_url && <ArenaSkin src={arena.skin_image_url} tokenId={card.token_id} profileUrl={arena.profile_url} />}
           <p className="caption">
             {arena.profile_url && (
@@ -225,7 +250,7 @@ export default async function RecordCardPage({ params }: Params) {
                 <a href={arena.watch_url} target="_blank" rel="noopener noreferrer">Watch live</a> on the official Arena map.{" "}
               </>
             )}
-            Official Arena data only (api.normies.art). Being registered is not a record, and nothing here is a guess. Ranked
+            The record is official Arena data only (api.normies.art){arena.live ? "; the live block is the Arena site's own data (arena.normies.art)" : ""}. Being registered is not a record, and nothing here is a guess. Ranked
             only after {ARENA_RANK_MINIMUM.rounds} verified rounds and {ARENA_RANK_MINIMUM.days} days since its first round, and only past the
             trust gate; see the <a href="/arena/rank">Arena rank page</a>. To enter, go to{" "}
             <a href={ARENA_SITE} target="_blank" rel="noopener noreferrer">arena.normies.art</a>; NCH can&apos;t enter anyone.

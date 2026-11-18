@@ -24,7 +24,9 @@ import { arenaProfileUrl, arenaSkinImageUrl, arenaWatchUrl } from "@/lib/arena-c
 import { OFFICIAL_STATUS } from "@/lib/official-status"
 
 import { type ArenaRoundsRead, buildArenaRoundHistory, readArenaRounds } from "./arena-rounds"
-import type { ArenaEntry, ArenaRecord, ArenaRoundHistory, ArenaSector, Field } from "./types"
+import { loadArenaLive } from "@/lib/arena-live/load"
+
+import type { ArenaEntry, ArenaLive, ArenaRecord, ArenaRoundHistory, ArenaSector, Field } from "./types"
 
 /**
  * The one ranking minimum (Ryan, 2026-11-17), used by the record card and the Arena rank page: this many rounds played
@@ -96,6 +98,8 @@ export interface ArenaSource {
   load(tokenId: number): Promise<ArenaSnapshot>
   /** The Normie's round list (lib/record-card/arena-rounds.ts). A failed read is `{ kind: "unavailable" }`. Optional for other sources. */
   loadRounds?(tokenId: number): Promise<ArenaRoundsRead>
+  /** The Arena site's live feed for the Normie (lib/arena-live/). Never throws: a failed read is an "unavailable" block. Optional. */
+  loadLive?(tokenId: number, asOf: string): Promise<ArenaLive>
 }
 
 const wholeNumber = (v: unknown): number | null => {
@@ -191,9 +195,16 @@ async function getJson(path: string): Promise<{ status: number; body: unknown }>
   throw new Error(`arena api ${r.reason}`)
 }
 
-/** The official API adapter. `get` is injectable for tests. */
-export function officialArenaSource(get: (path: string) => Promise<{ status: number; body: unknown }> = getJson): ArenaSource {
+/**
+ * The official API adapter. `get` is injectable for tests. `loadLive` adds the Arena site's live feed; it is off unless
+ * passed, so tests that stub `get` make no live read.
+ */
+export function officialArenaSource(
+  get: (path: string) => Promise<{ status: number; body: unknown }> = getJson,
+  loadLive?: (tokenId: number, asOf: string) => Promise<ArenaLive>,
+): ArenaSource {
   return {
+    ...(loadLive ? { loadLive } : {}),
     ref: ARENA_NORMIE_REF,
     kind: "official_api",
     async load(tokenId) {
@@ -225,7 +236,7 @@ export function officialArenaSource(get: (path: string) => Promise<{ status: num
 }
 
 /** Registered official adapters. The first one is used. */
-export const ARENA_SOURCES: ArenaSource[] = [officialArenaSource()]
+export const ARENA_SOURCES: ArenaSource[] = [officialArenaSource(getJson, loadArenaLive)]
 
 /** Profile link for an entered Normie, and its skin image when the official API counts at least one skin. */
 function arenaLinks(tokenId: number, snap: ArenaSnapshot): { profile_url: string; skin_image_url?: string } {
@@ -331,9 +342,15 @@ export async function loadArenaSector(
 
   // One read of its round list, only for an entered Normie. A failed read is reported in the block itself; it never
   // fails the sector, and it is never shown as an empty list.
-  const roundHistory: { round_history?: ArenaRoundHistory } = source.loadRounds
-    ? { round_history: buildArenaRoundHistory(tokenId, await source.loadRounds(tokenId).catch((): ArenaRoundsRead => ({ kind: "unavailable" })), asOf) }
-    : {}
+  // The Arena site's live feed is read alongside, also only for an entered Normie. It never fails the sector either.
+  const [roundsRead, liveFeed] = await Promise.all([
+    source.loadRounds ? source.loadRounds(tokenId).catch((): ArenaRoundsRead => ({ kind: "unavailable" })) : null,
+    source.loadLive ? source.loadLive(tokenId, asOf).catch(() => null) : null,
+  ])
+  const roundHistory: { round_history?: ArenaRoundHistory; live?: ArenaLive } = {
+    ...(roundsRead ? { round_history: buildArenaRoundHistory(tokenId, roundsRead, asOf) } : {}),
+    ...(liveFeed ? { live: liveFeed } : {}),
+  }
 
   if (snap.rounds_played === 0) {
     const rounds =
