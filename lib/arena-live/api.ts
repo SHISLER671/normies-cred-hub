@@ -79,20 +79,7 @@ export function createArenaLiveApi(deps: ArenaLiveDeps = {}) {
     if (!resolved) return { ok: false, status: 0, reason: "not_allowed" }
     const family = resolved.route.name
     const h = health.get(family)
-    if (h && h.pausedUntil > now()) {
-      console.log(`[arena-live TEMP] route=${family} paused`) // TEMP-DIAG: remove before ready
-      return { ok: false, status: 0, reason: "paused" }
-    }
-    // TEMP-DIAG: remove before ready. Logs route, status and content-type; 120 chars of the body only when it is not JSON.
-    const realFetch = deps.fetchImpl ?? fetch
-    const diagFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-      const r = await realFetch(input, init)
-      const type = r.headers.get("content-type") ?? "(none)"
-      let head = ""
-      if (!/json/i.test(type)) head = (await r.clone().text().catch(() => "")).slice(0, 120).replace(/\s+/g, " ")
-      console.log(`[arena-live TEMP] route=${family} status=${r.status} type=${type} server=${r.headers.get("server") ?? ""} cf-mitigated=${r.headers.get("cf-mitigated") ?? ""}${head ? ` body120=${JSON.stringify(head)}` : ""}`)
-      return r
-    }) as typeof fetch
+    if (h && h.pausedUntil > now()) return { ok: false, status: 0, reason: "paused" }
 
     let res: Awaited<ReturnType<typeof fetchJsonWithLimits>>
     try {
@@ -102,11 +89,9 @@ export function createArenaLiveApi(deps: ArenaLiveDeps = {}) {
           headers: { Accept: "application/json", "User-Agent": arenaApiUserAgent() },
           next: { revalidate: ARENA_API_REVALIDATE_SECONDS },
         } as RequestInit,
-        { timeoutMs: ARENA_LIVE_TIMEOUT_MS, maxBytes: ARENA_API_MAX_BYTES, fetchImpl: diagFetch },
+        { timeoutMs: ARENA_LIVE_TIMEOUT_MS, maxBytes: ARENA_API_MAX_BYTES, fetchImpl: deps.fetchImpl },
       )
-    } catch (err) {
-      const e = err as { name?: string; message?: string; cause?: { code?: string } }
-      console.log(`[arena-live TEMP] route=${family} threw name=${e?.name} code=${e?.cause?.code ?? ""} msg=${String(e?.message).slice(0, 120)}`) // TEMP-DIAG
+    } catch {
       failed(family, h)
       return { ok: false, status: 0, reason: "error" }
     }

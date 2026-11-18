@@ -119,10 +119,7 @@ export function buildArenaLive(tokenId: number, raw: { standing: unknown; normie
   const standing = parseLiveStanding(raw.standing, tokenId)
   const counts = parseLiveCounts(raw.normie, tokenId)
   const round = parseLiveRound(raw.week)
-  if (!standing || !counts || !round || standing.game !== round.game) {
-    console.log(`[arena-live TEMP] parse standing=${!!standing} counts=${!!counts} round=${!!round} games=${standing?.game}/${round?.game}`) // TEMP-DIAG: remove before ready
-    return arenaLiveUnavailable(tokenId, asOf)
-  }
+  if (!standing || !counts || !round || standing.game !== round.game) return arenaLiveUnavailable(tokenId, asOf)
   return {
     status: "ok",
     status_text: `The Arena currently reports #${standing.rank} of ${standing.of}`,
