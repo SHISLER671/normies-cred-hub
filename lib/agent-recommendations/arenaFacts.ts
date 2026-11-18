@@ -9,7 +9,11 @@
 //     unreadable is "couldn't read right now". It is never shown as missing data, zero or "not entered".
 //   - Facts only, each with its source and as-of time: entry state, the card's status line (copied), rounds played,
 //     wins (marked "round in progress" when that applies) and the round list. No per-round win.
-//   - No amounts: the Arena sector carries none, and nothing here adds any.
+//   - The Arena site's live standing (sector.live, lib/arena-live/) may be stated only as "the Arena currently reports
+//     #N of M, as of <time>; it can change until the round ends". Never a predicted finish, never set beside a prize,
+//     never called an NCH rank.
+//   - No amounts: the Arena sector carries none, and nothing here adds any. The live score is Arena PX, the game's own
+//     score, stated as a score and never converted.
 //   - Every string in the block is written by NCH from numbers and fixed official states. No outside text (names,
 //     traits) is in it, so OUTSIDE_TEXT_RULE has nothing to quote here.
 
@@ -68,6 +72,26 @@ function sectorCouldNotRead(sector: ArenaSector): boolean {
 const couldNotReadLine = (tokenId: number, origin: string) =>
   `- #${tokenId}: COULD NOT READ the Arena right now. Say "${ASK_ARENA_COULD_NOT_READ}" for #${tokenId}. This is not "not entered", not zero and not missing data: state no Arena fact for it. Record card: ${recordCardUrl(tokenId, origin)}`
 
+export const ASK_ARENA_LIVE_COULD_NOT_READ = "I couldn't read the live Arena data right now"
+
+/**
+ * The Arena site's live feed for one Normie, as prompt lines, or "" when the sector has none. Every string is written
+ * by NCH from numbers and the fixed values the parser accepts; no outside text is in it.
+ */
+export function askArenaLiveLines(sector: ArenaSector): string {
+  const live = sector.live
+  if (!live) return ""
+  if (live.status !== "ok") {
+    return `  live standing: COULD NOT READ right now (${live.source.label}). Say "${ASK_ARENA_LIVE_COULD_NOT_READ}"; state no live rank, score or count.`
+  }
+  return [
+    `  live standing (source: ${live.source.label}, as of ${live.as_of}): the Arena currently reports ${live.live_rank.text}, as of ${live.as_of}; it can change until the round ends`,
+    `    Arena score: ${live.live_score_px} Arena PX (the game's own score) · right now: ${live.where_text}${live.back_at ? ` (due back ${live.back_at})` : ""}`,
+    `    kills: ${live.kills} · deaths: ${live.deaths} · duels won: ${live.duels_won}`,
+    `    round: Game ${live.round.game} · phase as reported: ${live.round.phase} · ends ${live.round.ends_at} (UTC) · ${live.round.players} players`,
+  ].join("\n")
+}
+
 /** One Normie's Arena facts as prompt lines. */
 export function askArenaLines(read: AskArenaRead, origin: string): string {
   const { tokenId, sector, asOf } = read
@@ -112,6 +136,8 @@ export function askArenaLines(read: AskArenaRead, origin: string): string {
       lines.push(`  round list: ${h.status_text} (${h.source.ref})`)
     }
   }
+  const liveLines = askArenaLiveLines(sector)
+  if (liveLines) lines.push(liveLines)
   return lines.join("\n")
 }
 
@@ -134,6 +160,11 @@ export function askArenaBlock(reads: readonly AskArenaRead[], mentioned: readonl
     `- Where a line says COULD NOT READ, say "${ASK_ARENA_COULD_NOT_READ}" and nothing else about that Normie's Arena.`,
     "- Never describe Arena results, wins or rankings that are not in this block or on the record card.",
   ]
+  if (reads.some((r) => r.sector?.live)) {
+    rules.push(
+      '- Live standing: say it only as "the Arena currently reports #N of M, as of <time>; it can change until the round ends", with the source (the Arena site, arena.normies.art). It is the Arena\'s own standing, never an NCH rank. Never say where a Normie will finish, never set it beside what a place might bring, and never turn its score into anything else.',
+    )
+  }
   if (skipped.length > 0) {
     rules.push(
       `- No Arena read this turn for ${skipped.map((id) => `#${id}`).join(", ")} (Arena facts are read for the first ${ASK_ARENA_MAX_NORMIES} Normies named). State no Arena fact for them; point to their record cards: ${skipped.map((id) => recordCardUrl(id, origin)).join(" , ")}`,

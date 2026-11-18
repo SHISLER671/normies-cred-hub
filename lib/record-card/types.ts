@@ -177,7 +177,43 @@ export type ArenaSector = {
    * read. Optional so older cached cards still type-check.
    */
   round_history?: ArenaRoundHistory
+  /**
+   * What the Arena site itself reports for this Normie right now (lib/arena-live/). The Arena's own live standing, as
+   * reported: not an NCH rank, never counted toward a sector rank or Pulse. Set only for an entered Normie. Optional so
+   * older cached cards still type-check.
+   */
+  live?: ArenaLive
 }
+
+/**
+ * The live Arena feed for one Normie, from the Arena site's public GET routes (arena.normies.art). No amounts.
+ * "unavailable" = any of the reads failed or came back in a shape NCH doesn't know: nothing is shown, never zeros.
+ */
+export type ArenaLive =
+  | { status: "unavailable"; status_text: string; source: { label: string; refs: string[] }; as_of: string }
+  | {
+      status: "ok"
+      /** "The Arena currently reports #N of M". */
+      status_text: string
+      /** The Arena's own rank in the current game. Not an NCH rank. */
+      live_rank: { rank: number; of: number; text: string }
+      /** Arena PX: the game's own score and currency. Not #PIXEL; never converted. */
+      live_score_px: number
+      where: "map" | "resting"
+      where_text: string
+      /** When a resting Normie is due back (ISO-8601 UTC), when the Arena gives it. */
+      back_at: string | null
+      kills: number
+      deaths: number
+      /** The Arena's `agentKills`. */
+      duels_won: number
+      /** `phase` is one word as the Arena reports it. `ends_at` is ISO-8601 UTC; the page shows it in the viewer's local time. */
+      round: { game: number; phase: string; ends_at: string; players: number }
+      note: string
+      source: { label: string; refs: string[] }
+      /** ISO-8601 UTC, when NCH read it. */
+      as_of: string
+    }
 
 /**
  * One Arena round for one Normie, as the official data states it. No per-round win and no #PIXEL amounts.

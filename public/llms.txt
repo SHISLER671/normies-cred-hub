@@ -16,7 +16,7 @@ Pulse responses include chat_ratings: Hive chat star ratings from the ERC-8004 R
 Chat ratings alone (any ERC-8004 agent id, read-only):
 GET /api/chat-ratings/{agentId}
 
-Record card (read-only, every value labelled verified / pending / unavailable with its source; Arena is live and the card shows official Arena data from api.normies.art, including each Normie's round history):
+Record card (read-only, every value labelled verified / pending / unavailable with its source; Arena is live and the card shows official Arena data from api.normies.art, including each Normie's round history; sectors.arena.live adds what the Arena site (arena.normies.art) currently reports for an entered Normie: live_rank ("#N of M", the Arena's own live standing, not an NCH rank, it can change until the round ends), live_score_px (Arena PX, the game's own score), where (map or resting), kills, deaths, duels_won, and round (game, phase, ends_at, players), each with source and read time, or status "unavailable"):
 GET /api/zulo/record-card/{tokenId}
 Human page: /record/{tokenId}
 
