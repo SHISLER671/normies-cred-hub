@@ -12,8 +12,10 @@
 //   - The Arena site's live standing (sector.live, lib/arena-live/) may be stated only as "the Arena currently reports
 //     #N of M, as of <time>; it can change until the round ends". Never a predicted finish, never set beside a prize,
 //     never called an NCH rank.
-//   - No amounts: the Arena sector carries none, and nothing here adds any. The live score is Arena PX, the game's own
-//     score, stated as a score and never converted.
+//   - Money (AGENTS.md "Numbers yes, advice never"): the only amount is the current round's pool total, as officially
+//     reported (sector.round_pool), stated as written with its link. Never a per-Normie prize or part of the pool, never
+//     returns math, never a nudge to pay, enter or add funds. The live score is Arena PX, the game's own score, stated
+//     as a score and never converted.
 //   - Every string in the block is written by NCH from numbers and fixed official states. No outside text (names,
 //     traits) is in it, so OUTSIDE_TEXT_RULE has nothing to quote here.
 
@@ -138,6 +140,7 @@ export function askArenaLines(read: AskArenaRead, origin: string): string {
   }
   const liveLines = askArenaLiveLines(sector)
   if (liveLines) lines.push(liveLines)
+  if (sector.round_pool) lines.push(`  ${sector.round_pool.text}. Official link: ${sector.round_pool.source.url}`)
   return lines.join("\n")
 }
 
@@ -156,10 +159,15 @@ export function askArenaBlock(reads: readonly AskArenaRead[], mentioned: readonl
     "- State these facts as given, each with its source (Official Arena data, api.normies.art) and the as-of time. Copy the status line; do not reword it.",
     "- A round in progress has no result yet. Never call it a win or a loss, and never say how a round will end.",
     "- There is no per-round result here. Total wins is the only win figure; never work out which round was won.",
-    "- Facts only: no forecast, no advice on how a Normie should play, no burn, keep or buy call, no ranking of one Normie over another, and no amounts of any kind.",
+    "- Facts only: no forecast, no advice on how a Normie should play, no burn, keep or buy call, no ranking of one Normie over another, and no amounts of any kind beyond the ones written in this block.",
     `- Where a line says COULD NOT READ, say "${ASK_ARENA_COULD_NOT_READ}" and nothing else about that Normie's Arena.`,
     "- Never describe Arena results, wins or rankings that are not in this block or on the record card.",
   ]
+  if (reads.some((r) => r.sector?.round_pool)) {
+    rules.push(
+      '- Pool: you may state the "Current round pool" line as written, with its link. It is the whole round\'s pool as officially reported, not any Normie\'s, and it is the one exception to "never mention pools". Never call it a prize or a jackpot, never divide it, never say what a Normie might get from it, never set it beside a fee, and never suggest anyone pay, enter or add funds because of it.',
+    )
+  }
   if (reads.some((r) => r.sector?.live)) {
     rules.push(
       '- Live standing: say it only as "the Arena currently reports #N of M, as of <time>; it can change until the round ends", with the source (the Arena site, arena.normies.art). It is the Arena\'s own standing, never an NCH rank. Never say where a Normie will finish, never set it beside what a place might bring, and never turn its score into anything else.',

@@ -113,7 +113,7 @@ type Field<T> = {
 | `sectors.arena.record.matches` | `roundsPlayed` (rounds, shown as "Rounds played") | pending until a round is played, then verified |
 | `sectors.arena.record.wins` | `wins` | pending until a round is played, then verified |
 | `sectors.arena.record.losses` | none | pending: the official data doesn't publish losses |
-| `sectors.arena.record.pixels_net` | none used | pending: NCH doesn't show Arena #PIXEL amounts (the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
+| `sectors.arena.record.pixels_net` | none used | pending: shown once a round has ended and its results are official (per-Normie results wait for an ended round's real shape; until then the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
 | `sectors.arena.record.last_match_at` | `lastRound` is a round number, not a time | pending |
 
 `sectors.arena.entry.state` (official `state` in plain words: active, short, cleared, not registered), `entry.agent_id` (official `agentId`) and `entry.skins` (a count): verified, from `GET /arena/normie/{id}`, when the official data gives them. Every Arena read goes through `lib/arena-api.ts` (allowlisted paths, a shared 60 s cache, backoff on 429/503 and on repeated failures).
@@ -149,11 +149,26 @@ Round texts: an open round is "Round in progress" (never an ending, never a win)
 Routes: `GET /api/world/normie/{id}` is listed in the Arena site's own `llms.txt`. `GET /api/world/standing?ids={id}` and `GET /api/world/arena-week` are public and need no login, but are **not** listed there, so they may change without notice; the loader treats any unexpected shape as unavailable.
 
 **Not included, on purpose:**
-- **Pool and prize amounts.** `AGENTS.md` ("Numbers yes, promises never": never promise or imply returns, earnings, prizes or pools) and the rest of this codebase (`lib/arena-api.ts`, Ask Zulo's doctrine, the Arena tests) keep every Arena amount out. Showing "current pool, as reported" or a Normie's prize needs Ryan to change that rule first, in its own PR.
-- **The live board's `prize` and `share`.** While a game is live (`live: true`, `sealed: false`) `GET /api/world/arena-week/board` already carries a `prize` for each top row. That is a figure for "if it ended now", not a payout, so it is never read. Whether a sealed board's prize is an actual payout has not been seen yet.
+- **Per-Normie prizes, for now.** `AGENTS.md` ("Numbers yes, advice never", 2026-11-18) allows prizes a Normie actually won, but they wait until an ended round's real shape has been seen. The current round's pool total is shown: see §3.2b.
+- **The live board's and the standing row's `prize` and `share`.** While a game is live (`live: true`, `sealed: false`) `GET /api/world/arena-week/board` and top rows of `standing` carry a `prize` figure. That is a figure for "if it ended now", not a payout, so it is never read or shown.
 - `worth`, `passPrice`, `entryFees`, `sponsorship`, `entryPrice` and anything in ETH or USD: never read.
 - `level` in the Arena response is the Canvas level; it stays in the identity block and is never presented as an Arena record.
 - The `/api/world/live` stream, wallet-signed POST routes and admin routes are never called.
+
+### 3.2b Current round pool (built 2026-11-18, Claude)
+
+`sectors.arena.round_pool` (optional, additive): the current open round's pool total, as the official API reports it. Rule: `AGENTS.md` "Numbers yes, advice never".
+
+| Field | Meaning |
+|---|---|
+| `round`, `amount`, `unit` | The round number, the pool as a whole number, and `"#PIXEL"`. The official docs (api.normies.art/llms.txt, "## Arena") say "Amounts are #PIXEL as strings" and `pool` = `sponsorship` + `fees` |
+| `text` | "Current round pool: N #PIXEL (sponsorship plus entry fees, as reported by api.normies.art, as of <time>; can change until the round ends)" |
+| `note` | "The whole round's pool as officially reported, not any one Normie's." |
+| `source`, `as_of` | `GET /arena/status → round.pool`, "Official Arena data (api.normies.art)", the link `https://api.normies.art/arena/status`, and when NCH read it |
+
+Source: `GET /arena/status` on the official API, the read the card already makes once, so it costs no extra request; the Arena site's routes are not used for it. Strict (`parseArenaRoundPool`): shown only while `round.round` equals `currentRound`, the round has started and has not ended or been cancelled, and `pool` is a whole number or a string of digits; otherwise there is no block (never zero). It is the only money field read from that response: `prizes`, `sponsorship`, `fees`, `paid`, `refunds` and `totals` are not. Set only for an entered Normie.
+
+Never: calling it a prize or a jackpot, dividing it, a projected per-Normie prize or share, returns math, comparing a fee with it, converting it to ETH or dollars, or any wording that nudges someone to pay, enter or top up. The wallet check page and `/api/arena-wallet` show no pool, prize or winnings at all (they would add up to wallet-level winnings). Settled per-Normie prizes are a later build.
 
 `sectors.arena.watch_url`: the official watch link (`arena.normies.art/world/pixel?follow=<id>`, per the official Arena guide), set once a Normie is entered or has played.
 

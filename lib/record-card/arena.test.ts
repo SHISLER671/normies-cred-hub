@@ -17,6 +17,7 @@ import {
   parseAnyRoundStarted,
   parseArenaLiveRound,
   parseArenaNormie,
+  parseArenaRoundPool,
 } from "./arena"
 import { buildRecordCard, type RecordCardInputs } from "./build"
 
@@ -28,6 +29,9 @@ const NOT_ENTERED_V1 = fixture("arena-normie-4242-not-entered") as Record<string
 const STATUS = fixture("arena-status") as Record<string, unknown>
 /** Live GET /arena/status, 2026-11-17 08:07 ChST, trimmed by Ryan to the round fields (its prize and pool fields left out). */
 const STATUS_OPEN = fixture("arena-status-round1-open") as Record<string, unknown>
+/** Real GET /arena/status, read 2026-11-18 01:30 UTC, untouched except the tx hash (zeroed). Round 1 open, pool "200". */
+const STATUS_FULL = fixture("arena-status-2026-11-18") as Record<string, unknown>
+const withFullRound = (round: Record<string, unknown>) => ({ ...STATUS_FULL, round: { ...(STATUS_FULL.round as object), ...round } })
 const withRound = (round: Record<string, unknown>) => ({ ...STATUS_OPEN, round: { ...(STATUS_OPEN.round as object), ...round } })
 /** Synthetic: a Normie that never registered, in the live shape. */
 const NOT_ENTERED = { ...ZULO, tokenId: "4242", state: "unregistered", registered: false, agentId: null, skins: 0, roundsPlayed: 0, lastRound: null, wins: 0, inCurrentRound: false }
@@ -91,7 +95,7 @@ describe("live data: Zulo after the migration", () => {
     assert.deepEqual({ v: sector.record.matches.value, l: sector.record.matches.label, ref: sector.record.matches.source.ref }, { v: 1, l: "verified", ref: "GET /arena/normie/7141 → roundsPlayed" })
     assert.deepEqual({ v: sector.record.wins.value, l: sector.record.wins.label }, { v: 0, l: "verified" })
     assert.deepEqual({ v: sector.record.losses.value, r: sector.record.losses.pending_reason }, { v: null, r: "the official data doesn't publish losses" })
-    assert.deepEqual({ v: sector.record.pixels_net.value, r: sector.record.pixels_net.pending_reason }, { v: null, r: "NCH doesn't show Arena #PIXEL amounts" })
+    assert.deepEqual({ v: sector.record.pixels_net.value, r: sector.record.pixels_net.pending_reason }, { v: null, r: "shown once a round has ended and its results are official" })
     assert.equal(sector.record.last_match_at.value, null)
     assert.deepEqual(sector.rank, { ranked: false, score: null, reason: ARENA_RANK_OFF_REASON })
   })
@@ -167,14 +171,26 @@ describe("the round in progress (GET /arena/status, read once per card)", () => 
     assert.deepEqual(parseArenaLiveRound(withRound({ ended: true })), { current: 1, open: false })
     assert.deepEqual(parseArenaLiveRound(withRound({ started: false })), { current: 1, open: false })
   })
-  it("the status response's prize and pool fields are never read (they throw if touched)", async () => {
-    const body: Record<string, unknown> = JSON.parse(JSON.stringify(STATUS_OPEN))
+  it("of the status response's money fields only the current round's `pool` is read; every other one throws if touched", async () => {
+    // Replaces "prize and pool fields are never read" (AGENTS.md "Numbers yes, advice never", 2026-11-18).
+    const body: Record<string, unknown> = JSON.parse(JSON.stringify(STATUS_FULL))
     const round = body.round as Record<string, unknown>
-    for (const [obj, key] of [[body, "prizes"], [body, "pool"], [body, "prizePool"], [round, "prizes"], [round, "pool"], [round, "sponsorship"], [round, "fees"]] as const) {
-      Object.defineProperty(obj, key, { enumerable: false, get() { throw new Error(`read ${key}`) } })
-    }
+    const totals = body.totals as Record<string, unknown>
+    const guarded: Array<[Record<string, unknown>, string]> = [
+      [body, "prizes"], [body, "pool"], [body, "prizePool"], [body, "cumulative"], [body, "totals"],
+      [round, "prizes"], [round, "sponsorship"], [round, "fees"], [round, "paid"], [round, "unpaid"], [round, "refunds"], [round, "price"], [round, "rolled"], [round, "rolledIn"], [round, "migrated"], [round, "cumulative"],
+      [totals, "balances"], [totals, "pools"], [totals, "prizes"], [totals, "refunds"], [totals, "pixelsCharged"],
+    ]
+    for (const [obj, key] of guarded) Object.defineProperty(obj, key, { enumerable: false, get() { throw new Error(`read ${key}`) } })
     const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(body) })
     assert.equal(sector.status_text, "Playing Round 1 now: 1 round counted so far")
+    assert.equal(sector.round_pool?.amount, 200)
+    const { round_pool: _pool, ...rest } = sector
+    assert.doesNotMatch(JSON.stringify(rest), /prize|pool|payout|sponsor/i, "outside the pool block the sector has no money wording")
+  })
+  it("the trimmed status fixture (no pool field) gives no pool block and no money wording at all", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_OPEN) })
+    assert.equal(sector.round_pool, undefined)
     assert.doesNotMatch(JSON.stringify(sector), /prize|pool|payout|sponsor/i)
   })
 })
@@ -352,5 +368,75 @@ describe("the card and the wiring", () => {
     assert.equal(card.sectors.arena.record.matches.value, 1)
     assert.equal(card.sectors.arena.record.wins.value, 0)
     assert.doesNotMatch(JSON.stringify(card.sectors.arena), /line position|353/)
+  })
+})
+
+describe("the current round's pool total, as officially reported (AGENTS.md: numbers yes, advice never)", () => {
+  it("the real status response: Round 1 is open and its pool is 200", () => {
+    const round = STATUS_FULL.round as Record<string, unknown>
+    assert.deepEqual([STATUS_FULL.currentRound, round.round, round.started, round.ended, round.pool], [1, 1, true, false, "200"])
+    assert.deepEqual(parseArenaRoundPool(STATUS_FULL), { round: 1, amount: 200 })
+    assert.doesNotMatch(JSON.stringify(STATUS_FULL), /0x(?!0{64})[0-9a-fA-F]{64}/, "the fixture's tx hash is zeroed")
+  })
+  it("Zulo's card carries the pool block with Ryan's label, the unit, the source, the official link and the read time", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL) })
+    assert.deepEqual(sector.round_pool, {
+      round: 1,
+      amount: 200,
+      unit: "#PIXEL",
+      text: "Current round pool: 200 #PIXEL (sponsorship plus entry fees, as reported by api.normies.art, as of Tue, 17 Nov 2026 00:00:00 UTC; can change until the round ends)",
+      note: "The whole round's pool as officially reported, not any one Normie's.",
+      source: { kind: "official_api", ref: "GET /arena/status → round.pool", label: "Official Arena data (api.normies.art)", url: "https://api.normies.art/arena/status" },
+      as_of: NOW,
+    })
+  })
+  it("'can change until the round ends' is said once (in the label's brackets), not again in the note", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL) })
+    const shown = `${sector.round_pool?.text}. ${sector.round_pool?.note}`
+    assert.equal((shown.match(/can change until the round ends/gi) ?? []).length, 1)
+  })
+  it("it costs no extra request: still one /arena/status read per card", async () => {
+    const { asked } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL) })
+    assert.equal(asked.filter((p) => p === "/arena/status").length, 1)
+  })
+  it("the pool is never called a prize or a jackpot, and is never divided, projected or converted", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL) })
+    const text = JSON.stringify(sector.round_pool)
+    assert.doesNotMatch(text, /prize|jackpot|payout|winnings|per Normie|each|share|\bETH\b|\bUSD\b|\$|projected|estimated|expected|if it ended|\bROI\b|per week/i)
+    assert.deepEqual(Object.keys(sector.round_pool ?? {}).sort(), ["amount", "as_of", "note", "round", "source", "text", "unit"])
+  })
+  it("no pool unless the current round is open: ended, not started, cancelled or a different round gives none", () => {
+    for (const over of [{ ended: true }, { started: false }, { cancelled: true }, { round: 2 }, { ended: null }, { started: "true" }]) {
+      assert.equal(parseArenaRoundPool(withFullRound(over)), null, JSON.stringify(over))
+    }
+    assert.equal(parseArenaRoundPool({ ...STATUS_FULL, currentRound: 2 }), null)
+  })
+  it("strict on the amount: a whole number or digits only; anything else shows no pool, never zero", () => {
+    assert.deepEqual(parseArenaRoundPool(withFullRound({ pool: 350 })), { round: 1, amount: 350 })
+    assert.deepEqual(parseArenaRoundPool(withFullRound({ pool: "0" })), { round: 1, amount: 0 })
+    for (const pool of ["200.5", "2e2", "-200", " 200", "200 PIXEL", "", null, undefined, 1.5, -1, true, {}, []]) {
+      assert.equal(parseArenaRoundPool(withFullRound({ pool })), null, String(pool))
+    }
+    for (const bad of [null, [], "x", { currentRound: 1 }, { currentRound: 1, round: [] }]) assert.equal(parseArenaRoundPool(bad), null)
+  })
+  it("a failed status read means no pool block; the card still builds", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO) })
+    assert.equal(sector.round_pool, undefined)
+    assert.equal(sector.record.matches.value, 1)
+  })
+  it("synthetic: a Normie that isn't entered gets no pool block", async () => {
+    const { sector } = await live(4242, { "/arena/normie/4242": ok(NOT_ENTERED), "/arena/status": ok(STATUS_FULL) })
+    assert.equal(sector.status, "not_entered")
+    assert.equal(sector.round_pool, undefined)
+  })
+  it("the record page shows the label, the note and the official link, and nothing else about money", () => {
+    const page = readFileSync("app/record/[tokenId]/page.tsx", "utf8")
+    const start = page.indexOf("{arena.round_pool && (")
+    const block = page.slice(start, page.indexOf("{arena.live && (", start))
+    assert.ok(start > 0 && block.length > 100)
+    assert.ok(block.includes("{arena.round_pool.text}. {arena.round_pool.note}"))
+    assert.ok(block.includes("href={arena.round_pool.source.url}"))
+    assert.ok(block.includes("Don&apos;t take our word for it"))
+    assert.doesNotMatch(block, /prize|jackpot|payout|winnings|share|\bETH\b|\bUSD\b|enter|top up|worth/i)
   })
 })

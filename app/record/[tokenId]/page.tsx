@@ -207,6 +207,12 @@ export default async function RecordCardPage({ params }: Params) {
             <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
           </StatGrid>
           {arena.round_history && <ArenaRoundHistoryList history={arena.round_history} />}
+          {arena.round_pool && (
+            <p className="caption" style={{ marginTop: 20 }}>
+              {arena.round_pool.text}. {arena.round_pool.note} Don&apos;t take our word for it:{" "}
+              <a href={arena.round_pool.source.url} target="_blank" rel="noopener noreferrer">check the official Arena data</a>.
+            </p>
+          )}
           {arena.live && (
             <div style={{ marginTop: 20 }}>
               <p className="rc-lead" style={{ marginBottom: 8 }}>

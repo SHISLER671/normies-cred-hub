@@ -352,6 +352,20 @@ describe("no amounts anywhere", () => {
     const code = readFileSync("lib/arena-wallet/core.ts", "utf8").split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n")
     assert.doesNotMatch(code, /balance|pixelsWon|pixelsRefunded|pixelsCharged|deposited|withdrawn|prize|payout/i)
   })
+  it("no pool, prize or winnings on the wallet check, by rule: they would add up to wallet-level winnings (AGENTS.md)", async () => {
+    const MONEY_WORDS = /pool|prize|payout|winnings|\bwon\b|earn|balance|pixelsWon|round_pool|#PIXEL|\bPX\b/i
+    for (const w of [WALLET, EMPTY_WALLET]) {
+      const result = await loadArenaWallet(w, deps(arena).d)
+      assert.doesNotMatch(JSON.stringify(arenaWalletResponse(result).body), MONEY_WORDS)
+      assert.doesNotMatch(arenaWalletText(result), MONEY_WORDS)
+    }
+    const page = readFileSync("app/arena/page.tsx", "utf8")
+    const jsx = page.slice(page.indexOf("return ("))
+    assert.doesNotMatch(jsx.replace("{ARENA_STATUS_LINE}", ""), MONEY_WORDS, "the wallet page renders no money wording")
+    for (const file of ["app/api/arena-wallet/route.ts", "lib/arena-wallet/load.ts"]) {
+      assert.doesNotMatch(readFileSync(file, "utf8"), /round_pool|parseArenaRoundPool|pool|prize|winnings/i, file)
+    }
+  })
   it("the llms.txt entries name no amount", () => {
     const txt = readFileSync("public/llms.txt", "utf8")
     const start = txt.indexOf("Arena wallet check")

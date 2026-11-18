@@ -301,3 +301,58 @@ describe("the Arena site's live standing (real responses in lib/arena-live/fixtu
     assert.doesNotMatch(withReads.user, /"live_rank"|"live_score_px"/, "the raw block is not dumped into the context JSON")
   })
 })
+
+describe("the current round's pool total in Ask Zulo (AGENTS.md: numbers yes, advice never)", () => {
+  /** Real GET /arena/status, read 2026-11-18, with its pool field ("200"). */
+  const STATUS_FULL = fixture("arena-status-2026-11-18")
+  const withPool = () => sectorFrom(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL), "/arena/normie/7141/rounds": ok(ROUNDS) })
+  const POOL_LINE = "Current round pool: 200 #PIXEL (sponsorship plus entry fees, as reported by api.normies.art, as of Tue, 17 Nov 2026 03:00:00 UTC; can change until the round ends). Official link: https://api.normies.art/arena/status"
+  /** Item 4: what must never appear next to a money figure. Nudging phrases and returns math, not bare words. */
+  const NEVER_WITH_MONEY =
+    /projected|estimated|if it ended|on track|will finish|per Normie|each Normie|your share|its share|share of the pool|\bROI\b|return on|expected value|per week|\bAPR\b|\bAPY\b|earn(?:s|ed|ing)? |fee (?:vs|versus|against)|pool (?:vs|versus|against)|cheaper than|pays for itself|enter now|enter to win|worth entering|top up now|top up to|burn to play|jackpot|\bETH\b|\bUSD\b|\$/i
+
+  it("the pool appears in exactly one line of the facts, as written, with its source, time and official link", async () => {
+    const facts = askArenaLines(read(7141, await withPool()), ORIGIN)
+    assert.ok(facts.includes(`  ${POOL_LINE}`))
+    assert.equal(facts.split("\n").filter((l) => /pool/i.test(l)).length, 1)
+    assert.equal((facts.match(/\b200\b/g) ?? []).length, 1, "the figure appears once, in that line")
+  })
+  it("outside that one line the facts still have no money wording at all (the old ban, kept for everything else)", async () => {
+    const facts = askArenaLines(read(7141, await withPool()), ORIGIN)
+    const rest = facts.split("\n").filter((l) => !l.includes("Current round pool:")).join("\n")
+    assert.doesNotMatch(rest, MONEY)
+  })
+  it("item 4: no projection, share, returns math, fee-versus-pool comparison, conversion or nudge anywhere in the facts", async () => {
+    const facts = askArenaLines(read(7141, await withPool()), ORIGIN)
+    assert.doesNotMatch(facts, NEVER_WITH_MONEY)
+    assert.doesNotMatch(facts, /prize|payout|winnings|refund/i, "the pool is never called a prize, and no prize figure is given")
+  })
+  it("synthetic: amounts on every other official field still never reach the facts", async () => {
+    const status = JSON.parse(JSON.stringify(STATUS_FULL)) as { round: Record<string, unknown>; totals: Record<string, unknown> }
+    Object.assign(status.round, { sponsorship: "150123", fees: "50123", prizes: "777123", refunds: "888123", paid: "999123", price: "5123" })
+    Object.assign(status.totals, { prizes: "666123", pools: "555123", balances: "444123" })
+    const rich = { ...ZULO, balance: "333123", pixelsWon: "222123" }
+    const sector = await sectorFrom(7141, { "/arena/normie/7141": ok(rich), "/arena/status": ok(status), "/arena/normie/7141/rounds": ok(ROUNDS) })
+    const block = askArenaBlock([read(7141, sector)], [7141], ORIGIN)
+    assert.doesNotMatch(block, /150123|50123|777123|888123|999123|5123|666123|555123|444123|333123|222123/)
+    assert.ok(block.includes("Current round pool: 200 #PIXEL"))
+  })
+  it("the block's rule: state it as written; never a prize or jackpot, never divided, never beside a fee, never a reason to pay or enter", async () => {
+    const block = askArenaBlock([read(7141, await withPool())], [7141], ORIGIN)
+    assert.match(block, /Pool: you may state the "Current round pool" line as written, with its link/)
+    assert.match(block, /the whole round's pool as officially reported, not any Normie's/)
+    assert.match(block, /Never call it a prize or a jackpot, never divide it, never say what a Normie might get from it, never set it beside a fee, and never suggest anyone pay, enter or add funds because of it/)
+  })
+  it("no pool, no pool rule: the trimmed status fixture gives the old block with no money wording", async () => {
+    const block = askArenaBlock([read(7141, await zuloSector())], [7141], ORIGIN)
+    assert.doesNotMatch(block, /Pool:|Current round pool/)
+    assert.doesNotMatch(block, MONEY)
+  })
+  it("the doctrine in the system prompt carries the new money rule and no longer says 'never mention a prize pool'", async () => {
+    const { system } = composeZuloMessages(context([7141], [read(7141, await withPool())]), "is Arena live and how big is the pool?")
+    assert.match(system, /Arena money: state an official figure only when it is in your context/)
+    assert.match(system, /Never predict an outcome, never give or estimate what any one Normie might get or its part of a pool, never do returns math or set a fee against a pool/)
+    assert.match(system, /never suggest that anyone pay, enter or add funds/)
+    assert.doesNotMatch(system, /Never mention prizes, a prize pool, payouts/)
+  })
+})

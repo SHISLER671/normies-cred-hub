@@ -9,11 +9,14 @@
 //     pending ("not in official data"), never inferred from `state` or `inCurrentRound`.
 //   - Ranking stays off until the minimum sample is met (ARENA_RANK_MINIMUM: rounds played, and days since the first round).
 //     The card itself never ranks: ranks are shown on the Arena rank page (lib/arena-rank/), which imports the same minimum.
-//   - No #PIXEL amounts: the API reports pixels won, charged and refunded, but NCH doesn't show or net them (AGENTS.md
-//     "Numbers yes, promises never"; nothing about prizes, pools, payouts or winnings).
+//   - Money (AGENTS.md "Numbers yes, advice never"): the one amount shown is the current round's pool total, as the
+//     official API reports it (GET /arena/status → round.pool, in #PIXEL), with its source, as-of time and link. The API
+//     also reports pixels won, charged and refunded per Normie; NCH doesn't show or net them here. Never a projected
+//     per-Normie prize, a share, returns math, or a nudge to pay, enter or top up.
 //   - If Arena's status in lib/official-status.ts is ever not LIVE, nothing is called and every field is pending.
 //   - While the round a Normie last played is still open (GET /arena/status), the card says "Playing Round N now" and wins
-//     is labelled "round in progress". /arena/status is read once per card; its prize and pool fields are never read.
+//     is labelled "round in progress". /arena/status is read once per card; of its money fields only the current round's
+//     `pool` is read (parseArenaRoundPool). `prizes`, `sponsorship`, `fees`, `paid`, `refunds` and `totals` never are.
 //   - An entered Normie's round list (GET /arena/normie/{id}/rounds) is read by lib/record-card/arena-rounds.ts: which
 //     rounds it played and each round's status and date. No per-round win, and no amounts.
 // The API's field names come from live responses: fixtures/arena-normie-7141.json is the 2026-11-17 shape,
@@ -26,7 +29,7 @@ import { OFFICIAL_STATUS } from "@/lib/official-status"
 import { type ArenaRoundsRead, buildArenaRoundHistory, readArenaRounds } from "./arena-rounds"
 import { loadArenaLive } from "@/lib/arena-live/load"
 
-import type { ArenaEntry, ArenaLive, ArenaRecord, ArenaRoundHistory, ArenaSector, Field } from "./types"
+import type { ArenaEntry, ArenaLive, ArenaRecord, ArenaRoundHistory, ArenaRoundPool, ArenaSector, Field } from "./types"
 
 /**
  * The one ranking minimum (Ryan, 2026-11-17), used by the record card and the Arena rank page: this many rounds played
@@ -59,6 +62,8 @@ export type ArenaSnapshot = {
   any_round_started: boolean | null
   /** The current round from `GET /arena/status`, when it could be read strictly. Null = unknown. Optional for other sources. */
   live_round?: ArenaLiveRound | null
+  /** The current open round's pool total from `GET /arena/status` (whole #PIXEL), when it could be read strictly. Optional for other sources. */
+  round_pool?: { round: number; amount: number } | null
   /** Block the source's answer was indexed at, when given. */
   block: number | null
   /** Official `state` (llms.txt): unregistered, active, short or cleared. Null when missing or unknown. Optional for other sources. */
@@ -174,6 +179,42 @@ export function parseArenaLiveRound(raw: unknown): ArenaLiveRound | null {
   return { current, open: number === current && round.started && !round.ended }
 }
 
+export const ARENA_STATUS_URL = "https://api.normies.art/arena/status"
+export const ARENA_POOL_SOURCE_LABEL = "Official Arena data (api.normies.art)"
+export const ARENA_POOL_NOTE = "The whole round's pool as officially reported, not any one Normie's."
+
+/**
+ * From `GET /arena/status`: the current round's pool total, only while that round is open. The official docs
+ * (api.normies.art/llms.txt, "## Arena") say "Amounts are #PIXEL as strings" and `pool` = `sponsorship` + `fees`.
+ * Strict: `currentRound` and `round.round` must be the same whole number, `round.started` true, `round.ended` false,
+ * `round.cancelled` not true, and `round.pool` a whole number or a string of digits. Anything else is null: no pool is
+ * shown. This is the only money field read from the response.
+ */
+export function parseArenaRoundPool(raw: unknown): { round: number; amount: number } | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
+  const r = raw as { currentRound?: unknown; round?: unknown }
+  const current = wholeNumber(r.currentRound)
+  if (current === null || !r.round || typeof r.round !== "object" || Array.isArray(r.round)) return null
+  const round = r.round as { round?: unknown; started?: unknown; ended?: unknown; cancelled?: unknown; pool?: unknown }
+  if (wholeNumber(round.round) !== current || round.started !== true || round.ended !== false || round.cancelled === true) return null
+  const amount = wholeNumber(round.pool)
+  return amount === null ? null : { round: current, amount }
+}
+
+/** The card's pool block. The text follows Ryan's wording (2026-11-18); it is never called a prize or a jackpot. */
+export function buildArenaRoundPool(pool: { round: number; amount: number }, asOf: string): ArenaRoundPool {
+  const when = new Date(asOf).toUTCString().replace(" GMT", " UTC")
+  return {
+    round: pool.round,
+    amount: pool.amount,
+    unit: "#PIXEL",
+    text: `Current round pool: ${pool.amount} #PIXEL (sponsorship plus entry fees, as reported by api.normies.art, as of ${when}; can change until the round ends)`,
+    note: ARENA_POOL_NOTE,
+    source: { kind: "official_api", ref: "GET /arena/status → round.pool", label: ARENA_POOL_SOURCE_LABEL, url: ARENA_STATUS_URL },
+    as_of: asOf,
+  }
+}
+
 /** From `GET /arena/status`: has any round started? Null when the answer can't be read. */
 export function parseAnyRoundStarted(raw: unknown): boolean | null {
   if (!raw || typeof raw !== "object") return null
@@ -229,7 +270,7 @@ export function officialArenaSource(
         statusBody = null
       }
       const anyRoundStarted = parsed.rounds_played > 0 ? true : parseAnyRoundStarted(statusBody)
-      return { ...parsed, any_round_started: anyRoundStarted, live_round: parseArenaLiveRound(statusBody) }
+      return { ...parsed, any_round_started: anyRoundStarted, live_round: parseArenaLiveRound(statusBody), round_pool: parseArenaRoundPool(statusBody) }
     },
     loadRounds: (tokenId) => readArenaRounds(tokenId, get),
   }
@@ -347,7 +388,8 @@ export async function loadArenaSector(
     source.loadRounds ? source.loadRounds(tokenId).catch((): ArenaRoundsRead => ({ kind: "unavailable" })) : null,
     source.loadLive ? source.loadLive(tokenId, asOf).catch(() => null) : null,
   ])
-  const roundHistory: { round_history?: ArenaRoundHistory; live?: ArenaLive } = {
+  const roundHistory: { round_history?: ArenaRoundHistory; live?: ArenaLive; round_pool?: ArenaRoundPool } = {
+    ...(snap.round_pool ? { round_pool: buildArenaRoundPool(snap.round_pool, asOf) } : {}),
     ...(roundsRead ? { round_history: buildArenaRoundHistory(tokenId, roundsRead, asOf) } : {}),
     ...(liveFeed ? { live: liveFeed } : {}),
   }
@@ -384,7 +426,7 @@ export async function loadArenaSector(
       matches: v(snap.rounds_played, "roundsPlayed"),
       wins: playingRound !== null ? { ...wins, label: "round in progress" as const } : wins,
       losses: pendingField("the official data doesn't publish losses", asOf, ref),
-      pixels_net: pendingField("NCH doesn't show Arena #PIXEL amounts", asOf, ref),
+      pixels_net: pendingField("shown once a round has ended and its results are official", asOf, ref),
       last_match_at: pendingField("the official data gives the last round's number, not its time", asOf, ref),
     },
     rank: NOT_RANKED,

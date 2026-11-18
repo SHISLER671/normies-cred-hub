@@ -12,7 +12,8 @@
 //   - Paths are allowlisted with their documented query keys; nothing from user input reaches the URL unchecked.
 //
 // Money: the Arena API reports #PIXEL balances, prizes, refunds, pools and charges. This file returns raw bodies; the
-// parsers that read them (lib/record-card/arena.ts) pick named non-money fields only, and NCH never shows those amounts.
+// parsers that read them pick named fields only. Under AGENTS.md "Numbers yes, advice never" the one amount NCH shows
+// is the current round's pool total (lib/record-card/arena.ts, parseArenaRoundPool); no other amount is read.
 // The two money-only endpoints (/arena/rounds/{round}/winners and /refunds) are deliberately not on the allowlist.
 
 import { NORMIES_API_BASE } from "@/constants/contracts"

@@ -183,6 +183,25 @@ export type ArenaSector = {
    * older cached cards still type-check.
    */
   live?: ArenaLive
+  /**
+   * The current open round's pool total, as the official API reports it (`GET /arena/status` → `round.pool`). The whole
+   * round's pool, not this Normie's: never a prize, a share or a projection. Set only for an entered Normie while a
+   * round is open. Optional so older cached cards still type-check.
+   */
+  round_pool?: ArenaRoundPool
+}
+
+export type ArenaRoundPool = {
+  round: number
+  /** Whole #PIXEL. */
+  amount: number
+  unit: "#PIXEL"
+  /** "Current round pool: N #PIXEL (sponsorship plus entry fees, as reported by api.normies.art, as of <time>; can change until the round ends)". */
+  text: string
+  note: string
+  source: { kind: "official_api"; ref: string; label: string; url: string }
+  /** ISO-8601 UTC, when NCH read it. */
+  as_of: string
 }
 
 /**
