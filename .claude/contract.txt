@@ -17,4 +17,5 @@ lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md
 lib/agent-recommendations/loadKnowledge.ts
 lib/record-card/arena.test.ts
 lib/record-card/arena.ts
+lib/record-card/build.test.ts
 lib/record-card/types.ts
