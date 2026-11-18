@@ -1,4 +1,4 @@
-# Scope: live Arena feed on the record card and in Ask Zulo: the Arena site's own live standing for a Normie (rank, score, on the map or resting, kills, deaths, duels won) and the current round (game, phase, end time, players), read from arena.normies.art with source and read time. No pool, prize or other amounts (Claude, 2026-11-18). Replaces the Arena skill rank contract (#218/#219, merged).
+# Scope: bring the Arena code in line with the new money rule in AGENTS.md ("Numbers yes, advice never", #224): the current round's pool total as officially reported on the record card and in Ask Zulo, the doctrine and comments that cite the old rule, and the tests that ban money wording. No settled per-Normie prizes yet, nothing on the wallet check page (Claude, 2026-11-18). Replaces the live Arena feed contract (#222/#223, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -8,15 +8,27 @@
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
 app/record/[tokenId]/page.tsx
-components/arena-live.tsx
 docs/zulo/ask.md
 docs/zulo/record-card-spec.md
 lib/agent-recommendations/arenaFacts.test.ts
 lib/agent-recommendations/arenaFacts.ts
+lib/agent-recommendations/ask-facts.test.ts
 lib/agent-recommendations/composePrompt.ts
-lib/arena-live/
+lib/agent-recommendations/tierMath.ts
+lib/arena-api.ts
+lib/arena-canon.test.ts
+lib/arena-canon.ts
+lib/arena-live/arena-live.test.ts
+lib/arena-live/core.ts
+lib/arena-rank/arena-rank.test.ts
+lib/arena-wallet/arena-wallet.test.ts
+lib/canon-drift.test.ts
+lib/official-status.test.ts
+lib/record-card/arena-canvas-rank.test.ts
+lib/record-card/arena-rounds.test.ts
+lib/record-card/arena-rounds.ts
 lib/record-card/arena.test.ts
 lib/record-card/arena.ts
+lib/record-card/fixtures/
 lib/record-card/types.ts
-package.json
 public/llms.txt
