@@ -204,7 +204,7 @@ export default async function RecordCardPage({ params }: Params) {
             <Stat label="Rounds played" value={show(arena.record.matches)} note={note(arena.record.matches)} />
             <Stat label="Wins" value={show(arena.record.wins)} note={note(arena.record.wins)} />
             <Stat label="Losses" value={show(arena.record.losses)} note={note(arena.record.losses)} />
-            <Stat label="Net pixels" value={show(arena.record.pixels_net)} note={note(arena.record.pixels_net)} />
+            {arena.record.prize_won && <Stat label="Prize won" value={show(arena.record.prize_won)} note={note(arena.record.prize_won)} />}
           </StatGrid>
           {arena.round_history && <ArenaRoundHistoryList history={arena.round_history} />}
           {arena.round_pool && (

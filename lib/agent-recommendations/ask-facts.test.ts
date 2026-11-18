@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
 import { composeZuloPrompt, OUTSIDE_TEXT_RULE } from "./composePrompt"
+import { ARENA_MONEY_RULE } from "../arena-canon"
 import {
   ensurePulseFirst,
   formatPulseLead,
@@ -766,7 +767,12 @@ describe("Ask: painting, Level, Canvas and Arena stay inside the official facts 
   })
   it("Arena: only what is official; tables only from ARENA FACTS, never prizes", () => {
     assert.match(prompt, /quote them only from the ARENA FACTS block, with the source/i)
-    assert.match(prompt, /never mention prizes, pools or payouts/)
+    // Replaces the pinned "never mention prizes, pools or payouts" (AGENTS.md "Numbers yes, advice never", 2026-11-18).
+    assert.doesNotMatch(prompt, /never mention prizes, pools or payouts/)
+    assert.ok(prompt.includes(`Never say how many Normies to keep. ${ARENA_MONEY_RULE}`))
+    for (const must of ["Never predict an outcome", "what any one Normie might get or its part of a pool", "never do returns math or set a fee against a pool", "never convert #PIXEL to ETH or dollars", "never state a wallet's balance or winnings", "never suggest that anyone pay, enter or add funds"]) {
+      assert.ok(prompt.includes(must), must)
+    }
     assert.doesNotMatch(prompt, /combat rules are NOT published/)
   })
   it("the community tool catalog lists the independent burn advisor with its /burn URL", () => {

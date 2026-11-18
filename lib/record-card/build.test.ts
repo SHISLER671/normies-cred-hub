@@ -135,10 +135,11 @@ describe("buildRecordCard", () => {
 
   it("Arena fields are pending, never zero, while Arena is not live", async () => {
     const c = buildRecordCard(await inputs())
-    for (const f of Object.values(c.sectors.arena.record)) {
+    for (const [key, f] of Object.entries(c.sectors.arena.record)) {
       assert.equal(f.value, null)
       assert.equal(f.label, "pending")
-      assert.equal(f.pending_reason, "Arena not live")
+      // pixels_net is retired (2026-11-18): always pending with its own reason, in every state.
+      assert.equal(f.pending_reason, key === "pixels_net" ? "Replaced by prize_won. NCH does not show net figures." : "Arena not live")
     }
     assert.equal(c.sectors.arena.rank.ranked, false)
   })

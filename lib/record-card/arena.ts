@@ -289,12 +289,26 @@ function pendingField<T>(reason: string, asOf: string, ref = "official Arena dat
   return { value: null, label: "pending", pending_reason: reason, source: { kind: "official_api", ref }, as_of: asOf }
 }
 
+/**
+ * `pixels_net` is retired (Ryan, 2026-11-18): a net figure (prize minus fees) is returns math, which AGENTS.md
+ * "Numbers yes, advice never" bans. The field stays because the record-card API is additive only, but it is always null,
+ * whatever the source data says. `prize_won` replaces it.
+ */
+export const ARENA_NET_RETIRED_REASON = "Replaced by prize_won. NCH does not show net figures."
+/** Until settled prizes are built: the sum of prizes this Normie actually won in ended rounds. Fees are never subtracted or shown beside it. */
+export const ARENA_PRIZE_WON_PENDING = "shown once a round has ended and its results are official"
+
+function retiredNetField(asOf: string, ref?: string): Field<number> {
+  return pendingField<number>(ARENA_NET_RETIRED_REASON, asOf, ref)
+}
+
 export function pendingArenaRecord(reason: string, asOf: string, ref?: string): ArenaRecord {
   return {
     matches: pendingField(reason, asOf, ref),
     wins: pendingField(reason, asOf, ref),
     losses: pendingField(reason, asOf, ref),
-    pixels_net: pendingField(reason, asOf, ref),
+    pixels_net: retiredNetField(asOf, ref),
+    prize_won: pendingField(reason, asOf, ref),
     last_match_at: pendingField(reason, asOf, ref),
   }
 }
@@ -426,7 +440,8 @@ export async function loadArenaSector(
       matches: v(snap.rounds_played, "roundsPlayed"),
       wins: playingRound !== null ? { ...wins, label: "round in progress" as const } : wins,
       losses: pendingField("the official data doesn't publish losses", asOf, ref),
-      pixels_net: pendingField("shown once a round has ended and its results are official", asOf, ref),
+      pixels_net: retiredNetField(asOf, ref),
+      prize_won: pendingField(ARENA_PRIZE_WON_PENDING, asOf, ref),
       last_match_at: pendingField("the official data gives the last round's number, not its time", asOf, ref),
     },
     rank: NOT_RANKED,

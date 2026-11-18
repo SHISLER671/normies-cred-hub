@@ -343,6 +343,14 @@ describe("the current round's pool total in Ask Zulo (AGENTS.md: numbers yes, ad
     assert.match(block, /the whole round's pool as officially reported, not any Normie's/)
     assert.match(block, /Never call it a prize or a jackpot, never divide it, never say what a Normie might get from it, never set it beside a fee, and never suggest anyone pay, enter or add funds because of it/)
   })
+  it("no part of the prompt says 'never mention pools' while it carries a pool line (the old stopgap is gone)", async () => {
+    const { system, user } = composeZuloMessages(context([7141], [read(7141, await withPool())]), "how is #7141 doing in the Arena, and how big is the pool?")
+    assert.ok(user.includes("Current round pool: 200 #PIXEL"))
+    for (const text of [system, user]) {
+      assert.doesNotMatch(text, /never mention[^.]{0,60}\bpools?\b/i)
+      assert.doesNotMatch(text, /one exception/i)
+    }
+  })
   it("no pool, no pool rule: the trimmed status fixture gives the old block with no money wording", async () => {
     const block = askArenaBlock([read(7141, await zuloSector())], [7141], ORIGIN)
     assert.doesNotMatch(block, /Pool:|Current round pool/)
