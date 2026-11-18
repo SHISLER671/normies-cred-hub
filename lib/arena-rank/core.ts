@@ -170,8 +170,11 @@ export type ArenaRankResult =
       as_of: string
       normies: ArenaRankRow[]
       counts: { listed: number; ranked: 0 } & Record<ArenaRankStatus, number>
-      /** How much of the official list was read. `complete` false = the official list has more rows. */
-      coverage: { pages_read: number; rows_read: number; agents_listed: number; complete: boolean }
+      /**
+       * How much of the official list was read. `complete` false = the official list has more rows. `rounds_differ`
+       * false = every row read has the same rounds played, so their order says nothing.
+       */
+      coverage: { pages_read: number; rows_read: number; agents_listed: number; complete: boolean; rounds_differ: boolean }
     }
 
 export function buildArenaRank(read: ArenaRecordsRead, firstRounds: ReadonlyMap<number, FirstRound>, now: Date): ArenaRankResult {
@@ -197,7 +200,8 @@ export function buildArenaRank(read: ArenaRecordsRead, firstRounds: ReadonlyMap<
       record_path: `/record/${row.tokenId}`,
     }
   })
-  return { kind: "ok", as_of: asOf, normies, counts, coverage: { pages_read: read.pages, rows_read: read.rows.length, agents_listed: agents.length, complete: read.complete } }
+  return { kind: "ok", as_of: asOf, normies, counts, coverage: { pages_read: read.pages, rows_read: read.rows.length, agents_listed: agents.length, complete: read.complete, rounds_differ: new Set(read.rows.map((r) => r.roundsPlayed)).size > 1 },
+  }
 }
 
 export const ARENA_RANK_MINIMUM_TEXT = `Minimum before any rank: ${ARENA_RANK_MINIMUM.rounds} rounds played and ${ARENA_RANK_MINIMUM.days} days since the Normie's first round, plus the trust gate (ERC-8004 registered, and clean ownership and delegation)`
@@ -219,10 +223,11 @@ export function arenaRankText(result: ArenaRankResult): string {
 }
 
 /** What the list covers, in plain words. */
-export function arenaRankCoverageText(c: { rows_read: number; complete: boolean }): string {
-  return c.complete
-    ? `Covers all ${c.rows_read} Normies in the official records list`
-    : `Covers the top ${c.rows_read} by rounds played; the official list has more`
+export function arenaRankCoverageText(c: { rows_read: number; complete: boolean; rounds_differ: boolean }): string {
+  const covers = c.complete ? `Covers all ${c.rows_read} Normies in the official records list` : `Covers ${c.rows_read} of the official list`
+  // "Top N by rounds played" is only true when the rows read actually differ in rounds played.
+  if (!c.rounds_differ) return `${covers}. Every Normie here has played the same number of rounds, so this order means nothing yet`
+  return c.complete ? covers : `Covers the top ${c.rows_read} by rounds played; the official list has more`
 }
 
 export function arenaRankCacheControl(result: ArenaRankResult): string {
