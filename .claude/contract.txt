@@ -1,4 +1,4 @@
-# Scope: Arena skill rank, step 1: a /arena/rank page and read-only API that list Arena agents from /arena/records (top 100 by rounds played) with their raw counts, under one ranking minimum (10 rounds and 14 days since the first round) shared with the record card. No Pulse checks on a page view; the trust-gate cron and table are a later, separate contract (Claude, 2026-11-17). Replaces the Arena wallet view contract (#216/#217, merged).
+# Scope: live Arena feed on the record card and in Ask Zulo: the Arena site's own live standing for a Normie (rank, score, on the map or resting, kills, deaths, duels won) and the current round (game, phase, end time, players), read from arena.normies.art with source and read time. No pool, prize or other amounts (Claude, 2026-11-18). Replaces the Arena skill rank contract (#218/#219, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -7,14 +7,16 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-app/api/arena-rank/route.ts
-app/arena/page.tsx
-app/arena/rank/page.tsx
 app/record/[tokenId]/page.tsx
-app/sitemap.ts
+components/arena-live.tsx
+docs/zulo/ask.md
 docs/zulo/record-card-spec.md
-lib/arena-rank/
+lib/agent-recommendations/arenaFacts.test.ts
+lib/agent-recommendations/arenaFacts.ts
+lib/agent-recommendations/composePrompt.ts
+lib/arena-live/
 lib/record-card/arena.test.ts
 lib/record-card/arena.ts
+lib/record-card/types.ts
 package.json
 public/llms.txt
