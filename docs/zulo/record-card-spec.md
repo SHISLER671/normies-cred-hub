@@ -113,7 +113,7 @@ type Field<T> = {
 | `sectors.arena.record.matches` | `roundsPlayed` (rounds, shown as "Rounds played") | pending until a round is played, then verified |
 | `sectors.arena.record.wins` | `wins` | pending until a round is played, then verified |
 | `sectors.arena.record.losses` | none | pending: the official data doesn't publish losses |
-| `sectors.arena.record.pixels_net` | none used | pending: NCH doesn't show Arena #PIXEL amounts (the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
+| `sectors.arena.record.pixels_net` | none used | pending: shown once a round has ended and its results are official (per-Normie results wait for an ended round's real shape; until then the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
 | `sectors.arena.record.last_match_at` | `lastRound` is a round number, not a time | pending |
 
 `sectors.arena.entry.state` (official `state` in plain words: active, short, cleared, not registered), `entry.agent_id` (official `agentId`) and `entry.skins` (a count): verified, from `GET /arena/normie/{id}`, when the official data gives them. Every Arena read goes through `lib/arena-api.ts` (allowlisted paths, a shared 60 s cache, backoff on 429/503 and on repeated failures).
@@ -163,7 +163,7 @@ Routes: `GET /api/world/normie/{id}` is listed in the Arena site's own `llms.txt
 |---|---|
 | `round`, `amount`, `unit` | The round number, the pool as a whole number, and `"#PIXEL"`. The official docs (api.normies.art/llms.txt, "## Arena") say "Amounts are #PIXEL as strings" and `pool` = `sponsorship` + `fees` |
 | `text` | "Current round pool: N #PIXEL (sponsorship plus entry fees, as reported by api.normies.art, as of <time>; can change until the round ends)" |
-| `note` | "The whole round's pool as officially reported, not any one Normie's. It can change until the round ends." |
+| `note` | "The whole round's pool as officially reported, not any one Normie's." |
 | `source`, `as_of` | `GET /arena/status → round.pool`, "Official Arena data (api.normies.art)", the link `https://api.normies.art/arena/status`, and when NCH read it |
 
 Source: `GET /arena/status` on the official API, the read the card already makes once, so it costs no extra request; the Arena site's routes are not used for it. Strict (`parseArenaRoundPool`): shown only while `round.round` equals `currentRound`, the round has started and has not ended or been cancelled, and `pool` is a whole number or a string of digits; otherwise there is no block (never zero). It is the only money field read from that response: `prizes`, `sponsorship`, `fees`, `paid`, `refunds` and `totals` are not. Set only for an entered Normie.

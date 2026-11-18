@@ -181,7 +181,7 @@ export function parseArenaLiveRound(raw: unknown): ArenaLiveRound | null {
 
 export const ARENA_STATUS_URL = "https://api.normies.art/arena/status"
 export const ARENA_POOL_SOURCE_LABEL = "Official Arena data (api.normies.art)"
-export const ARENA_POOL_NOTE = "The whole round's pool as officially reported, not any one Normie's. It can change until the round ends."
+export const ARENA_POOL_NOTE = "The whole round's pool as officially reported, not any one Normie's."
 
 /**
  * From `GET /arena/status`: the current round's pool total, only while that round is open. The official docs
@@ -426,7 +426,7 @@ export async function loadArenaSector(
       matches: v(snap.rounds_played, "roundsPlayed"),
       wins: playingRound !== null ? { ...wins, label: "round in progress" as const } : wins,
       losses: pendingField("the official data doesn't publish losses", asOf, ref),
-      pixels_net: pendingField("NCH doesn't show Arena #PIXEL amounts", asOf, ref),
+      pixels_net: pendingField("shown once a round has ended and its results are official", asOf, ref),
       last_match_at: pendingField("the official data gives the last round's number, not its time", asOf, ref),
     },
     rank: NOT_RANKED,

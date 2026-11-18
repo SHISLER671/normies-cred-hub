@@ -95,7 +95,7 @@ describe("live data: Zulo after the migration", () => {
     assert.deepEqual({ v: sector.record.matches.value, l: sector.record.matches.label, ref: sector.record.matches.source.ref }, { v: 1, l: "verified", ref: "GET /arena/normie/7141 → roundsPlayed" })
     assert.deepEqual({ v: sector.record.wins.value, l: sector.record.wins.label }, { v: 0, l: "verified" })
     assert.deepEqual({ v: sector.record.losses.value, r: sector.record.losses.pending_reason }, { v: null, r: "the official data doesn't publish losses" })
-    assert.deepEqual({ v: sector.record.pixels_net.value, r: sector.record.pixels_net.pending_reason }, { v: null, r: "NCH doesn't show Arena #PIXEL amounts" })
+    assert.deepEqual({ v: sector.record.pixels_net.value, r: sector.record.pixels_net.pending_reason }, { v: null, r: "shown once a round has ended and its results are official" })
     assert.equal(sector.record.last_match_at.value, null)
     assert.deepEqual(sector.rank, { ranked: false, score: null, reason: ARENA_RANK_OFF_REASON })
   })
@@ -385,10 +385,15 @@ describe("the current round's pool total, as officially reported (AGENTS.md: num
       amount: 200,
       unit: "#PIXEL",
       text: "Current round pool: 200 #PIXEL (sponsorship plus entry fees, as reported by api.normies.art, as of Tue, 17 Nov 2026 00:00:00 UTC; can change until the round ends)",
-      note: "The whole round's pool as officially reported, not any one Normie's. It can change until the round ends.",
+      note: "The whole round's pool as officially reported, not any one Normie's.",
       source: { kind: "official_api", ref: "GET /arena/status → round.pool", label: "Official Arena data (api.normies.art)", url: "https://api.normies.art/arena/status" },
       as_of: NOW,
     })
+  })
+  it("'can change until the round ends' is said once (in the label's brackets), not again in the note", async () => {
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL) })
+    const shown = `${sector.round_pool?.text}. ${sector.round_pool?.note}`
+    assert.equal((shown.match(/can change until the round ends/gi) ?? []).length, 1)
   })
   it("it costs no extra request: still one /arena/status read per card", async () => {
     const { asked } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL) })
