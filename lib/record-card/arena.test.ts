@@ -40,6 +40,14 @@ const ENTERED_NOT_PLAYED = { ...ZULO, roundsPlayed: 0, lastRound: null, wins: 0 
 /** Synthetic: registered, waiting for a seat, never played. */
 const REGISTERED_WAITING = { ...ZULO, roundsPlayed: 0, lastRound: null, wins: 0, inCurrentRound: false }
 
+/**
+ * The record's fields that follow the sector's state. `pixels_net` is left out: it is retired and always pending with
+ * its own reason ("Replaced by prize_won. NCH does not show net figures."), which its own tests pin.
+ */
+const stateFields = (record: object) => Object.entries(record).filter(([key]) => key !== "pixels_net").map(([, f]) => f as { value: unknown; label: string; pending_reason?: string })
+/** Sector JSON for the "no money wording" checks, without the field name `prize_won` itself (a pending field with no value). */
+const wording = (v: unknown) => JSON.stringify(v).replace(/prize_won/g, "")
+
 type Reply = { status: number; body: unknown } | "throws"
 /** A stub of the official API: answers per path and records what was asked. */
 function api(replies: Record<string, Reply>) {
@@ -95,7 +103,8 @@ describe("live data: Zulo after the migration", () => {
     assert.deepEqual({ v: sector.record.matches.value, l: sector.record.matches.label, ref: sector.record.matches.source.ref }, { v: 1, l: "verified", ref: "GET /arena/normie/7141 → roundsPlayed" })
     assert.deepEqual({ v: sector.record.wins.value, l: sector.record.wins.label }, { v: 0, l: "verified" })
     assert.deepEqual({ v: sector.record.losses.value, r: sector.record.losses.pending_reason }, { v: null, r: "the official data doesn't publish losses" })
-    assert.deepEqual({ v: sector.record.pixels_net.value, r: sector.record.pixels_net.pending_reason }, { v: null, r: "shown once a round has ended and its results are official" })
+    assert.deepEqual({ v: sector.record.pixels_net.value, r: sector.record.pixels_net.pending_reason }, { v: null, r: "Replaced by prize_won. NCH does not show net figures." })
+    assert.deepEqual({ v: sector.record.prize_won?.value, l: sector.record.prize_won?.label, r: sector.record.prize_won?.pending_reason }, { v: null, l: "pending", r: "shown once a round has ended and its results are official" })
     assert.equal(sector.record.last_match_at.value, null)
     assert.deepEqual(sector.rank, { ranked: false, score: null, reason: ARENA_RANK_OFF_REASON })
   })
@@ -186,12 +195,12 @@ describe("the round in progress (GET /arena/status, read once per card)", () => 
     assert.equal(sector.status_text, "Playing Round 1 now: 1 round counted so far")
     assert.equal(sector.round_pool?.amount, 200)
     const { round_pool: _pool, ...rest } = sector
-    assert.doesNotMatch(JSON.stringify(rest), /prize|pool|payout|sponsor/i, "outside the pool block the sector has no money wording")
+    assert.doesNotMatch(wording(rest), /prize|pool|payout|sponsor/i, "outside the pool block the sector has no money wording")
   })
   it("the trimmed status fixture (no pool field) gives no pool block and no money wording at all", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_OPEN) })
     assert.equal(sector.round_pool, undefined)
-    assert.doesNotMatch(JSON.stringify(sector), /prize|pool|payout|sponsor/i)
+    assert.doesNotMatch(wording(sector), /prize|pool|payout|sponsor/i)
   })
 })
 
@@ -202,7 +211,7 @@ describe("registered or entered but no round counted yet (synthetic)", () => {
     assert.equal(sector.status_text, "Registered. It plays from Round 1. It hasn't played a round yet, so there's no record")
     assert.equal(sector.watch_url, "https://arena.normies.art/world/pixel?follow=7141")
     assert.deepEqual({ v: sector.entry?.entered.value, l: sector.entry?.entered.label }, { v: true, l: "verified" })
-    for (const f of Object.values(sector.record)) assert.equal(f.pending_reason, "no rounds played yet")
+    for (const f of stateFields(sector.record)) assert.equal(f.pending_reason, "no rounds played yet")
   })
   it("in the current round with zero rounds played and not registered: Entered", async () => {
     const { sector } = await live(7141, { "/arena/normie/7141": ok({ ...ENTERED_NOT_PLAYED, registered: false }), "/arena/status": "throws" })
@@ -217,7 +226,7 @@ describe("registered or entered but no round counted yet (synthetic)", () => {
     assert.equal(sector.status, "entered")
     assert.equal(sector.status_text, "Registered. It plays from Round 1. It hasn't played a round yet, so there's no record")
     assert.equal(sector.entry?.line_position.pending_reason, NOT_IN_OFFICIAL_DATA)
-    for (const [name, f] of Object.entries(sector.record)) assert.equal(f.pending_reason, "no rounds played yet", name)
+    for (const [name, f] of Object.entries(sector.record)) if (name !== "pixels_net") assert.equal(f.pending_reason, "no rounds played yet", name)
     assert.doesNotMatch(JSON.stringify(sector), /line position|in line|place \d/i)
   })
 })
@@ -233,7 +242,7 @@ describe("Normie not entered (synthetic, live shape)", () => {
     assert.equal(sector.entry?.entered.value, false)
     assert.equal(sector.entry?.entered.label, "verified")
     assert.equal(sector.entry?.line_position.pending_reason, NOT_IN_OFFICIAL_DATA)
-    for (const f of Object.values(sector.record)) assert.equal(f.pending_reason, "not entered in Arena")
+    for (const f of stateFields(sector.record)) assert.equal(f.pending_reason, "not entered in Arena")
     assert.equal(sector.rank.ranked, false)
     assert.deepEqual(asked.slice(0, 1), ["/arena/normie/4242"])
   })
@@ -244,7 +253,7 @@ describe("404: the official endpoint is not there (not configured)", () => {
     const { sector } = await live(7141, { "/arena/normie/7141": { status: 404, body: null } })
     assert.equal(sector.status, "source_pending")
     assert.equal(sector.status_text, "Arena is live; the official Arena data isn't available here yet")
-    for (const f of Object.values(sector.record)) {
+    for (const f of stateFields(sector.record)) {
       assert.equal(f.value, null)
       assert.equal(f.pending_reason, "official Arena data not available")
     }
@@ -275,7 +284,7 @@ describe("fetch failure", () => {
       const { sector } = await live(7141, { "/arena/normie/7141": reply, "/arena/status": ok(STATUS) })
       assert.equal(sector.status, "source_pending")
       assert.equal(sector.status_text, "Arena data is unavailable right now")
-      for (const f of Object.values(sector.record)) {
+      for (const f of stateFields(sector.record)) {
         assert.equal(f.value, null)
         assert.equal(f.label, "pending")
         assert.equal(f.pending_reason, "Arena source unavailable")
@@ -438,5 +447,47 @@ describe("the current round's pool total, as officially reported (AGENTS.md: num
     assert.ok(block.includes("href={arena.round_pool.source.url}"))
     assert.ok(block.includes("Don&apos;t take our word for it"))
     assert.doesNotMatch(block, /prize|jackpot|payout|winnings|share|\bETH\b|\bUSD\b|enter|top up|worth/i)
+  })
+})
+
+describe("no net figure: pixels_net is retired and prize_won replaces it (Ryan, 2026-11-18)", () => {
+  const RETIRED = "Replaced by prize_won. NCH does not show net figures."
+  it("pixels_net is always null, whatever the source data says", async () => {
+    const rich = { ...ZULO, roundsPlayed: 30, lastRound: 30, wins: 12, pixelsWon: "987654", pixelsCharged: "123456", pixelsRefunded: "55555", balance: "44444", deposited: "33333", withdrawn: "22222" }
+    const cases: Array<[string, Promise<{ sector: Awaited<ReturnType<typeof loadArenaSector>> }>]> = [
+      ["played, with big amounts on every money field", live(7141, { "/arena/normie/7141": ok(rich), "/arena/status": ok(STATUS_FULL) })],
+      ["played", live(7141, { "/arena/normie/7141": ok(ZULO), "/arena/status": ok(STATUS_FULL) })],
+      ["registered, no round yet", live(7141, { "/arena/normie/7141": ok(REGISTERED_WAITING), "/arena/status": ok(STATUS_OPEN) })],
+      ["not entered", live(4242, { "/arena/normie/4242": ok(NOT_ENTERED), "/arena/status": ok(STATUS_OPEN) })],
+      ["couldn't read", live(7141, {})],
+      ["no official entry (404)", live(7141, { "/arena/normie/7141": { status: 404, body: null } })],
+    ]
+    for (const [name, run] of cases) {
+      const { sector } = await run
+      assert.deepEqual({ v: sector.record.pixels_net.value, l: sector.record.pixels_net.label, r: sector.record.pixels_net.pending_reason }, { v: null, l: "pending", r: RETIRED }, name)
+    }
+    const notLive = await loadArenaSector(7141, NOW, { status: "COMING_SOON" })
+    assert.deepEqual([notLive.record.pixels_net.value, notLive.record.pixels_net.pending_reason], [null, RETIRED], "Arena not LIVE")
+  })
+  it("no net is worked out anywhere: the amounts never reach the sector, and prize_won is pending with no value", async () => {
+    const rich = { ...ZULO, pixelsWon: "987654", pixelsCharged: "123456", pixelsRefunded: "55555" }
+    const { sector } = await live(7141, { "/arena/normie/7141": ok(rich), "/arena/status": ok(STATUS_FULL) })
+    const text = JSON.stringify(sector)
+    for (const n of ["987654", "123456", "55555", "864198", "919753"]) assert.equal(text.includes(n), false, n) // incl. won − charged, and with refunds
+    assert.deepEqual([sector.record.prize_won?.value, sector.record.prize_won?.label, sector.record.prize_won?.pending_reason], [null, "pending", "shown once a round has ended and its results are official"])
+  })
+  it("every sector state carries prize_won, pending with that state's reason", async () => {
+    const notEntered = (await live(4242, { "/arena/normie/4242": ok(NOT_ENTERED), "/arena/status": ok(STATUS_OPEN) })).sector
+    assert.deepEqual([notEntered.record.prize_won?.value, notEntered.record.prize_won?.pending_reason], [null, "not entered in Arena"])
+    const down = (await live(7141, {})).sector
+    assert.deepEqual([down.record.prize_won?.value, down.record.prize_won?.pending_reason], [null, "Arena source unavailable"])
+  })
+  it("the page shows 'Prize won' and never 'Net pixels', a net, or a fee beside it", () => {
+    const page = readFileSync("app/record/[tokenId]/page.tsx", "utf8")
+    assert.ok(page.includes('{arena.record.prize_won && <Stat label="Prize won" value={show(arena.record.prize_won)} note={note(arena.record.prize_won)} />}'))
+    assert.doesNotMatch(page, /Net pixels|pixels_net|\bnet\b/i)
+    const start = page.indexOf('aria-labelledby="rc-arena"')
+    const grid = page.slice(start, page.indexOf("</StatGrid>", start))
+    assert.doesNotMatch(grid, /\bfee|charged|paid in|cost|profit|return/i, "no fee or returns wording in the Arena record stats")
   })
 })

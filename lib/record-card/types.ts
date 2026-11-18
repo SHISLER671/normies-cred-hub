@@ -136,7 +136,13 @@ export type ArenaRecord = {
   matches: Field<number>
   wins: Field<number>
   losses: Field<number>
+  /** Retired: always null ("Replaced by prize_won. NCH does not show net figures."). Kept because the API is additive only. */
   pixels_net: Field<number>
+  /**
+   * Prizes this Normie actually won in ended rounds, summed (#PIXEL). Pending until settled prizes are built. Fees are
+   * never subtracted from it or shown beside it. Optional so older cached cards still type-check.
+   */
+  prize_won?: Field<number>
   last_match_at: Field<string>
 }
 

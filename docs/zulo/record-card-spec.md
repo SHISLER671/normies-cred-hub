@@ -113,7 +113,8 @@ type Field<T> = {
 | `sectors.arena.record.matches` | `roundsPlayed` (rounds, shown as "Rounds played") | pending until a round is played, then verified |
 | `sectors.arena.record.wins` | `wins` | pending until a round is played, then verified |
 | `sectors.arena.record.losses` | none | pending: the official data doesn't publish losses |
-| `sectors.arena.record.pixels_net` | none used | pending: shown once a round has ended and its results are official (per-Normie results wait for an ended round's real shape; until then the API's `pixelsWon`, `pixelsCharged`, `pixelsRefunded`, `balance`, `deposited` and `withdrawn` are not shown or netted) |
+| `sectors.arena.record.pixels_net` | none, ever | **Retired, always null**: pending with reason "Replaced by prize_won. NCH does not show net figures." A net figure (prize minus fees) is returns math, which AGENTS.md bans. The field stays only because the API is additive |
+| `sectors.arena.record.prize_won` | not built yet | pending: shown once a round has ended and its results are official. It will be the sum of prizes this Normie actually won in ended rounds, with source, as-of time and the official link. Fees are never subtracted from it or shown beside it. UI label "Prize won" |
 | `sectors.arena.record.last_match_at` | `lastRound` is a round number, not a time | pending |
 
 `sectors.arena.entry.state` (official `state` in plain words: active, short, cleared, not registered), `entry.agent_id` (official `agentId`) and `entry.skins` (a count): verified, from `GET /arena/normie/{id}`, when the official data gives them. Every Arena read goes through `lib/arena-api.ts` (allowlisted paths, a shared 60 s cache, backoff on 429/503 and on repeated failures).

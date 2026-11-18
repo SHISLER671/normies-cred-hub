@@ -165,7 +165,7 @@ export function askArenaBlock(reads: readonly AskArenaRead[], mentioned: readonl
   ]
   if (reads.some((r) => r.sector?.round_pool)) {
     rules.push(
-      '- Pool: you may state the "Current round pool" line as written, with its link. It is the whole round\'s pool as officially reported, not any Normie\'s, and it is the one exception to "never mention pools". Never call it a prize or a jackpot, never divide it, never say what a Normie might get from it, never set it beside a fee, and never suggest anyone pay, enter or add funds because of it.',
+      '- Pool: you may state the "Current round pool" line as written, with its link. It is the whole round\'s pool as officially reported, not any Normie\'s. Never call it a prize or a jackpot, never divide it, never say what a Normie might get from it, never set it beside a fee, and never suggest anyone pay, enter or add funds because of it.',
     )
   }
   if (reads.some((r) => r.sector?.live)) {
