@@ -133,6 +133,27 @@ type Field<T> = {
 
 Round texts: an open round is "Round in progress" (never an ending, never a win); a finished round is "Played" or "Did not play"; "Round cancelled" and "Not started yet" follow the official status. Any status other than `open`, `upcoming`, `ended` or `cancelled`, or a `played` that isn't true/false, is "Couldn't read this round". There is no per-round win: `payoutOrder`, `prize` and `refund` are never read and nothing is inferred from them; total wins still come only from `wins` on `GET /arena/normie/{id}`. No amounts (`charged`, `prize`, `refund`, `pool`) are read. If any page can't be read the whole block is `unavailable`, and the API route then answers `Cache-Control: no-store`. Seen in real data so far: one round, status `open` (fixture `arena-normie-7141-rounds.json`); `ended`, `cancelled`, `played: false` and a second page are covered by synthetic tests only.
 
+### 3.2a Live Arena feed (contract 2026-11-18, Claude; not built yet)
+
+`sectors.arena.live` (optional, additive): what the Arena site itself reports for this Normie right now. It is the Arena's own live standing, shown as reported. It is not an NCH rank, it never counts toward a sector rank or Pulse, and it can change until the round ends. Source: the Arena app's public GET routes on `arena.normies.art` (a different host from the official `api.normies.art`), read by a small loader in `lib/arena-live/` with a 5 s timeout and a 60 s cache. Every field carries its source route and read time. If the read fails the block says "live Arena data unavailable"; that answer is never cached and never shown as zero.
+
+| Field | From (seen in a live response, 2026-11-18) | Notes |
+|---|---|---|
+| `live_rank` | `rank` and `of` | Shown as "#280 of 748". The Arena's rank in the current game |
+| `live_score_px` | `px` | Arena PX: the game's own score/currency (official Arena guide). It is not #PIXEL and is never converted |
+| `where` | `where` | "On the map" or "Resting". `back` (a time in milliseconds) is when a resting Normie returns |
+| `kills`, `deaths`, `duels_won` | `stats.kills`, `stats.deaths`, `stats.agentKills` | Counts. `duels_won` = `agentKills` |
+| `round.game`, `round.phase`, `round.ends_at`, `round.players` | `game`, `phase`, `end` (milliseconds), `roundPlayers` | `ends_at` is stored as ISO-8601 UTC and shown in the viewer's local time by the browser |
+
+Routes: `GET /api/world/normie/{id}` is listed in the Arena site's own `llms.txt`. `GET /api/world/standing?ids={id}` and `GET /api/world/arena-week` are public and need no login, but are **not** listed there, so they may change without notice; the loader treats any unexpected shape as unavailable.
+
+**Not included, on purpose:**
+- **Pool and prize amounts.** `AGENTS.md` ("Numbers yes, promises never": never promise or imply returns, earnings, prizes or pools) and the rest of this codebase (`lib/arena-api.ts`, Ask Zulo's doctrine, the Arena tests) keep every Arena amount out. Showing "current pool, as reported" or a Normie's prize needs Ryan to change that rule first, in its own PR.
+- **The live board's `prize` and `share`.** While a game is live (`live: true`, `sealed: false`) `GET /api/world/arena-week/board` already carries a `prize` for each top row. That is a figure for "if it ended now", not a payout, so it is never read. Whether a sealed board's prize is an actual payout has not been seen yet.
+- `worth`, `passPrice`, `entryFees`, `sponsorship`, `entryPrice` and anything in ETH or USD: never read.
+- `level` in the Arena response is the Canvas level; it stays in the identity block and is never presented as an Arena record.
+- The `/api/world/live` stream, wallet-signed POST routes and admin routes are never called.
+
 `sectors.arena.watch_url`: the official watch link (`arena.normies.art/world/pixel?follow=<id>`, per the official Arena guide), set once a Normie is entered or has played.
 
 Sector `status` is one of `not_live`, `source_pending`, `not_entered`, `entered` (entered, no round played: not a record), `unranked`, `ranked`. Ranking is off until 10 rounds and 14 days since the Normie's first round (`ARENA_RANK_MINIMUM` in `lib/record-card/arena.ts`, the one minimum, also used by the Arena rank page; changed 2026-11-17, Ryan: the opponents rule was dropped because the official data has no opponent counts). The card itself never ranks; ranks are shown on `/arena/rank`.
