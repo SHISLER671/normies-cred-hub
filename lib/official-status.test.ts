@@ -9,6 +9,7 @@ import { buildOperatorTandemPromptBlock } from "./agent-recommendations/operator
 import { buildSelfAwarenessPromptBlock } from "./agent-recommendations/selfAwareness"
 import { buildNormiesWisdomPrompt, NORMIES_KNOWLEDGE } from "./agent-recommendations/normiesKnowledge"
 import { composeZuloPrompt } from "./agent-recommendations/composePrompt"
+import { ARENA_MONEY_RULE } from "./arena-canon"
 import { COLLAB_RAILS_MD, DUAL_EVAL_AND_PIXEL_MARKET_MD } from "./agent-recommendations/loadKnowledge"
 import { PIXEL_CURRENCY_MD } from "./knowledge/pixel-currency"
 import {
@@ -189,7 +190,9 @@ describe("Arena Week 1 registration (official @serc1n post, 2026-11-09)", () => 
     assert.ok(prompt.includes(`NCH does not handle opt-in and cannot enter anyone: point people to ${ARENA_SITE}.`))
     assert.ok(prompt.includes("Being registered is not a record"))
     assert.ok(prompt.includes("Arena is not the Pixel Market"))
-    assert.ok(prompt.includes("Never mention prizes, a prize pool, payouts or winnings."))
+    // Replaces the pinned "Never mention prizes, a prize pool, payouts or winnings." (AGENTS.md "Numbers yes, advice never").
+    assert.ok(prompt.includes(`${ARENA_MONEY_RULE} The official docs note`))
+    assert.match(ARENA_MONEY_RULE, /Never predict an outcome.*never suggest that anyone pay, enter or add funds/)
   })
   it("no surface says registration is open now or that Arena can be entered or played on CredHub; Nov 16 only as the plan or Game 1's clock", () => {
     // User-facing code, prompts, knowledge and public files. docs/zulo is checked only for dates.

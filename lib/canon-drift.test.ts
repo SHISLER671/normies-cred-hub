@@ -65,6 +65,50 @@ describe("known-wrong variants never come back", () => {
   }
 })
 
+// AGENTS.md "Numbers yes, advice never" (2026-11-18): official money figures may be shown, but nothing may nudge anyone
+// to pay, enter or top up, or do returns math. These bans target nudging phrases, never bare words: the rule's own
+// sentence and the official Arena state text must pass.
+export const MONEY_NUDGES: Array<[string, RegExp]> = [
+  ["a nudge to top up", /\btop(?:ping)?[ -]?up now\b|\btop up (?:today|to (?:play|win|stay in))\b/i],
+  ["a nudge to enter", /\benter now\b|\benter to win\b|\benter (?:today|before it'?s too late)\b|\bworth entering\b/i],
+  ["a nudge to burn in order to play", /\bburn to play\b|\bburn (?:now )?to (?:enter|win)\b/i],
+  ["play-to-earn wording", /\bplay[ -]to[ -]earn\b/i],
+  ["per-week returns math", /\b(?:earn(?:s|ed|ing)?|make(?:s)?|return(?:s)?|profit(?:s)?|yield(?:s)?)\b[^.\n]{0,40}\bper week\b|\bearned per week\b/i],
+]
+/** Returns-math terms, banned on the public agent docs and the Arena surfaces (Ask's doctrine names them only to forbid them). */
+const RETURNS_MATH: Array<[string, RegExp]> = [
+  ["expected value", /\bexpected value\b/i],
+  ["ROI", /\bROI\b|return on investment/i],
+]
+
+describe("money: numbers yes, advice never (AGENTS.md, 2026-11-18)", () => {
+  for (const [what, re] of MONEY_NUDGES) {
+    it(`no ${what} anywhere`, () => assert.deepEqual(offenders(re), []))
+  }
+  const arenaSurfaces = corpus.filter(({ f }) => ["public/llms.txt", "AGENTS.md"].includes(f) || /^(app\/arena\/|app\/api\/arena-|app\/record\/|lib\/arena-|lib\/record-card\/|components\/arena-)/.test(f))
+  it("is scanning the public docs and the Arena surfaces", () => assert.ok(arenaSurfaces.length >= 15))
+  for (const [what, re] of RETURNS_MATH) {
+    it(`no ${what} in the public docs or on any Arena surface`, () => assert.deepEqual(arenaSurfaces.filter(({ text }) => re.test(text)).map(({ f }) => f), []))
+  }
+  it("the bans pass on AGENTS.md's own rule sentence and on the official Arena state text", () => {
+    const rule = "Never give financial advice, predict an outcome, show a projected per-Normie prize, do returns math, or nudge anyone to pay, enter or top up."
+    const agents = corpus.find(({ f }) => f === "AGENTS.md")?.text ?? ""
+    assert.ok(agents.includes(rule), "the rule sentence is in AGENTS.md as quoted here")
+    const states = ["Active: plays every free round, and paid rounds while topped up", "Short: sat out a paid round; plays free rounds until topped up"]
+    const arena = corpus.find(({ f }) => f === "lib/record-card/arena.ts")?.text ?? ""
+    for (const s of states) assert.ok(arena.includes(s), s)
+    for (const text of [rule, ...states]) {
+      for (const [what, re] of [...MONEY_NUDGES, ...RETURNS_MATH]) assert.doesNotMatch(text, re, `${what} on: ${text}`)
+    }
+  })
+  it("the bans do catch real nudges", () => {
+    const nudges = ["Top up now to stay in.", "Enter now!", "Enter to win the pool", "Burn to play this week", "It's worth entering at this fee", "Play-to-earn with your Normie", "You could earn 40 #PIXEL per week", "Top up to play the paid round"]
+    for (const n of nudges) assert.ok(MONEY_NUDGES.some(([, re]) => re.test(n)), n)
+    assert.ok(RETURNS_MATH.some(([, re]) => re.test("The expected value of entering is positive")))
+    assert.ok(RETURNS_MATH.some(([, re]) => re.test("ROI: 12%")))
+  })
+})
+
 describe("Ask's prompt text: no EV, arbitrage or value estimates (2026-11-10)", () => {
   const askText = corpus.filter(
     ({ f }) =>

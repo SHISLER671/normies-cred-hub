@@ -6,7 +6,8 @@
 //     them. The total wins figure on the card still comes only from `wins` on `GET /arena/normie/{id}`.
 //   - A round with status "open" is "Round in progress". It is never an ending and never a win.
 //   - Any status other than the four in ARENA_ROUND_STATUSES means "couldn't read that round".
-//   - No #PIXEL amounts: `charged`, `prize`, `refund` and `pool` are never read.
+//   - No #PIXEL amounts here: `charged`, `prize`, `refund` and `pool` are never read. (Settled per-Normie prizes are
+//     allowed by AGENTS.md "Numbers yes, advice never", but wait until an ended round's real shape has been seen.)
 //   - Paging is by `offset` (the documented query key). At most ARENA_ROUNDS_MAX_PAGES pages are read per card.
 //   - The list's order is not trusted: rounds are sorted here, newest first.
 //   - "Couldn't read" (network error, pause, bad body) is kept apart from "not found" (404) and "empty" (no rounds).

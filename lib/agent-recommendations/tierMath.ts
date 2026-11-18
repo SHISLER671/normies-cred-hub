@@ -2,7 +2,7 @@
 // "Should I buy X to reach tier Y?" — advise without advising.
 // Shows the before/after revenue-share SCORE for a named holding, what is unknown,
 // and how many wallets sit in the target cell today. Never a verdict, never ETH/USD,
-// never a payout, earnings or price figure (AGENTS.md: numbers yes, promises never).
+// never a payout, earnings or price figure (AGENTS.md: numbers yes, advice never).
 
 import {
   BOOST_CLIFFS,

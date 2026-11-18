@@ -15,6 +15,7 @@ import {
   ARENA_HEAD_START_ROWS,
   ARENA_HEAD_STARTS,
   ARENA_MAY_CHANGE,
+  ARENA_MONEY_RULE,
   ARENA_PLANNED_LAUNCH,
   ARENA_TYPES,
   arenaFactsBlock,
@@ -202,7 +203,11 @@ describe("facts only: never prizes, pools, payouts, ETH or dollars", () => {
     assert.match(b, /A head start is not a guarantee/)
     assert.ok(b.includes(ARENA_ENTER_SOURCE))
     assert.ok(b.includes(ARENA_MAY_CHANGE))
-    assert.match(b, /Never mention prizes, a prize pool, payouts/)
+    // Replaces the pinned "Never mention prizes, a prize pool, payouts" (AGENTS.md "Numbers yes, advice never", 2026-11-18).
+    assert.ok(b.includes(ARENA_MONEY_RULE))
+    for (const must of ["only when it is in your context", "source, as-of time and official link", "Never predict an outcome", "what any one Normie might get or its part of a pool", "never do returns math or set a fee against a pool", "never convert #PIXEL to ETH or dollars", "never state a wallet's balance or winnings", "never suggest that anyone pay, enter or add funds"]) {
+      assert.ok(ARENA_MONEY_RULE.includes(must), must)
+    }
     const facts = b.split("Rules for these facts:")[0]
     assert.doesNotMatch(facts, NEVER)
     assert.doesNotMatch(facts, /OpenSea|Pixel Market/)

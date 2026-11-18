@@ -8,7 +8,8 @@
 //     A missing or renamed field, or a string where a number was seen, makes the WHOLE block "live Arena data
 //     unavailable". No part block, no zeros, no guesses.
 //   - No amounts: `pool`, `sponsorship`, `entryFees`, `entryPrice`, `passPrice`, `worth` and anything in ETH or USD are
-//     never read. The board route (prizes) is never called.
+//     never read. The board route (prizes) is never called. The pool total on the card comes from the official API
+//     (lib/record-card/arena.ts), never from these routes.
 //   - `px` is Arena PX, the game's own score and currency (official Arena guide). It is not #PIXEL and is never converted.
 //   - `level` in the Arena response is the Canvas level. It is not read here and is never an Arena record.
 //   - No outside text is passed through: names, titles, stories and `where` prose in the Normie route are never read.

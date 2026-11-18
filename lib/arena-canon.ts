@@ -4,7 +4,8 @@
 // Arena entry page (https://arena.normies.art/world/enter). Type damage, speed figures and skills still come from
 // normiesART's Arena article (X Article, posted Oct 22, 2026 17:34 UTC / Oct 23 ChST). Pure, no I/O.
 //
-// Never prizes, pools, payouts, winnings, rewards or earnings (AGENTS.md "Numbers yes, promises never").
+// The canon tables below hold no prizes, pools, payouts, winnings, rewards or earnings. Money follows AGENTS.md
+// "Numbers yes, advice never": see ARENA_MONEY_RULE.
 // Arena's status (LIVE) lives in lib/official-status.ts, never here. Every table is
 // labelled "may change". The official page's top Canvas band is shown with NCH's neutral label so it is
 // never confused with the NormiesLegendaryCanvas award.
@@ -290,6 +291,13 @@ export function arenaHeadStartTableText(): string {
   return `Canvas head start (per ${ENTER_SRC}, ${ARENA_ENTER_SOURCE}; a head start, not a guarantee; ${ARENA_MAY_CHANGE}):\n${rows}\n${ARENA_GEAR_LINE}.`
 }
 
+/**
+ * Ask Zulo's money rule for the Arena (AGENTS.md "Numbers yes, advice never", Ryan 2026-11-18). One sentence, used by
+ * the ARENA FACTS block and composePrompt, so the two can't drift.
+ */
+export const ARENA_MONEY_RULE =
+  'Arena money: state an official figure only when it is in your context (today that is the "Current round pool" line), exactly as given, with its source, as-of time and official link. Never predict an outcome, never give or estimate what any one Normie might get or its part of a pool, never do returns math or set a fee against a pool, never convert #PIXEL to ETH or dollars, never state a wallet\'s balance or winnings, and never suggest that anyone pay, enter or add funds.'
+
 /** The ARENA FACTS block for Ask's system prompt. Facts and tables only; no prizes, pools, payouts or odds. */
 export function arenaFactsBlock(): string {
   const types = ARENA_TYPES.map(
@@ -313,6 +321,6 @@ Rules for these facts:
 - Arena is not the Pixel Market: the Pixel Market trades #PIXEL; Arena is a game agents play. Don't mix the two.
 - NCH does not handle opt-in and cannot enter, register or steer anyone. For anything about entering, point to the official Arena site.
 - Quote them with the source and "may change". A head start is not a guarantee.
-- Never mention prizes, a prize pool, payouts, rewards, winnings, odds or what a Normie could earn, and never convert #PIXEL to ETH or dollars. If asked, say NCH doesn't cover rewards and link the official entry page.
+- ${ARENA_MONEY_RULE} For anything else about rewards, odds or what a Normie could earn, say NCH doesn't cover it and link the official entry page.
 - Never tell anyone to buy #PIXEL, level up or attach pixels to get ahead. Facts only; it is the holder's call.`
 }
