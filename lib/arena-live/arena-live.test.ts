@@ -155,14 +155,23 @@ describe("a string where a number was seen makes the whole block unavailable", (
     assert.equal(parseLiveCounts(NORMIE, 7142), null)
     assert.equal(buildArenaLive(7141, { ...RAW, week: { ...WEEK, game: 2 } }, NOW).status, "unavailable")
   })
-  it("synthetic: 'map' reads 'On the map'; `back` may be absent or null", () => {
+  it("a real on-the-map response (#8831, 2026-11-18): where is 'playing', there is no `back`, and it reads 'On the map'", () => {
+    const PLAYING = json("lib/arena-live/fixtures/standing-8831-playing.json") as Record<string, unknown> & { normies: Record<string, Record<string, unknown>> }
+    assert.deepEqual(Object.keys(PLAYING.normies["8831"]).sort(), ["doing", "prize", "px", "rank", "where"])
+    assert.deepEqual(parseLiveStanding(PLAYING, 8831), { game: 1, rank: 2, of: 748, px: 580893, where: "playing", backAt: null })
+    // This is the shape that made the block unavailable on Vercel while #7141 was on the map.
     const { back: _back, ...noBack } = STANDING.normies["7141"]
-    const onMap = parseLiveStanding({ ...STANDING, normies: { "7141": { ...noBack, where: "map" } } }, 7141)
-    assert.deepEqual(onMap, { game: 1, rank: 280, of: 748, px: 56452, where: "map", backAt: null })
-    assert.equal(parseLiveStanding(standingRow({ back: null }), 7141)?.backAt, null)
-    const live = buildArenaLive(7141, { ...RAW, standing: { ...STANDING, normies: { "7141": { ...noBack, where: "map" } } } }, NOW)
+    const live = buildArenaLive(7141, { ...RAW, standing: { ...STANDING, normies: { "7141": { ...noBack, where: "playing", doing: "looting" } } } }, NOW)
     assert.ok(live.status === "ok")
-    assert.equal(live.where_text, "On the map")
+    assert.deepEqual([live.where, live.where_text, live.back_at], ["playing", "On the map", null])
+    assert.doesNotMatch(JSON.stringify(live), /looting|prize/, "`doing` and the row's prize figure are never read")
+    assert.equal(parseLiveStanding(standingRow({ back: null }), 7141)?.backAt, null)
+  })
+  it("the row's `prize` figure (shown for top rows while the game is live) never changes the answer", () => {
+    assert.deepEqual(parseLiveStanding(standingRow({ prize: "3" }), 7141), parseLiveStanding(STANDING, 7141))
+  })
+  it("'map' was a guess and is not a real value: it is refused like any other unknown word", () => {
+    assert.equal(parseLiveStanding(standingRow({ where: "map" }), 7141), null)
   })
   it("synthetic: an unseen phase word is shown as reported, never interpreted", () => {
     assert.equal(parseLiveRound({ ...WEEK, phase: "settling" })?.phase, "settling")

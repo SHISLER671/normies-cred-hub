@@ -13,7 +13,9 @@
 //   - `level` in the Arena response is the Canvas level. It is not read here and is never an Arena record.
 //   - No outside text is passed through: names, titles, stories and `where` prose in the Normie route are never read.
 // Field names and types come from live responses read 2026-11-18 (fixtures/): standing-7141.json, normie-7141.json,
-// arena-week.json. Only `where: "resting"` and `phase: "live"` have been seen.
+// arena-week.json, and standing-8831-playing.json for a Normie that is on the map. Both `where` values have been seen
+// live ("resting" and "playing"); only `phase: "live"` has. A standing row may also carry `doing` (a word for what the
+// Normie is doing) and, for a top row, a `prize` figure for "if it ended now": neither is ever read.
 
 import type { ArenaLive } from "@/lib/record-card/types"
 
@@ -36,16 +38,16 @@ function isoFromMs(v: unknown): string | null {
 
 const obj = (v: unknown): Record<string, unknown> | null => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null)
 
-/** The `where` values NCH reads. "resting" was seen live; "map" is from the route's description, not yet seen. */
-export const ARENA_LIVE_WHERE = ["map", "resting"] as const
+/** The `where` values NCH reads, both seen in live responses (2026-11-18). Anything else makes the block unavailable. */
+export const ARENA_LIVE_WHERE = ["playing", "resting"] as const
 export type ArenaLiveWhere = (typeof ARENA_LIVE_WHERE)[number]
-export const ARENA_LIVE_WHERE_TEXT: Record<ArenaLiveWhere, string> = { map: "On the map", resting: "Resting" }
+export const ARENA_LIVE_WHERE_TEXT: Record<ArenaLiveWhere, string> = { playing: "On the map", resting: "Resting" }
 
 export type LiveStanding = { game: number; rank: number; of: number; px: number; where: ArenaLiveWhere; backAt: string | null }
 
 /**
  * Parse `GET /api/world/standing?ids={id}`. Needs `ok: true`, whole-number `game` and `of`, and under `normies[id]`:
- * `where` ("map" or "resting"), whole-number `rank` (1..of) and `px`. `back` is read only when present: a time in
+ * `where` ("playing" or "resting"), whole-number `rank` (1..of) and `px`. `back` is read only when present: a time in
  * milliseconds, or null. Anything else is refused (null).
  */
 export function parseLiveStanding(raw: unknown, tokenId: number): LiveStanding | null {

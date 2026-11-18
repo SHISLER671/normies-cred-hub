@@ -199,7 +199,7 @@ export type ArenaLive =
       live_rank: { rank: number; of: number; text: string }
       /** Arena PX: the game's own score and currency. Not #PIXEL; never converted. */
       live_score_px: number
-      where: "map" | "resting"
+      where: "playing" | "resting"
       where_text: string
       /** When a resting Normie is due back (ISO-8601 UTC), when the Arena gives it. */
       back_at: string | null

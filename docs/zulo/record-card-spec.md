@@ -141,7 +141,7 @@ Round texts: an open round is "Round in progress" (never an ending, never a win)
 |---|---|---|
 | `live_rank` | `rank` and `of` | Shown as "#280 of 748". The Arena's rank in the current game |
 | `live_score_px` | `px` | Arena PX: the game's own score/currency (official Arena guide). It is not #PIXEL and is never converted |
-| `where`, `where_text`, `back_at` | `where`, `back` | `map` ("On the map") or `resting` ("Resting"); only `resting` has been seen live. `back` (a time in milliseconds) is when a resting Normie is due back |
+| `where`, `where_text`, `back_at` | `where`, `back` | `playing` ("On the map") or `resting` ("Resting"), both seen live. A row may also carry `doing` and, for a top row, a `prize` figure for "if it ended now"; neither is read. `back` (a time in milliseconds) is when a resting Normie is due back |
 | `kills`, `deaths`, `duels_won` | `stats.kills`, `stats.deaths`, `stats.agentKills` | Counts. `duels_won` = `agentKills` |
 | `round.game`, `round.phase`, `round.ends_at`, `round.players` | `game`, `phase`, `end` (milliseconds), `roundPlayers` | `ends_at` is stored as ISO-8601 UTC and shown in the viewer's local time by the browser. `phase` is one lower-case word shown as reported (only `live` has been seen) |
 | `status_text`, `note` | written by NCH | "The Arena currently reports #N of M"; "The Arena's own live standing, as reported. Not an NCH rank. It can change until the round ends." |
