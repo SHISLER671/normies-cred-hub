@@ -1,4 +1,4 @@
-# Scope: Ask Zulo's knowledge files follow the money rule in AGENTS.md ("Numbers yes, advice never"): the sentence "never mention prizes, pools or payouts" in loadKnowledge.ts and its knowledge file becomes the shared Arena money rule, and the record card's "Net pixels" stat is relabelled "Prize won" (pending note unchanged). No new figures (Claude, 2026-11-18). Replaces the Arena money rule contract (#225/#226, merged).
+# Scope: burn yield becomes the Normies new standard, a flat 2-4% roll for every pixel count (contract /canvas/status reads tierMinPercents [2,2,2], checked live 2026-11-21). Score math, contract match, /burn and /pixels copy, Ask Zulo knowledge and tests follow; no new money figures (Claude, 2026-11-21). Replaces the money-rule knowledge contract (#227/#228/#229, merged).
 # One active contract on main; this list is for this task only. Replace it before the next PR.
 # Format: one git-path glob per line. # starts a comment. Empty lines ignored.
 # ** = any depth (including zero); * and ? do not cross /. A trailing / means everything under that folder.
@@ -7,15 +7,29 @@
 # public/.well-known/, this file, lockfiles, env files, key files.
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
-app/record/[tokenId]/page.tsx
-docs/zulo/ask.md
-docs/zulo/record-card-spec.md
-lib/agent-recommendations/arenaFacts.test.ts
-lib/agent-recommendations/arenaFacts.ts
-lib/agent-recommendations/ask-facts.test.ts
+app/burn/page.tsx
+app/burn/pixel-compare.tsx
+app/pixels/page.tsx
+lib/agent-recommendations/burnEfficiency.ts
+lib/agent-recommendations/collectionMath.test.ts
+lib/agent-recommendations/collectionMath.ts
 lib/agent-recommendations/knowledge/dual-evaluation-and-pixel-market.md
+lib/agent-recommendations/knowledge/pixel-economy.md
 lib/agent-recommendations/loadKnowledge.ts
-lib/record-card/arena.test.ts
-lib/record-card/arena.ts
-lib/record-card/build.test.ts
-lib/record-card/types.ts
+lib/agent-recommendations/marketStatus.ts
+lib/agent-recommendations/normiesKnowledge.ts
+lib/ap-check/buy-smart.test.ts
+lib/ap-check/buy-smart.ts
+lib/ap-check/compare-text.ts
+lib/burn-buy/contract-state.test.ts
+lib/burn-buy/contract-state.ts
+lib/burn-buy/narrate.ts
+lib/burn-buy/score.ts
+lib/burn-buy/service.ts
+lib/burn-buy/switches.test.ts
+lib/burn-buy/switches.ts
+lib/canon-drift.test.ts
+lib/knowledge/pixel-currency.md
+lib/knowledge/pixel-currency.ts
+lib/normies-canon.ts
+public/openapi/burn-buy.json
