@@ -38,6 +38,7 @@ function tierFor(px: number) {
 }
 
 function tierLabel(i: number): string {
+  if (LAUNCH_TIERS.length === 1) return "every pixel count"
   if (i === 0) return `under ${LAUNCH_TIERS[0].below} pixels`
   const lo = LAUNCH_TIERS[i - 1].below
   const hi = LAUNCH_TIERS[i].below
@@ -108,18 +109,18 @@ export function formatCollectionMath(m: CollectionMath): string {
   const rule =
     m.yieldMode === "promo"
       ? `a flat ${PROMO_RATE_PERCENT}% of each Normie's ORIGINAL pixel count (promo mode)`
-      : "a roll of a whole percent between the tier minimum and 4% of each Normie's ORIGINAL pixel count"
+      : `a roll of a whole percent between ${m.tiers[0]?.minPct ?? 2}% and ${m.tiers[0]?.maxPct ?? 4}% of each Normie's ORIGINAL pixel count, the same for every pixel count (Normies new standard, Nov 2026)`
   const lines = [
     `Source: ${m.source}, as of ${asOf}. Exact sums over every living Normie, not estimates of the inputs.`,
     `Living Normies: ${n(m.livingSupply)} of ${n(ORIGINAL_SUPPLY)} (${n(m.burnedSoFar)} burned so far).`,
     `Original pixels across all living Normies: ${n(m.totalOriginalPixels)} (average ${n(m.averagePixels)} per Normie).`,
     `Burn rule used: ${rule}.`,
     ...m.tiers.map(
-      (t) => `Tier ${t.label}: ${n(t.normies)} Normies, ${n(t.pixels)} pixels, yields ${t.minPct}–${t.maxPct}% each`,
+      (t) => `${m.tiers.length === 1 ? "All Normies" : `Tier ${t.label}`}: ${n(t.normies)} Normies, ${n(t.pixels)} pixels, yields ${t.minPct}–${t.maxPct}% each`,
     ),
     m.yieldMode === "promo"
       ? `If EVERY living Normie were burned: ${n(m.fromPixels.max)} new #PIXEL from pixels.`
-      : `If EVERY living Normie were burned: ${n(m.fromPixels.min)} (all lowest rolls) to ${n(m.fromPixels.max)} (all 4% rolls) new #PIXEL from pixels; middle of the range ${n(m.fromPixels.middle)}.`,
+      : `If EVERY living Normie were burned: ${n(m.fromPixels.min)} (all 2% rolls) to ${n(m.fromPixels.max)} (all 4% rolls) new #PIXEL from pixels; middle of the range ${n(m.fromPixels.middle)}.`,
     `Reality check: every burn needs a receiver Normie that survives, so at least one Normie is left. Keeping the biggest one (${n(m.allButOne.keptTokenPixels)} pixels) as the last receiver: ${n(m.allButOne.min)} to ${n(m.allButOne.max)} (middle ${n(m.allButOne.middle)}).`,
     m.attachedActionPoints !== null
       ? `Already on living Normies today: ${n(m.attachedActionPoints)} #PIXEL. A burn moves that to the receiver; it is not new supply, so it does not add to the totals above.`

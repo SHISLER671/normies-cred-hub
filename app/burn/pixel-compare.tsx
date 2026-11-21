@@ -2,7 +2,7 @@ import { MAX_BURNS, type BudgetAnswer, type PixelsAnswer } from "@/lib/ap-check/
 import type { BuySmartInputs } from "@/lib/ap-check/buy-smart-load"
 import { COMPARE_FINE_PRINT, COMPARE_SOURCES, compareLines, ethText } from "@/lib/ap-check/compare-text"
 
-const ROLL_TEXT = { normal: "a roll of 1-4% of its original pixels (higher tiers for bigger Normies)", promo: "a fixed 4% of its original pixels" } as const
+const ROLL_TEXT = { normal: "a roll of 2-4% of its original pixels (the same range for every Normie)", promo: "a fixed 4% of its original pixels" } as const
 
 /**
  * Market or burn? Two routes to the same pixels, priced side by side. Moved here from /pixels (Ryan, 2026-11-10):

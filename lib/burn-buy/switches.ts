@@ -44,7 +44,7 @@ export function resolveMarketState(
 /**
  * THE TWO SWITCHES. They are independent on purpose: Serc said the fixed 4% ends Monday, which may not be the same moment the
  * marketplace opens (audits).
- *   BURN_YIELD_MODE=normal  ->  pins burns to a roll inside the tier range (the 4% promo is over); =promo pins the fixed 4%;
+ *   BURN_YIELD_MODE=normal  ->  pins burns to the normal 2-4% roll (the 4% promo is over); =promo pins the fixed 4%;
  *                               unset = the clock decides (see resolveYieldMode)
  *   PIXEL_MARKET=live       ->  Pixel Market is open (wording, and later the Jev second opinion). =pending pins it closed. Unset = the contract decides.
  * Set in Vercel, then Redeploy (about a minute). Delete the variable and redeploy to roll back. Read on every request.

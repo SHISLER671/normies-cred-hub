@@ -6,7 +6,7 @@ import { computeCollectionMath, formatCollectionMath, isCollectionMathQuery, ORI
 const SOURCE = "test index"
 const AS_OF = "2026-11-10T00:00:00.000Z"
 
-/** Three living Normies, one per tier: 400 (1–4%), 600 (2–4%), 1000 (3–4%). */
+/** Three living Normies, small to big: 400, 600, 1000. Every pixel count rolls 2–4% (Normies new standard, Nov 2026). */
 function snap(extra: Partial<{ attachedActionPoints: number }> = {}) {
   return {
     originalPixels: new Map([
@@ -19,7 +19,7 @@ function snap(extra: Partial<{ attachedActionPoints: number }> = {}) {
   }
 }
 
-describe("computeCollectionMath (normal mode: a roll inside the tier range)", () => {
+describe("computeCollectionMath (normal mode: a flat 2–4% roll)", () => {
   const m = computeCollectionMath(snap({ attachedActionPoints: 77 }), "normal", SOURCE)
 
   it("counts living, burned and pixels exactly", () => {
@@ -29,27 +29,25 @@ describe("computeCollectionMath (normal mode: a roll inside the tier range)", ()
     assert.equal(m.averagePixels, 667)
   })
 
-  it("sums each tier's lowest, middle and 4% rolls with the same integer math as /burn", () => {
-    // min: 400*1% + 600*2% + 1000*3% = 4 + 12 + 30 = 46
+  it("sums the 2%, middle and 4% rolls with the same integer math as /burn", () => {
+    // min: 2% of each = 8 + 12 + 20 = 40
     // max: 4% of each = 16 + 24 + 40 = 80
-    // middle: round(400*5/200)=10, round(600*6/200)=18, round(1000*7/200)=35 → 63
-    assert.deepEqual(m.fromPixels, { min: 46, middle: 63, max: 80 })
+    // middle: round(400*6/200)=12, round(600*6/200)=18, round(1000*6/200)=30 → 60
+    assert.deepEqual(m.fromPixels, { min: 40, middle: 60, max: 80 })
   })
 
   it("keeps the biggest Normie as the last receiver (a burn needs a survivor)", () => {
     assert.equal(m.allButOne.keptTokenPixels, 1000)
-    assert.deepEqual({ min: m.allButOne.min, middle: m.allButOne.middle, max: m.allButOne.max }, { min: 16, middle: 28, max: 40 })
+    assert.deepEqual({ min: m.allButOne.min, middle: m.allButOne.middle, max: m.allButOne.max }, { min: 20, middle: 30, max: 40 })
   })
 
-  it("groups Normies by tier", () => {
+  it("puts every Normie in one 2–4% group (no pixel-count tiers since the new standard)", () => {
     assert.deepEqual(
-      m.tiers.map((t) => [t.label, t.normies, t.pixels]),
-      [
-        ["under 490 pixels", 1, 400],
-        ["490–889 pixels", 1, 600],
-        ["890+ pixels", 1, 1000],
-      ],
+      m.tiers.map((t) => [t.label, t.minPct, t.maxPct, t.normies, t.pixels]),
+      [["every pixel count", 2, 4, 3, 2000]],
     )
+    assert.match(formatCollectionMath(m), /All Normies: 3 Normies, 2,000 pixels, yields 2–4% each/)
+    assert.match(formatCollectionMath(m), /between 2% and 4%/)
   })
 
   it("reports attached #PIXEL as moved, not new", () => {

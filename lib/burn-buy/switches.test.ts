@@ -4,23 +4,22 @@ import assert from "node:assert/strict"
 import { adviseToken, rankFodder, type HeldToken, type Listing } from "./advise"
 import { buildPageModel } from "./narrate"
 import { parseMarket, parseMarketPin, resolveMarketState, resolveYieldMode } from "./switches"
-import { contractRate, parseContractStatus, parsePixelMarket } from "./contract-state"
+import { contractRate, matchesKnownTiers, parseContractStatus, parsePixelMarket } from "./contract-state"
 import { burnYield, launchedBurnYield, launchTier, promoBurnYield } from "./score"
 import { buildBurnBuy, type Deps, type MarketSnapshot, type RarityToken, type RawListing } from "./service"
 
 const NOW = new Date("2026-10-05T00:00:00.000Z")
 
-describe("normal burn yield (tiers from the Sep 23 article)", () => {
-  it("tier boundaries match the contract (pixelCount < threshold): 489 / 490 and 889 / 890", () => {
-    assert.deepEqual([launchTier(0), launchTier(489)].map((t) => [t.minPct, t.maxPct]), [[1, 4], [1, 4]])
-    assert.deepEqual([launchTier(490), launchTier(889)].map((t) => [t.minPct, t.maxPct]), [[2, 4], [2, 4]])
-    assert.deepEqual([launchTier(890), launchTier(1600)].map((t) => [t.minPct, t.maxPct]), [[3, 4], [3, 4]])
+describe("normal burn yield (flat 2-4%, Normies new standard, Nov 2026)", () => {
+  it("every pixel count rolls 2-4%, including both sides of the old 490 / 890 lines", () => {
+    // Normies new standard (Nov 2026): one flat 2-4% range for every pixel count, either side of the old 490 / 890 lines.
+    for (const px of [0, 1, 489, 490, 889, 890, 1600]) assert.deepEqual([launchTier(px).minPct, launchTier(px).maxPct], [2, 4], `at ${px}`)
   })
 
-  it("range and middle per tier, with the burned token's AP added whole", () => {
-    assert.deepEqual(launchedBurnYield(300, 0), { fromPixels: 8, transferred: 0, total: 8, range: { min: 3, max: 12 } })
+  it("range and middle, with the burned token's AP added whole", () => {
+    assert.deepEqual(launchedBurnYield(300, 0), { fromPixels: 9, transferred: 0, total: 9, range: { min: 6, max: 12 } })
     assert.deepEqual(launchedBurnYield(600, 10), { fromPixels: 18, transferred: 10, total: 28, range: { min: 12, max: 24 } })
-    assert.deepEqual(launchedBurnYield(1000, 0), { fromPixels: 35, transferred: 0, total: 35, range: { min: 30, max: 40 } })
+    assert.deepEqual(launchedBurnYield(1000, 0), { fromPixels: 30, transferred: 0, total: 30, range: { min: 20, max: 40 } })
   })
 
   it("the middle always sits inside the range", () => {
@@ -119,7 +118,7 @@ describe("the API result under each combination", () => {
     assert.equal(r.marketState, "pending")
     assert.equal(r.promo.ratePercent, null)
     assert.match(r.promo.basis, /roll/)
-    assert.ok(r.caveats.some((c) => /roll inside a range/.test(c)))
+    assert.ok(r.caveats.some((c) => /roll of 2 to 4% of a Normie.s original pixels/.test(c)))
     assert.ok(r.caveats.some((c) => /#PIXEL has no market price yet/.test(c)), "still says there is no price: the market is not open")
     assert.ok(r.wallet!.advice.tokens.every((t) => t.yield.range))
   })
@@ -198,6 +197,12 @@ describe("market state: the pin, else the contract (2026-10-05: the market is op
     const s = parseContractStatus(real)!
     assert.equal(s.pixelMarket?.feeBps, 1000)
     assert.equal(contractRate(s), "tiered")
+  })
+  it("the real /canvas/status from 2026-11-21 (flat 2-4%) parses as the normal roll and matches this page's range", () => {
+    const real = { paused: false, maxBurnPercent: 4, tierThresholds: [490, 890], tierMinPercents: [2, 2, 2], pixelMarket: { canvasAddress: "0xF14f2852e1fD6A4108156054AF49B3915dc40E2e", marketAddress: "0x86156A8d6e4B9925F7fEca527ea5D71B0deeDB64", enlargePrices: { "50": 900, "60": 2000, "70": 3300, "80": 4800 }, blankCanvasPrice: 200, treasury: "0xb195C9632b89f1f062F2E66c3Ca5511b74bBe929", market: { paused: false, feeBps: 1000, revenueShareBps: 5000 } } }
+    const s = parseContractStatus(real)!
+    assert.equal(contractRate(s), "tiered")
+    assert.equal(matchesKnownTiers(s), true)
   })
   it("an old-shape status (no market block) still parses exactly as before", () => {
     const old = { paused: false, maxBurnPercent: 4, tierThresholds: [490, 890], tierMinPercents: [4, 4, 4] }

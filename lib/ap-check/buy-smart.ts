@@ -1,8 +1,8 @@
 // Buy smart: the cheapest way to get #PIXEL, compared two ways. Pure (no I/O); every input is live data passed in.
 //
 //   Pixel Market: walk the real order book from the cheapest listing up (exact, apart from listings that must be bought whole).
-//   Burn floor Normies: buy the cheapest-per-pixel Normie listings and burn them. Each pays a roll of its ORIGINAL pixels (a tier
-//                       range, or a fixed 4% during a promo) PLUS every pixel attached to it, read live from the chain, so a stripped
+//   Burn floor Normies: buy the cheapest-per-pixel Normie listings and burn them. Each pays a roll of its ORIGINAL pixels (2-4%
+//                       for every Normie, or a fixed 4% during a promo) PLUS every pixel attached to it, read live from the chain, so a stripped
 //                       Normie is priced as stripped. The roll makes it a range: worst, typical, best.
 //
 // Nothing here says what to do. It compares two costs, says how sure each one is, and leaves the gamble to the reader.

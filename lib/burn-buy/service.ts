@@ -163,20 +163,20 @@ function cliffMath(advice: WalletAdvice, book: PixelMarketSnapshot, othersScore:
 
 export const NORMAL_INFO = {
   ratePercent: null,
-  basis: "a roll inside a range set by the burned Normie's original pixel count (under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%, confirmed in the Normies contract), plus the burned token's own AP",
+  basis: "a roll of 2-4% of the burned Normie's original pixel count, the same range for every pixel count (the Normies new standard, confirmed in the Normies contract), plus the burned token's own AP",
   ends: "The fixed 4% promo has ended, or closes by 18:00 UTC at the latest; this page uses the normal rolls from 16:00 UTC",
 } as const
 
 export const NORMAL_INFO_CONTRACT = {
   ratePercent: null,
   basis: NORMAL_INFO.basis,
-  ends: "The fixed 4% promo has ended: the Normies contract itself (checked live) is back to the normal tiered roll",
+  ends: "The fixed 4% promo has ended: the Normies contract itself (checked live) pays the normal 2-4% roll",
 } as const
 
 export const PROMO_INFO = {
   ratePercent: 4,
   basis: "4% of the burned Normie's original (base) pixel count, plus the burned token's own AP",
-  ends: "Announced by the official Normies Discord: ends at 2:00 AM Guam time = 16:00 UTC on Monday, October 5. The Normies contract returned to the normal 1-4% tiers at about 16:23 UTC; burns now pay a roll inside the tier range",
+  ends: "Announced by the official Normies Discord: ends at 2:00 AM Guam time = 16:00 UTC on Monday, October 5. The Normies contract returned to the normal roll at about 16:23 UTC; burns now pay a 2-4% roll for every pixel count",
 } as const
 
 /** Largest holder today has 432. Above this we refuse rather than show a wrong (truncated) score. */
@@ -220,7 +220,7 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
   }
   const caveats: string[] = [
     "Burns are permanent. Verify on normies.art before you burn; this page cannot see the chain in real time.",
-    "A burn is two steps on the Canvas: commit, then reveal about a minute later. Reveal within about 50 minutes, or each burned Normie pays only the minimum of its tier.",
+    "A burn is two steps on the Canvas: commit, then reveal about a minute later. Reveal within about 50 minutes, or each burned Normie pays only the 2% minimum.",
     marketState !== "live"
       ? "Not financial advice. #PIXEL has no market price yet, so moves are compared by score, not value."
       : pixelBook
@@ -229,16 +229,16 @@ export async function buildBurnBuy(input: { wallet?: string }, deps: Deps): Prom
     "Yield uses each token's ORIGINAL pixel count (what the contract pays on), not its current edited art.",
     ...(contract?.paused ? ["Burning is paused on the Normies contract right now, so nothing can be burned until it reopens. Figures show what a burn would pay once it does."] : []),
     ...(contract && rate === "tiered" && !matchesKnownTiers(contract)
-      ? [`The Normies contract reports tier minimums of ${contract.tierMinPercents.join(", ")}% (up to ${contract.maxBurnPercent}%) at ${contract.tierThresholds.join(" and ")} pixels, which differs from the ranges this page uses (1, 2, 3% up to 4% at 490 and 890). Treat the burn figures here as approximate.`]
+      ? [`The Normies contract reports tier minimums of ${contract.tierMinPercents.join(", ")}% (up to ${contract.maxBurnPercent}%) at ${contract.tierThresholds.join(" and ")} pixels, which differs from the range this page uses (2 to 4% for every pixel count). Treat the burn figures here as approximate.`]
       : []),
     ...(contract && rate === "unknown"
       ? [`The Normies contract reports an unusual burn setting (${contract.tierMinPercents.join(", ")}% minimums, ${contract.maxBurnPercent}% maximum), so this page is falling back to the announced schedule.`]
       : []),
     ...(pinned && contract && rate !== "unknown" && (rate === "fixed" ? "promo" : "normal") !== clockMode
-      ? [`The site owner has pinned the burn rate, but the Normies contract currently reports ${rate === "fixed" ? "a fixed 4%" : "the normal tiered roll"}. Check normies.art before you burn.`]
+      ? [`The site owner has pinned the burn rate, but the Normies contract currently reports ${rate === "fixed" ? "a fixed 4%" : "the normal 2-4% roll"}. Check normies.art before you burn.`]
       : []),
     ...(yieldMode === "normal"
-      ? ["A burn is now a roll inside a range, so figures here are the middle of the range with the full range beside them. Real burns can land anywhere in it. The tiers come from the Sep 23 @normiesART article."]
+      ? ["A burn is now a roll of 2 to 4% of a Normie's original pixels, the same for every pixel count (Normies new standard, Nov 2026). Figures here are the middle of the range with the full range beside them. Real burns can land anywhere in it."]
       : []),
   ]
 

@@ -22,7 +22,7 @@ export const ethText = (n: number) => `${ethNum(n)} ETH`
 const utc = (iso: string) => iso.slice(0, 16).replace("T", " ") + " UTC"
 
 export const COMPARE_SOURCES =
-  "Pixel Market order book: api.normies.art /market/depth. Floor listings: OpenSea, with each Normie's attached pixels re-read from the chain. Burn rolls: the Normies contract tiers (original Pixel Count)."
+  "Pixel Market order book: api.normies.art /market/depth. Floor listings: OpenSea, with each Normie's attached pixels re-read from the chain. Burn rolls: 2-4% of the original Pixel Count for every Normie (the Normies contract, read live)."
 
 export const COMPARE_FINE_PRINT = [
   "Not financial advice.",

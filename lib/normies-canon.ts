@@ -48,8 +48,9 @@ export function levelFor(pixelsOn: number): number {
 /** Pixel Market seller fee (also its hard cap), as a percent. Half goes to the team, half to the holder revenue pool. */
 export const PIXEL_MARKET_FEE_PERCENT = 10
 
-/** Plain-word tier labels from the contract thresholds: "under 490", "490–889", "890+". */
+/** Plain-word tier labels. One flat 2–4% range today ("every pixel count"); a tiered table would read "under 490", "490–889", "890+". */
 export function tierLabels(): string[] {
+  if (LAUNCH_TIERS.length === 1) return ["every pixel count"]
   return LAUNCH_TIERS.map((t, i) => {
     if (i === 0) return `under ${t.below}`
     const lo = LAUNCH_TIERS[i - 1].below

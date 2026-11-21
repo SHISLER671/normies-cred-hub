@@ -327,7 +327,7 @@ async function estimateCandidateAP(
           : history.sampleSize > 0
             ? "medium"
             : "low",
-      notes: `Pixel tier ${fromPixels.tier.label} → ${fromPixels.minAp}–${fromPixels.maxAp} AP; history median ~${history.median} (n=${history.sampleSize}).`,
+      notes: `Burn roll ${fromPixels.tier.minPct}–${fromPixels.tier.maxPct}% of original pixels → ${fromPixels.minAp}–${fromPixels.maxAp} AP; history median ~${history.median} (n=${history.sampleSize}).`,
       tier: fromPixels.tier,
     }
   }

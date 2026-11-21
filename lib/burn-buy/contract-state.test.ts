@@ -7,7 +7,10 @@ import { promoNotice } from "./narrate"
 
 // The exact answer of https://api.normies.art/canvas/status on 2026-10-05 (the fixed 4% promo is active).
 const LIVE_FIXED = { paused: false, maxBurnPercent: 4, tierThresholds: [490, 890], tierMinPercents: [4, 4, 4] }
-const NORMAL = { paused: false, maxBurnPercent: 4, tierThresholds: [490, 890], tierMinPercents: [1, 2, 3] }
+// The exact burn fields of https://api.normies.art/canvas/status on 2026-11-21 (Normies new standard: 2-4% for every pixel count).
+const NORMAL = { paused: false, maxBurnPercent: 4, tierThresholds: [490, 890], tierMinPercents: [2, 2, 2] }
+// The tiered table in force from Oct 5 to Nov 2026 (under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%). No longer what this page assumes.
+const OLD_TIERED = { ...NORMAL, tierMinPercents: [1, 2, 3] }
 
 describe("parseContractStatus is strict", () => {
   it("accepts the real response and the expected normal one", () => {
@@ -30,10 +33,13 @@ describe("contractRate", () => {
     assert.equal(contractRate({ ...LIVE_FIXED, maxBurnPercent: 5, tierMinPercents: [5, 5, 5] }), "unknown")
   })
   it("no status at all is unknown", () => assert.equal(contractRate(null), "unknown"))
-  it("matchesKnownTiers: only the Sep 23 article's table (490 / 890, 1-2-3 up to 4)", () => {
+  it("matchesKnownTiers: only the flat 2-4% standard (a 2% minimum in every tier, up to 4%)", () => {
     assert.equal(matchesKnownTiers(NORMAL), true)
+    assert.equal(matchesKnownTiers({ ...NORMAL, tierThresholds: [500, 900] }), true) // thresholds do not matter when every tier pays the same
+    assert.equal(matchesKnownTiers(OLD_TIERED), false) // the old 1-2-3 table is no longer what this page uses
     assert.equal(matchesKnownTiers({ ...NORMAL, tierMinPercents: [2, 3, 4] }), false)
-    assert.equal(matchesKnownTiers({ ...NORMAL, tierThresholds: [500, 900] }), false)
+    assert.equal(matchesKnownTiers({ ...NORMAL, maxBurnPercent: 5 }), false)
+    assert.equal(contractRate(OLD_TIERED), "tiered")
   })
 })
 
@@ -85,7 +91,7 @@ describe("buildBurnBuy follows the contract (the key failure mode: the clock gue
     assert.equal(r.promo.source, "contract")
     assert.equal(r.promo.ratePercent, null)
     assert.match(r.promo.ends, /checked live/)
-    assert.match(promoNotice(r) ?? "", /back to the normal tiered roll \(checked live\)/)
+    assert.match(promoNotice(r) ?? "", /back to the normal 2 to 4% roll \(checked live\)/)
   })
   it("contract unreadable (null or throws): the clock decides, exactly as before", async () => {
     for (const contractStatus of [async () => null, async () => { throw new Error("down") }]) {
@@ -120,17 +126,25 @@ describe("buildBurnBuy follows the contract (the key failure mode: the clock gue
     const r = await run({ yieldPinned: () => true, yieldMode: () => "promo" as const, contractStatus: async () => NORMAL }, "2026-10-05T14:00:00Z")
     assert.equal(r.yieldMode, "promo")
     assert.equal(r.promo.source, "pinned")
-    assert.ok(r.caveats.some((c) => /pinned the burn rate, but the Normies contract currently reports the normal tiered roll/.test(c)))
+    assert.ok(r.caveats.some((c) => /pinned the burn rate, but the Normies contract currently reports the normal 2-4% roll/.test(c)))
   })
   it("paused on the contract: said in the caveats and in the notice, whatever the rate", async () => {
     const r = await run({ contractStatus: async () => ({ ...LIVE_FIXED, paused: true }) }, "2026-10-05T14:00:00Z")
     assert.ok(r.caveats.some((c) => /Burning is paused on the Normies contract/.test(c)))
     assert.match(promoNotice(r) ?? "", /Burning is paused/)
   })
-  it("normal tiers that differ from the table this page uses are flagged as approximate", async () => {
-    const r = await run({ contractStatus: async () => ({ ...NORMAL, tierMinPercents: [2, 3, 4] }) }, "2026-10-05T14:00:00Z")
+  it("normal tiers that differ from the range this page uses are flagged as approximate (the old 1-2-3 table included)", async () => {
+    for (const status of [{ ...NORMAL, tierMinPercents: [2, 3, 4] }, OLD_TIERED]) {
+      const r = await run({ contractStatus: async () => status }, "2026-10-05T14:00:00Z")
+      assert.equal(r.yieldMode, "normal")
+      assert.ok(r.caveats.some((c) => /differs from the range this page uses \(2 to 4% for every pixel count\)/.test(c)))
+    }
+  })
+  it("the live flat 2-4% contract raises no approximate warning", async () => {
+    const r = await run({ contractStatus: async () => NORMAL }, "2026-11-21T10:00:00Z")
     assert.equal(r.yieldMode, "normal")
-    assert.ok(r.caveats.some((c) => /differs from the ranges this page uses/.test(c)))
+    assert.ok(!r.caveats.some((c) => /differs from the range/.test(c)))
+    assert.ok(r.caveats.some((c) => /2 to 4% of a Normie's original pixels, the same for every pixel count/.test(c)))
   })
   it("an unusual fixed rate falls back to the clock and says so", async () => {
     const r = await run({ contractStatus: async () => ({ ...LIVE_FIXED, maxBurnPercent: 5, tierMinPercents: [5, 5, 5] }) }, "2026-10-05T14:00:00Z")

@@ -1,11 +1,14 @@
 // What the Normies contract itself says about burn yield, read from the official API (GET https://api.normies.art/canvas/status):
 //   { paused, maxBurnPercent, tierThresholds: [490, 890], tierMinPercents: [..] }
 // Seen live 2026-10-05: tierMinPercents [4,4,4] with maxBurnPercent 4 = a minimum of 4% in EVERY tier = the fixed 4% promo is active.
-// The normal tiers (under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%; the contract pays tier i when pixels < threshold i) read [1,2,3].
+// The normal roll reads [2,2,2] since the Nov 2026 new standard (2-4% for every pixel count; checked live 2026-11-21). The contract
+// still has three tiers (tier i when pixels < threshold i); from Oct 5 to Nov 2026 they read [1,2,3] (1-4%, 2-4%, 3-4%).
 // (That reading of the numbers is an inference from the field names and the announced promo, so everything here fails safe to the clock.)
 //
 // Why: the clock only GUESSES when the promo ends (announced as 16:00 to 18:00 UTC, relayed, not verified). Showing the normal roll while the
 // contract still pays a fixed 4% understates a holder's yield, and a burn is permanent. This lets the page follow the contract exactly.
+
+import { BURN_MAX_PERCENT, BURN_MIN_PERCENT } from "./score"
 
 /**
  * The Pixel Market stack, as /canvas/status reports it once it is configured (seen live 2026-10-05, after the 18:00 UTC launch):
@@ -70,10 +73,12 @@ export function contractRate(s: BurnContractStatus | null): ContractRate {
   return "tiered"
 }
 
-/** Does the contract's normal tier table match what this page's advice assumes (thresholds 490 / 890, minimums 1 / 2 / 3, maximum 4)? */
+/**
+ * Does the contract's normal table match what this page's advice assumes: a maximum of 4% and a 2% minimum in EVERY tier
+ * (the flat 2-4% standard)? Thresholds do not matter when every tier pays the same range, so they are not checked.
+ */
 export function matchesKnownTiers(s: BurnContractStatus): boolean {
-  const mins = s.tierMinPercents
-  return s.maxBurnPercent === 4 && s.tierThresholds.length === 2 && s.tierThresholds[0] === 490 && s.tierThresholds[1] === 890 && mins.length === 3 && mins[0] === 1 && mins[1] === 2 && mins[2] === 3
+  return s.maxBurnPercent === BURN_MAX_PERCENT && s.tierMinPercents.length > 0 && s.tierMinPercents.every((m) => m === BURN_MIN_PERCENT)
 }
 
 /** One short, never-throwing read. Null on any problem (timeout, HTTP error, a shape we do not recognise). */
