@@ -144,7 +144,8 @@ describe("the copies agree with the canon", () => {
       const y = launchedBurnYield(px, 0).range!
       assert.deepEqual([est.minAp, est.maxAp], [y.min, y.max], `yield range at ${px}`)
     }
-    assert.deepEqual(tierLabels(), ["under 490", "490–889", "890+"])
+    assert.deepEqual(tierLabels(), ["every pixel count"])
+    assert.deepEqual([launchTier(0).minPct, launchTier(0).maxPct, launchTier(1600).minPct], [2, 4, 2])
   })
 
   it("Level is one formula everywhere: floor(pixels on it / 10) + 1", () => {
@@ -172,12 +173,11 @@ describe("the copies agree with the canon", () => {
     assert.equal(rankForLevel(levelFor(12))?.name, "Sketched") // #7141: 12 pixels, Level 2
   })
 
-  it("every stated tier set in user-facing text uses the contract boundaries", () => {
-    // Any "under 490" mention must sit with "490–889"/"490 to 889" and "890+"/"890 px and up" in the same file.
-    const stated = corpus.filter(({ text }) => /under 490/.test(text))
-    for (const { f, text } of stated) {
-      assert.match(text, /490\s*(–|-|to)\s*889/, `${f}: middle tier`)
-      assert.match(text, /890\s*(\+|px and up|and up)/, `${f}: top tier`)
-    }
+  it("no user-facing text still states the old tiered burn yield as today's rule (Normies new standard, Nov 2026: flat 2–4%)", () => {
+    // The old table was under 490 px 1–4%, 490–889 px 2–4%, 890+ px 3–4%. Code comments may record it as history; copy may not.
+    const oldRolls = /\b(1\s*(–|-|to)\s*4\s*%|3\s*(–|-|to)\s*4\s*%)/
+    const userFacing = corpus.filter(({ f }) => /\.(md|txt|tsx)$/.test(f) || f.startsWith("lib/agent-recommendations/") || f === "lib/burn-buy/service.ts" || f === "lib/burn-buy/narrate.ts")
+    const offending = userFacing.filter(({ text }) => oldRolls.test(text)).map(({ f }) => f)
+    assert.deepEqual(offending, [])
   })
 })

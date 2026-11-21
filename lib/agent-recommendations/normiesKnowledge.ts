@@ -1,6 +1,7 @@
 // Comprehensive Normies knowledge for Zulo — structured bible + compact prompt text.
 
 import { NORMIES_NFT } from "@/constants/contracts"
+import { BURN_MAX_PERCENT, BURN_MIN_PERCENT } from "@/lib/burn-buy/score"
 import { AGENTS_CANVAS_STATUS_LINE, ARENA_REGISTRATION_LINE, ARENA_STATUS_LINE, OFFICIAL_STATUS, PIXEL_MARKET_STATUS_LINE } from "@/lib/official-status"
 
 export const NORMIES_KNOWLEDGE = {
@@ -38,11 +39,9 @@ export const NORMIES_KNOWLEDGE = {
     burnMechanics: {
       process: "Two-step: Commit → Wait 5 blocks → Reveal",
       tiers: [
-        { pixels: "under 490", minAP: "1%", maxAP: "4%", note: "Low pixel count = lower yield band" },
-        { pixels: "490-889", minAP: "2%", maxAP: "4%", note: "Medium yield band" },
-        { pixels: "890+", minAP: "3%", maxAP: "4%", note: "Highest minimum roll (by original Pixel Count)" },
+        { pixels: "every pixel count", minAP: "2%", maxAP: "4%", note: "One flat range for every Normie (Normies new standard, Nov 2026)" },
       ],
-      formula: "AP ≈ original Pixel Count × randomPercentage (within tier min–max)",
+      formula: "AP ≈ original Pixel Count × randomPercentage (2–4%)",
       revealWindow: "~50 minutes (256 blocks)",
       penalty: "Miss reveal window = minimum AP only",
     },
@@ -166,32 +165,19 @@ export type ApTier = {
   note: string
 }
 
-/** AP % band from the ORIGINAL Pixel Count (Canvas burn tiers, contract). */
+/**
+ * AP % band from the ORIGINAL Pixel Count. Since the Normies new standard (Nov 2026) every pixel count rolls the same
+ * 2–4% (contract tierMinPercents [2, 2, 2]); the numbers come from lib/burn-buy/score.ts so the two can never drift.
+ */
 export function apTierForPixelCount(pixels: number): ApTier {
   if (!Number.isFinite(pixels) || pixels < 0) {
-    return { minPct: 1, maxPct: 4, label: "unknown", note: "Pixel count unavailable" }
-  }
-  if (pixels < 490) {
-    return {
-      minPct: 1,
-      maxPct: 4,
-      label: "under 490",
-      note: "Low pixel tier — wider variance, lower min %",
-    }
-  }
-  if (pixels < 890) {
-    return {
-      minPct: 2,
-      maxPct: 4,
-      label: "490-889",
-      note: "Medium pixel tier",
-    }
+    return { minPct: BURN_MIN_PERCENT, maxPct: BURN_MAX_PERCENT, label: "unknown", note: "Pixel count unavailable" }
   }
   return {
-    minPct: 3,
-    maxPct: 4,
-    label: "890+",
-    note: "High original-pixel tier: 3–4% roll",
+    minPct: BURN_MIN_PERCENT,
+    maxPct: BURN_MAX_PERCENT,
+    label: "every pixel count",
+    note: "Flat 2–4% roll for every pixel count (Normies new standard, Nov 2026)",
   }
 }
 
@@ -234,10 +220,7 @@ CANVAS / BURN ECONOMICS:
 - Purpose: ${k.canvas.purpose}
 - Process: ${k.canvas.burnMechanics.process}
 - AP formula: ${k.canvas.burnMechanics.formula}
-- Tiers by ORIGINAL Pixel Count (contract; edits never change it):
-  • under 490 px → 1–4% of the original pixel count, as AP
-  • 490–889 px → 2–4%
-  • 890+ px → 3–4% (highest minimum)
+- Burn yield: a 2–4% roll of the ORIGINAL Pixel Count for EVERY Normie (Normies new standard, Nov 2026; contract minimum 2% in every tier). Edits never change the original count.
 - Reveal window: ${k.canvas.burnMechanics.revealWindow}; miss window → ${k.canvas.burnMechanics.penalty}
 - AP bound to specific Normie (non-transferable); sits on the keeper; not spent when you draw. Official customize uses #PIXEL as pixel budget (1 PIXEL = 1 pixel) in official UI — not an AP debit. CredHub / Normifier preview is not a spend rail.
 - Level = floor(pixels on the Normie / 10) + 1 (starts at 1), read live; taking pixels off lowers it. Canvas level sets the Arena head start (health and gear) per the official Arena entry page; a head start, not a guarantee

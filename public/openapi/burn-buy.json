@@ -150,14 +150,14 @@
                "items": {
                 "type": "number"
                },
-               "description": "Original pixel counts that separate the tiers (490 and 890 at the time of writing)."
+               "description": "Original pixel counts that separate the tiers (490 and 890 at the time of writing). Since Nov 2026 every tier pays the same 2-4%, so they no longer change the yield."
               },
               "tierMinPercents": {
                "type": "array",
                "items": {
                 "type": "number"
                },
-               "description": "The minimum yield percent of each tier. [4,4,4] with a maximum of 4 = the fixed 4% promo; [1,2,3] = the normal tiers."
+               "description": "The minimum yield percent of each tier. [4,4,4] with a maximum of 4 = the fixed 4% promo; [2,2,2] = the normal roll since the Normies new standard (Nov 2026: 2-4% for every pixel count). [1,2,3] was the tiered table before it."
               }
              }
             }

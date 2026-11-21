@@ -45,16 +45,19 @@ export type YieldMode = "promo" | "normal"
 export type MarketState = "pending" | "live"
 
 /**
- * In normal mode a burn rolls a whole percentage in [tier minimum, 4] of the burned Normie's ORIGINAL pixel count.
- * Confirmed against NormiesCanvasV2 (verified source, 2026-10-06): _getMinPercent returns tier i when
- * pixelCount < tierThresholds[i], with thresholds [490, 890] and minimums [1, 2, 3]. So UNDER 490 rolls 1-4%,
- * 490 to 889 rolls 2-4%, and 890 and up rolls 3-4% (normies.art/docs says the same). The team can retune these;
- * the burn service compares the live contract numbers with these and warns when they differ.
+ * In normal mode a burn rolls a whole percentage in [minimum, 4] of the burned Normie's ORIGINAL pixel count.
+ * New standard (official Normies announcement, Nov 2026): a fixed 2-4% roll for EVERY pixel count. Confirmed live on
+ * https://api.normies.art/canvas/status (2026-11-21): tierMinPercents [2, 2, 2], maxBurnPercent 4, thresholds still [490, 890].
+ * The contract keeps its three tiers, but all three now share one range, so this page uses one rule for every Normie.
+ * Before this (Oct 5 to Nov 2026) the tiers were under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%.
+ * The team can retune these; the burn service compares the live contract numbers with these and warns when they differ.
  */
+export const BURN_MIN_PERCENT = 2
+export const BURN_MAX_PERCENT = 4
+
+/** One range for every pixel count (kept as a list so a future tiered table drops in without changing callers). */
 export const LAUNCH_TIERS: ReadonlyArray<{ below: number; minPct: number; maxPct: number }> = [
-  { below: 490, minPct: 1, maxPct: 4 },
-  { below: 890, minPct: 2, maxPct: 4 },
-  { below: Number.POSITIVE_INFINITY, minPct: 3, maxPct: 4 },
+  { below: Number.POSITIVE_INFINITY, minPct: BURN_MIN_PERCENT, maxPct: BURN_MAX_PERCENT },
 ]
 
 export function launchTier(originalPixels: number) {
@@ -114,7 +117,7 @@ export function promoBurnYield(originalPixels: number, burnedTokenAp: number): B
 }
 
 /**
- * #PIXEL a burn awards in normal mode: a roll inside the tier range, plus the burned token's ENTIRE AP balance.
+ * #PIXEL a burn awards in normal mode: a 2-4% roll (the same range for every pixel count), plus the burned token's ENTIRE AP balance.
  * `fromPixels` is the MIDDLE of the range (an assumption: an even roll), used only to rank and compare. The real
  * result can be anywhere in `range`.
  */

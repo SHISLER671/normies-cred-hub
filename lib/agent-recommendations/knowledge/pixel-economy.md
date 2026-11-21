@@ -9,11 +9,8 @@ Authoritative framing for strategy answers. Prefer live context numbers when pre
 - **AP (#PIXEL) comes from burning or from the Pixel Market** (official docs: "Pixels come from burning other Normies, or from the Pixel Market."). A burn is commit → wait → reveal.
 - Burn rewards land **on a Normie you own or in your wallet** (official docs: "The pixels land on a Normie you own, raising its ceiling, or in your wallet, ready to put on any Normie you own or to list on the Pixel Market."). Pixels already on a burned Normie move across whole.
 - A pixel is either **on a Normie** (its painting ceiling) or **loose in a wallet**. There is **no wallet-to-wallet transfer**: pixels move between wallets only through a Pixel Market trade, and deposits onto other people's Normies are refused.
-- Reveal RNG sits inside tiers set by the burned Normie's **original Pixel Count** (contract; editing never changes it):
-  - under 490 original pixels → a roll of 1–4% of its original pixel count, as #PIXEL (AP)
-  - 490–889 → 2–4%
-  - 890+ → 3–4% (the highest minimum)
-- Miss the reveal window → **minimum band only**. Burns are permanent.
+- Reveal RNG: since the Normies new standard (official announcement, Nov 2026) every burn rolls **2–4%** of the burned Normie's **original Pixel Count** (contract; editing never changes it), as #PIXEL (AP), whatever its size. The old pixel-count tiers no longer apply.
+- Miss the reveal window → **the 2% minimum only**. Burns are permanent.
 
 ### Appearance / customize (not an AP debit)
 

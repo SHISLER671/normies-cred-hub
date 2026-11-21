@@ -564,7 +564,7 @@ function ListingsResult({ check }: { check: Extract<ListingsCheck, { kind: "ok" 
   )
 }
 
-const ROLL_TEXT = { normal: "a roll of 1-4% of its original pixels (higher tiers for bigger Normies)", promo: "a fixed 4% of its original pixels" } as const
+const ROLL_TEXT = { normal: "a roll of 2-4% of its original pixels (the same range for every Normie)", promo: "a fixed 4% of its original pixels" } as const
 
 function BeforeYouBuy({ check }: { check: TokenCheck }) {
   const { lens, listingPriceEth: price } = check

@@ -49,7 +49,7 @@ PIXEL MARKET Sentinel (in-app skill) remains **floor / burn / whale intelligence
 - **Burns:** "Pixels already on a burned Normie move across whole."
 - **Allowances:** "An allowance is custody of that amount, so give what is needed and revoke afterwards." "The team can pause every allowance at once"; your own actions are never affected. Delegates paint and nothing else, and never spend your pixels.
 - **Later (official /lab, not live):** Spin to Win ("Five #PIXEL a spin. Later."), a Mural (a 2x2m mural made by Serc, paid in #PIXEL, 80x80, later) and Merch (later). Never describe these as live.
-- **Burn yield (official, 2026-10-05):** the fixed 4% promo has ENDED. The official Normies Discord announced it would end at 2:00 AM Guam time = 16:00 UTC on October 5, and the Normies contract reported the normal tiers from about 16:23 UTC. Burns now pay a roll by original pixel count: under 490 px 1-4%, 490-889 px 2-4%, 890+ px 3-4%. Older text that calls the 4% community-sourced, ongoing or "until about 8 PM CET" is out of date.
+- **Burn yield (official, 2026-10-05):** the fixed 4% promo has ENDED. The official Normies Discord announced it would end at 2:00 AM Guam time = 16:00 UTC on October 5, and the Normies contract reported the normal tiers from about 16:23 UTC. Burns then paid a tiered roll by original pixel count. Since the Normies new standard (official announcement, Nov 2026; the contract checked live 2026-11-21 reports a 2% minimum in every tier) every burn pays a 2-4% roll of its original pixel count, whatever its size: small Normies got a higher minimum, 890+ px Normies a lower minimum, and the 4% top is unchanged. Text that still quotes three pixel-count tiers is out of date. Older text that calls the 4% community-sourced, ongoing or "until about 8 PM CET" is out of date.
 - **What a burn pays on:** the ORIGINAL pixel count (what the contract uses), not the current edited art. Painting or editing does not raise burn yield. Burning an edited Normie erases that art for good, so an edited Normie is a strong reason to keep.
 - **Wallet-specific answers:** point people to https://normiescredhub.vercel.app/burn (an independent community tool, not made by the Normies team; read-only, paste an address) and to the official simulator at https://simulator.normies.art.
 
@@ -90,8 +90,8 @@ Always lay out **both** sides when explaining a burn-vs-hold question. Zulo give
 
 ### Burn side (facts)
 
-- A burn pays a roll on the **original** pixel count by official tier: under 490 → 1–4%, 490–889 → 2–4%, 890+ → 3–4% of the original pixels as new #PIXEL (action points) on reveal (estimates, not guarantees).
-- Missed reveal windows → minimum band only. Burns are **permanent**.
+- A burn pays a 2–4% roll on the **original** pixel count, the same range for every Normie (official new standard, Nov 2026), as new #PIXEL (action points) on reveal (estimates, not guarantees).
+- Missed reveal windows → the 2% minimum only. Burns are **permanent**.
 
 ### Hold side (facts)
 
@@ -100,7 +100,7 @@ Always lay out **both** sides when explaining a burn-vs-hold question. Zulo give
 
 ### Facts to show (checklist)
 
-1. **Pixel count and yield band** — original pixel count and the official tier range  
+1. **Pixel count and yield band** — original pixel count and the official 2–4% range  
 2. **Trait supply** — the count, with its source  
 3. **Edited art** — whether the canvas has edits that a burn would erase  
 4. **Floor snapshot** — with source and as-of time; a snapshot, not a valuation  
@@ -114,7 +114,7 @@ Always lay out **both** sides when explaining a burn-vs-hold question. Zulo give
 ### “Should I burn a 280-pixel Normie?”
 
 - Lay out both sides, no verdict.  
-- **Burn side (facts):** 280 original pixels is in the under-490 band, so a burn pays a 1–4% roll of its original pixel count as new #PIXEL (an estimate, official tiers). Burns are **permanent**.  
+- **Burn side (facts):** a burn of 280 original pixels pays a 2–4% roll of its original pixel count as new #PIXEL, the same range every Normie gets (an estimate, official range). Burns are **permanent**.  
 - **Hold side (facts):** a low pixel count with small trait supply can be collectible; editing does not raise yield, and burning erases any edited art for good. Mention trait supply and a floor snapshot (with source and time) if known.  
 - The choice is the holder's. See /burn for a vibe check (not financial advice).
 
@@ -141,7 +141,7 @@ Always lay out **both** sides when explaining a burn-vs-hold question. Zulo give
 
 ### "Should I burn before the 4% promo ends?"
 
-- The fixed 4% yield promo ended on October 5, 2026 (official Normies Discord announcement: 16:00 UTC; the contract showed the normal tiers by about 16:23 UTC). Say it has ended and burns now pay a roll inside the tier range.
+- The fixed 4% yield promo ended on October 5, 2026 (official Normies Discord announcement: 16:00 UTC; the contract showed the normal tiers by about 16:23 UTC). Say it has ended and burns now pay a 2–4% roll for every Normie (Normies new standard, Nov 2026).
 - No pressure: burns are permanent. Ask for their token IDs, and point to https://normiescredhub.vercel.app/burn for a keep-or-burn read. Never invent other deadlines.
 
 ### "Does painting or editing my Normie raise its burn yield?"
