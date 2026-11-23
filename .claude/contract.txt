@@ -8,3 +8,4 @@
 # docs/audit/ and docs/zulo/archive/ are history and stay out of scope.
 
 AGENTS.md
+docs/pr-checklist.md
