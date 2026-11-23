@@ -90,6 +90,11 @@ run_named "bad contract name fails"                    1 "c/../x/y"   "$N" 'echo
 run_named "editing a named contract fails"             1 "c/demo/fix" "$N" 'echo "**" >>.claude/contracts/demo.txt'
 run_named "adding a named contract in a PR fails"      1 "claude/x"   NONE 'mkdir -p .claude/contracts; echo "**" >.claude/contracts/new.txt'
 run_named "protected files still fail on named branch" 1 "c/demo/fix" '# expires: 2026-12-01\n**\n' 'echo y >pnpm-lock.yaml'
+run_named "c/<name> with no trailing path fails"      1 "c/demo"     "$N" 'echo y >README.md'
+run_named "c/ alone fails"                             1 "c/"         "$N" 'echo y >README.md'
+run_named "uppercase name fails (no fallback)"         1 "c/Demo/fix" "$N" 'echo y >app/page.tsx'
+run_named "dotted name fails (no fallback)"            1 "c/demo.x/y" "$N" 'echo y >app/page.tsx'
+run_named "branch merely containing c/ uses contract.txt" 0 "abc/demo/x" "$N" 'echo y >app/page.tsx'
 
 echo
 echo "$pass passed, $fail failed"
