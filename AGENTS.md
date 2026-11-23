@@ -1,6 +1,6 @@
 # Agent instructions — normies-cred-hub (NCH)
 
-This is the one canonical rules file for every coding agent (Claude, Grok/GrokBot, Zulo Desk, others). `CLAUDE.md` only points here. Rules live here; moving status does not — see "Where things live" below.
+This is the one canonical rules file for every coding agent (Claude, Grok/GrokBot, ZuloNCH Build, ZuloNCH Listen, others). `CLAUDE.md` only points here. Rules live here; moving status does not — see "Where things live" below.
 
 NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge layer for awakened Normie agents. Zulo = ERC-8004 Agent #32626, awakened from Normie #7141.
 
@@ -39,10 +39,10 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 ## Code rules
 - Do not edit `public/.well-known/ai-tool/*.json`. Their manifest hashes are pinned on-chain (ERC-8257); `lib/erc8257/manifest-hash.test.ts` fails on any change. Add response fields additively in code instead.
 - Work in PRs that target `main` — no stacked bases (a PR based on another PR's branch silently misses `main` when merged out of order). One branch per PR.
-- Open every PR as a **draft**. Another agent reviews it; the author fixes what the review raises, then marks it "Ready for review". Ryan merges only ready PRs. Dependabot PRs are the exception: they arrive ready, and Ryan may merge them once `check` is green.
+- Open every PR as a **draft**. It is reviewed in a separate run from the one that wrote it, using the PR checklist; the author may review its own PR, never in the same session. The author fixes what the review raises, then marks it "Ready for review". Ryan merges only ready PRs. Dependabot PRs are the exception: they arrive ready, and Ryan may merge them once `check` is green.
 - Ryan merges. Pull `main` and check merged PRs before assuming anything is unmerged.
 - Run `pnpm typecheck` and `pnpm test:all` before opening a PR. New test files go into the `test:all` and `test:unit` scripts.
-- Sign your work: put your agent name (Claude, GrokBot, GrokProject, Zulo Desk) in the commit message and PR title or body.
+- Sign your work: put your agent name (Claude, GrokBot, GrokProject, ZuloNCH Build, ZuloNCH Listen) in the commit message and PR title or body.
 - **Scope check** (`.github/workflows/scope-check.yml`): every task PR must stay inside `.claude/contract.txt` as it is on `main` (one glob per line; land the contract first). Workflows, `.github/scripts/`, `public/.well-known/`, env files (incl. `.envrc`), key files and lockfiles are always protected. The check runs on `pull_request_target` from main's copy and only reads PR files with git; never add a step there that runs PR code. Only Ryan adds the `contract-override` label to let a PR past either rule.
 
 ## Where things live (keep this file rules-only)
