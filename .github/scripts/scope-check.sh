@@ -5,6 +5,9 @@
 # Inputs (env):
 #   BASE_REF       base branch name (e.g. main). Required.
 #   LABELS_JSON    JSON array of PR label names. Optional, default [].
+#   HEAD_REF       PR branch name. Optional. A branch named c/<name>/... is checked against
+#                  .claude/contracts/<name>.txt on the base branch instead of .claude/contract.txt.
+#   TODAY          YYYY-MM-DD, for tests only. Default: today in UTC.
 #   GITHUB_STEP_SUMMARY  optional; a Markdown report is appended there.
 # Exit 0 = pass (or override), 1 = violation, 2 = setup error.
 set -euo pipefail
@@ -13,6 +16,9 @@ BASE_REF="${BASE_REF:?BASE_REF is required}"
 LABELS_JSON="${LABELS_JSON:-[]}"
 SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/null}"
 CONTRACT=".claude/contract.txt"
+CONTRACTS_DIR=".claude/contracts"
+HEAD_REF="${HEAD_REF:-}"
+TODAY="${TODAY:-$(date -u +%F)}"
 OVERRIDE_LABEL="contract-override"
 
 override=false
@@ -33,6 +39,7 @@ forbidden_reason() {
     .github/scripts/*)   echo "protected: .github/scripts/ (scope check itself)"; return ;;
     public/.well-known/*) echo "protected: public/.well-known/ (pinned manifests)"; return ;;
     "$CONTRACT")         echo "protected: contract file (a PR cannot widen its own scope)"; return ;;
+    "$CONTRACTS_DIR"/*)  echo "protected: contract file (a PR cannot widen its own scope)"; return ;;
   esac
   case "$base" in
     pnpm-lock.yaml|package-lock.json|yarn.lock|bun.lockb|bun.lock|npm-shrinkwrap.json)
@@ -49,10 +56,32 @@ forbidden_reason() {
   esac
 }
 
+# Which contract applies. A branch c/<name>/... names a contract in .claude/contracts/ on the base
+# branch; it must exist there and carry an unexpired "# expires: YYYY-MM-DD" line. Any other branch
+# uses .claude/contract.txt as before. The name only picks among contracts Ryan already merged.
+contract_error=""
+if [[ "$HEAD_REF" =~ ^c/([a-z0-9][a-z0-9-]{0,62})/ ]]; then
+  CONTRACT="${CONTRACTS_DIR}/${BASH_REMATCH[1]}.txt"
+  if ! git cat-file -e "origin/${BASE_REF}:${CONTRACT}" 2>/dev/null; then
+    contract_error="named contract ${CONTRACT} is not on ${BASE_REF} (merge the contract first)"
+  else
+    expires="$(git show "origin/${BASE_REF}:${CONTRACT}" | sed -n 's/^#[[:space:]]*expires:[[:space:]]*\([0-9-]*\).*/\1/p' | head -n1)"
+    if [[ ! "$expires" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+      contract_error="named contract ${CONTRACT} has no valid '# expires: YYYY-MM-DD' line"
+    elif [[ "$TODAY" > "$expires" ]]; then
+      contract_error="named contract ${CONTRACT} expired on ${expires}"
+    fi
+  fi
+elif [[ "$HEAD_REF" == c/* ]]; then
+  contract_error="branch ${HEAD_REF} starts with c/ but has no valid contract name (c/<lowercase-name>/...)"
+fi
+
 # Contract allow list from the BASE branch only (never from the PR head).
 have_contract=false
 patterns=()
-if contract_text="$(git show "origin/${BASE_REF}:${CONTRACT}" 2>/dev/null)"; then
+if [[ -n "$contract_error" ]]; then
+  : # every changed file fails below; no fallback to another contract
+elif contract_text="$(git show "origin/${BASE_REF}:${CONTRACT}" 2>/dev/null)"; then
   have_contract=true
   while IFS= read -r line || [[ -n "$line" ]]; do
     line="${line%%#*}"
@@ -94,7 +123,11 @@ for f in "${changed[@]}"; do
   r="$(forbidden_reason "$f")"
   if [[ -n "$r" ]]; then reason["$f"]="$r"; fi
 done
-if $have_contract && ((${#changed[@]})); then
+if [[ -n "$contract_error" ]]; then
+  for f in "${changed[@]}"; do
+    if [[ -z "${reason[$f]:-}" ]]; then reason["$f"]="$contract_error"; fi
+  done
+elif $have_contract && ((${#changed[@]})); then
   if ((${#patterns[@]} == 0)); then
     for f in "${changed[@]}"; do
       if [[ -z "${reason[$f]:-}" ]]; then reason["$f"]="outside contract (contract is empty)"; fi
@@ -111,7 +144,9 @@ fi
   echo "## Scope check"
   echo
   echo "- Base: \`${BASE_REF}\`"
-  if $have_contract; then
+  if [[ -n "$contract_error" ]]; then
+    echo "- Contract: **${contract_error}**"
+  elif $have_contract; then
     echo "- Contract: \`${CONTRACT}\` from \`${BASE_REF}\` (${#patterns[@]} pattern(s))"
   else
     echo "- Contract: none on \`${BASE_REF}\` — only the protected-file rules apply"
@@ -125,7 +160,7 @@ fi
   done
 } >>"$SUMMARY"
 
-if ! $have_contract; then
+if [[ -z "$contract_error" ]] && ! $have_contract; then
   echo "::notice::No ${CONTRACT} on ${BASE_REF}; checking protected files only."
 fi
 echo "Changed files: ${#changed[@]}  Violations: ${#reason[@]}  Override: ${override}"

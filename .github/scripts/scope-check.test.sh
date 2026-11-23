@@ -60,6 +60,37 @@ run_case ".envrc fails"                       1 '[]' "NONE" 'echo y >.envrc'
 run_case "key file fails"                     1 '[]' "NONE" 'echo y >app/signer.pem'
 run_case "empty contract fails any change"    1 '[]' '# nothing allowed\n' 'echo y >app/page.tsx'
 
+# Named contracts: branch c/<name>/... uses .claude/contracts/<name>.txt from the base branch.
+# run_named <name> <expect> <branch> <contracts/demo.txt content or NONE> <commands>
+run_named() {
+  local name="$1" expect="$2" branch="$3" named="$4"; shift 4
+  ( setup "$C"
+    if [[ "$named" != NONE ]]; then
+      git checkout -q main; mkdir -p .claude/contracts; printf '%b' "$named" >.claude/contracts/demo.txt
+      git add -A; git commit -qm named; git update-ref refs/remotes/origin/main HEAD; git checkout -q pr; git reset -q --hard main
+    fi
+    eval "$*"; git add -A; git commit -qm change
+    HEAD_REF="$branch" TODAY=2026-11-23 BASE_REF=main LABELS_JSON='[]' GITHUB_STEP_SUMMARY=/dev/null bash "$SCRIPT" >"$out" 2>&1 ) && got=0 || got=$?
+  if [[ "$got" == "$expect" ]]; then
+    pass=$((pass+1)); echo "ok   - $name"
+  else
+    fail=$((fail+1)); echo "FAIL - $name (expected $expect, got $got)"; sed 's/^/       /' "$out"
+  fi
+}
+
+N='# expires: 2026-12-01\nREADME.md\n'
+run_named "named contract allows its own files"        0 "c/demo/fix" "$N" 'echo y >README.md'
+run_named "named contract ignores contract.txt globs"  1 "c/demo/fix" "$N" 'echo y >app/page.tsx'
+run_named "plain branch still uses contract.txt"       0 "claude/x"   "$N" 'echo y >app/page.tsx'
+run_named "named contract missing on base fails"       1 "c/other/x"  "$N" 'echo y >README.md'
+run_named "expired named contract fails"               1 "c/demo/fix" '# expires: 2026-11-22\nREADME.md\n' 'echo y >README.md'
+run_named "expiry day itself still passes"             0 "c/demo/fix" '# expires: 2026-11-23\nREADME.md\n' 'echo y >README.md'
+run_named "named contract without expiry fails"        1 "c/demo/fix" 'README.md\n' 'echo y >README.md'
+run_named "bad contract name fails"                    1 "c/../x/y"   "$N" 'echo y >README.md'
+run_named "editing a named contract fails"             1 "c/demo/fix" "$N" 'echo "**" >>.claude/contracts/demo.txt'
+run_named "adding a named contract in a PR fails"      1 "claude/x"   NONE 'mkdir -p .claude/contracts; echo "**" >.claude/contracts/new.txt'
+run_named "protected files still fail on named branch" 1 "c/demo/fix" '# expires: 2026-12-01\n**\n' 'echo y >pnpm-lock.yaml'
+
 echo
 echo "$pass passed, $fail failed"
 [[ $fail -eq 0 ]]
