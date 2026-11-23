@@ -39,7 +39,7 @@ NCH (NormiesCredHub, always "NCH", never renamed) is the reputation + concierge 
 ## Code rules
 - Do not edit `public/.well-known/ai-tool/*.json`. Their manifest hashes are pinned on-chain (ERC-8257); `lib/erc8257/manifest-hash.test.ts` fails on any change. Add response fields additively in code instead.
 - Work in PRs that target `main` — no stacked bases (a PR based on another PR's branch silently misses `main` when merged out of order). One branch per PR.
-- Open every PR as a **draft**. It is reviewed in a separate run from the one that wrote it, using the PR checklist; the author may review its own PR, never in the same session. The author fixes what the review raises, then marks it "Ready for review". Ryan merges only ready PRs. Dependabot PRs are the exception: they arrive ready, and Ryan may merge them once `check` is green.
+- Open every PR as a **draft**. It is reviewed in a separate run from the one that wrote it, using `docs/pr-checklist.md`; the author may review its own PR, never in the same session. The author fixes what the review raises, then marks it "Ready for review". Ryan merges only ready PRs. Dependabot PRs are the exception: they arrive ready, and Ryan may merge them once `check` is green.
 - Ryan merges. Pull `main` and check merged PRs before assuming anything is unmerged.
 - Run `pnpm typecheck` and `pnpm test:all` before opening a PR. New test files go into the `test:all` and `test:unit` scripts.
 - Sign your work: put your agent name (Claude, GrokBot, GrokProject, ZuloNCH Build, ZuloNCH Listen) in the commit message and PR title or body.
