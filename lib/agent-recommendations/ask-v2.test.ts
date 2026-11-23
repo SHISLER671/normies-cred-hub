@@ -59,7 +59,9 @@ describe("prompt shape", () => {
 
   it("a plain question's whole prompt stays well under the old ~100k characters", () => {
     const { system, user } = composeZuloMessages(ctx(), COLLECTION_Q, "live")
-    assert.ok(system.length + user.length < 75_000, String(system.length + user.length))
+    // 75k → 76k on 2026-11-23: the flat burn-yield standard (#231) added ~200 characters of burn history (75,207).
+    // Still well under the old ~100k. Trim the repeated burn-yield bullet before raising this again.
+    assert.ok(system.length + user.length < 76_000, String(system.length + user.length))
   })
 
   it("puts computed collection math in front of the model when loaded", () => {
@@ -70,7 +72,7 @@ describe("prompt shape", () => {
     )
     const { user } = composeZuloMessages(ctx({ collectionMath: cm }), COLLECTION_Q, "live")
     assert.match(user, /=== COLLECTION MATH/)
-    assert.match(user, /If EVERY living Normie were burned: 34 \(all lowest rolls\) to 56 \(all 4% rolls\)/)
+    assert.match(user, /If EVERY living Normie were burned: 28 \(all 2% rolls\) to 56 \(all 4% rolls\)/)
   })
 
   it("skips empty sections instead of printing 'not loaded' filler", () => {
