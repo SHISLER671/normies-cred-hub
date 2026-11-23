@@ -50,5 +50,6 @@ jobs:
       - name: Check scope
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
           LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: bash "$RUNNER_TEMP/scope-check.sh"
