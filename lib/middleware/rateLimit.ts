@@ -4,6 +4,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
+import { ASK_DAILY_CAP, checkDailyCap, dailyCapMessage, type DailyCap } from "@/lib/middleware/dailyCap"
 import { checkRateLimit, checkRateLimitById, getClientId } from "@/lib/ratelimit"
 import { appendSecurityEvent } from "@/lib/security/audit"
 
@@ -13,12 +14,15 @@ export type RateLimitProfile = "default" | "ask" | "payment" | "security"
 
 const PROFILES: Record<
   RateLimitProfile,
-  { ip: number; wallet: number; windowSec: number }
+  { ip: number; wallet: number; windowSec: number; daily?: DailyCap }
 > = {
   /** Per IP 60/min, per wallet 30/min */
   default: { ip: 60, wallet: 30, windowSec: 60 },
-  /** Ask spends inference credits on every call: 12/min per IP, 12/min per wallet (3/min each without Upstash in prod). */
-  ask: { ip: 12, wallet: 12, windowSec: 60 },
+  /**
+   * Ask spends inference credits on every call: 12/min per IP, 12/min per wallet (3/min each without Upstash in prod),
+   * plus a daily cap per caller and for everyone combined (lib/middleware/dailyCap.ts).
+   */
+  ask: { ip: 12, wallet: 12, windowSec: 60, daily: ASK_DAILY_CAP },
   /** Stricter for payment verification */
   payment: { ip: 10, wallet: 10, windowSec: 60 },
   /** Vulnerability reports */
@@ -42,7 +46,8 @@ function extractWallet(req: NextRequest, body?: unknown): string | undefined {
 }
 
 /**
- * Dual-key rate limit: IP and optional wallet both must pass.
+ * Dual-key rate limit: IP and optional wallet both must pass. Profiles with a daily cap check it last, after the
+ * per-minute limits, so a burst is turned away before it counts toward the day.
  */
 export async function enforceDualRateLimit(
   req: NextRequest,
@@ -98,6 +103,30 @@ export async function enforceDualRateLimit(
             headers: {
               "Retry-After": String(wResult.retryAfter),
               "X-RateLimit-Scope": "wallet",
+            },
+          },
+        ),
+      }
+    }
+  }
+
+  if (cfg.daily) {
+    const day = await checkDailyCap(checkRateLimitById, prefix, cfg.daily, { ip, wallet })
+    if (!day.ok) {
+      await appendSecurityEvent({
+        type: "RATE_LIMIT_HIT",
+        caller: day.scope === "wallet" && wallet ? wallet : ip,
+        detail: `profile=${profile} key=day-${day.scope} retry=${day.retryAfter}`,
+      })
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: dailyCapMessage(day.scope), code: "daily_cap", retryable: false },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(day.retryAfter),
+              "X-RateLimit-Scope": `day-${day.scope}`,
             },
           },
         ),
