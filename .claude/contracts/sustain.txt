@@ -1,0 +1,7 @@
+# Scope: the sustainability plan (one doc) and the first cost guard, a daily cap on Ask (Claude, 2026-11-26)
+# expires: 2026-12-10   (UTC)
+docs/zulo/sustainability-plan.md
+lib/middleware/rateLimit.ts
+lib/middleware/dailyCap.ts
+lib/middleware/dailyCap.test.ts
+package.json
